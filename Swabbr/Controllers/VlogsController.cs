@@ -11,7 +11,7 @@ namespace Swabbr.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class VlogsController
+    public class VlogsController : ControllerBase
     {
         private readonly IVlogRepository _repo;
 
@@ -67,7 +67,7 @@ namespace Swabbr.Controllers
                 DateStarted = DateTime.Now
             });
 
-            return new OkObjectResult(x);
+            return Ok(x);
 
             throw new NotImplementedException();
         }

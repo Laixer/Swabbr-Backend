@@ -6,7 +6,8 @@ namespace Swabbr.Controllers
 {
     //! Handles livestreaming with Azure Media Services
     // TODO Using this controller for now instead of Vlogs. Determine where to store these methods.
-    public class LivestreamsController
+    [ApiController]
+    public class LivestreamsController : ControllerBase
     {
         /// <summary>
         /// Start a new livestream.

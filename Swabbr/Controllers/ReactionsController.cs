@@ -7,8 +7,9 @@ namespace Swabbr.Controllers
     /// <summary>
     /// Actions related to reactions to vlogs.
     /// </summary>
+    [ApiController]
     [Route("api/v1/[controller]")]
-    public class ReactionsController
+    public class ReactionsController : ControllerBase
     {
         /// <summary>
         /// Create a new reaction to a vlog.

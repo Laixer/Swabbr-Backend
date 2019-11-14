@@ -10,8 +10,9 @@ namespace Swabbr.Controllers
     /// <summary>
     /// Actions  related to followers of a user.
     /// </summary>
+    [ApiController]
     [Route("api/v1/[controller]")]
-    public class FollowersController
+    public class FollowersController : ControllerBase
     {
         /// <summary>Get the followers of a single user.</summary>
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserItem>))]

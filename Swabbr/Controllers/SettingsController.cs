@@ -8,8 +8,9 @@ namespace Swabbr.Controllers
     /// <summary>
     /// Actions related to user settings and preferences.
     /// </summary>
+    [ApiController]
     [Route("api/v1/[controller]")]
-    public class SettingsController
+    public class SettingsController : ControllerBase
     {
         /// <summary>
         /// Get user settings for the authenticated user.

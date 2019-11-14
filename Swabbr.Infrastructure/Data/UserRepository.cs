@@ -1,22 +1,21 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.using System
 
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class UserRepository : CosmosDbRepository<UserItem> , IUserRepository
+    public class UserRepository : CosmosDbRepository<UserItem>, IUserRepository
     {
         private readonly ICosmosDbClientFactory _factory;
 
-        public UserRepository(ICosmosDbClientFactory factory) : base(factory) {
+        public UserRepository(ICosmosDbClientFactory factory) : base(factory)
+        {
             _factory = factory;
         }
 

@@ -7,14 +7,8 @@ namespace Swabbr.Core.Models
     /// <summary>
     /// Represents an active follow request between two users.
     /// </summary>
-    public class FollowRequest
+    public class FollowRequest : Entity
     {
-        /// <summary>
-        /// Id of the follow request.
-        /// </summary>
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-
         /// <summary>
         /// Id of the user that initiated the follow request.
         /// </summary>

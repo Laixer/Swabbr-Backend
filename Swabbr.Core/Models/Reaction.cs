@@ -6,14 +6,8 @@ namespace Swabbr.Core.Models
     /// <summary>
     /// A video reaction to a vlog.
     /// </summary>
-    public class Reaction
+    public class Reaction : Entity
     {
-        /// <summary>
-        /// Reaction Id.
-        /// </summary>
-        [JsonProperty("id")]
-        public Guid Id { get; set; }
-
         /// <summary>
         /// Id of the user by whom this reaction was created.
         /// </summary>

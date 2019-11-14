@@ -30,7 +30,6 @@ namespace Swabbr.Controllers
         {
             var y = await _repo.AddAsync(user);
 
-            //! TODO
             return Ok(y);
         }
 
@@ -63,11 +62,11 @@ namespace Swabbr.Controllers
             try
             {
                 var user = await _repo.GetByIdAsync(userId);
-                return new OkObjectResult(user);
+                return Ok(user);
             }
             catch (EntityNotFoundException)
             {
-                return new NotFoundResult();
+                return NotFound();
             }
         }
 
@@ -81,7 +80,7 @@ namespace Swabbr.Controllers
         public async Task<IActionResult> Search(
             [FromQuery]string q,
             [FromQuery]uint offset = 0,
-            [FromQuery]uint limit = 1)
+            [FromQuery]uint limit = 100)
         {
             var results = await _repo.SearchAsync(q, offset, limit);
 
@@ -98,6 +97,8 @@ namespace Swabbr.Controllers
         public async Task<IActionResult> Self()
         {
             //! TODO
+
+            //Get authenticated user id, get and return associated user vm
             throw new NotImplementedException();
         }
 
@@ -114,7 +115,7 @@ namespace Swabbr.Controllers
             }
             catch
             {
-                return new BadRequestResult();
+                return BadRequest();
             }
 
             //! TODO

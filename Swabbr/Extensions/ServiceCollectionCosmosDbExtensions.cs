@@ -20,6 +20,7 @@ namespace Swabbr.Api.Extensions
                 }
             });
 
+            // Initialize and add Cosmos Db client factory service
             var cosmosDbClientFactory = new CosmosDbClientFactory(databaseName, collections, client);
             cosmosDbClientFactory.EnsureDbSetupAsync().Wait();
 
