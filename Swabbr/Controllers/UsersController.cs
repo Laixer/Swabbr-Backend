@@ -31,7 +31,7 @@ namespace Swabbr.Controllers
             var y = await _repo.AddAsync(user);
 
             //! TODO
-            return new OkObjectResult(y);
+            return Ok(y);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Swabbr.Controllers
         public IActionResult Logout()
         {
             // TODO Deauthorize user, delete user access token
-            return new OkResult();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Swabbr.Controllers
         {
             var results = await _repo.SearchAsync(q, offset, limit);
 
-            return new OkObjectResult(results);
+            return Ok(results);
 
             //! TODO
             throw new NotImplementedException();
@@ -110,7 +110,7 @@ namespace Swabbr.Controllers
             try
             {
                 await _repo.UpdateAsync(user);
-                return new OkObjectResult(user);
+                return Ok(user);
             }
             catch
             {

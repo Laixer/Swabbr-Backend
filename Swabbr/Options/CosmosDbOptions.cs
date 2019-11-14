@@ -6,12 +6,12 @@ namespace Swabbr.Api.Options
     public class CosmosDbOptions
     {
         public string DatabaseName { get; set; }
-        public List<ContainerProperties> Collections { get; set; }
+        public List<ContainerProperties> Containers { get; set; }
 
-        public void Deconstruct(out string databaseName, out List<ContainerProperties> collections)
+        public void Deconstruct(out string databaseName, out List<ContainerProperties> containers)
         {
             databaseName = DatabaseName;
-            collections = Collections;
+            containers = Containers;
         }
     }
 }

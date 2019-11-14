@@ -13,13 +13,13 @@ namespace Swabbr.Infrastructure.Data
     public class CosmosDbClientFactory : ICosmosDbClientFactory
     {
         private readonly string _databaseId;
-        private readonly List<ContainerProperties> _collectionInfo;
+        private readonly List<ContainerProperties> _containerInfo;
         private readonly CosmosClient _client;
 
-        public CosmosDbClientFactory(string databaseName, List<ContainerProperties> collectionInfo, CosmosClient client)
+        public CosmosDbClientFactory(string databaseName, List<ContainerProperties> containerInfo, CosmosClient client)
         {
             _databaseId = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
-            _collectionInfo = collectionInfo ?? throw new ArgumentNullException(nameof(collectionInfo));
+            _containerInfo = containerInfo ?? throw new ArgumentNullException(nameof(containerInfo));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -30,12 +30,12 @@ namespace Swabbr.Infrastructure.Data
         /// <returns></returns>
         public ICosmosDbClient<T> GetClient<T>(string containerId)
         {
-            if (!_collectionInfo.Any(col => col.Name.Equals(containerId)))
+            if (!_containerInfo.Any(col => col.Name.Equals(containerId)))
             {
                 throw new ArgumentException($"Container not found/specified: {containerId}");
             }
 
-            var collection = _collectionInfo.Where(c => c.Name.Equals(containerId)).First();
+            var collection = _containerInfo.Where(c => c.Name.Equals(containerId)).First();
 
             return new CosmosDbClient<T>(_databaseId, containerId, _client);
         }
@@ -49,7 +49,7 @@ namespace Swabbr.Infrastructure.Data
             var dbResult = await _client.CreateDatabaseIfNotExistsAsync(_databaseId);
 
             // Create the specified containers in the database if they do not exist.
-            foreach (var collection in _collectionInfo)
+            foreach (var collection in _containerInfo)
             {
                 await dbResult.Database.CreateContainerIfNotExistsAsync( 
                     new Microsoft.Azure.Cosmos.ContainerProperties

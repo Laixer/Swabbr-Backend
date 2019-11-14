@@ -47,12 +47,12 @@ namespace Swabbr
             var connectionStringOptions = Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>();
             var cosmosDbOptions = Configuration.GetSection("CosmosDb").Get<CosmosDbOptions>();
             var connectionString = connectionStringOptions.ActiveConnectionString;
-            var (databaseName, collections) = cosmosDbOptions;
+            var (databaseName, containers) = cosmosDbOptions;
 
             //TODO Comments
             // Verify database and collections existance.
             // Add CosmosDb. Ensure database and containers exist.
-            services.AddCosmosDb(connectionString, databaseName, collections);
+            services.AddCosmosDb(connectionString, databaseName, containers);
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IVlogRepository, VlogRepository>();
