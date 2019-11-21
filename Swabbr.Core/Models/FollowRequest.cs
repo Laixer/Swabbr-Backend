@@ -13,13 +13,13 @@ namespace Swabbr.Core.Models
         /// Id of the user that initiated the follow request.
         /// </summary>
         [JsonProperty("requesterId")]
-        public Guid RequesterId { get; set; }
+        public string RequesterId { get; set; }
 
         /// <summary>
         /// Id of the user that should receive the follow request.
         /// </summary>
         [JsonProperty("receiverId")]
-        public Guid ReceiverId { get; set; }
+        public string ReceiverId { get; set; }
 
         /// <summary>
         /// Current status of the follow request.

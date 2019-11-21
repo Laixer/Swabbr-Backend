@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.using System
 
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Collections.ObjectModel;
-using Microsoft.Azure.Cosmos;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
@@ -51,7 +50,7 @@ namespace Swabbr.Infrastructure.Data
             // Create the specified containers in the database if they do not exist.
             foreach (var collection in _containerInfo)
             {
-                await dbResult.Database.CreateContainerIfNotExistsAsync( 
+                await dbResult.Database.CreateContainerIfNotExistsAsync(
                     new Microsoft.Azure.Cosmos.ContainerProperties
                     {
                         Id = collection.Name,

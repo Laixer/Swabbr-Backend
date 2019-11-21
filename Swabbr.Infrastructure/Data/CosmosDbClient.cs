@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
+    /// <summary>
+    /// Client for a ComsosDb database.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class CosmosDbClient<T> : ICosmosDbClient<T>
     {
         private readonly Database _database;

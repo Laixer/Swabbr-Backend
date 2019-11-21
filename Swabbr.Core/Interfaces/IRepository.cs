@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces

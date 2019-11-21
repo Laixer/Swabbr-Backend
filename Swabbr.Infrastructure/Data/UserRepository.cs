@@ -2,15 +2,15 @@
 // Licensed under the MIT license.using System
 
 using Microsoft.Azure.Cosmos;
+using Swabbr.Core.Documents;
 using Swabbr.Core.Interfaces;
-using Swabbr.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class UserRepository : CosmosDbRepository<UserItem>, IUserRepository
+    public class UserRepository : CosmosDbRepository<UserDocument>, IUserRepository
     {
         private readonly ICosmosDbClientFactory _factory;
 
@@ -20,7 +20,7 @@ namespace Swabbr.Infrastructure.Data
         }
 
         public override string ContainerName { get; } = "Users";
-        public override string GenerateId(UserItem entity) => Guid.NewGuid().ToString();
+        public override string GenerateId(UserDocument entity) => Guid.NewGuid().ToString();
         public override PartitionKey ResolvePartitionKey(string entityId) => new PartitionKey(entityId);
 
         /// <summary>
@@ -28,11 +28,11 @@ namespace Swabbr.Infrastructure.Data
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<UserItem>> SearchAsync(string q, uint offset = 0, uint limit = 1)
+        public async Task<IEnumerable<UserDocument>> SearchAsync(string q, uint offset = 0, uint limit = 1)
         {
             try
             {
-                var cosmosDbClient = _factory.GetClient<UserItem>(ContainerName);
+                var cosmosDbClient = _factory.GetClient<UserDocument>(ContainerName);
 
                 var query = new QueryDefinition(@"
                     SELECT * FROM c 

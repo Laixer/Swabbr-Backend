@@ -12,9 +12,9 @@ namespace Swabbr.Controllers
     [Route("api/v1/[controller]")]
     public class FollowRequestsController : ControllerBase
     {
-        private readonly IFollowRequestsRepository _repo;
+        private readonly IFollowersRepository _repo;
 
-        public FollowRequestsController(IFollowRequestsRepository repo)
+        public FollowRequestsController(IFollowersRepository repo)
         {
             _repo = repo;
         }
@@ -58,6 +58,12 @@ namespace Swabbr.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create()
         {
+            _repo.AddAsync(new Core.Models.FollowRequest
+            {
+                ReceiverId = "test",
+                RequesterId = "test2",
+                TimeCreated = DateTime.Now
+            });
             //! TODO
             throw new NotImplementedException();
         }

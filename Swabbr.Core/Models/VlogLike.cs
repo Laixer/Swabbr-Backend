@@ -9,10 +9,16 @@ namespace Swabbr.Core.Models
     public class VlogLike
     {
         /// <summary>
-        /// Id of the user.
+        /// Id of the vlog that was given a like.
+        /// </summary>
+        [JsonProperty("vlogId")]
+        public string VlogId { get; set; }
+
+        /// <summary>
+        /// Id of the user that created the like.
         /// </summary>
         [JsonProperty("userId")]
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
 
         /// <summary>
         /// The time at which the user liked the vlog.

@@ -1,16 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace Swabbr
 {
@@ -33,7 +38,32 @@ namespace Swabbr
                 options.LowercaseUrls = true;
             });
 
-            services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme);
+            // Authentication
+            //services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme);
+            services.AddIdentity<IdentityUser, IdentityRole>()
+            .AddDefaultTokenProviders();
+
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+                })
+                .AddJwtBearer(cfg =>
+                {
+                    cfg.RequireHttpsMetadata = false;
+                    cfg.SaveToken = true;
+                    cfg.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuer = Configuration["JwtIssuer"],
+                        ValidAudience = Configuration["JwtIssuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
+                        ClockSkew = TimeSpan.Zero // remove delay of token when expire
+                    };
+                });
 
             services.AddSwaggerGen(c =>
             {

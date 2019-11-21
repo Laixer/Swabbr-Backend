@@ -1,12 +1,14 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Documents;
 using System;
+using System.Collections.Generic;
 
 namespace Swabbr.Core.Models
 {
     /// <summary>
     /// A vlog created by a user.
     /// </summary>
-    public class VlogItem : Entity
+    public class Vlog : Entity
     {
         /// <summary>
         /// Id of the user who created the vlog.
@@ -14,7 +16,7 @@ namespace Swabbr.Core.Models
         [JsonProperty("userId")]
         public Guid UserId { get; set; }
 
-        //TODO: Is the duration of the vlog available from the media service metadata?
+        //TODO: Is the duration of the vlog available from the media service metadata or should this be stored seperately?
         /// <summary>
         /// The duration of the vlog.
         /// </summary>
@@ -39,6 +41,18 @@ namespace Swabbr.Core.Models
         [JsonProperty("dateStarted")]
         public DateTime DateStarted { get; set; }
 
+        /// <summary>
+        /// Likes given to this vlog by users.
+        /// </summary>
+        [JsonProperty("likes")]
+        public List<VlogLike> Likes { get; set; }
+
         // TODO: Add Metadata from Media Service to model?
+
+        public VlogDocument ToDocument()
+        {
+            // TO DO
+            throw new NotImplementedException();
+        }
     }
 }

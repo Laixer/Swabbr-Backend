@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using Swabbr.Core.Documents;
 using Swabbr.Core.Models;
 using Swabbr.Core.Interfaces;
 
 namespace Swabbr.Controllers
 {
     /// <summary>
-    /// Vlogs.
+    /// Controller for handling vlog related Api requests.
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
@@ -58,10 +59,10 @@ namespace Swabbr.Controllers
         /// </summary>
         /// <param name="users">Users to share the vlog with.</param>
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody]UserItem[] users)
+        public async Task<IActionResult> Create([FromBody]User[] users)
         {
             //! TODO
-            var x = await _repo.AddAsync(new VlogItem
+            var x = await _repo.AddAsync(new VlogDocument
             {
                 UserId = Guid.NewGuid(),
                 DateStarted = DateTime.Now

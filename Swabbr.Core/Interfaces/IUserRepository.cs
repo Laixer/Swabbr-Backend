@@ -1,10 +1,10 @@
-﻿using Swabbr.Core.Models;
+﻿using Swabbr.Core.Documents;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
-    public interface IUserRepository : IRepository<UserItem> {
+    public interface IUserRepository : IRepository<UserDocument> {
         /// <summary>
         /// Searching for users.
         /// </summary>
@@ -12,6 +12,6 @@ namespace Swabbr.Core.Interfaces
         /// <param name="offset">Result record offset.</param>
         /// <param name="limit">Result limit.</param>
         /// <returns>A collection of users matching the search query.</returns>
-        Task<IEnumerable<UserItem>> SearchAsync(string query, uint offset, uint limit);
+        Task<IEnumerable<UserDocument>> SearchAsync(string query, uint offset, uint limit);
     }
 }

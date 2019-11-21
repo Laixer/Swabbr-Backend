@@ -1,23 +1,39 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Models;
 using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+
+
+// TODO DIFFERENT MODELS FOR INPUT. CURRENTLY USING SWABBR.CORE DOMAIN MODELS
 
 namespace Swabbr.Controllers
 {
     //TODO Determine attributes
+    /// <summary>
+    /// Controller for handling user related Api requests.
+    /// </summary>
     [ApiVersion("1.0")]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _repo;
+        private readonly IConfiguration _config;
 
-        public UsersController(IUserRepository repo)
+        public UsersController(IUserRepository repo, IConfiguration configuration)
         {
             _repo = repo;
+            _config = configuration;
         }
 
         /// <summary>
@@ -26,18 +42,26 @@ namespace Swabbr.Controllers
         /// <param name="user">New user information</param>
         /// <returns></returns>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserItem user)
+        public async Task<IActionResult> Register([FromBody] User user)
         {
-            var y = await _repo.AddAsync(user);
+            try
+            {
+                var x = await _repo.AddAsync(user.ToDocument());
+                return Created(Url.ToString(), x);
+            }
+            catch
+            {
+                // TODO ??? What to do
+                return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+            }
 
-            return Ok(y);
         }
 
         /// <summary>
         /// Authorizes a registered user.
         /// </summary>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserItem user)
+        public async Task<IActionResult> Login([FromBody] User user)
         {
             //! TODO
             throw new NotImplementedException();
@@ -106,11 +130,11 @@ namespace Swabbr.Controllers
         /// Update the authenticated user.
         /// </summary>
         [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] UserItem user)
+        public async Task<IActionResult> Update([FromBody] User user)
         {
             try
             {
-                await _repo.UpdateAsync(user);
+                await _repo.UpdateAsync(user.ToDocument());
                 return Ok(user);
             }
             catch
@@ -126,15 +150,38 @@ namespace Swabbr.Controllers
         /// <summary>
         /// Delete the account of the authenticated user.
         /// </summary>
-     // TODO To remove   
-            ////[ApiExplorerSettings(IgnoreApi = true)]
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete()
         {
-            UserItem user = null;
-            await _repo.DeleteAsync(user);
+            User user = null;
+            await _repo.DeleteAsync(user.ToDocument());
             //! TODO
             throw new NotImplementedException();
         }
+
+        private async Task<object> GenerateAuthToken(string emailAddress, IdentityUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, emailAddress),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtKey"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(_config["JwtExpireDays"]));
+
+            var token = new JwtSecurityToken(
+                _config["JwtIssuer"],
+                _config["JwtIssuer"],
+                claims,
+                expires: expires,
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
     }
 }

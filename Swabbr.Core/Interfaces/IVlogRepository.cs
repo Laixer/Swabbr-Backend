@@ -1,6 +1,6 @@
-﻿using Swabbr.Core.Models;
+﻿using Swabbr.Core.Documents;
 
 namespace Swabbr.Core.Interfaces
 {
-    public interface IVlogRepository : IRepository<VlogItem> { }
+    public interface IVlogRepository : IRepository<VlogDocument> { }
 }

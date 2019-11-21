@@ -39,5 +39,10 @@ namespace Swabbr.Core.Models
         public bool IsPrivate { get; set; }
 
         // TODO: Add metadata from media service? To reactions
+        /// <summary>
+        /// Additional data retrieved from the Media Service
+        /// </summary>
+        [JsonProperty("mediaServiceData")]
+        public object MediaServiceData { get; set; }
     }
 }

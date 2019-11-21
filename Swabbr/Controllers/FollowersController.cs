@@ -15,7 +15,7 @@ namespace Swabbr.Controllers
     public class FollowersController : ControllerBase
     {
         /// <summary>Get the followers of a single user.</summary>
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserItem>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<User>))]
         [HttpGet("users/{userId}")]
         public async Task<IActionResult> List([FromRoute] int userId)
         {

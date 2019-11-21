@@ -9,6 +9,12 @@ namespace Swabbr.Core.Models
     public class Settings
     {
         /// <summary>
+        /// Id of the user these settings belong to.
+        /// </summary>
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
+
+        /// <summary>
         /// The maximum amount of times the user should be reminded
         /// to record a vlog through push notifications.
         /// </summary>
