@@ -3,7 +3,7 @@ using Swabbr.Core.Interfaces;
 using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.Controllers
+namespace Swabbr.Api.Controllers
 {
     /// <summary>
     /// Actions related to follow requests.

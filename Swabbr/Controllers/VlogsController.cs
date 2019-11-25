@@ -5,7 +5,7 @@ using Swabbr.Core.Documents;
 using Swabbr.Core.Models;
 using Swabbr.Core.Interfaces;
 
-namespace Swabbr.Controllers
+namespace Swabbr.Api.Controllers
 {
     /// <summary>
     /// Controller for handling vlog related Api requests.

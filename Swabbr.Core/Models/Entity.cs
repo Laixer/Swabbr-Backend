@@ -7,7 +7,6 @@ namespace Swabbr.Core.Models
         /// <summary>
         /// Entity identifier
         /// </summary>
-        [JsonProperty("id")]
         public string Id { get; set; }
     }
 }

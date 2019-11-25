@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.Controllers
+namespace Swabbr.Api.Controllers
 {
     //! Handles livestreaming with Azure Media Services
     // TODO Using this controller for now instead of Vlogs. Determine where to store these methods.

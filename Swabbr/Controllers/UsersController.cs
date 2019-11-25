@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
-using Swabbr.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,11 +11,11 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Swabbr.ViewModels;
+using Swabbr.Core.Models;
+using Swabbr.Core.Documents;
 
-
-// TODO DIFFERENT MODELS FOR INPUT. CURRENTLY USING SWABBR.CORE DOMAIN MODELS
-
-namespace Swabbr.Controllers
+namespace Swabbr.Api.Controllers
 {
     //TODO Determine attributes
     /// <summary>
@@ -42,11 +41,13 @@ namespace Swabbr.Controllers
         /// <param name="user">New user information</param>
         /// <returns></returns>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
             try
             {
-                var x = await _repo.AddAsync(user.ToDocument());
+                UserDocument user = null;
+
+                var x = await _repo.AddAsync(user);
                 return Created(Url.ToString(), x);
             }
             catch

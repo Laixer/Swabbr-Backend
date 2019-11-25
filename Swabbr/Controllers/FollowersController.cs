@@ -5,7 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Swabbr.Core.Models;
 
-namespace Swabbr.Controllers
+namespace Swabbr.Api.Controllers
 {
     /// <summary>
     /// Actions  related to followers of a user.
