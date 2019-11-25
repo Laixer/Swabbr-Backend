@@ -11,9 +11,10 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Swabbr.ViewModels;
 using Swabbr.Core.Models;
 using Swabbr.Core.Documents;
+using Swabbr.Api.ViewModels;
+using System.Linq;
 
 namespace Swabbr.Api.Controllers
 {
@@ -21,18 +22,27 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling user related Api requests.
     /// </summary>
-    [ApiVersion("1.0")]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _repo;
         private readonly IConfiguration _config;
 
-        public UsersController(IUserRepository repo, IConfiguration configuration)
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
+
+        public UsersController(
+            IUserRepository repo, 
+            IConfiguration configuration,
+            SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager)
         {
             _repo = repo;
             _config = configuration;
+
+            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -41,13 +51,22 @@ namespace Swabbr.Api.Controllers
         /// <param name="user">New user information</param>
         /// <returns></returns>
         [HttpPost("register")]
+        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserDocument))]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
             try
             {
                 UserDocument user = null;
-
                 var x = await _repo.AddAsync(user);
+
+
+                var xx = new IdentityUser
+                {
+                    UserName = input.Email,
+                    Email = input.Email
+                };
+                await _userManager.CreateAsync(xx, input.Password);
+
                 return Created(Url.ToString(), x);
             }
             catch
@@ -62,9 +81,21 @@ namespace Swabbr.Api.Controllers
         /// Authorizes a registered user.
         /// </summary>
         [HttpPost("login")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public async Task<IActionResult> Login([FromBody] User user)
         {
             //! TODO
+
+            var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
+
+            if (result.Succeeded)
+            {
+                var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
+                var token = await GenerateAuthToken(user.Email, appUser);
+                return Ok(token);
+            }
+
             throw new NotImplementedException();
         }
 

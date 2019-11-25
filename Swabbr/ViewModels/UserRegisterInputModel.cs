@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Documents;
 using Swabbr.Core.Enums;
 using System;
 
@@ -77,5 +78,29 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("phoneNumber")]
         public string PhoneNumber { get; set; }
+
+        /// <summary>
+        /// Converts user based input a database document
+        /// </summary>
+        /// <returns></returns>
+        public UserDocument ToDocument()
+        {
+            return new UserDocument
+            {
+                FirstName = FirstName,
+                LastName = LastName,
+                Gender = Gender,
+                Country = Country,
+                Email = Email,
+                // TODO Problem #1.
+                //Password = Password,
+                BirthDate = BirthDate,
+                Timezone = Timezone,
+                Nickname = Nickname,
+                ProfileImageUrl = ProfileImageUrl,
+                IsPrivate = IsPrivate,
+                PhoneNumber = PhoneNumber
+            };
+        }
     }
 }
