@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Swabbr.Core.Documents;
-using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Core.Models
@@ -84,17 +82,5 @@ namespace Swabbr.Core.Models
         /// Personal settings and preferences.
         /// </summary>
         public Settings Settings { get; set; }
-
-        public UserDocument ToDocument()
-        {
-            throw new NotImplementedException();
-
-            // TODO: METHOD BODY NOT FINISHED.
-            return new UserDocument
-            {
-                Id = Id,
-                FirstName = FirstName
-            };
-        }
     }
 }
