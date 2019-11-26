@@ -5,6 +5,6 @@ namespace Swabbr.Infrastructure.Data
 {
     public interface ICosmosDbClientFactory
     {
-        ICosmosDbClient<T> GetClient<T>(string collectionName);
+        ICosmosDbClient<T> GetClient<T>(string tableName);
     }
 }

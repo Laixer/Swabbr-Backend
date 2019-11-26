@@ -6,58 +6,62 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos.Table;
 
 namespace Swabbr.Infrastructure.Data
 {
     public class CosmosDbClientFactory : ICosmosDbClientFactory
     {
-        private readonly string _databaseId;
+        private readonly string _tableName;
         private readonly List<ContainerProperties> _containerInfo;
-        private readonly CosmosClient _client;
+        private readonly CloudTableClient _client;
 
-        public CosmosDbClientFactory(string databaseName, List<ContainerProperties> containerInfo, CosmosClient client)
+        public CosmosDbClientFactory(string tableName, List<ContainerProperties> containerInfo, CloudStorageAccount storageAccount)
         {
-            _databaseId = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
+            _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
             _containerInfo = containerInfo ?? throw new ArgumentNullException(nameof(containerInfo));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _client = storageAccount.CreateCloudTableClient();
         }
 
         /// <summary>
         /// Returns a Cosmos Db client for a single entity container of type <see cref="T"/>.
         /// </summary>
-        /// <param name="containerId">Name of the container</param>
+        /// <param name="tableName">Name of the container</param>
         /// <returns></returns>
-        public ICosmosDbClient<T> GetClient<T>(string containerId)
+        public ICosmosDbClient<T> GetClient<T>(string tableName)
         {
-            if (!_containerInfo.Any(col => col.Name.Equals(containerId)))
-            {
-                throw new ArgumentException($"Container not found/specified: {containerId}");
-            }
+            // TODO
+            ////if (!_containerInfo.Any(col => col.Name.Equals(tableName)))
+            ////{
+            ////    throw new ArgumentException($"Container not found/specified: {tableName}");
+            ////}
+            ////
+            ////var collection = _containerInfo.Where(c => c.Name.Equals(tableName)).First();
 
-            var collection = _containerInfo.Where(c => c.Name.Equals(containerId)).First();
-
-            return new CosmosDbClient<T>(_databaseId, containerId, _client);
+            return new CosmosDbClient<T>(_tableName, _client);
         }
 
         /// <summary>
         /// Ensure all specified collections exist in the database.
         /// </summary>
-        public async Task EnsureDbSetupAsync()
+        public async Task EnsureDbSetupAsync(TableRequestOptions requestOptions)
         {
-            // Create database if it doesn't exist.
-            var dbResult = await _client.CreateDatabaseIfNotExistsAsync(_databaseId);
+            // Create table if it doesn't exist.
+            await _client.GetTableReference(_tableName).CreateIfNotExistsAsync();
 
+
+            // TODO..... Clean up
             // Create the specified containers in the database if they do not exist.
-            foreach (var collection in _containerInfo)
-            {
-                await dbResult.Database.CreateContainerIfNotExistsAsync(
-                    new Microsoft.Azure.Cosmos.ContainerProperties
-                    {
-                        Id = collection.Name,
-                        PartitionKeyPath = collection.PartitionKey
-                    }
-                );
-            }
+            /////foreach (var collection in _containerInfo)
+            /////{
+            /////    await result.Database.CreateContainerIfNotExistsAsync(
+            /////        new Microsoft.Azure.Cosmos.ContainerProperties
+            /////        {
+            /////            Id = collection.Name,
+            /////            PartitionKeyPath = collection.PartitionKey
+            /////        }
+            /////    );
+            /////}
         }
     }
 }

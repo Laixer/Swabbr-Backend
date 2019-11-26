@@ -10,7 +10,10 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// </summary>
     public class UserEntity : TableEntity
     {
-        public UserEntity() { }
+        public UserEntity() 
+        {
+        
+        }
 
         public UserEntity(string userId, string email)
         {

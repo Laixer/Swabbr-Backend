@@ -26,14 +26,14 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string FollowRequestId { get; set; }
 
         /// <summary>
-        /// Id of the user that initiated the follow request.
-        /// </summary>
-        public string RequesterId { get; set; }
-
-        /// <summary>
         /// Id of the user that should receive the follow request.
         /// </summary>
         public string ReceiverId { get; set; }
+
+        /// <summary>
+        /// Id of the user that has initiated the follow request.
+        /// </summary>
+        public string RequesterId { get; set; }
 
         /// <summary>
         /// Current status of the follow request.

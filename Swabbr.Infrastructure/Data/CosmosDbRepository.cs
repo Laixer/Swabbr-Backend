@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Models;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public abstract class CosmosDbRepository<T> : IRepository<T>, IContainerContext<T> where T : Entity
+    public abstract class CosmosDbRepository<T> : IRepository<T> where T : TableEntity
     {
         private readonly ICosmosDbClientFactory _cosmosDbClientFactory;
 
@@ -18,13 +19,13 @@ namespace Swabbr.Infrastructure.Data
             _cosmosDbClientFactory = cosmosDbClientFactory;
         }
 
-        public async Task<T> GetByIdAsync(string id)
+        public async Task<T> GetByIdAsync(string partitionKey, string rowKey)
         {
             try
             {
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(ContainerName);
-                var item = await cosmosDbClient.ReadItemAsync(id);
-                return item.Resource;
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(TableName);
+                var item = await cosmosDbClient.RetrieveEntityAsync(partitionKey, rowKey);
+                return item;
             }
             catch (CosmosException e)
             {
@@ -41,10 +42,9 @@ namespace Swabbr.Infrastructure.Data
         {
             try
             {
-                entity.Id = GenerateId(entity);
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(ContainerName);
-                var item = await cosmosDbClient.CreateItemAsync(entity);
-                return item.Resource;
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(TableName);
+                var item = await cosmosDbClient.InsertEntityAsync(entity);
+                return item;
             }
             catch (CosmosException e)
             {
@@ -61,8 +61,8 @@ namespace Swabbr.Infrastructure.Data
         {
             try
             {
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(ContainerName);
-                await cosmosDbClient.ReplaceItemAsync(entity.Id, entity);
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(TableName);
+                await cosmosDbClient.UpdateEntityAsync(entity);
             }
             catch (CosmosException e)
             {
@@ -79,8 +79,8 @@ namespace Swabbr.Infrastructure.Data
         {
             try
             {
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(ContainerName);
-                await cosmosDbClient.DeleteItemAsync(entity.Id);
+                var cosmosDbClient = _cosmosDbClientFactory.GetClient<T>(TableName);
+                await cosmosDbClient.DeleteEntityAsync(entity.PartitionKey, entity.RowKey);
             }
             catch (CosmosException e)
             {
@@ -93,8 +93,10 @@ namespace Swabbr.Infrastructure.Data
             }
         }
 
-        public abstract string ContainerName { get; }
-        public virtual string GenerateId(T entity) => Guid.NewGuid().ToString();
-        public virtual PartitionKey ResolvePartitionKey(string entityId) => PartitionKey.Null;
+        // TODO: .................
+        /// <summary>
+        /// Name of the table
+        /// </summary>
+        public abstract string TableName { get; }
     }
 }

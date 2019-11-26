@@ -6,10 +6,10 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Personal settings and preferences for a user.
     /// </summary>
-    public class UserSettings : TableEntity
+    public class UserSettingsEntity : TableEntity
     {
         // TODO: Determine partition and row keys
-        public UserSettings(string partitionKey, string userId)
+        public UserSettingsEntity(string partitionKey, string userId)
         {
             PartitionKey = partitionKey;
             RowKey = userId;
