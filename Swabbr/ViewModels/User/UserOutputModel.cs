@@ -1,32 +1,10 @@
-﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Core.Enums;
-using Swabbr.Core.Models;
+﻿using Swabbr.Core.Enums;
 using System;
 
-namespace Swabbr.Infrastructure.Data.Entities
+namespace Swabbr.Api.ViewModels
 {
-    /// <summary>
-    /// Represents a single user.
-    /// </summary>
-    public class UserEntity : TableEntity
+    public class UserOutputModel
     {
-        public UserEntity() 
-        {
-        
-        }
-
-        /// <summary>
-        /// Entity Id.
-        /// </summary>
-        public string UserId 
-        {
-            get => RowKey;
-            set {
-                // TODO PartitionKey and RowKey should be the same?
-                PartitionKey = RowKey = value;
-            }
-        }
-
         /// <summary>
         /// First name of the user.
         /// </summary>
@@ -53,11 +31,6 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string Email { get; set; }
 
         /// <summary>
-        /// Hashed password of the user.
-        /// </summary>
-        public string Password { get; set; }
-
-        /// <summary>
         /// Date of birth for the given user.
         /// </summary>
         public DateTime BirthDate { get; set; }
@@ -81,20 +54,5 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
         public bool IsPrivate { get; set; }
-
-        /// <summary>
-        /// Angular longitude coordinate.
-        /// </summary>
-        public decimal Longitude { get; set; }
-
-        /// <summary>
-        /// Angular latitude coordinate.
-        /// </summary>
-        public decimal Latitude { get; set; }
-
-        /// <summary>
-        /// Phone number of the user stored as text.
-        /// </summary>
-        public string PhoneNumber { get; set; }
     }
 }

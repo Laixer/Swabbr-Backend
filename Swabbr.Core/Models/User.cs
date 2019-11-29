@@ -81,6 +81,6 @@ namespace Swabbr.Core.Models
         /// <summary>
         /// Personal settings and preferences.
         /// </summary>
-        public Settings Settings { get; set; }
+        public UserSettings Settings { get; set; }
     }
 }

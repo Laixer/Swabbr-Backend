@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Enums;
 using System;
+using System.Collections.Generic;
 
 namespace Swabbr.Infrastructure.Data.Entities
 {
@@ -14,21 +15,23 @@ namespace Swabbr.Infrastructure.Data.Entities
 
         }
 
-        public FollowRequestEntity(string receiverId, string requesterId)
-        {
-            PartitionKey = receiverId;
-            RowKey = requesterId;
-        }
-
         /// <summary>
         /// Entity Id.
         /// </summary>
-        public string FollowRequestId { get; set; }
+        public string FollowRequestId 
+        {
+            get => RowKey;
+            set => RowKey = value;
+        }
 
         /// <summary>
         /// Id of the user that should receive the follow request.
         /// </summary>
-        public string ReceiverId { get; set; }
+        public string ReceiverId 
+        {
+            get => PartitionKey;
+            set => PartitionKey = value;
+        }
 
         /// <summary>
         /// Id of the user that has initiated the follow request.

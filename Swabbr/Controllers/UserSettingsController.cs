@@ -10,7 +10,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class SettingsController : ControllerBase
+    public class UserSettingsController : ControllerBase
     {
         /// <summary>
         /// Get user settings for the authenticated user.
@@ -26,7 +26,7 @@ namespace Swabbr.Api.Controllers
         /// Update user settings.
         /// </summary>
         [HttpPut("update")]
-        public async Task<IActionResult> Update([FromBody] Settings settings)
+        public async Task<IActionResult> Update([FromBody] UserSettings settings)
         {
             if (settings != null)
             {

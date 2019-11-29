@@ -1,13 +1,9 @@
 ﻿using Newtonsoft.Json;
 using Swabbr.Core.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class SettingsOutputModel
+    public class UserSettingsInputModel
     {
         /// <summary>
         /// Id of the user these settings belong to.

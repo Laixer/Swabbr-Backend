@@ -12,12 +12,6 @@ namespace Swabbr.Api.Controllers
     [Route("api/v1/[controller]")]
     public class FollowRequestsController : ControllerBase
     {
-        private readonly IFollowersRepository _repo;
-
-        public FollowRequestsController(IFollowersRepository repo)
-        {
-            _repo = repo;
-        }
 
         // TODO Return user objects or user id's???
         /// <summary>
@@ -58,12 +52,12 @@ namespace Swabbr.Api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create()
         {
-            _repo.AddAsync(new Core.Models.FollowRequest
-            {
-                ReceiverId = "test",
-                RequesterId = "test2",
-                TimeCreated = DateTime.Now
-            });
+            ////_repo.AddAsync(new Core.Models.FollowRequest
+            ////{
+            ////    ReceiverId = "test",
+            ////    RequesterId = "test2",
+            ////    TimeCreated = DateTime.Now
+            ////});
             //! TODO
             throw new NotImplementedException();
         }

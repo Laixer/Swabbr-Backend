@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,10 +7,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swabbr.Api;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data;
+using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
@@ -33,10 +35,20 @@ namespace Swabbr
         {
             services.AddControllers();
 
+            // Add routing options
             services.AddRouting(options =>
             {
                 options.LowercaseUrls = true;
             });
+
+            // Add mapper
+            var mappingConfiguration = new MapperConfiguration(m =>
+            {
+                m.AddProfile(new MapperProfile());
+                // TODO Explicitly tell mapper to map Email to RowPartition
+            });
+            IMapper mapper = mappingConfiguration.CreateMapper();
+            services.AddSingleton(mapper);
 
             // Authentication
             //services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme);
@@ -77,12 +89,12 @@ namespace Swabbr
             var connectionStringOptions = Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>();
             var cosmosDbOptions = Configuration.GetSection("CosmosDb").Get<CosmosDbOptions>();
             var connectionString = connectionStringOptions.ActiveConnectionString;
-            var (databaseName, containers) = cosmosDbOptions;
+            var tableProperties = cosmosDbOptions.Tables;
 
             //TODO Comments
             // Verify database and collections existance.
             // Add CosmosDb. Ensure database and containers exist.
-            services.AddCosmosDb(connectionString, databaseName, containers);
+            services.AddCosmosDb(connectionString, tableProperties);
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IVlogRepository, VlogRepository>();

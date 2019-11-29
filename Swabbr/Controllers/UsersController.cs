@@ -12,9 +12,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Swabbr.Core.Models;
-using Swabbr.Core.Documents;
 using Swabbr.Api.ViewModels;
-using System.Linq;
+using Swabbr.Infrastructure.Data.Entities;
+using AutoMapper;
 
 namespace Swabbr.Api.Controllers
 {
@@ -28,6 +28,7 @@ namespace Swabbr.Api.Controllers
     {
         private readonly IUserRepository _repo;
         private readonly IConfiguration _config;
+        private readonly IMapper _mapper;
 
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
@@ -35,44 +36,55 @@ namespace Swabbr.Api.Controllers
         public UsersController(
             IUserRepository repo, 
             IConfiguration configuration,
+            IMapper mapper,
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager)
         {
             _repo = repo;
             _config = configuration;
-
+            _mapper = mapper;
             _signInManager = signInManager;
             _userManager = userManager;
+        }
+
+        //TODO: Remove, temporary
+        [HttpGet("tempdeletetables")]
+        public async Task<IActionResult> TempDeleteTables()
+        {
+            await _repo.TempDeleteTables();
+            return Ok();
         }
 
         /// <summary>
         /// Create a new user account.
         /// </summary>
-        /// <param name="user">New user information</param>
+        /// <param name="input">Input for a new user to register</param>
         /// <returns></returns>
         [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserDocument))]
+        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
+            // Map input to model
+            var user = _mapper.Map<UserEntity>(input);
+
             try
             {
-                UserDocument user = null;
                 var x = await _repo.AddAsync(user);
 
-
+                // TODO?????????
                 var xx = new IdentityUser
                 {
                     UserName = input.Email,
                     Email = input.Email
                 };
-                await _userManager.CreateAsync(xx, input.Password);
+                //await _userManager.CreateAsync(xx, input.Password);
 
                 return Created(Url.ToString(), x);
             }
-            catch
+            catch(Exception e)
             {
-                // TODO ??? What to do
-                return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
+                // TODO ??? What to do on error
+                return new BadRequestObjectResult(e.Message);
             }
 
         }
@@ -87,14 +99,14 @@ namespace Swabbr.Api.Controllers
         {
             //! TODO
 
-            var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
+            //var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
 
-            if (result.Succeeded)
-            {
-                var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
-                var token = await GenerateAuthToken(user.Email, appUser);
-                return Ok(token);
-            }
+            //if (result.Succeeded)
+            //{
+            //    var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
+            //    var token = await GenerateAuthToken(user.Email, appUser);
+            //    return Ok(token);
+            //}
 
             throw new NotImplementedException();
         }
@@ -117,7 +129,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _repo.GetByIdAsync(userId);
+                var user = new UserEntity();//// await _repo.GetByIdAsync(userId);
                 return Ok(user);
             }
             catch (EntityNotFoundException)
@@ -166,8 +178,8 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                await _repo.UpdateAsync(user.ToDocument());
-                return Ok(user);
+                ////await _repo.UpdateAsync(user);
+                ////return Ok(user);
             }
             catch
             {
@@ -186,7 +198,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Delete()
         {
             User user = null;
-            await _repo.DeleteAsync(user.ToDocument());
+            ////await _repo.DeleteAsync(user.ToDocument());
             //! TODO
             throw new NotImplementedException();
         }

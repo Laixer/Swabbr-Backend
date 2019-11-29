@@ -1,9 +1,8 @@
-﻿using Microsoft.Azure.Cosmos.Table;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
-    public interface IRepository<T> where T : TableEntity
+    public interface IRepository<T>
     {
         Task<T> GetByIdAsync(string partitionKey, string rowKey);
         Task<T> AddAsync(T entity);

@@ -4,7 +4,7 @@ using System;
 
 namespace Swabbr.Core.Models
 {
-    /// <summary>
+    /// <summa0402ry>
     /// Represents an active follow request between two users.
     /// </summary>
     public class FollowRequest : Entity

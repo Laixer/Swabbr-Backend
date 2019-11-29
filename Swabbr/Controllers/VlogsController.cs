@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using Swabbr.Core.Documents;
 using Swabbr.Core.Models;
 using Swabbr.Core.Interfaces;
 
@@ -15,6 +14,7 @@ namespace Swabbr.Api.Controllers
     public class VlogsController : ControllerBase
     {
         private readonly IVlogRepository _repo;
+        ////private readonly IConverter _converter;
 
         public VlogsController(IVlogRepository repo)
         {
@@ -29,6 +29,10 @@ namespace Swabbr.Api.Controllers
         {
             //! TODO
             throw new NotImplementedException();
+
+            ////var vlog = await _repo.GetByIdAsync(vlogId);
+            ////var vlogConverted = converted.Convert(vlog);
+
         }
 
         // TODO What is to be expected for 'featured' vlogs? (See requirements)
@@ -62,13 +66,13 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Create([FromBody]User[] users)
         {
             //! TODO
-            var x = await _repo.AddAsync(new VlogDocument
-            {
-                UserId = Guid.NewGuid(),
-                DateStarted = DateTime.Now
-            });
-
-            return Ok(x);
+            ////var x = await _repo.AddAsync(new VlogDocument
+            ////{
+            ////    UserId = Guid.NewGuid(),
+            ////    DateStarted = DateTime.Now
+            ////});
+            ////
+            ////return Ok(x);
 
             throw new NotImplementedException();
         }

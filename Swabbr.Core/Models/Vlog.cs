@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Documents;
 using System;
 using System.Collections.Generic;
 
@@ -46,12 +45,5 @@ namespace Swabbr.Core.Models
         /// Metadata from the Media Service.
         /// </summary>
         public string MediaServiceData { get; set; }
-
-
-        public VlogDocument ToDocument()
-        {
-            // TO DO
-            throw new NotImplementedException();
-        }
     }
 }

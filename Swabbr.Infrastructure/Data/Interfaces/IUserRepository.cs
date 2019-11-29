@@ -1,10 +1,12 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using Swabbr.Core.Interfaces;
+using Swabbr.Infrastructure.Data.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Infrastructure.Data.Interfaces
 {
-    public interface IUserRepository : IRepository<TableEntity> {
+    public interface IUserRepository : IRepository<UserEntity>
+    {
         /// <summary>
         /// Searching for users.
         /// </summary>
@@ -12,6 +14,9 @@ namespace Swabbr.Core.Interfaces
         /// <param name="offset">Result record offset.</param>
         /// <param name="limit">Result limit.</param>
         /// <returns>A collection of users matching the search query.</returns>
-        Task<IEnumerable<TableEntity>> SearchAsync(string query, uint offset, uint limit);
+        Task<IEnumerable<UserEntity>> SearchAsync(string query, uint offset, uint limit);
+
+        //TODO: Remove
+        Task TempDeleteTables();
     }
 }

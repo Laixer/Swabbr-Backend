@@ -1,16 +1,26 @@
-﻿using Microsoft.Azure.Cosmos;
-using Swabbr.Core.Documents;
-using Swabbr.Core.Interfaces;
+﻿using Swabbr.Core.Interfaces;
+using Swabbr.Infrastructure.Data.Entities;
+using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class VlogRepository : CosmosDbRepository<VlogDocument>, IVlogRepository
+    public class VlogRepository : DbRepository<VlogEntity>, IVlogRepository
     {
-        public VlogRepository(ICosmosDbClientFactory factory) : base(factory) { }
+        public VlogRepository(IDbClientFactory factory) : base(factory) { }
 
-        public override string ContainerName { get; } = "Vlogs";
-        public override string GenerateId(VlogDocument entity) => Guid.NewGuid().ToString();
-        public override PartitionKey ResolvePartitionKey(string entityId) => new PartitionKey(entityId);
+        public override string TableName { get; } = "Vlogs";
+       
+        public override string GenerateId(VlogEntity entity) => Guid.NewGuid().ToString();
+
+        public override string ResolveRowKey(VlogEntity entity)
+        {
+            return entity.VlogId.ToString();
+        }
+
+        public override string ResolvePartitionKey(VlogEntity entity)
+        {
+            return entity.UserId.ToString();
+        }
     }
 }

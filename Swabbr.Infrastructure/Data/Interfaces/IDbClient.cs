@@ -3,19 +3,17 @@
 
 using Microsoft.Azure.Cosmos.Table;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Data
+namespace Swabbr.Infrastructure.Data.Interfaces
 {
     /// <summary>
     /// Interface for the Cosmos Db client.
     /// </summary>
-    /// <typeparam name="T">Entity type of the client.</typeparam>
-    public interface ICosmosDbClient<T>
+    public interface IDbClient<T>
     {
         // TODO: Documentation
-        Task<T> InsertEntityAsync(T item);
+        Task<T> InsertEntityAsync(TableEntity item);
 
         Task<T> RetrieveEntityAsync(string partitionKey, string rowKey);
 
@@ -23,6 +21,6 @@ namespace Swabbr.Infrastructure.Data
 
         Task<T> DeleteEntityAsync(string partitionKey, string rowKey);
 
-        Task<IEnumerable<T>> QueryTableAsync(/*  TODO ??? */);
+        Task<IEnumerable<T>> QueryTableAsync(/*  TODO  what parameters??? */);
     }
 }

@@ -1,25 +1,23 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.using System
 
-using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Infrastructure.Data.Entities;
+using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class CosmosDbClientFactory : ICosmosDbClientFactory
+    public class DbClientFactory : IDbClientFactory
     {
-        private readonly string _tableName;
-        private readonly List<ContainerProperties> _containerInfo;
+        private readonly List<TableProperties> _tables;
         private readonly CloudTableClient _client;
 
-        public CosmosDbClientFactory(string tableName, List<ContainerProperties> containerInfo, CloudStorageAccount storageAccount)
+        public DbClientFactory(List<TableProperties> tables, CloudStorageAccount storageAccount)
         {
-            _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
-            _containerInfo = containerInfo ?? throw new ArgumentNullException(nameof(containerInfo));
+            _tables = tables ?? throw new ArgumentNullException(nameof(tables));
             _client = storageAccount.CreateCloudTableClient();
         }
 
@@ -28,7 +26,7 @@ namespace Swabbr.Infrastructure.Data
         /// </summary>
         /// <param name="tableName">Name of the container</param>
         /// <returns></returns>
-        public ICosmosDbClient<T> GetClient<T>(string tableName)
+        public IDbClient<T> GetClient<T>(string tableName)
         {
             // TODO
             ////if (!_containerInfo.Any(col => col.Name.Equals(tableName)))
@@ -38,17 +36,20 @@ namespace Swabbr.Infrastructure.Data
             ////
             ////var collection = _containerInfo.Where(c => c.Name.Equals(tableName)).First();
 
-            return new CosmosDbClient<T>(_tableName, _client);
+            // TODO: Check if _tables contains the table with the given name?
+            return new DbClient<T>(tableName, _client);
         }
 
         /// <summary>
-        /// Ensure all specified collections exist in the database.
+        /// Ensure all specified tables exist in the database.
         /// </summary>
-        public async Task EnsureDbSetupAsync(TableRequestOptions requestOptions)
+        public async Task EnsureDbSetupAsync(TableRequestOptions requestOptions = null)
         {
-            // Create table if it doesn't exist.
-            await _client.GetTableReference(_tableName).CreateIfNotExistsAsync();
-
+            // Create the tables if they do not already exist within the database.
+            foreach(var table in _tables)
+            {
+                await _client.GetTableReference(table.Id).CreateIfNotExistsAsync();
+            }
 
             // TODO..... Clean up
             // Create the specified containers in the database if they do not exist.
@@ -63,5 +64,16 @@ namespace Swabbr.Infrastructure.Data
             /////    );
             /////}
         }
+
+        public async Task DeleteAllTables()
+        {
+            //TODO: Remove, for temporary development purposes only
+            // Delete all tables from the database to avoid unnecessary billing.
+            foreach (var table in _tables)
+            {
+                await _client.GetTableReference(table.Id).DeleteIfExistsAsync();
+            }
+        }
+
     }
 }

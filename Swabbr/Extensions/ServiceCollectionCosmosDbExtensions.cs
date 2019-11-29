@@ -1,30 +1,35 @@
 ﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Infrastructure.Data;
+using Swabbr.Infrastructure.Data.Interfaces;
 using System.Collections.Generic;
 
 namespace Swabbr.Api.Extensions
 {
     public static class ServiceCollectionCosmosDbExtensions
     {
-        public static IServiceCollection AddCosmosDb(this IServiceCollection services, string connectionString,
-            string databaseName, List<Infrastructure.Data.ContainerProperties> collections)
+        public static IServiceCollection AddCosmosDb(
+            this IServiceCollection services, 
+            string connectionString,
+            List<TableProperties> tables)
         {
-            var client = new CosmosClient(connectionString, clientOptions: new CosmosClientOptions
-            {
-                SerializerOptions = new CosmosSerializationOptions
-                {
-                    IgnoreNullValues = true,
-                    Indented = false,
-                    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
-                }
-            });
+            ////var client = new CosmosClient(connectionString, clientOptions: new CosmosClientOptions
+            ////{
+            ////    SerializerOptions = new CosmosSerializationOptions
+            ////    {
+            ////        IgnoreNullValues = true,
+            ////        Indented = false,
+            ////        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
+            ////    }
+            ////});
 
-            // Initialize and add Cosmos Db client factory service
-            var cosmosDbClientFactory = new CosmosDbClientFactory(databaseName, collections, client);
-            cosmosDbClientFactory.EnsureDbSetupAsync().Wait();
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
 
-            services.AddSingleton<ICosmosDbClientFactory>(cosmosDbClientFactory);
+            // Initialize and add the Cosmos Db client factory service
+            var factory = new DbClientFactory(tables, storageAccount);
+            factory.EnsureDbSetupAsync().Wait();
+            services.AddSingleton<IDbClientFactory>(factory);
 
             return services;
         }

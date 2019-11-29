@@ -14,7 +14,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// Entity Id.
         /// </summary>
-        public string VlogId { get; set; }
+        public Guid VlogId { get; set; }
 
         /// <summary>
         /// Id of the user who created the vlog.

@@ -1,23 +1,19 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.using System
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Table;
-
+using Swabbr.Infrastructure.Data.Interfaces;
 
 namespace Swabbr.Infrastructure.Data
 {
     /// <summary>
-    /// Client for a ComsosDb database.
+    /// Client for a single ComsosDb database table.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class CosmosDbClient<T> : ICosmosDbClient<T>
+    public class DbClient<T> : IDbClient<T>
     {
         private readonly string _tableName;
         private readonly CloudTableClient _client;
 
-        public CosmosDbClient(string tableName, CloudTableClient client)
+        public DbClient(string tableName, CloudTableClient client)
         {
             // TODO: Null check?
             _tableName = tableName;
@@ -29,9 +25,14 @@ namespace Swabbr.Infrastructure.Data
             throw new System.NotImplementedException();
         }
 
-        public Task<T> InsertEntityAsync(T item)
+        public async Task<T> InsertEntityAsync(TableEntity item)
         {
-            throw new System.NotImplementedException();
+            var table = _client.GetTableReference(_tableName);
+            TableOperation operation = TableOperation.Insert(item);
+            var result = await table.ExecuteAsync(operation);
+
+            //TODO ?
+            return (T) result.Result;
         }
 
         public Task<IEnumerable<T>> QueryTableAsync()
@@ -39,14 +40,24 @@ namespace Swabbr.Infrastructure.Data
             throw new System.NotImplementedException();
         }
 
-        public Task<T> RetrieveEntityAsync(string partitionKey, string rowKey)
+        public async Task<T> RetrieveEntityAsync(string partitionKey, string rowKey)
         {
-            throw new System.NotImplementedException();
+            // TODO: STORE TABLE REFERENCE IN PRIVATE PROPERTY?
+            var table = _client.GetTableReference(_tableName);
+            TableOperation operation = TableOperation.Retrieve(partitionKey, rowKey);
+            var result = await table.ExecuteAsync(operation);
+            //TODO ???
+            return (T) result.Result;
         }
 
-        public Task<T> UpdateEntityAsync(TableEntity item)
+        public async Task<T> UpdateEntityAsync(TableEntity item)
         {
-            throw new System.NotImplementedException();
+            var table = _client.GetTableReference(_tableName);
+            //TODO: Replace or merge here?
+            TableOperation operation = TableOperation.Replace(item);
+            var result = await table.ExecuteAsync(operation);
+            //TODO Potential
+            return (T) result.Result;
         }
 
         /*
