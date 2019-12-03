@@ -84,22 +84,29 @@ namespace Swabbr.Infrastructure.Data
             }
         }
 
-        // TODO Update Summaries
+        // TODO Where should this be placed?
         /// <summary>
-        /// Method for converting an entity of type <typeparamref name="TModel"/> to an <see cref="TableEntity"/>
+        /// Generates a new unique identifier for an entity.
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
+        public static Guid GenerateEntityId()
+        {
+            return Guid.NewGuid();
+        }
+
+        /// <summary>
+        /// Method for converting an entity of type <typeparamref name="TModel"/> (Domain Entity) to a <typeparamref name="TDto"/> (Table Entity).
+        /// <para>This method must ensure that the PartitionKey and RowKey properties of the <paramref name="entity"/> are provided in the final model.</para>
+        /// </summary>
         public abstract TDto Map(TModel entity);
 
         /// <summary>
-        /// Method for converting an <see cref="TableEntity"/> to an entity of type <typeparamref name="TModel"/>
+        /// Method for converting a <typeparamref name="TDto"/> (Table Entity) to a <typeparamref name="TModel"/> (Domain Entity)
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
         public abstract TModel Map(TDto entity);
+        
+        public abstract string ResolvePartitionKey(TModel entity);
+        public abstract string ResolveRowKey(TModel entity);
 
-        // TODO: .................
         /// <summary>
         /// Name of the table
         /// </summary>

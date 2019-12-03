@@ -11,5 +11,9 @@ namespace Swabbr.Core.Interfaces
         Task UpdateAsync(T entity);
 
         Task DeleteAsync(T entity);
+
+        //TODO: Should these be here?
+        string ResolvePartitionKey(T entity);
+        string ResolveRowKey(T entity);
     }
 }

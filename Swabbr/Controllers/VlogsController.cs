@@ -34,7 +34,6 @@ namespace Swabbr.Api.Controllers
             ////var vlogConverted = converted.Convert(vlog);
         }
 
-        // TODO What is to be expected for 'featured' vlogs? (See requirements)
         /// <summary>
         /// Get a collection of featured vlogs.
         /// </summary>

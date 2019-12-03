@@ -32,7 +32,7 @@ namespace Swabbr.Infrastructure.Data
             var result = await table.ExecuteAsync(operation);
 
             // TODO: Ensure this is functioning correctly and as expectled
-            return (T)result.Result;
+            return result.Result as T;
         }
 
         public Task<IEnumerable<T>> QueryTableAsync()
@@ -42,7 +42,7 @@ namespace Swabbr.Infrastructure.Data
 
         public async Task<T> RetrieveEntityAsync(string partitionKey, string rowKey)
         {
-            // TODO: STORE TABLE REFERENCE IN PRIVATE PROPERTY?
+            // TODO: STORE TABLE REFERENCE IN PRIVATE PROPERTY? instead of continuosly creating it from the client?
             var table = _client.GetTableReference(_tableName);
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             var result = await table.ExecuteAsync(operation);
@@ -58,8 +58,7 @@ namespace Swabbr.Infrastructure.Data
             //TODO: Replace or merge here?
             TableOperation operation = TableOperation.Replace(item);
             var result = await table.ExecuteAsync(operation);
-            //TODO Potential
-            return (T)result.Result;
+            return result.Result as T;
         }
 
         /*

@@ -33,19 +33,6 @@ namespace Swabbr.Infrastructure.Data
                 var createdTable = _client.GetTableReference(table.Id);
                 await createdTable.CreateIfNotExistsAsync();
             }
-
-            // TODO..... Clean up
-            // Create the specified containers in the database if they do not exist.
-            /////foreach (var collection in _containerInfo)
-            /////{
-            /////    await result.Database.CreateContainerIfNotExistsAsync(
-            /////        new Microsoft.Azure.Cosmos.ContainerProperties
-            /////        {
-            /////            Id = collection.Name,
-            /////            PartitionKeyPath = collection.PartitionKey
-            /////        }
-            /////    );
-            /////}
         }
 
         public async Task DeleteAllTables()

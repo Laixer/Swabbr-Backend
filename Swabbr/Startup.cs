@@ -44,7 +44,7 @@ namespace Swabbr
             var mappingConfiguration = new MapperConfiguration(m =>
             {
                 m.AddProfile(new MapperProfile());
-                // TODO Explicitly tell mapper to map Email to RowPartition
+                // TODO Explicitly tell mapper to map Email to RowPartition what?
             });
             IMapper mapper = mappingConfiguration.CreateMapper();
             services.AddSingleton(mapper);

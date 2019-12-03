@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
-    //TODO Determine attributes
     /// <summary>
     /// Controller for handling user related Api requests.
     /// </summary>
@@ -189,7 +188,6 @@ namespace Swabbr.Api.Controllers
             throw new NotImplementedException();
         }
 
-        //TODO Should these contain a reference to the requirements?
         /// <summary>
         /// Delete the account of the authenticated user.
         /// </summary>

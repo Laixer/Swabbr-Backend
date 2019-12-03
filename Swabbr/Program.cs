@@ -14,7 +14,6 @@ namespace Swabbr
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((ctx, builder) =>
                 {
-                    // TODO
                     var config = builder.Build();
                 })
                 .UseStartup<Startup>();

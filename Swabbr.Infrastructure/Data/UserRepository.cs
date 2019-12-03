@@ -22,7 +22,6 @@ namespace Swabbr.Infrastructure.Data
 
         public async Task TempDeleteTables()
         {
-            // TODO Delete tables
             await _factory.DeleteAllTables();
         }
 
