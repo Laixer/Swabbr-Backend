@@ -7,7 +7,8 @@ namespace Swabbr.Api.Options
     {
         public List<TableProperties> Tables { get; set; }
 
-        public void Deconstruct(out List<TableProperties> tables) {
+        public void Deconstruct(out List<TableProperties> tables)
+        {
             tables = Tables;
         }
     }

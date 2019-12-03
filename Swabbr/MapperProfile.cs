@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Swabbr.Api.ViewModels;
-using Swabbr.Infrastructure.Data.Entities;
+using Swabbr.Core.Entities;
 
 namespace Swabbr.Api
 {
@@ -8,8 +8,8 @@ namespace Swabbr.Api
     {
         public MapperProfile()
         {
-            CreateMap<UserRegisterInputModel, UserEntity>();
-            CreateMap<UserUpdateInputModel, UserEntity>();
+            CreateMap<UserRegisterInput, User>();
+            CreateMap<UserUpdateInput, User>();
         }
     }
 }

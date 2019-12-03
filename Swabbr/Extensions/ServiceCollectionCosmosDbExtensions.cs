@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Infrastructure.Data;
 using Swabbr.Infrastructure.Data.Interfaces;
@@ -10,7 +9,7 @@ namespace Swabbr.Api.Extensions
     public static class ServiceCollectionCosmosDbExtensions
     {
         public static IServiceCollection AddCosmosDb(
-            this IServiceCollection services, 
+            this IServiceCollection services,
             string connectionString,
             List<TableProperties> tables)
         {
@@ -29,6 +28,7 @@ namespace Swabbr.Api.Extensions
             // Initialize and add the Cosmos Db client factory service
             var factory = new DbClientFactory(tables, storageAccount);
             factory.EnsureDbSetupAsync().Wait();
+            
             services.AddSingleton<IDbClientFactory>(factory);
 
             return services;

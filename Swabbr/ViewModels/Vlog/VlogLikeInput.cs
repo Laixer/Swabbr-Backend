@@ -2,7 +2,7 @@
 
 namespace Swabbr.Api.ViewModels
 {
-    public class VlogLikeInputModel
+    public class VlogLikeInput
     {
         /// <summary>
         /// Id of the vlog to send the like to.

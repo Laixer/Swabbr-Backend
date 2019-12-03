@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
@@ -15,7 +12,7 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <returns></returns>
         Task Create();
-        
+
         /// <summary>
         /// Start a livestream.
         /// </summary>

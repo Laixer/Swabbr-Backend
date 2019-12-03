@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System.Runtime.Serialization;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
     /// <summary>
     /// Enum representation of the follow mode setting for the profile of a <see cref="UserItem" />.

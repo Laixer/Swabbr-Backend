@@ -3,7 +3,7 @@ using Swabbr.Core.Enums;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserSettingsOutputModel
+    public class UserSettingsInput
     {
         /// <summary>
         /// Id of the user these settings belong to.

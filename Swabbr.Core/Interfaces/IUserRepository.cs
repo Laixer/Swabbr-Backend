@@ -1,11 +1,10 @@
-﻿using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data.Entities;
+﻿using Swabbr.Core.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Data.Interfaces
+namespace Swabbr.Core.Interfaces
 {
-    public interface IUserRepository : IRepository<UserEntity>
+    public interface IUserRepository : IRepository<User>
     {
         /// <summary>
         /// Searching for users.
@@ -14,7 +13,7 @@ namespace Swabbr.Infrastructure.Data.Interfaces
         /// <param name="offset">Result record offset.</param>
         /// <param name="limit">Result limit.</param>
         /// <returns>A collection of users matching the search query.</returns>
-        Task<IEnumerable<UserEntity>> SearchAsync(string query, uint offset, uint limit);
+        Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
 
         //TODO: Remove
         Task TempDeleteTables();

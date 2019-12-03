@@ -1,42 +1,31 @@
-﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Enums;
 using System;
-using System.Collections.Generic;
 
 namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
     /// Represents the current status of a follow relationship between two users.
     /// </summary>
-    public class FollowRequestEntity : TableEntity
+    public class FollowRequestEntity
     {
         public FollowRequestEntity()
         {
-
         }
 
         /// <summary>
-        /// Entity Id.
+        /// Unique identifier.
         /// </summary>
-        public string FollowRequestId 
-        {
-            get => RowKey;
-            set => RowKey = value;
-        }
+        public Guid FollowRequestId { get; set; }
 
         /// <summary>
         /// Id of the user that should receive the follow request.
         /// </summary>
-        public string ReceiverId 
-        {
-            get => PartitionKey;
-            set => PartitionKey = value;
-        }
+        public Guid ReceiverId { get; set; }
 
         /// <summary>
         /// Id of the user that has initiated the follow request.
         /// </summary>
-        public string RequesterId { get; set; }
+        public Guid RequesterId { get; set; }
 
         /// <summary>
         /// Current status of the follow request.

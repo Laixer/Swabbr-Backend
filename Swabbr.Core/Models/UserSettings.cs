@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Enums;
 
 namespace Swabbr.Core.Models
 {

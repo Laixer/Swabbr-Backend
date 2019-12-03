@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Core.Interfaces;
+using Swabbr.Core.Models;
 using System;
 using System.Threading.Tasks;
-using Swabbr.Core.Models;
-using Swabbr.Core.Interfaces;
 
 namespace Swabbr.Api.Controllers
 {
@@ -32,7 +32,6 @@ namespace Swabbr.Api.Controllers
 
             ////var vlog = await _repo.GetByIdAsync(vlogId);
             ////var vlogConverted = converted.Convert(vlog);
-
         }
 
         // TODO What is to be expected for 'featured' vlogs? (See requirements)

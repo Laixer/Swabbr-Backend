@@ -2,7 +2,7 @@
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserLoginInputModel
+    public class UserLoginInput
     {
         /// <summary>
         /// Email address.

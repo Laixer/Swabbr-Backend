@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 
 namespace Swabbr.Core.Models
 {
@@ -11,12 +10,12 @@ namespace Swabbr.Core.Models
         /// <summary>
         /// Id of the vlog that was given a like.
         /// </summary>
-        public string VlogId { get; set; }
+        public Guid VlogId { get; set; }
 
         /// <summary>
         /// Id of the user that created the like.
         /// </summary>
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
 
         /// <summary>
         /// The time at which the user liked the vlog.

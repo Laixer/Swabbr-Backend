@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swabbr.Core.Interfaces;
 using System;
 using System.Threading.Tasks;
 
@@ -8,11 +7,11 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to follow requests.
     /// </summary>
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class FollowRequestsController : ControllerBase
     {
-
         // TODO Return user objects or user id's???
         /// <summary>
         /// Returns a collection of users who have a pending follow request for the authenticated user.

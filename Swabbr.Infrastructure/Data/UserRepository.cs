@@ -1,4 +1,6 @@
-﻿using Swabbr.Core.Interfaces;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using Swabbr.Infrastructure.Data.Interfaces;
 using System;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class UserRepository : DbRepository<UserEntity>, IUserRepository
+    public class UserRepository : DbRepository<User, UserEntity>, IUserRepository
     {
         private readonly IDbClientFactory _factory;
 
@@ -17,23 +19,6 @@ namespace Swabbr.Infrastructure.Data
         }
 
         public override string TableName { get; } = "Users";
-
-        // TODO: Is this needed here? Will it be different per entity?
-        public override string GenerateId(UserEntity entity)
-        {
-            return new Guid().ToString();
-        }
-
-        //TODO: Remove this... Not required
-        public override string ResolvePartitionKey(UserEntity entity)
-        {
-            return entity.UserId;
-        }
-
-        public override string ResolveRowKey(UserEntity entity)
-        {
-            return entity.UserId;
-        }
 
         public async Task TempDeleteTables()
         {
@@ -46,17 +31,17 @@ namespace Swabbr.Infrastructure.Data
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
         /// <returns></returns>
-        public Task<IEnumerable<UserEntity>> SearchAsync(string q, uint offset, uint limit)
+        public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
-            var client = _factory.GetClient<UserEntity>(TableName);
+            _ = _factory.GetClient<UserEntity>(TableName);
 
             throw new NotImplementedException();
 
             ////var query = new QueryDefinition(@"
-            ////    SELECT * FROM c 
-            ////    WHERE CONTAINS(c.firstName, @firstName) 
-            ////    OR CONTAINS(c.lastName, @lastName) 
-            ////    OR CONTAINS(c.nickname, @nickname) 
+            ////    SELECT * FROM c
+            ////    WHERE CONTAINS(c.firstName, @firstName)
+            ////    OR CONTAINS(c.lastName, @lastName)
+            ////    OR CONTAINS(c.nickname, @nickname)
             ////    OFFSET @offset LIMIT @limit")
             ////    .WithParameter("@firstName", q)
             ////    .WithParameter("@lastName", q)
@@ -66,6 +51,27 @@ namespace Swabbr.Infrastructure.Data
             ////
             ////var results = await cosmosDbClient.QueryAsync(query);
             ////return results;
+        }
+
+        public override User Map(UserEntity entity)
+        {
+            // TODO: TEMPORARY
+            return new User
+            {
+                FirstName = "TestIncorrect",
+                LastName = "TestIncorrect"
+            };
+        }
+
+        public override UserEntity Map(User entity)
+        {
+            // TODO: TEMPORARY
+            return new UserEntity(entity.UserId)
+            {
+                UserId = entity.UserId,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName
+            };
         }
     }
 }

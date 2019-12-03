@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Swabbr.Core.Models
+﻿namespace Swabbr.Core.Models
 {
     public abstract class Entity
     {

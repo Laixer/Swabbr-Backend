@@ -1,14 +1,13 @@
-﻿using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Interfaces;
-using System.Net;
+using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public abstract class DbRepository<T> : IRepository<T>, ITableContext<T> where T : TableEntity
+    public abstract class DbRepository<TModel, TDto> : IRepository<TModel>, ITableContext where TDto: TableEntity
     {
         private readonly IDbClientFactory _factory;
 
@@ -17,83 +16,88 @@ namespace Swabbr.Infrastructure.Data
             _factory = factory;
         }
 
-        public async Task<T> GetByIdAsync(string partitionKey, string rowKey)
+        public async Task<TModel> GetByIdAsync(string partitionKey, string rowKey)
         {
             try
             {
-                var client = _factory.GetClient<T>(TableName);
+                var client = _factory.GetClient<TDto>(TableName);
                 var item = await client.RetrieveEntityAsync(partitionKey, rowKey);
-                return item;
+                return Map(item);
             }
-            catch (CosmosException e)
+            catch (Exception e)
             {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new EntityNotFoundException();
-                }
+                throw new EntityNotFoundException();
 
                 throw;
             }
         }
 
-        public async Task<T> AddAsync(T entity)
+        public async Task<TModel> AddAsync(TModel entity)
         {
             try
             {
-                var client = _factory.GetClient<T>(TableName);
-                var item = await client.InsertEntityAsync(entity);
-                return item;
+                var client = _factory.GetClient<TDto>(TableName);
+                var insertEntity = Map(entity);
+                var item = await client.InsertEntityAsync(Map(entity));
+                return Map(item);
             }
-            catch (CosmosException e)
+            catch (Exception e)
             {
-                if (e.StatusCode == HttpStatusCode.Conflict)
-                {
-                    throw new EntityAlreadyExistsException();
-                }
+                throw new EntityAlreadyExistsException();
 
                 throw;
             }
         }
 
-        public async Task UpdateAsync(T entity)
+        //TODO For update and delete: Return updated ?
+        public async Task UpdateAsync(TModel entity)
         {
             try
             {
-                var client = _factory.GetClient<T>(TableName);
-                await client.UpdateEntityAsync(entity);
+                var client = _factory.GetClient<TDto>(TableName);
+                await client.UpdateEntityAsync(Map(entity));
             }
-            catch (CosmosException e)
+            catch (Exception e)
             {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new EntityNotFoundException();
-                }
+                throw new EntityNotFoundException();
 
                 throw;
             }
         }
 
-        public async Task DeleteAsync(T entity)
+        public async Task DeleteAsync(TModel entity)
         {
             try
             {
-                var client = _factory.GetClient<T>(TableName);
-                await client.DeleteEntityAsync(entity.PartitionKey, entity.RowKey);
+                var client = _factory.GetClient<TDto>(TableName);
+
+                //TODO
+                var e = Map(entity);
+
+                await client.DeleteEntityAsync(e.PartitionKey, e.RowKey);
             }
-            catch (CosmosException e)
+            catch (Exception e)
             {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    throw new EntityNotFoundException();
-                }
+                throw new EntityNotFoundException();
 
                 throw;
             }
         }
 
-        public abstract string GenerateId(T entity);
-        public abstract string ResolvePartitionKey(T entityId);
-        public abstract string ResolveRowKey(T entityId);
+        // TODO Update Summaries
+        /// <summary>
+        /// Method for converting an entity of type <typeparamref name="TModel"/> to an <see cref="TableEntity"/>
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public abstract TDto Map(TModel entity);
+
+        /// <summary>
+        /// Method for converting an <see cref="TableEntity"/> to an entity of type <typeparamref name="TModel"/>
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public abstract TModel Map(TDto entity);
 
         // TODO: .................
         /// <summary>

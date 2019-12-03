@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Core.Models;
 using System;
 using System.Threading.Tasks;
-using Swabbr.Core.Models;
 
 namespace Swabbr.Api.Controllers
 {

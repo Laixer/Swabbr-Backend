@@ -1,97 +1,84 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using Newtonsoft.Json;
 using Swabbr.Core.Enums;
 using System;
 
-namespace Swabbr.Infrastructure.Data.Entities
+namespace Swabbr.Api.ViewModels
 {
-    /// <summary>
-    /// Represents a single user.
-    /// </summary>
-    public class UserEntity : TableEntity
+    public class UserProfileOutput
     {
-        public UserEntity()
-        {
-        }
-
-        public UserEntity(Guid userId)
-        {
-            PartitionKey = userId.ToString();
-            RowKey = userId.ToString();
-        }
-
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid UserId { get; set; }
+        [JsonProperty("id")]
+        public string Id { get; set; }
 
         /// <summary>
         /// First name of the user.
         /// </summary>
+        [JsonProperty("firstName")]
         public string FirstName { get; set; }
 
         /// <summary>
         /// Surname of the user.
         /// </summary>
+        [JsonProperty("lastName")]
         public string LastName { get; set; }
 
         /// <summary>
         /// Selected gender of the user.
         /// </summary>
+        [JsonProperty("gender")]
         public Gender Gender { get; set; }
 
         /// <summary>
         /// Selected country.
         /// </summary>
+        [JsonProperty("country")]
         public string Country { get; set; }
-
-        /// <summary>
-        /// Email address.
-        /// </summary>
-        public string Email { get; set; }
-
-        /// <summary>
-        /// Hashed password of the user.
-        /// </summary>
-        public string Password { get; set; }
 
         /// <summary>
         /// Date of birth for the given user.
         /// </summary>
+        [JsonProperty("birthDate")]
         public DateTime BirthDate { get; set; }
 
         /// <summary>
         /// The specified timezone of the user
         /// </summary>
+        [JsonProperty("timezone")]
         public string Timezone { get; set; }
 
         /// <summary>
         /// Nickname to display for the user.
         /// </summary>
+        [JsonProperty("nickname")]
         public string Nickname { get; set; }
 
         /// <summary>
         /// URL containing the uploaded profile image of the user.
         /// </summary>
+        [JsonProperty("profileImageUrl")]
         public string ProfileImageUrl { get; set; }
 
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
+        [JsonProperty("isPrivate")]
         public bool IsPrivate { get; set; }
 
         /// <summary>
-        /// Angular longitude coordinate.
+        /// Represents the total amount of recorded vlogs this user profile contains.
         /// </summary>
-        public decimal Longitude { get; set; }
+        [JsonProperty("totalVlogs")]
+        public int TotalVlogs { get; set; }
 
         /// <summary>
-        /// Angular latitude coordinate.
+        /// Represents the total amount of users following this user profile.
         /// </summary>
-        public decimal Latitude { get; set; }
+        [JsonProperty("totalFollowers")]
+        public int TotalFollowers { get; set; }
 
         /// <summary>
-        /// Phone number of the user stored as text.
+        /// Represents the total amount of user profiles this user is following.
         /// </summary>
-        public string PhoneNumber { get; set; }
+        [JsonProperty("totalFollowing")]
+        public int TotalFollowing { get; set; }
     }
 }

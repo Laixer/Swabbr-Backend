@@ -12,7 +12,6 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data;
-using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
@@ -62,7 +61,6 @@ namespace Swabbr
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
                 })
                 .AddJwtBearer(cfg =>
                 {
@@ -103,6 +101,7 @@ namespace Swabbr
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // For some reason
             if (/*env.IsDevelopment()*/Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>().Mode == ConnectionStringMode.Emulator)
             {
                 app.UseDeveloperExceptionPage();
@@ -117,7 +116,9 @@ namespace Swabbr
 
             app.UseRouting();
 
+            // Add authentication middleware
             app.UseAuthentication();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -125,6 +126,7 @@ namespace Swabbr
                 endpoints.MapControllers();
             });
 
+            // Add Swagger API definition middleware
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

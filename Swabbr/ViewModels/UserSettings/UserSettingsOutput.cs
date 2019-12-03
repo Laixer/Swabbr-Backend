@@ -1,31 +1,27 @@
-﻿using Swabbr.Core.Enums;
-using System;
+﻿using Newtonsoft.Json;
+using Swabbr.Core.Enums;
 
-namespace Swabbr.Core.Entities
+namespace Swabbr.Api.ViewModels
 {
-    /// <summary>
-    /// Personal settings and preferences for a user.
-    /// </summary>
-    public class UserSettingsEntity
+    public class UserSettingsOutput
     {
-        public UserSettingsEntity()
-        {
-        }
-
         /// <summary>
-        /// Unique identifier of the user these settings belong to.
+        /// Id of the user these settings belong to.
         /// </summary>
-        public Guid UserId { get; set; }
+        [JsonProperty("userId")]
+        public string UserId { get; set; }
 
         /// <summary>
         /// The maximum amount of times the user should be reminded
         /// to record a vlog through push notifications.
         /// </summary>
+        [JsonProperty("dailyVlogRequestLimit")]
         public byte DailyVlogRequestLimit { get; set; }
 
         /// <summary>
         /// Determines how follow requests are processed for the user.
         /// </summary>
+        [JsonProperty("followMode")]
         public FollowMode FollowMode { get; set; }
     }
 }

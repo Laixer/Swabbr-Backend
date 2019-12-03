@@ -1,22 +1,31 @@
 ﻿using Swabbr.Core.Enums;
 using System;
 
-namespace Swabbr.Core.Models
+namespace Swabbr.Core.Entities
 {
-    /// <summa0402ry>
-    /// Represents an active follow request between two users.
+    /// <summary>
+    /// Represents the current status of a follow relationship between two users.
     /// </summary>
-    public class FollowRequest : Entity
+    public class FollowRequest
     {
+        public FollowRequest()
+        {
+        }
+
         /// <summary>
-        /// Id of the user that initiated the follow request.
+        /// Unique identifier.
         /// </summary>
-        public string RequesterId { get; set; }
+        public Guid FollowRequestId { get; set; }
 
         /// <summary>
         /// Id of the user that should receive the follow request.
         /// </summary>
-        public string ReceiverId { get; set; }
+        public Guid ReceiverId { get; set; }
+
+        /// <summary>
+        /// Id of the user that has initiated the follow request.
+        /// </summary>
+        public Guid RequesterId { get; set; }
 
         /// <summary>
         /// Current status of the follow request.

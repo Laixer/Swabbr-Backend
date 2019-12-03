@@ -1,13 +1,9 @@
 ﻿using Newtonsoft.Json;
 using Swabbr.Core.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class FollowRequestOutputModel
+    public class FollowRequestInput
     {
         /// <summary>
         /// Id of the user that initiated the follow request.
@@ -26,11 +22,5 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("status")]
         public FollowRequestStatus Status { get; set; }
-
-        /// <summary>
-        /// Timestamp of when the request was initiated.
-        /// </summary>
-        [JsonProperty("timeCreated")]
-        public DateTime TimeCreated { get; set; }
     }
 }
