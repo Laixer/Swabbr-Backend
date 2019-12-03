@@ -72,5 +72,15 @@ namespace Swabbr.Infrastructure.Data
                 LastName = entity.LastName
             };
         }
+
+        public override string ResolvePartitionKey(User entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ResolveRowKey(User entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

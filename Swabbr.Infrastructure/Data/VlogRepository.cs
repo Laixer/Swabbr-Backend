@@ -23,5 +23,15 @@ namespace Swabbr.Infrastructure.Data
         {
             throw new NotImplementedException();
         }
+
+        public override string ResolvePartitionKey(Vlog entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ResolveRowKey(Vlog entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
