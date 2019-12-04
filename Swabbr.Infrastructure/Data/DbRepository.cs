@@ -38,6 +38,10 @@ namespace Swabbr.Infrastructure.Data
             {
                 var client = _factory.GetClient<TDto>(TableName);
                 var insertEntity = Map(entity);
+
+                insertEntity.PartitionKey = ResolvePartitionKey(entity);
+                insertEntity.RowKey = ResolveRowKey(entity);
+
                 var item = await client.InsertEntityAsync(Map(entity));
                 return Map(item);
             }

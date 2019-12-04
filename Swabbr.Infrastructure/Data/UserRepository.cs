@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using Swabbr.Infrastructure.Data.Interfaces;
@@ -29,10 +28,11 @@ namespace Swabbr.Infrastructure.Data
         /// Search for a user by checking if the search query (partially) matches their first name, last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
-        /// <returns></returns>
         public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
             _ = _factory.GetClient<UserEntity>(TableName);
+
+            // TODO Implement method
 
             throw new NotImplementedException();
 
@@ -54,33 +54,57 @@ namespace Swabbr.Infrastructure.Data
 
         public override User Map(UserEntity entity)
         {
-            // TODO: TEMPORARY
             return new User
             {
-                FirstName = "TestIncorrect",
-                LastName = "TestIncorrect"
+                UserId = entity.UserId,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                BirthDate = entity.BirthDate,
+                Country = entity.Country,
+                Email = entity.Email,
+                Gender = entity.Gender,
+                IsPrivate = entity.IsPrivate,
+
+                Latitude = entity.Latitude,
+                Longitude = entity.Longitude,
+
+                Nickname = entity.Nickname,
+                Password = entity.Password,
+                PhoneNumber = entity.PhoneNumber,
+                ProfileImageUrl = entity.ProfileImageUrl,
+                Timezone = entity.Timezone
             };
         }
 
         public override UserEntity Map(User entity)
         {
-            // TODO: TEMPORARY
             return new UserEntity(entity.UserId)
             {
+                PartitionKey = ResolvePartitionKey(entity),
+                RowKey = ResolveRowKey(entity),
+
                 UserId = entity.UserId,
                 FirstName = entity.FirstName,
-                LastName = entity.LastName
+                LastName = entity.LastName,
+                BirthDate = entity.BirthDate,
+                Country = entity.Country,
+                Email = entity.Email,
+                Gender = entity.Gender,
+                IsPrivate = entity.IsPrivate,
+
+                Latitude = entity.Latitude,
+                Longitude = entity.Longitude,
+
+                Nickname = entity.Nickname,
+                Password = entity.Password,
+                PhoneNumber = entity.PhoneNumber,
+                ProfileImageUrl = entity.ProfileImageUrl,
+                Timezone = entity.Timezone
             };
         }
 
-        public override string ResolvePartitionKey(User entity)
-        {
-            throw new NotImplementedException();
-        }
+        public override string ResolvePartitionKey(User entity) => entity.UserId.ToString();
 
-        public override string ResolveRowKey(User entity)
-        {
-            throw new NotImplementedException();
-        }
+        public override string ResolveRowKey(User entity) => entity.UserId.ToString();
     }
 }

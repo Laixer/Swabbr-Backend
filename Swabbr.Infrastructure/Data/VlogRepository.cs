@@ -16,22 +16,18 @@ namespace Swabbr.Infrastructure.Data
 
         public override Vlog Map(VlogEntity entity)
         {
+            //TODO Implement method
             throw new NotImplementedException();
         }
 
         public override VlogEntity Map(Vlog entity)
         {
+            //TODO Implement method
             throw new NotImplementedException();
         }
 
-        public override string ResolvePartitionKey(Vlog entity)
-        {
-            throw new NotImplementedException();
-        }
+        public override string ResolvePartitionKey(Vlog entity) => entity.UserId.ToString();
 
-        public override string ResolveRowKey(Vlog entity)
-        {
-            throw new NotImplementedException();
-        }
+        public override string ResolveRowKey(Vlog entity) => entity.VlogId.ToString();
     }
 }
