@@ -7,7 +7,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to reactions to vlogs.
     /// </summary>
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [Obsolete]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class ReactionsController : ControllerBase

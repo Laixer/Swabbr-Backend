@@ -1,5 +1,5 @@
-﻿using Swabbr.Core.Enums;
-using System;
+﻿using System;
+using Swabbr.Core.Enums;
 
 namespace Swabbr.Core.Entities
 {
@@ -8,12 +8,8 @@ namespace Swabbr.Core.Entities
     /// </summary>
     public class UserSettings
     {
-        public UserSettings()
-        {
-        }
-
         /// <summary>
-        /// Unique identifier of the user these settings belong to.
+        /// Id of the user these settings belong to.
         /// </summary>
         public Guid UserId { get; set; }
 

@@ -7,9 +7,10 @@ namespace Swabbr.Core.Entities
     /// </summary>
     public class VlogLike
     {
-        public VlogLike()
-        {
-        }
+        /// <summary>
+        /// Unique identifier.
+        /// </summary>
+        public Guid VlogLikeId { get; set; }
 
         /// <summary>
         /// Id of the vlog that was given a like.

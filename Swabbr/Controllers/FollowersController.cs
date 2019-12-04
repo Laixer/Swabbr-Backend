@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swabbr.Core.Models;
+using Swabbr.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -10,7 +10,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions  related to followers of a user.
     /// </summary>
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [Obsolete]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class FollowersController : ControllerBase

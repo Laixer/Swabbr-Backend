@@ -1,18 +1,12 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using System;
 
-namespace Swabbr.Core.Entities
+namespace Swabbr.Infrastructure.Data.Entities
 {
     public class VlogEntity : TableEntity
     {
         public VlogEntity()
         {
-        }
-
-        public VlogEntity(Guid userId, Guid vlogId)
-        {
-            PartitionKey = userId.ToString();
-            RowKey = vlogId.ToString();
         }
 
         /// <summary>

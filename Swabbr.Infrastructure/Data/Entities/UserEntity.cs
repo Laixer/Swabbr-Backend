@@ -13,15 +13,6 @@ namespace Swabbr.Infrastructure.Data.Entities
         {
         }
 
-        public UserEntity(Guid userId)
-        {
-            // TODO Remove (if we're using the resolve method in the Repo Interface)
-            PartitionKey = userId.ToString();
-            RowKey = userId.ToString();
-        }
-
-        public Guid Id { get; set; }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>

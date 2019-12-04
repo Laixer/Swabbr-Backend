@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swabbr.Core.Models;
+using Swabbr.Core.Entities;
 using System;
 using System.Threading.Tasks;
 
@@ -8,6 +8,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to user settings and preferences.
     /// </summary>
+    [Obsolete]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class UserSettingsController : ControllerBase

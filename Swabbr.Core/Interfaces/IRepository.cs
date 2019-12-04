@@ -1,19 +1,16 @@
-﻿using System.Threading.Tasks;
+﻿using Swabbr.Core.Entities;
+using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
-    public interface IRepository<T>
+    public interface IRepository<TEntity> where TEntity : EntityBase
     {
-        Task<T> GetByIdAsync(string partitionKey, string rowKey);
+        Task<TEntity> GetAsync(string partitionKey, string rowKey);
 
-        Task<T> AddAsync(T entity);
+        Task<TEntity> AddAsync(TEntity entity);
 
-        Task UpdateAsync(T entity);
+        Task UpdateAsync(TEntity entity);
 
-        Task DeleteAsync(T entity);
-
-        //TODO: Should these be here?
-        string ResolvePartitionKey(T entity);
-        string ResolveRowKey(T entity);
+        Task DeleteAsync(TEntity entity);
     }
 }

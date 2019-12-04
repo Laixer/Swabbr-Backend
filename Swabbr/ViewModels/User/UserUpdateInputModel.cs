@@ -1,6 +1,6 @@
 ﻿namespace Swabbr.Api.ViewModels
 {
-    public class UserUpdateInput
+    public class UserUpdateInputModel
     {
     }
 }

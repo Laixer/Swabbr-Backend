@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Swabbr.Core.Entities
+namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
     /// Represents a like (love-it) given to a vlog.

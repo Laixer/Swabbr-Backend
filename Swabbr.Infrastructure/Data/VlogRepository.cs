@@ -2,6 +2,7 @@
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Interfaces;
+using Swabbr.Infrastructure.Data.Entities;
 using System;
 
 namespace Swabbr.Infrastructure.Data
@@ -26,8 +27,8 @@ namespace Swabbr.Infrastructure.Data
             throw new NotImplementedException();
         }
 
-        public override string ResolvePartitionKey(Vlog entity) => entity.UserId.ToString();
+        public override string ResolvePartitionKey(VlogEntity entity) => entity.UserId.ToString();
 
-        public override string ResolveRowKey(Vlog entity) => entity.VlogId.ToString();
+        public override string ResolveRowKey(VlogEntity entity) => entity.VlogId.ToString();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Swabbr.Core.Enums;
 using System;
 
-namespace Swabbr.Core.Entities
+namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
     /// Personal settings and preferences for a user.

@@ -1,10 +1,16 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserOutput
+    public class UserOutputModel
     {
+        /// <summary>
+        /// Unique identifier.
+        /// </summary>
+        public Guid UserId { get; set; }
+
         /// <summary>
         /// First name of the user.
         /// </summary>
@@ -54,5 +60,23 @@ namespace Swabbr.Api.ViewModels
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
         public bool IsPrivate { get; set; }
+
+        public static implicit operator UserOutputModel(User user)
+        {
+            return new UserOutputModel
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                BirthDate = user.BirthDate,
+                Email = user.Email,
+                Country = user.Country,
+                Gender = user.Gender,
+                IsPrivate = user.IsPrivate,
+                Nickname = user.Nickname,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Timezone = user.Timezone
+            };
+        }
     }
 }

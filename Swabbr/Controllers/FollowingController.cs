@@ -7,7 +7,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to users that one is following.
     /// </summary>
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [Obsolete]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class FollowingController : ControllerBase

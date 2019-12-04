@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Core.Enums;
 using System;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to follow requests.
     /// </summary>
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [Obsolete]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class FollowRequestsController : ControllerBase
@@ -30,6 +31,18 @@ namespace Swabbr.Api.Controllers
         [HttpGet("outgoing")]
         public async Task<IActionResult> Outgoing()
         {
+            //! TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns the status of a follow relationship from the authenticated user to the user with the specified id.
+        /// </summary>
+        [HttpGet("status")]
+        public async Task<IActionResult> Status(Guid receiverId)
+        {
+            return new OkObjectResult(FollowRequestStatus.Declined);
+
             //! TODO
             throw new NotImplementedException();
         }

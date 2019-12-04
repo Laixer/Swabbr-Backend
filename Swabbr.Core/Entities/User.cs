@@ -6,12 +6,8 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents a single user.
     /// </summary>
-    public class User
+    public class User : EntityBase
     {
-        public User()
-        {
-        }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>
@@ -86,5 +82,10 @@ namespace Swabbr.Core.Entities
         /// Phone number of the user stored as text.
         /// </summary>
         public string PhoneNumber { get; set; }
+
+        /// <summary>
+        /// Personal settings and preferences.
+        /// </summary>
+        public UserSettings Settings { get; set; }
     }
 }

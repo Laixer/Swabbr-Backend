@@ -1,13 +1,17 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserProfileOutput
+    public class UserProfileOutputModel
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        /// <summary>
+        /// Unique identifier.
+        /// </summary>
+        [JsonProperty("userId")]
+        public Guid UserId { get; set; }
 
         /// <summary>
         /// First name of the user.
@@ -80,5 +84,22 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("totalFollowing")]
         public int TotalFollowing { get; set; }
+
+        public static implicit operator UserProfileOutputModel(User user)
+        {
+            return new UserProfileOutputModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                BirthDate = user.BirthDate,
+                Country = user.Country,
+                Gender = user.Gender,
+                IsPrivate = user.IsPrivate,
+                Nickname = user.Nickname,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Timezone = user.Timezone,
+                // TODO Where to assign TotalVlogs, TotalFollowers etc. ?
+            };
+        }
     }
 }

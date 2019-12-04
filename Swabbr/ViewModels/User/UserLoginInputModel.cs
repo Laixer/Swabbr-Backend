@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserLoginInput
+    public class UserLoginInputModel
     {
         /// <summary>
         /// Email address.
@@ -15,5 +16,14 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("password")]
         public string Password { get; set; }
+
+        public static implicit operator User(UserLoginInputModel user)
+        {
+            return new User
+            {
+                Email = user.Email,
+                Password = user.Password
+            };
+        }
     }
 }

@@ -1,13 +1,16 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Entities;
 using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public abstract class DbRepository<TModel, TDto> : IRepository<TModel>, ITableContext where TDto: TableEntity
+    public abstract class DbRepository<TModel, TDto> : IRepository<TModel>, ITableContext 
+        where TModel: EntityBase
+        where TDto: TableEntity
     {
         private readonly IDbClientFactory _factory;
 
@@ -16,18 +19,22 @@ namespace Swabbr.Infrastructure.Data
             _factory = factory;
         }
 
-        public async Task<TModel> GetByIdAsync(string partitionKey, string rowKey)
+        public async Task<TModel> GetAsync(string partitionKey, string rowKey)
         {
             try
             {
                 var client = _factory.GetClient<TDto>(TableName);
                 var item = await client.RetrieveEntityAsync(partitionKey, rowKey);
+
+                if (item == null)
+                {
+                    throw new EntityNotFoundException();
+                }
+
                 return Map(item);
             }
-            catch (Exception e)
+            catch
             {
-                throw new EntityNotFoundException();
-
                 throw;
             }
         }
@@ -39,10 +46,10 @@ namespace Swabbr.Infrastructure.Data
                 var client = _factory.GetClient<TDto>(TableName);
                 var insertEntity = Map(entity);
 
-                insertEntity.PartitionKey = ResolvePartitionKey(entity);
-                insertEntity.RowKey = ResolveRowKey(entity);
+                insertEntity.PartitionKey = ResolvePartitionKey(insertEntity);
+                insertEntity.RowKey = ResolveRowKey(insertEntity);
 
-                var item = await client.InsertEntityAsync(Map(entity));
+                var item = await client.InsertEntityAsync(insertEntity);
                 return Map(item);
             }
             catch (Exception e)
@@ -99,7 +106,6 @@ namespace Swabbr.Infrastructure.Data
 
         /// <summary>
         /// Method for converting an entity of type <typeparamref name="TModel"/> (Domain Entity) to a <typeparamref name="TDto"/> (Table Entity).
-        /// <para>This method must ensure that the PartitionKey and RowKey properties of the <paramref name="entity"/> are provided in the final model.</para>
         /// </summary>
         public abstract TDto Map(TModel entity);
 
@@ -108,8 +114,15 @@ namespace Swabbr.Infrastructure.Data
         /// </summary>
         public abstract TModel Map(TDto entity);
         
-        public abstract string ResolvePartitionKey(TModel entity);
-        public abstract string ResolveRowKey(TModel entity);
+        /// <summary>
+        /// Used to determine the partition key of the entity for a table.
+        /// </summary>
+        public abstract string ResolvePartitionKey(TDto entity);
+
+        /// <summary>
+        /// Used to determine the row key (primary key) of the entity for a table.
+        /// </summary>
+        public abstract string ResolveRowKey(TDto entity);
 
         /// <summary>
         /// Name of the table

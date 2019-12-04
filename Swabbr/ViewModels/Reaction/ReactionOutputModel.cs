@@ -3,10 +3,10 @@ using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class ReactionOutput
+    public class ReactionOutputModel
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("reactionId")]
+        public Guid ReactionId { get; set; }
 
         /// <summary>
         /// Id of the user by whom this reaction was created.

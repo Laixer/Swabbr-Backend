@@ -24,6 +24,14 @@ namespace Swabbr.Infrastructure.Data
             await _factory.DeleteAllTables();
         }
 
+        public Task<User> GetByIdAsync(Guid userId)
+        {
+            // Partition key and row key are the same.
+            // TODO Change partition key if there is a better alternative.
+            var id = userId.ToString();
+            return GetAsync(id, id);
+        }
+
         /// <summary>
         /// Search for a user by checking if the search query (partially) matches their first name, last name or nickname.
         /// </summary>
@@ -78,11 +86,8 @@ namespace Swabbr.Infrastructure.Data
 
         public override UserEntity Map(User entity)
         {
-            return new UserEntity(entity.UserId)
+            return new UserEntity
             {
-                PartitionKey = ResolvePartitionKey(entity),
-                RowKey = ResolveRowKey(entity),
-
                 UserId = entity.UserId,
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
@@ -103,8 +108,8 @@ namespace Swabbr.Infrastructure.Data
             };
         }
 
-        public override string ResolvePartitionKey(User entity) => entity.UserId.ToString();
+        public override string ResolvePartitionKey(UserEntity entity) => entity.UserId.ToString();
 
-        public override string ResolveRowKey(User entity) => entity.UserId.ToString();
+        public override string ResolveRowKey(UserEntity entity) => entity.UserId.ToString();
     }
 }

@@ -3,14 +3,10 @@
 namespace Swabbr.Core.Entities
 {
     /// <summary>
-    /// A reaction to a vlog.
+    /// A video reaction to a vlog.
     /// </summary>
-    public class Reaction
+    public class Reaction : EntityBase
     {
-        public Reaction()
-        {
-        }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>
@@ -25,6 +21,11 @@ namespace Swabbr.Core.Entities
         /// Id of the vlog the reaction responds to.
         /// </summary>
         public Guid VlogId { get; set; }
+
+        /// <summary>
+        /// Duration of the video.
+        /// </summary>
+        public uint Duration { get; set; }
 
         /// <summary>
         /// The moment at which the reaction was posted.

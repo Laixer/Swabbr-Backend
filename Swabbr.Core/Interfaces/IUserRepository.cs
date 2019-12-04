@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,6 +7,12 @@ namespace Swabbr.Core.Interfaces
 {
     public interface IUserRepository : IRepository<User>
     {
+        /// <summary>
+        /// Get a single user entity by id.
+        /// </summary>
+        Task<User> GetByIdAsync(Guid userId);
+
+        // TODO: Make this generic?S
         /// <summary>
         /// Searching for users.
         /// </summary>

@@ -1,15 +1,16 @@
 ﻿using Newtonsoft.Json;
 using Swabbr.Core.Enums;
+using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserSettingsInput
+    public class UserSettingsOutputModel
     {
         /// <summary>
         /// Id of the user these settings belong to.
         /// </summary>
         [JsonProperty("userId")]
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
 
         /// <summary>
         /// The maximum amount of times the user should be reminded

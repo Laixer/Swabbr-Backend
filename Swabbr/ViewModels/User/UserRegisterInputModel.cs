@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserRegisterInput
+    public class UserRegisterInputModel
     {
         /// <summary>
         /// First name of the user.
@@ -77,5 +78,25 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("phoneNumber")]
         public string PhoneNumber { get; set; }
+
+        public static implicit operator User(UserRegisterInputModel user)
+        {
+            return new User
+            {
+                //TODO: Generate user id here??? (decided against it) doesn't seem logical
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                BirthDate = user.BirthDate,
+                Email = user.Email,
+                Country = user.Country,
+                Gender = user.Gender,
+                IsPrivate = user.IsPrivate,
+                Nickname = user.Nickname,
+                ProfileImageUrl = user.ProfileImageUrl,
+                Timezone = user.Timezone,
+                Password = user.Password,
+                PhoneNumber = user.PhoneNumber
+            };
+        }
     }
 }

@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Swabbr.Core.Entities
 {
-    public class Vlog
+    /// <summary>
+    /// A vlog created by a user.
+    /// </summary>
+    public class Vlog : EntityBase
     {
-        public Vlog()
-        {
-        }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>
@@ -16,7 +16,13 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Id of the user who created the vlog.
         /// </summary>
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
+
+        //TODO: Is the duration of the vlog available from the media service metadata or should this be stored seperately?
+        /// <summary>
+        /// The duration of the vlog.
+        /// </summary>
+        public uint Duration { get; set; }
 
         /// <summary>
         /// Indicates if the vlog should be publicly available to other users.
@@ -33,14 +39,15 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public DateTime DateStarted { get; set; }
 
+        /// <summary>
+        /// Likes given to this vlog by users.
+        /// </summary>
+        public List<VlogLike> Likes { get; set; }
+
         // TODO: Add Metadata from Media Service to model?
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>
         public string MediaServiceData { get; set; }
-
-        public string PartitionKey => UserId.ToString();
-
-        public string RowKey => VlogId.ToString();
     }
 }

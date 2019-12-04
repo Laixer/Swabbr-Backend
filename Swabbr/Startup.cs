@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Swabbr.Api;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Core.Interfaces;
@@ -39,15 +37,6 @@ namespace Swabbr
             {
                 options.LowercaseUrls = true;
             });
-
-            // Add mapper
-            var mappingConfiguration = new MapperConfiguration(m =>
-            {
-                m.AddProfile(new MapperProfile());
-                // TODO Explicitly tell mapper to map Email to RowPartition what?
-            });
-            IMapper mapper = mappingConfiguration.CreateMapper();
-            services.AddSingleton(mapper);
 
             // Authentication
             //services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme);
