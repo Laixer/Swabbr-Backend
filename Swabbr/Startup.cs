@@ -1,20 +1,18 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
+using Swabbr.Api.Test.Helpers;
+using Swabbr.Api.Test.Models;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data;
 using System;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
-using System.Text;
 
 namespace Swabbr
 {
@@ -40,29 +38,8 @@ namespace Swabbr
 
             // Authentication
             //services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme);
-            services.AddIdentity<IdentityUser, IdentityRole>()
-            .AddDefaultTokenProviders();
-
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
-            services
-                .AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(cfg =>
-                {
-                    cfg.RequireHttpsMetadata = false;
-                    cfg.SaveToken = true;
-                    cfg.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidIssuer = Configuration["JwtIssuer"],
-                        ValidAudience = Configuration["JwtIssuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"])),
-                        ClockSkew = TimeSpan.Zero // remove delay of token when expire
-                    };
-                });
+            services.AddIdentityCore<AzureTableUser>().AddDefaultTokenProviders();
+            services.AddScoped<IUserStore<AzureTableUser>, AzureStore>();
 
             services.AddSwaggerGen(c =>
             {
@@ -80,7 +57,7 @@ namespace Swabbr
 
             //TODO Comments
             // Verify database and collections existance.
-            // Add CosmosDb. Ensure database and containers exist.
+            // Add CosmosDb. Ensure database and tables exist.
             services.AddCosmosDb(connectionString, tableProperties);
 
             services.AddScoped<IUserRepository, UserRepository>();
@@ -97,7 +74,8 @@ namespace Swabbr
             }
             else
             {
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                // The default HSTS value is 30 days. You may want to change this for production
+                // scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 

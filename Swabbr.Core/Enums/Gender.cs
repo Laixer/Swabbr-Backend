@@ -1,7 +1,7 @@
 ﻿namespace Swabbr.Core.Enums
 {
     /// <summary>
-    /// Enum for the gender  of a <see cref="UserItem" />.
+    /// Enum for the gender of a <see cref="UserItem"/>.
     /// </summary>
     public enum Gender
     {

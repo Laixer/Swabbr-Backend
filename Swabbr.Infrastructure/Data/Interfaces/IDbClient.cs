@@ -7,7 +7,7 @@ namespace Swabbr.Infrastructure.Data.Interfaces
     /// <summary>
     /// Interface for the Cosmos Db client.
     /// </summary>
-    public interface IDbClient<T> where T: TableEntity
+    public interface IDbClient<T> where T : TableEntity
     {
         /// <summary>
         /// Insert an entity of type <typeparamref name="T"/> into the database table.
@@ -35,7 +35,8 @@ namespace Swabbr.Infrastructure.Data.Interfaces
         Task<T> DeleteEntityAsync(string partitionKey, string rowKey);
 
         /// <summary>
-        /// Returns a collection of entities of type <typeparamref name="T"/> based on the given search query.
+        /// Returns a collection of entities of type <typeparamref name="T"/> based on the given
+        /// search query.
         /// </summary>
         Task<IEnumerable<T>> QueryTableAsync(/*  TODO  what parameters??? */);
     }

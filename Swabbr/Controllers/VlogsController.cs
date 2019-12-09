@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Interfaces;
 using System;
 using System.Threading.Tasks;
 

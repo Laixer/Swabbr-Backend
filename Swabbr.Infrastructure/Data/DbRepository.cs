@@ -1,16 +1,16 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
-using Swabbr.Core.Entities;
 using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public abstract class DbRepository<TModel, TDto> : IRepository<TModel>, ITableContext 
-        where TModel: EntityBase
-        where TDto: TableEntity
+    public abstract class DbRepository<TModel, TDto> : IRepository<TModel>, ITableContext
+        where TModel : EntityBase
+        where TDto : TableEntity
     {
         private readonly IDbClientFactory _factory;
 
@@ -105,15 +105,17 @@ namespace Swabbr.Infrastructure.Data
         }
 
         /// <summary>
-        /// Method for converting an entity of type <typeparamref name="TModel"/> (Domain Entity) to a <typeparamref name="TDto"/> (Table Entity).
+        /// Method for converting an entity of type <typeparamref name="TModel"/> (Domain Entity) to
+        /// a <typeparamref name="TDto"/> (Table Entity).
         /// </summary>
         public abstract TDto Map(TModel entity);
 
         /// <summary>
-        /// Method for converting a <typeparamref name="TDto"/> (Table Entity) to a <typeparamref name="TModel"/> (Domain Entity)
+        /// Method for converting a <typeparamref name="TDto"/> (Table Entity) to a <typeparamref
+        /// name="TModel"/> (Domain Entity)
         /// </summary>
         public abstract TModel Map(TDto entity);
-        
+
         /// <summary>
         /// Used to determine the partition key of the entity for a table.
         /// </summary>

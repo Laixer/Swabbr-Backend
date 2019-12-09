@@ -8,14 +8,16 @@ using System.Threading.Tasks;
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Actions  related to followers of a user.
+    /// Actions related to followers of a user.
     /// </summary>
     [Obsolete]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class FollowersController : ControllerBase
     {
-        /// <summary>Get the followers of a single user.</summary>
+        /// <summary>
+        /// Get the followers of a single user.
+        /// </summary>
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<User>))]
         [HttpGet("users/{userId}")]
         public async Task<IActionResult> List([FromRoute] int userId)

@@ -36,7 +36,8 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns the status of a follow relationship from the authenticated user to the user with the specified id.
+        /// Returns the status of a follow relationship from the authenticated user to the user with
+        /// the specified id.
         /// </summary>
         [HttpGet("status")]
         public async Task<IActionResult> Status(Guid receiverId)
@@ -48,7 +49,8 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns a collection of users for which the authenticated user has previously rejected follow requests.
+        /// Returns a collection of users for which the authenticated user has previously rejected
+        /// follow requests.
         /// </summary>
         /// <returns></returns>
         [HttpGet("rejected")]

@@ -1,5 +1,5 @@
-﻿using System;
-using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Enums;
+using System;
 
 namespace Swabbr.Core.Entities
 {
@@ -14,8 +14,7 @@ namespace Swabbr.Core.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// The maximum amount of times the user should be reminded
-        /// to record a vlog through push notifications.
+        /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
         public byte DailyVlogRequestLimit { get; set; }
 

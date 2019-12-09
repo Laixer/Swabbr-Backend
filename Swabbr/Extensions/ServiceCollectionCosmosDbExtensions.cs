@@ -28,7 +28,7 @@ namespace Swabbr.Api.Extensions
             // Initialize and add the Cosmos Db client factory service
             var factory = new DbClientFactory(tables, storageAccount);
             factory.EnsureDbSetupAsync().Wait();
-            
+
             services.AddSingleton<IDbClientFactory>(factory);
 
             return services;

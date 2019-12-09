@@ -1,7 +1,7 @@
 ﻿namespace Swabbr.Core.Enums
 {
     /// <summary>
-    /// Enum that represents the status of an active <see cref="FollowRequest" /> between two users.
+    /// Enum that represents the status of an active <see cref="FollowRequest"/> between two users.
     /// </summary>
     public enum FollowRequestStatus
     {

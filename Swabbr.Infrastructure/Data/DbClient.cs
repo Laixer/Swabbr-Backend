@@ -46,7 +46,7 @@ namespace Swabbr.Infrastructure.Data
             var table = _client.GetTableReference(_tableName);
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             var result = await table.ExecuteAsync(operation);
-            
+
             //TODO ???
             var xxxxx = result.Result as T;
             return xxxxx;

@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Swabbr.Core.Interfaces;
+﻿using Swabbr.Core.Interfaces;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Services
 {

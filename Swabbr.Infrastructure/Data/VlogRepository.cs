@@ -1,8 +1,7 @@
-﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
+using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 
 namespace Swabbr.Infrastructure.Data

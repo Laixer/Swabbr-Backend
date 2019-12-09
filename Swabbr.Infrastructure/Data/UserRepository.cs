@@ -26,14 +26,15 @@ namespace Swabbr.Infrastructure.Data
 
         public Task<User> GetByIdAsync(Guid userId)
         {
-            // Partition key and row key are the same.
-            // TODO Change partition key if there is a better alternative.
+            // Partition key and row key are the same. TODO Change partition key if there is a
+            // better alternative.
             var id = userId.ToString();
             return GetAsync(id, id);
         }
 
         /// <summary>
-        /// Search for a user by checking if the search query (partially) matches their first name, last name or nickname.
+        /// Search for a user by checking if the search query (partially) matches their first name,
+        /// last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
         public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)

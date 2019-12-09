@@ -1,17 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
+using Swabbr.Api.Test.Models;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -24,22 +19,17 @@ namespace Swabbr.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _repo;
-        private readonly IConfiguration _config;
 
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        //private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<AzureTableUser> _userManager;
 
         public UsersController(
             IUserRepository repo,
-            IConfiguration configuration,
-            SignInManager<IdentityUser> signInManager
-            //UserManager<IdentityUser> userManager
+            UserManager<AzureTableUser> userManager
         )
         {
             _repo = repo;
-            _config = configuration;
-            _signInManager = signInManager;
-            //_userManager = userManager;
+            _userManager = userManager;
         }
 
         //TODO: Remove, temporary
@@ -72,12 +62,13 @@ namespace Swabbr.Api.Controllers
                 User createdUser = await _repo.AddAsync(user);
 
                 // TODO?????????
-                var xx = new IdentityUser
+                var identityUser = new AzureTableUser
                 {
+                    UserId = createdUser.UserId.ToString(),
                     UserName = input.Email,
                     Email = input.Email
                 };
-                //await _userManager.CreateAsync(xx, input.Password);
+                var a = await _userManager.CreateAsync(identityUser, input.Password);
 
                 return Created(Url.ToString(), createdUser);
             }
@@ -196,34 +187,9 @@ namespace Swabbr.Api.Controllers
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete()
         {
-            Core.Entities.User user = null;
             ////await _repo.DeleteAsync(user.ToDocument());
             //! TODO
             throw new NotImplementedException();
-        }
-
-        private async Task<object> GenerateAuthToken(string emailAddress, IdentityUser user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, emailAddress),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_config["JwtExpireDays"]));
-
-            var token = new JwtSecurityToken(
-                _config["JwtIssuer"],
-                _config["JwtIssuer"],
-                claims,
-                expires: expires,
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }

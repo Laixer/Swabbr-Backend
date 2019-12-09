@@ -18,8 +18,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// The maximum amount of times the user should be reminded
-        /// to record a vlog through push notifications.
+        /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
         public byte DailyVlogRequestLimit { get; set; }
 
