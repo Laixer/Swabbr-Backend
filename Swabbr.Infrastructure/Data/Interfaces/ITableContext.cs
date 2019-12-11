@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Infrastructure.Data.Interfaces
+﻿namespace Swabbr.Infrastructure.Data
 {
     /// <summary>
     /// Represents an Azure CosmosDb Table

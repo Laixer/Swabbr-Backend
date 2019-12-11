@@ -2,7 +2,6 @@
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.Threading.Tasks;
 

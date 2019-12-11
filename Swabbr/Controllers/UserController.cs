@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.Test.Models;
+using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -15,28 +14,26 @@ namespace Swabbr.Api.Controllers
     /// Controller for handling user related Api requests.
     /// </summary>
     [ApiController]
-    [Route("api/v1/[controller]")]
-    public class UsersController : ControllerBase
+    [Route("api/v1/users")]
+    [Authorize]
+    public class UserController : ControllerBase
     {
-        private readonly IUserRepository _repo;
+        private readonly IUserService _service;
 
         //private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<AzureTableUser> _userManager;
+        //private readonly IUserStore<AzureTableIdentityUser> _userStore;
+        //private readonly SignInManager<AzureTableIdentityUser> _signInManager;
 
-        public UsersController(
-            IUserRepository repo,
-            UserManager<AzureTableUser> userManager
-        )
+        public UserController(IUserService service)
         {
-            _repo = repo;
-            _userManager = userManager;
+            _service = service;
         }
 
         //TODO: Remove, temporary
-        [HttpGet("tempdeletetables")]
+        [HttpGet("IGNORE_temporaryMethodUsedToDeleteTablesForTestingPurposesOnly")]
         public async Task<IActionResult> TempDeleteTables()
         {
-            await _repo.TempDeleteTables();
+            await _service.TempDeleteTables();
             return Ok();
         }
 
@@ -45,32 +42,26 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="input">Input for a new user to register</param>
         /// <returns></returns>
+        [Authorize]
         [HttpPost("register")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
-            // Map input to model
+            // Convert input model to an identity user model
             User user = input;
 
-            // Generate new id for the new entity
+            //TODO Do this here?
+            // Generate new id
             user.UserId = Guid.NewGuid();
 
             try
             {
-                User createdUser = await _repo.AddAsync(user);
+                // TODO: What to do with  the cancellation token?
+                //var result = await _userStore.CreateAsync(identityUser, new System.Threading.CancellationToken());
 
-                // TODO?????????
-                var identityUser = new AzureTableUser
-                {
-                    UserId = createdUser.UserId.ToString(),
-                    UserName = input.Email,
-                    Email = input.Email
-                };
-                var a = await _userManager.CreateAsync(identityUser, input.Password);
-
-                return Created(Url.ToString(), createdUser);
+                return Created(Url.ToString(), null);
             }
             catch (Exception e)
             {
@@ -82,10 +73,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Authorizes a registered user.
         /// </summary>
+        [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] UserLoginInputModel input)
+        public async Task<IActionResult> Login([FromBody] UserAuthenticateModel input)
         {
             //! TODO
 
@@ -97,6 +89,19 @@ namespace Swabbr.Api.Controllers
             //    var token = await GenerateAuthToken(user.Email, appUser);
             //    return Ok(token);
             //}
+
+            var token = await _service.Authenticate(input.Email, input.Password);
+
+            if (token == null)
+            {
+                // Not authorized
+                return new UnauthorizedResult();
+            }
+            else
+            {
+                // Authorized, return the access token
+                return Ok(token);
+            }
 
             throw new NotImplementedException();
         }
@@ -122,7 +127,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                User user = await _repo.GetByIdAsync(userId);
+                User user = await _service.GetByIdAsync(userId);
                 UserOutputModel output = user;
                 return Ok(output);
             }
@@ -132,6 +137,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO remove unused parameters
         /// <summary>
         /// Search for users.
         /// </summary>
@@ -140,11 +146,9 @@ namespace Swabbr.Api.Controllers
         /// <param name="limit">Maximum amount of results to fetch.</param>
         [HttpGet("search")]
         public async Task<IActionResult> Search(
-            [FromQuery]string q,
-            [FromQuery]uint offset = 0,
-            [FromQuery]uint limit = 100)
+            [FromQuery]string q)
         {
-            var results = await _repo.SearchAsync(q, offset, limit);
+            var results = await _service.SearchAsync(q);
 
             return Ok(results);
         }
@@ -153,6 +157,7 @@ namespace Swabbr.Api.Controllers
         /// Get information about the authenticated user.
         /// </summary>
         [HttpGet("self")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Self()
         {
             //! TODO
@@ -165,6 +170,7 @@ namespace Swabbr.Api.Controllers
         /// Update the authenticated user.
         /// </summary>
         [HttpPut("update")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Update([FromBody] Core.Entities.User user)
         {
             try
@@ -185,6 +191,10 @@ namespace Swabbr.Api.Controllers
         /// Delete the account of the authenticated user.
         /// </summary>
         [HttpDelete("delete")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Delete()
         {
             ////await _repo.DeleteAsync(user.ToDocument());

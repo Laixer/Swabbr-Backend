@@ -5,13 +5,13 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Represents a like (love-it) given to a vlog.
     /// </summary>
-    public class VlogLikeEntity
+    public class VlogLikeTableEntity
     {
-        public VlogLikeEntity()
+        public VlogLikeTableEntity()
         {
         }
 
-        public VlogLikeEntity(Guid vlogId, Guid userId)
+        public VlogLikeTableEntity(Guid vlogId, Guid userId)
         {
             // TO DO
         }

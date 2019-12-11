@@ -8,9 +8,8 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to user settings and preferences.
     /// </summary>
-    [Obsolete]
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/vlogs")]
     public class UserSettingsController : ControllerBase
     {
         /// <summary>

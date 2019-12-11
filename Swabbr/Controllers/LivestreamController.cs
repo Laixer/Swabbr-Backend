@@ -8,8 +8,8 @@ namespace Swabbr.Api.Controllers
     // TODO Using this controller for now instead of Vlogs. Determine where to store these methods.
     [Obsolete]
     [ApiController]
-    [Route("api/v1/[controller]")]
-    public class LivestreamsController : ControllerBase
+    [Route("api/v1/livestreams")]
+    public class LivestreamController : ControllerBase
     {
         /// <summary>
         /// Start a new livestream.

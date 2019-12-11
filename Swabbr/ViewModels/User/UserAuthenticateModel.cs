@@ -3,7 +3,10 @@ using Swabbr.Core.Entities;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserLoginInputModel
+    /// <summary>
+    /// Represents an input model provided by the client for authenticating a user.
+    /// </summary>
+    public class UserAuthenticateModel
     {
         /// <summary>
         /// Email address.
@@ -17,7 +20,7 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("password")]
         public string Password { get; set; }
 
-        public static implicit operator User(UserLoginInputModel user)
+        public static implicit operator User(UserAuthenticateModel user)
         {
             return new User
             {

@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.ViewModels;
 using Swabbr.Core.Enums;
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -8,16 +11,16 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to follow requests.
     /// </summary>
-    [Obsolete]
     [ApiController]
-    [Route("api/v1/[controller]")]
-    public class FollowRequestsController : ControllerBase
+    [Route("api/v1/followrequests")]
+    public class FollowRequestController : ControllerBase
     {
         // TODO Return user objects or user id's???
         /// <summary>
         /// Returns a collection of users who have a pending follow request for the authenticated user.
         /// </summary>
         [HttpGet("incoming")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
         public async Task<IActionResult> Incoming()
         {
             //! TODO
@@ -29,6 +32,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a collection of users that the authenticated user has requested to follow.
         /// </summary>
         [HttpGet("outgoing")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
         public async Task<IActionResult> Outgoing()
         {
             //! TODO
@@ -40,6 +44,7 @@ namespace Swabbr.Api.Controllers
         /// the specified id.
         /// </summary>
         [HttpGet("status")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
         public async Task<IActionResult> Status(Guid receiverId)
         {
             return new OkObjectResult(FollowRequestStatus.Declined);
@@ -54,6 +59,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("rejected")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> Rejected()
         {
             //! TODO
@@ -64,7 +70,8 @@ namespace Swabbr.Api.Controllers
         /// Send a follow request to the specified user.
         /// </summary>
         [HttpPost("create")]
-        public async Task<IActionResult> Create()
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        public async Task<IActionResult> Create(FollowRequestInput input)
         {
             ////_repo.AddAsync(new Core.Models.FollowRequest
             ////{
@@ -80,6 +87,7 @@ namespace Swabbr.Api.Controllers
         /// Cancel a follow request sent to the specified user.
         /// </summary>
         [HttpDelete("destroy")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Destroy()
         {
             //! TODO
@@ -91,6 +99,7 @@ namespace Swabbr.Api.Controllers
         /// Accept a pending follow request for the authenticated user.
         /// </summary>
         [HttpPut("accept")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Accept()
         {
             //! TODO
@@ -101,6 +110,7 @@ namespace Swabbr.Api.Controllers
         /// Decline a follow request for the authenticated user.
         /// </summary>
         [HttpPut("decline")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Decline()
         {
             //! TODO

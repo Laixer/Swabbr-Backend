@@ -6,9 +6,9 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Represents the current status of a follow relationship between two users.
     /// </summary>
-    public class FollowRequestEntity
+    public class FollowRequestTableEntity
     {
-        public FollowRequestEntity()
+        public FollowRequestTableEntity()
         {
         }
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Data.Interfaces
+namespace Swabbr.Infrastructure.Data
 {
     /// <summary>
     /// Factory for providing an <see cref="IDbClient"/> for database entities

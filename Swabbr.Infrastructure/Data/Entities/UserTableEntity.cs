@@ -7,9 +7,9 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Represents a single user.
     /// </summary>
-    public class UserEntity : TableEntity
+    public class UserTableEntity : TableEntity
     {
-        public UserEntity()
+        public UserTableEntity()
         {
         }
 

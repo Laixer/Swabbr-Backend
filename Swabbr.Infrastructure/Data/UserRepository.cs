@@ -1,14 +1,14 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
+using Swabbr.Infrastructure.Data;
 using Swabbr.Infrastructure.Data.Entities;
-using Swabbr.Infrastructure.Data.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class UserRepository : DbRepository<User, UserEntity>, IUserRepository
+    public class UserRepository : DbRepository<User, UserTableEntity>, IUserRepository
     {
         private readonly IDbClientFactory _factory;
 
@@ -39,7 +39,7 @@ namespace Swabbr.Infrastructure.Data
         /// <param name="q">The search query that is supplied by the client.</param>
         public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
-            _ = _factory.GetClient<UserEntity>(TableName);
+            _ = _factory.GetClient<UserTableEntity>(TableName);
 
             // TODO Implement method
 
@@ -61,7 +61,7 @@ namespace Swabbr.Infrastructure.Data
             ////return results;
         }
 
-        public override User Map(UserEntity entity)
+        public override User Map(UserTableEntity entity)
         {
             return new User
             {
@@ -85,9 +85,9 @@ namespace Swabbr.Infrastructure.Data
             };
         }
 
-        public override UserEntity Map(User entity)
+        public override UserTableEntity Map(User entity)
         {
-            return new UserEntity
+            return new UserTableEntity
             {
                 UserId = entity.UserId,
                 FirstName = entity.FirstName,
@@ -109,8 +109,8 @@ namespace Swabbr.Infrastructure.Data
             };
         }
 
-        public override string ResolvePartitionKey(UserEntity entity) => entity.UserId.ToString();
+        public override string ResolvePartitionKey(UserTableEntity entity) => entity.UserId.ToString();
 
-        public override string ResolveRowKey(UserEntity entity) => entity.UserId.ToString();
+        public override string ResolveRowKey(UserTableEntity entity) => entity.UserId.ToString();
     }
 }

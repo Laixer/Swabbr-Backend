@@ -10,9 +10,8 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Actions related to followers of a user.
     /// </summary>
-    [Obsolete]
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/followers")]
     public class FollowersController : ControllerBase
     {
         /// <summary>

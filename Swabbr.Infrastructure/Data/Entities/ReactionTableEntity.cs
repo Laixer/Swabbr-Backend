@@ -5,9 +5,9 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// A reaction to a vlog.
     /// </summary>
-    public class ReactionEntity
+    public class ReactionTableEntity
     {
-        public ReactionEntity()
+        public ReactionTableEntity()
         {
         }
 

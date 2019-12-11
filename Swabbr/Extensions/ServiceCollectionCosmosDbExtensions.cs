@@ -1,7 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Infrastructure.Data;
-using Swabbr.Infrastructure.Data.Interfaces;
 using System.Collections.Generic;
 
 namespace Swabbr.Api.Extensions

@@ -3,9 +3,9 @@ using System;
 
 namespace Swabbr.Infrastructure.Data.Entities
 {
-    public class VlogEntity : TableEntity
+    public class VlogTableEntity : TableEntity
     {
-        public VlogEntity()
+        public VlogTableEntity()
         {
         }
 

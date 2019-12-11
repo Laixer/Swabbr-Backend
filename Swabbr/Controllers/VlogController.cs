@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Services;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using System;
@@ -9,16 +10,16 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling vlog related Api requests.
     /// </summary>
+    [Obsolete]
     [ApiController]
-    [Route("api/v1/[controller]")]
-    public class VlogsController : ControllerBase
+    [Route("api/v1/vlogs")]
+    public class VlogController : ControllerBase
     {
-        private readonly IVlogRepository _repo;
-        ////private readonly IConverter _converter;
+        private readonly IVlogService _service;
 
-        public VlogsController(IVlogRepository repo)
+        public VlogController(IVlogService service)
         {
-            _repo = repo;
+            _service = service;
         }
 
         /// <summary>

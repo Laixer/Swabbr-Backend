@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Data.Interfaces
+namespace Swabbr.Infrastructure.Data
 {
     /// <summary>
     /// Interface for the Cosmos Db client.

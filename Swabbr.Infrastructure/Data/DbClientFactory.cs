@@ -1,5 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Infrastructure.Data.Interfaces;
+using Swabbr.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

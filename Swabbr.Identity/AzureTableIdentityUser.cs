@@ -5,13 +5,15 @@ using System.Collections.Generic;
 
 namespace Swabbr.Identity
 {
+    // TODO Turn "Swabbr.Infrastructure.Data.Entities.UserEntity" table entity into this?
+
     public class AzureTableIdentityUser : TableEntity, IUser
     {
-        public string Id => UserId;
+        public string Id => UserId.ToString();
 
         public string UserName { get => Email; set => Email = value; }
 
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
         public int FailedLogIns { get; set; }

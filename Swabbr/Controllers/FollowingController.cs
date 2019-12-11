@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -9,14 +12,26 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Obsolete]
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/following")]
     public class FollowingController : ControllerBase
     {
         /// <summary>
         /// Returns a collection of users that the specified user is following.
         /// </summary>
         [HttpGet("users/{userId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> List([FromRoute] int userId)
+        {
+            //! TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Unfollow the specified user.
+        /// </summary>
+        [HttpDelete("users/{userId}/unfollow")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Unfollow([FromRoute] int userId)
         {
             //! TODO
             throw new NotImplementedException();

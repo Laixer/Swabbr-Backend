@@ -13,6 +13,12 @@ namespace Swabbr.Api.ViewModels
         public Guid UserId { get; set; }
 
         /// <summary>
+        /// Indicates whether the profile of the user is publicly visible to other users.
+        /// </summary>
+        [JsonProperty("isPrivate")]
+        public bool IsPrivate { get; set; }
+
+        /// <summary>
         /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
         [JsonProperty("dailyVlogRequestLimit")]

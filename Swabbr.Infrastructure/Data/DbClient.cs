@@ -1,5 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Infrastructure.Data.Interfaces;
+using Swabbr.Infrastructure.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -47,7 +47,7 @@ namespace Swabbr.Infrastructure.Data
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             var result = await table.ExecuteAsync(operation);
 
-            //TODO ???
+            //TODO is this correct???
             var xxxxx = result.Result as T;
             return xxxxx;
         }
