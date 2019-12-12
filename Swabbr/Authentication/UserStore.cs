@@ -1,137 +1,176 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Interfaces;
+using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Infrastructure.Data;
+using Swabbr.Infrastructure.Data.Entities;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    public class UserStore : IUserStore<User>, IUserEmailStore<User>, IUserPhoneNumberStore<User>,
-    IUserTwoFactorStore<User>, IUserPasswordStore<User>
+    // TODO make methods async
+    public class UserStore : IUserStore<IdentityUserTableEntity>, IUserEmailStore<IdentityUserTableEntity>, IUserPhoneNumberStore<IdentityUserTableEntity>,
+    IUserTwoFactorStore<IdentityUserTableEntity>, IUserPasswordStore<IdentityUserTableEntity>
     {
-        private readonly IUserRepository _repository;
+        private readonly IDbClientFactory _factory;
 
-        public UserStore(IUserRepository repository)
+        public UserStore(IDbClientFactory factory)
         {
-            _repository = repository;
+            _factory = factory;
         }
 
-        public async Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
+        public Task<IdentityResult> CreateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            await _repository.AddAsync(user);
-            return IdentityResult.Success;
+            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            client.InsertEntityAsync(user);
+            return Task.FromResult(IdentityResult.Success);
         }
 
-        public async Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
+        public Task<IdentityResult> DeleteAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            await _repository.DeleteAsync(user);
-            return IdentityResult.Success;
+            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            client.DeleteEntityAsync(user.Email, user.UserId.ToString());
+            return Task.FromResult(IdentityResult.Success);
         }
 
         public void Dispose()
         {
-            // Nothing to dispose of.
+            // Nothing to dispose.
         }
 
-        public async Task<User> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        public async Task<IdentityUserTableEntity> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            return await _repository.GetByEmailAsync(normalizedEmail);
+            // TODO Implement
+            return null;
         }
 
-        public async Task<User> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public Task<IdentityUserTableEntity> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            return await _repository.GetByIdAsync(new Guid(userId));
+            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            var results = client.RetrieveEntityAsync(userId, userId);
+            return results;
         }
 
-        public async Task<User> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public Task<IdentityUserTableEntity> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
-            return await _repository.GetByUsernameAsync(normalizedUserName);
+            return FindByEmailAsync(normalizedUserName, cancellationToken);
         }
 
-        // TODO: ???
-        public async Task<string> GetEmailAsync(User user, CancellationToken cancellationToken) => user.Email;
-
-        public async Task<bool> GetEmailConfirmedAsync(User user, CancellationToken cancellationToken) => user.EmailConfirmed;
-
-        public async Task<string> GetNormalizedEmailAsync(User user, CancellationToken cancellationToken) => user.Email.ToLower();
-
-        public async Task<string> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken) => user.Username.ToLower();
-
-        public async Task<string> GetPasswordHashAsync(User user, CancellationToken cancellationToken) => user.PasswordHash;
-
-        public async Task<string> GetPhoneNumberAsync(User user, CancellationToken cancellationToken) => user.PhoneNumber;
-
-        public async Task<bool> GetPhoneNumberConfirmedAsync(User user, CancellationToken cancellationToken) => user.PhoneNumberVerified;
-
-        public async Task<bool> GetTwoFactorEnabledAsync(User user, CancellationToken cancellationToken) => user.TwoFactorEnabled;
-
-        public async Task<string> GetUserIdAsync(User user, CancellationToken cancellationToken) => user.UserId.ToString();
-
-        public async Task<string> GetUserNameAsync(User user, CancellationToken cancellationToken) => user.Email;
-
-        public async Task<bool> HasPasswordAsync(User user, CancellationToken cancellationToken)
+        public Task<string> GetEmailAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            return true;
+            return Task.FromResult(user.Email);
         }
 
-        public async Task SetEmailAsync(User user, string email, CancellationToken cancellationToken)
+        public Task<bool> GetEmailConfirmedAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.EmailConfirmed);
         }
 
-        public async Task SetEmailConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedEmailAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            //throw new NotImplementedException();
+            return Task.FromResult(user.NormalizedEmail);
         }
 
-        public async Task SetNormalizedEmailAsync(User user, string normalizedEmail, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.NormalizedEmail);
         }
 
-        public async Task SetNormalizedUserNameAsync(User user, string normalizedName, CancellationToken cancellationToken)
+        public async Task<string> GetPasswordHashAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return user.PasswordHash.ToString();
         }
 
-        public async Task SetPasswordHashAsync(User user, string passwordHash, CancellationToken cancellationToken)
+        public Task<string> GetPhoneNumberAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.PhoneNumber);
         }
 
-        public async Task SetPhoneNumberAsync(User user, string phoneNumber, CancellationToken cancellationToken)
+        public Task<bool> GetPhoneNumberConfirmedAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.PhoneNumberConfirmed);
         }
 
-        public async Task SetPhoneNumberConfirmedAsync(User user, bool confirmed, CancellationToken cancellationToken)
+        public Task<bool> GetTwoFactorEnabledAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.TwoFactorEnabled);
         }
 
-        public async Task SetTwoFactorEnabledAsync(User user, bool enabled, CancellationToken cancellationToken)
+        public Task<string> GetUserIdAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.UserId.ToString());
         }
 
-        public async Task SetUserNameAsync(User user, string userName, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            // TODO
-            //throw new NotImplementedException();
+            return Task.FromResult(user.Email.ToString());
         }
 
-        public async Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
+        public Task<bool> HasPasswordAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
-            await _repository.UpdateAsync(user);
-            return IdentityResult.Success;
+            return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
+        }
+
+        public Task SetEmailAsync(IdentityUserTableEntity user, string email, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetEmailConfirmedAsync(IdentityUserTableEntity user, bool confirmed, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetNormalizedEmailAsync(IdentityUserTableEntity user, string normalizedEmail, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetNormalizedUserNameAsync(IdentityUserTableEntity user, string normalizedName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetPasswordHashAsync(IdentityUserTableEntity user, string passwordHash, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetPhoneNumberAsync(IdentityUserTableEntity user, string phoneNumber, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetPhoneNumberConfirmedAsync(IdentityUserTableEntity user, bool confirmed, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetTwoFactorEnabledAsync(IdentityUserTableEntity user, bool enabled, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetUserNameAsync(IdentityUserTableEntity user, string userName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task<IdentityResult> UpdateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        {
+            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            client.UpdateEntityAsync(user);
+            return Task.FromResult(IdentityResult.Success);
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace Swabbr.Core.Entities
+﻿namespace Swabbr.Api.Authentication
 {
-    public class Role : EntityBase
+    public class AppRole
     {
         /// <summary>
         /// Id of the role.

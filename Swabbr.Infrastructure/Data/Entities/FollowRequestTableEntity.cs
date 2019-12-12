@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Enums;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Infrastructure.Data.Entities
@@ -6,12 +7,8 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Represents the current status of a follow relationship between two users.
     /// </summary>
-    public class FollowRequestTableEntity
+    public class FollowRequestTableEntity : TableEntity
     {
-        public FollowRequestTableEntity()
-        {
-        }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>

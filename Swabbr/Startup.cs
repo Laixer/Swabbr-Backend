@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +19,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Swabbr
 {
@@ -44,12 +46,12 @@ namespace Swabbr
 
             var jwtOptionsSection = Configuration.GetSection("Jwt");
             var jwtOptions = jwtOptionsSection.Get<JwtOptions>();
-
+            
             // Configure authentication settings
             services.Configure<JwtOptions>(jwtOptionsSection);
-
+            
             var jwtKey = Encoding.ASCII.GetBytes(jwtOptions.Key);
-
+            
             // Add authentication
             services.AddAuthentication(x =>
             {
@@ -103,20 +105,54 @@ namespace Swabbr
 
             // Configure DI for repositories
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IFollowRequestRepository, FollowRequestRepository>();
             services.AddScoped<IVlogRepository, VlogRepository>();
-            services.AddScoped<IRoleRepository, RoleRepository>();
 
             // Configure DI for services
+            services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IVlogService, VlogService>();
 
             // DI for stores
-            services.AddTransient<IUserStore<User>, UserStore>();
-            services.AddTransient<IRoleStore<Role>, RoleStore>();
+            services.AddTransient<IUserStore<IdentityUserTableEntity>, UserStore>();
+            services.AddTransient<IRoleStore<AppRole>, RoleStore>();
 
-            services.AddIdentity<User, Role>()
-                .AddDefaultTokenProviders();
-            //services.AddTransient<IRoleStore<ApplicationRole>, RoleStore>();
+            services.AddIdentity<IdentityUserTableEntity, AppRole>(o =>
+             {
+                 // TODO Determine configuration
+                 o.Password.RequireDigit = false;
+                 o.Password.RequireUppercase = false;
+                 o.Password.RequireLowercase = false;
+                 o.Password.RequireNonAlphanumeric = false;
+                 o.User.RequireUniqueEmail = true;
+             })
+            .AddDefaultTokenProviders();
+
+            // TODO Workaround for page redirect instead of status code(!)
+            services.ConfigureApplicationCookie(o =>
+            {
+                o.Events = new CookieAuthenticationEvents()
+                {
+                    OnRedirectToLogin = (ctx) =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                        {
+                            ctx.Response.StatusCode = 401;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = (ctx) =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                        {
+                            ctx.Response.StatusCode = 403;
+                        }
+
+                        return Task.CompletedTask;
+                    }
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -143,7 +179,7 @@ namespace Swabbr
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
-
+            
             // Add authentication and authorization middleware
             app.UseAuthentication();
             app.UseAuthorization();

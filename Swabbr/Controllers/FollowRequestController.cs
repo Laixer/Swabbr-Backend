@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -15,6 +16,13 @@ namespace Swabbr.Api.Controllers
     [Route("api/v1/followrequests")]
     public class FollowRequestController : ControllerBase
     {
+        private readonly IFollowRequestRepository _repository;
+
+        public FollowRequestController(IFollowRequestRepository repository)
+        {
+            this._repository = repository;
+        }
+
         // TODO Return user objects or user id's???
         /// <summary>
         /// Returns a collection of users who have a pending follow request for the authenticated user.
@@ -23,8 +31,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
         public async Task<IActionResult> Incoming()
         {
-            //! TODO
-            throw new NotImplementedException();
+            return Ok(await _repository.GetIncomingRequestsForUserAsync(new Guid("0a102227-0821-4932-9869-906704d2a7d0")));
         }
 
         // TODO See todo above.
@@ -36,6 +43,17 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Outgoing()
         {
             //! TODO
+            return Ok(await _repository.GetOutgoingRequestsForUserAsync(new Guid("0a102227-0821-4932-9869-906704d2a7d0")));
+        }
+
+        /// <summary>
+        /// Returns a single outgoing follow request from the authenticated user to the specified user.
+        /// </summary>
+        [HttpGet("outgoing/{receiverId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        public async Task<IActionResult> GetOutgoing([FromRoute]Guid receiverId)
+        {
+            //! TODO
             throw new NotImplementedException();
         }
 
@@ -43,9 +61,9 @@ namespace Swabbr.Api.Controllers
         /// Returns the status of a follow relationship from the authenticated user to the user with
         /// the specified id.
         /// </summary>
-        [HttpGet("status")]
+        [HttpGet("{receiverId}/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
-        public async Task<IActionResult> Status(Guid receiverId)
+        public async Task<IActionResult> Status([FromRoute]Guid receiverId)
         {
             return new OkObjectResult(FollowRequestStatus.Pending);
 
@@ -80,6 +98,17 @@ namespace Swabbr.Api.Controllers
             ////    TimeCreated = DateTime.Now
             ////});
             //! TODO
+
+            await _repository.CreateAsync(new Core.Entities.FollowRequest
+            {
+                FollowRequestId = Guid.NewGuid(),
+                ReceiverId = new Guid("0a102227-0821-4932-9869-906704d2a7d0"),
+                RequesterId = Guid.NewGuid(),
+                Status = FollowRequestStatus.Pending,
+                TimeCreated = DateTime.Now
+            });
+
+            //TODO Output
             throw new NotImplementedException();
         }
 

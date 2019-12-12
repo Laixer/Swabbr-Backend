@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -16,6 +18,7 @@ namespace Swabbr.Api.Controllers
         /// Get user settings for the authenticated user.
         /// </summary>
         [HttpGet("get")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type=typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Get()
         {
             //! TODO
@@ -26,6 +29,7 @@ namespace Swabbr.Api.Controllers
         /// Update user settings.
         /// </summary>
         [HttpPut("update")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Update([FromBody] UserSettings settings)
         {
             if (settings != null)

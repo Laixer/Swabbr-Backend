@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
+using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -20,22 +22,25 @@ namespace Swabbr.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _service;
-
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly ITokenService _tokenService;
+        private readonly UserManager<IdentityUserTableEntity> _userManager;
+        private readonly SignInManager<IdentityUserTableEntity> _signInManager;
 
         public UserController(
-            IUserService service, 
-            UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            IUserService service,
+            ITokenService tokenService,
+            UserManager<IdentityUserTableEntity> userManager,
+            SignInManager<IdentityUserTableEntity> signInManager)
         {
             _service = service;
+            _tokenService = tokenService;
             _userManager = userManager;
             _signInManager = signInManager;
         }
 
         //TODO: Remove, temporary
-        [HttpGet("IGNORE_temporaryMethodUsedToDeleteTablesForTestingPurposesOnly")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpGet("deletetables")]
         public async Task<IActionResult> TempDeleteTables()
         {
             await _service.TempDeleteTables();
@@ -51,7 +56,6 @@ namespace Swabbr.Api.Controllers
         [HttpPost("register")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
             // Convert input model to an identity user model
@@ -61,12 +65,17 @@ namespace Swabbr.Api.Controllers
             // Generate new id
             user.UserId = Guid.NewGuid();
 
+            var u = new IdentityUserTableEntity { UserId = Guid.NewGuid(), Email = input.Email };
+
             try
             {
-                var x = await _userManager.CreateAsync(user);
+                var x = await _userManager.CreateAsync(u, input.Password);
 
                 if (x.Succeeded)
                 {
+                    await _signInManager.SignInAsync(u, true);
+                    return Ok(_tokenService.GenerateToken(u));
+
                     UserOutputModel userOutput = user;
                     return Created(Url.ToString(), userOutput);
                 }
@@ -74,9 +83,6 @@ namespace Swabbr.Api.Controllers
                 {
                     return BadRequest();
                 }
-
-                // TODO: What to do with  the cancellation token?
-                //var result = await _userStore.CreateAsync(identityUser, new System.Threading.CancellationToken());
             }
             catch (Exception e)
             {
@@ -95,32 +101,20 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Login([FromBody] UserAuthenticateModel input)
         {
             //! TODO
-
-            //var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, false, false);
-
-            //if (result.Succeeded)
-            //{
-            //    var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
-            //    var token = await GenerateAuthToken(user.Email, appUser);
-            //    return Ok(token);
-            //}
-
-            //User targetUser = await _service.GetByEmailAsync(input.Username);
-
-            User xxxxxx = new User
+            IdentityUserTableEntity user = new IdentityUserTableEntity
             {
-                UserId = Guid.NewGuid(),
-                Email = "Test@test.com",
-                PasswordHash = "WW1GelpUWTBJR1JsWTI5a1pYSQ=="
+                Email = input.Email,
+                UserId = Guid.NewGuid()
             };
 
             // Attempt a sign in
-            var result = await _signInManager.PasswordSignInAsync(input.Username, input.Password, true, false);
+            var result = await _signInManager.PasswordSignInAsync(input.Email, input.Password, true, false);
 
+            // logged in
             if (result.Succeeded)
             {
-                // logged in
-                return Ok(_service.GenerateAccessToken(new Core.Entities.User()));
+                var token = _tokenService.GenerateToken(user);
+                return Ok(token);
             }
 
             throw new NotImplementedException();
@@ -162,15 +156,19 @@ namespace Swabbr.Api.Controllers
         /// Search for users.
         /// </summary>
         /// <param name="q">Search query.</param>
-        /// <param name="offset">To be used for pagination.</param>
-        /// <param name="limit">Maximum amount of results to fetch.</param>
         [HttpGet("search")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel[]))]
         public async Task<IActionResult> Search(
             [FromQuery]string q)
         {
-            var results = await _service.SearchAsync(q);
+            var mockData = new UserOutputModel[]
+            {
+                UserOutputModel.NewRandomMock(),
+                UserOutputModel.NewRandomMock(),
+                UserOutputModel.NewRandomMock()
+            };
 
-            return Ok(results);
+            return Ok(mockData);
         }
 
         /// <summary>
@@ -180,10 +178,29 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Self()
         {
-            //! TODO
+            var identity = User.Identity;
+            var claims = User.Claims;
 
+            string testb = "";
+
+            testb += (identity.IsAuthenticated ? "YES./" : "NO./");
+            testb += ($"TYPE:{identity.AuthenticationType}/");
+            testb += ($"NAME:{identity.Name}/");
+
+            foreach (var c in claims)
+            {
+                testb += $"{c.Value}/";
+            }
+
+            return Ok(testb);
+
+            var userId = _userManager.GetUserId(HttpContext.User);
+
+            return Ok(userId);
+
+            return Ok(UserOutputModel.NewRandomMock());
+            //! TODO
             //Get authenticated user id, get and return associated user vm
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -193,15 +210,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Update([FromBody] Core.Entities.User user)
         {
-            try
-            {
-                ////await _repo.UpdateAsync(user);
-                ////return Ok(user);
-            }
-            catch
-            {
-                return BadRequest();
-            }
+            return Ok(user);
 
             //! TODO
             throw new NotImplementedException();
@@ -217,6 +226,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Delete()
         {
+            return NoContent();
             ////await _repo.DeleteAsync(user.ToDocument());
             //! TODO
             throw new NotImplementedException();

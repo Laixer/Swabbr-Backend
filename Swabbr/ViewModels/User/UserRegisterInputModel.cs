@@ -88,7 +88,6 @@ namespace Swabbr.Api.ViewModels
         {
             return new User
             {
-                Username = user.Username,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 BirthDate = user.BirthDate,

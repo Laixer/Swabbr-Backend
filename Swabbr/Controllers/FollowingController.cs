@@ -22,6 +22,15 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> List([FromRoute] int userId)
         {
+            return Ok(
+                new UserOutputModel[]
+                {
+                    UserOutputModel.NewRandomMock(),
+                    UserOutputModel.NewRandomMock(),
+                    UserOutputModel.NewRandomMock()
+                }
+            );
+
             //! TODO
             throw new NotImplementedException();
         }
@@ -30,9 +39,10 @@ namespace Swabbr.Api.Controllers
         /// Unfollow the specified user.
         /// </summary>
         [HttpDelete("users/{userId}/unfollow")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Unfollow([FromRoute] int userId)
         {
+            return NoContent();
             //! TODO
             throw new NotImplementedException();
         }

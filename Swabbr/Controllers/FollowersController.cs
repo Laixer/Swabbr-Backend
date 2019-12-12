@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,19 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Get the followers of a single user.
         /// </summary>
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<User>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         [HttpGet("users/{userId}")]
         public async Task<IActionResult> List([FromRoute] int userId)
         {
+            return Ok(
+                    new UserOutputModel[]
+                    {
+                        UserOutputModel.NewRandomMock(),
+                        UserOutputModel.NewRandomMock(),
+                        UserOutputModel.NewRandomMock()
+                    }
+                );
+
             //! TODO
             throw new NotImplementedException();
         }

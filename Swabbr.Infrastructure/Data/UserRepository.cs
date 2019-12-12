@@ -31,16 +31,17 @@ namespace Swabbr.Infrastructure.Data
             // Partition key and row key are the same. TODO Change partition key if there is a
             // better alternative.
             var id = userId.ToString();
-            return GetAsync(id, id);
+            return RetrieveAsync(id, id);
         }
 
         public async Task<User> GetByEmailAsync(string email)
         {
-            var table = _factory.GetClient<UserTableEntity>(TableName);
+            var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
-            var queryResults = await table.Query(new TableQuery().Where(
-                TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email))
-            );
+            var tq = new TableQuery<UserTableEntity>().Where(
+                TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email));
+
+            var queryResults = table.ExecuteQuery(tq);
 
             if (queryResults.Any())
             {
@@ -59,37 +60,14 @@ namespace Swabbr.Infrastructure.Data
         /// <param name="q">The search query that is supplied by the client.</param>
         public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
-            var table = _factory.GetClient<UserTableEntity>(TableName);
+            var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
-            var queryResults = await table.Query(new TableQuery().Where(
-                        TableQuery.CombineFilters(
-                            TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.Equal, q),
-                            TableOperators.Or,
-                            TableQuery.GenerateFilterCondition("Username", QueryComparisons.Equal, q)
-                            )
-                        ));
+            var tq = new TableQuery<UserTableEntity>().Where(
+                TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.Equal, q));
 
-            // TODO Implement method
+            var queryResults = table.ExecuteQuery(tq);
 
-            throw new NotImplementedException();
-        }
-
-        public async Task<User> GetByUsernameAsync(string username)
-        {
-            var table = _factory.GetClient<UserTableEntity>(TableName);
-
-            var queryResults = await table.Query(new TableQuery().Where(
-                TableQuery.GenerateFilterCondition("Username", QueryComparisons.Equal, username))
-            );
-
-            if (queryResults.Any())
-            {
-                return Map(queryResults.First());
-            }
-            else
-            {
-                throw new EntityNotFoundException();
-            }
+            return queryResults.Select(x => Map(x));
         }
 
         public override User Map(UserTableEntity entity)

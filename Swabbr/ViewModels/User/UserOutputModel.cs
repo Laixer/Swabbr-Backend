@@ -1,6 +1,7 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
+using System.Linq;
 
 namespace Swabbr.Api.ViewModels
 {
@@ -83,5 +84,33 @@ namespace Swabbr.Api.ViewModels
                 Timezone = user.Timezone
             };
         }
+
+        //TODO Remove
+        #region temporary
+
+
+        private static Random random = new Random();
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public static UserOutputModel NewRandomMock()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            return new UserOutputModel
+            {
+                UserId = Guid.NewGuid(),
+                Email = $"{RandomString(3)}@{RandomString(4)}.{RandomString(3)}",
+                FirstName = RandomString(2),
+                LastName = RandomString(10),
+                BirthDate = DateTime.Now,
+                Nickname = RandomString(4)
+            };
+        }
+        #endregion
     }
 }

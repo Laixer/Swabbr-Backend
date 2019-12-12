@@ -9,10 +9,10 @@ namespace Swabbr.Api.ViewModels
     public class UserAuthenticateModel
     {
         /// <summary>
-        /// Username input.
+        /// Email.
         /// </summary>
-        [JsonProperty("username")]
-        public string Username { get; set; }
+        [JsonProperty("email")]
+        public string Email { get; set; }
 
         /// <summary>
         /// Password input.
@@ -30,7 +30,7 @@ namespace Swabbr.Api.ViewModels
         {
             return new User
             {
-                Username = user.Username,
+                Email = user.Email,
                 // TODO Password should be hashed (this conversion is unnecessary)
                 PasswordHash = user.Password
             };

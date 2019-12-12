@@ -18,7 +18,7 @@ namespace Swabbr.Infrastructure.Data
             _factory = factory;
         }
 
-        public async Task<TModel> GetAsync(string partitionKey, string rowKey)
+        public async Task<TModel> RetrieveAsync(string partitionKey, string rowKey)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace Swabbr.Infrastructure.Data
             }
         }
 
-        public async Task<TModel> AddAsync(TModel entity)
+        public async Task<TModel> CreateAsync(TModel entity)
         {
             try
             {

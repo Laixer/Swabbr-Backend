@@ -3,7 +3,7 @@ using System;
 
 namespace Swabbr.Infrastructure.Data.Entities
 {
-    public class RoleTableEntity : TableEntity
+    public class IdentityRoleTableEntity : TableEntity
     {
         public Guid RoleId { get; set; }
 

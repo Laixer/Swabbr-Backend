@@ -34,7 +34,7 @@ namespace Swabbr.Infrastructure.Data
         /// <param name="rowKey">Row key (primary key) of the entity.</param>
         Task<T> DeleteEntityAsync(string partitionKey, string rowKey);
 
-        // TODO Type checking for arugment
-        Task<IEnumerable<T>> Query(TableQuery query);
+        // TODO Documentation
+        CloudTable CloudTableReference { get; }
     }
 }

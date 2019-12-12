@@ -21,6 +21,8 @@ namespace Swabbr.Infrastructure.Data
             _client = client;
         }
 
+        public CloudTable CloudTableReference => _client.GetTableReference(_tableName);
+
         public Task<T> DeleteEntityAsync(string partitionKey, string rowKey)
         {
             throw new System.NotImplementedException();
@@ -34,23 +36,6 @@ namespace Swabbr.Infrastructure.Data
 
             // TODO: Ensure this is functioning correctly and as expectled
             return result.Result as T;
-        }
-
-        public async Task<IEnumerable<T>> Query(TableQuery query)
-        {
-            var table = _client.GetTableReference(_tableName);
-
-            var result = table.ExecuteQuery(query);
-
-            List<T> resultList = new List<T>();
-
-            foreach(DynamicTableEntity entity in result)
-            {
-                var e = entity as T;
-                resultList.Add(e);
-            }
-
-            return resultList.AsEnumerable();
         }
 
         public async Task<T> RetrieveEntityAsync(string partitionKey, string rowKey)
