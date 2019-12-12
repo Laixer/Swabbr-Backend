@@ -8,6 +8,11 @@ namespace Swabbr.Api.ViewModels
     public class UserRegisterInputModel
     {
         /// <summary>
+        /// Username.
+        /// </summary>
+        public string Username { get; set; }
+
+        /// <summary>
         /// First name of the user.
         /// </summary>
         [JsonProperty("firstName")]
@@ -83,7 +88,7 @@ namespace Swabbr.Api.ViewModels
         {
             return new User
             {
-                //TODO: Generate user id here??? (decided against it) doesn't seem logical
+                Username = user.Username,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 BirthDate = user.BirthDate,
@@ -94,7 +99,7 @@ namespace Swabbr.Api.ViewModels
                 Nickname = user.Nickname,
                 ProfileImageUrl = user.ProfileImageUrl,
                 Timezone = user.Timezone,
-                Password = user.Password,
+                PasswordHash = user.Password,
                 PhoneNumber = user.PhoneNumber
             };
         }

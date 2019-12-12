@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Infrastructure.Data;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
@@ -35,9 +36,21 @@ namespace Swabbr.Infrastructure.Data
             return result.Result as T;
         }
 
-        public Task<IEnumerable<T>> QueryTableAsync()
+        public async Task<IEnumerable<T>> Query(TableQuery query)
         {
-            throw new System.NotImplementedException();
+            var table = _client.GetTableReference(_tableName);
+
+            var result = table.ExecuteQuery(query);
+
+            List<T> resultList = new List<T>();
+
+            foreach(DynamicTableEntity entity in result)
+            {
+                var e = entity as T;
+                resultList.Add(e);
+            }
+
+            return resultList.AsEnumerable();
         }
 
         public async Task<T> RetrieveEntityAsync(string partitionKey, string rowKey)

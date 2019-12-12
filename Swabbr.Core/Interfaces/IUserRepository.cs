@@ -12,6 +12,16 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         Task<User> GetByIdAsync(Guid userId);
 
+        /// <summary>
+        /// Get a single user entity by its email address.
+        /// </summary>
+        Task<User> GetByEmailAsync(string email);
+
+        /// <summary>
+        /// Get a single user entity by its username.
+        /// </summary>
+        Task<User> GetByUsernameAsync(string username);
+
         // TODO: Make this generic?S
         /// <summary>
         /// Searching for users.

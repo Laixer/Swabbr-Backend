@@ -23,40 +23,34 @@ namespace Swabbr.Api.Services
             _jwtOptions = jwtOptions.Value;
         }
 
-        public async Task<string> Authenticate(string username, string password)
+        public async Task<string> GenerateAccessToken(User user)
         {
-            // TODO Authenticate user with un pw hash
-            bool authenticated = (password.Equals(":D"));
-
-            if (authenticated)
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtOptions.Key);
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                // Authentication succesful
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_jwtOptions.Key);
-                var tokenDescriptor = new SecurityTokenDescriptor
+                Subject = new ClaimsIdentity(new Claim[]
                 {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                        new Claim(ClaimTypes.Email, username)
-                    }),
-                    Expires = DateTime.UtcNow.AddDays(_jwtOptions.ExpireDays),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                };
-                var token = tokenHandler.CreateToken(tokenDescriptor);
+                    new Claim(ClaimTypes.PrimarySid, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
+                }),
+                Expires = DateTime.UtcNow.AddDays(_jwtOptions.ExpireDays),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
 
-                // Return JWT string
-                return tokenHandler.WriteToken(token);
-            }
-            else
-            {
-                // Authentication failed
-                return null;
-            }
+            // Return JWT
+            return tokenHandler.WriteToken(token);
         }
 
         public Task<User> GetByIdAsync(Guid userId)
         {
             return _repository.GetByIdAsync(userId);
+        }
+
+        public Task<User> GetByEmailAsync(string email)
+        {
+            return _repository.GetByEmailAsync(email);
         }
 
         public Task<IEnumerable<User>> SearchAsync(string query)

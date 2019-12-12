@@ -19,6 +19,11 @@ namespace Swabbr.Infrastructure.Data.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
+        /// Username.
+        /// </summary>
+        public string Username { get; set; }
+
+        /// <summary>
         /// First name of the user.
         /// </summary>
         public string FirstName { get; set; }
@@ -46,7 +51,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// Hashed password of the user.
         /// </summary>
-        public string Password { get; set; }
+        public string PasswordHash { get; set; }
 
         /// <summary>
         /// Date of birth for the given user.

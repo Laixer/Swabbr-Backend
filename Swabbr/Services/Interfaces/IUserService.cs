@@ -10,9 +10,11 @@ namespace Swabbr.Api.Services
         // TODO Remove, used temporarily to delete tables to reduce storage costs overnight
         Task TempDeleteTables();
 
-        Task<string> Authenticate(string username, string password);
+        Task<string> GenerateAccessToken(User user);
 
         Task<User> GetByIdAsync(Guid userId);
+
+        Task<User> GetByEmailAsync(string email);
         
         Task<IEnumerable<User>> SearchAsync(string query);
     }

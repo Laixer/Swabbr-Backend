@@ -47,7 +47,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
         public async Task<IActionResult> Status(Guid receiverId)
         {
-            return new OkObjectResult(FollowRequestStatus.Declined);
+            return new OkObjectResult(FollowRequestStatus.Pending);
 
             //! TODO
             throw new NotImplementedException();
@@ -86,9 +86,9 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Cancel a follow request sent to the specified user.
         /// </summary>
-        [HttpDelete("destroy")]
+        [HttpDelete("{followRequestId}/destroy")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Destroy()
+        public async Task<IActionResult> Destroy([FromRoute]Guid followRequestId)
         {
             //! TODO
             throw new NotImplementedException();
@@ -98,9 +98,9 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Accept a pending follow request for the authenticated user.
         /// </summary>
-        [HttpPut("accept")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Accept()
+        [HttpPut("{followRequestId}/accept")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        public async Task<IActionResult> Accept([FromRoute]Guid followRequestId)
         {
             //! TODO
             throw new NotImplementedException();
@@ -109,9 +109,9 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Decline a follow request for the authenticated user.
         /// </summary>
-        [HttpPut("decline")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Decline()
+        [HttpPut("{followRequestId}/decline")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        public async Task<IActionResult> Decline([FromRoute]Guid followRequestId)
         {
             //! TODO
             throw new NotImplementedException();

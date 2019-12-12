@@ -14,6 +14,11 @@ namespace Swabbr.Core.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
+        /// Username.
+        /// </summary>
+        public string Username { get; set; }
+
+        /// <summary>
         /// First name of the user.
         /// </summary>
         public string FirstName { get; set; }
@@ -41,7 +46,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Hashed password of the user.
         /// </summary>
-        public string Password { get; set; }
+        public string PasswordHash { get; set; }
 
         /// <summary>
         /// Date of birth for the given user.
@@ -87,5 +92,20 @@ namespace Swabbr.Core.Entities
         /// Personal settings and preferences.
         /// </summary>
         public UserSettings Settings { get; set; }
+
+        /// <summary>
+        /// Determines if the email address has been confirmed.
+        /// </summary>
+        public bool EmailConfirmed { get; set; }
+
+        /// <summary>
+        /// Determines if the phone number has been verified.
+        /// </summary>
+        public bool PhoneNumberVerified { get; set; }
+
+        /// <summary>
+        /// Determines if two factor authentication is enabled.
+        /// </summary>
+        public bool TwoFactorEnabled { get; set; }
     }
 }

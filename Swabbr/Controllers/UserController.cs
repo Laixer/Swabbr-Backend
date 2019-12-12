@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
@@ -20,13 +21,17 @@ namespace Swabbr.Api.Controllers
     {
         private readonly IUserService _service;
 
-        //private readonly SignInManager<IdentityUser> _signInManager;
-        //private readonly IUserStore<AzureTableIdentityUser> _userStore;
-        //private readonly SignInManager<AzureTableIdentityUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public UserController(IUserService service)
+        public UserController(
+            IUserService service, 
+            UserManager<User> userManager,
+            SignInManager<User> signInManager)
         {
             _service = service;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         //TODO: Remove, temporary
@@ -42,7 +47,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="input">Input for a new user to register</param>
         /// <returns></returns>
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost("register")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -58,10 +63,20 @@ namespace Swabbr.Api.Controllers
 
             try
             {
+                var x = await _userManager.CreateAsync(user);
+
+                if (x.Succeeded)
+                {
+                    UserOutputModel userOutput = user;
+                    return Created(Url.ToString(), userOutput);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+
                 // TODO: What to do with  the cancellation token?
                 //var result = await _userStore.CreateAsync(identityUser, new System.Threading.CancellationToken());
-
-                return Created(Url.ToString(), null);
             }
             catch (Exception e)
             {
@@ -90,17 +105,22 @@ namespace Swabbr.Api.Controllers
             //    return Ok(token);
             //}
 
-            var token = await _service.Authenticate(input.Email, input.Password);
+            //User targetUser = await _service.GetByEmailAsync(input.Username);
 
-            if (token == null)
+            User xxxxxx = new User
             {
-                // Not authorized
-                return new UnauthorizedResult();
-            }
-            else
+                UserId = Guid.NewGuid(),
+                Email = "Test@test.com",
+                PasswordHash = "WW1GelpUWTBJR1JsWTI5a1pYSQ=="
+            };
+
+            // Attempt a sign in
+            var result = await _signInManager.PasswordSignInAsync(input.Username, input.Password, true, false);
+
+            if (result.Succeeded)
             {
-                // Authorized, return the access token
-                return Ok(token);
+                // logged in
+                return Ok(_service.GenerateAccessToken(new Core.Entities.User()));
             }
 
             throw new NotImplementedException();

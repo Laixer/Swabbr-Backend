@@ -9,23 +9,30 @@ namespace Swabbr.Api.ViewModels
     public class UserAuthenticateModel
     {
         /// <summary>
-        /// Email address.
+        /// Username input.
         /// </summary>
-        [JsonProperty("email")]
-        public string Email { get; set; }
+        [JsonProperty("username")]
+        public string Username { get; set; }
 
         /// <summary>
-        /// Hashed password of the user.
+        /// Password input.
         /// </summary>
         [JsonProperty("password")]
         public string Password { get; set; }
+
+        /// <summary>
+        /// Remember login option.
+        /// </summary>
+        [JsonProperty("rememberMe")]
+        public bool RememberMe { get; set; }
 
         public static implicit operator User(UserAuthenticateModel user)
         {
             return new User
             {
-                Email = user.Email,
-                Password = user.Password
+                Username = user.Username,
+                // TODO Password should be hashed (this conversion is unnecessary)
+                PasswordHash = user.Password
             };
         }
     }

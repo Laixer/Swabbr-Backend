@@ -1,9 +1,11 @@
-﻿using Swabbr.Core.Entities;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
@@ -32,33 +34,62 @@ namespace Swabbr.Infrastructure.Data
             return GetAsync(id, id);
         }
 
+        public async Task<User> GetByEmailAsync(string email)
+        {
+            var table = _factory.GetClient<UserTableEntity>(TableName);
+
+            var queryResults = await table.Query(new TableQuery().Where(
+                TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email))
+            );
+
+            if (queryResults.Any())
+            {
+                return Map(queryResults.First());
+            }
+            else
+            {
+                throw new EntityNotFoundException();
+            }
+        }
+
         /// <summary>
         /// Search for a user by checking if the search query (partially) matches their first name,
         /// last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
-        public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
+        public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
-            _ = _factory.GetClient<UserTableEntity>(TableName);
+            var table = _factory.GetClient<UserTableEntity>(TableName);
+
+            var queryResults = await table.Query(new TableQuery().Where(
+                        TableQuery.CombineFilters(
+                            TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.Equal, q),
+                            TableOperators.Or,
+                            TableQuery.GenerateFilterCondition("Username", QueryComparisons.Equal, q)
+                            )
+                        ));
 
             // TODO Implement method
 
             throw new NotImplementedException();
+        }
 
-            ////var query = new QueryDefinition(@"
-            ////    SELECT * FROM c
-            ////    WHERE CONTAINS(c.firstName, @firstName)
-            ////    OR CONTAINS(c.lastName, @lastName)
-            ////    OR CONTAINS(c.nickname, @nickname)
-            ////    OFFSET @offset LIMIT @limit")
-            ////    .WithParameter("@firstName", q)
-            ////    .WithParameter("@lastName", q)
-            ////    .WithParameter("@nickname", q)
-            ////    .WithParameter("@offset", offset)
-            ////    .WithParameter("@limit", limit);
-            ////
-            ////var results = await cosmosDbClient.QueryAsync(query);
-            ////return results;
+        public async Task<User> GetByUsernameAsync(string username)
+        {
+            var table = _factory.GetClient<UserTableEntity>(TableName);
+
+            var queryResults = await table.Query(new TableQuery().Where(
+                TableQuery.GenerateFilterCondition("Username", QueryComparisons.Equal, username))
+            );
+
+            if (queryResults.Any())
+            {
+                return Map(queryResults.First());
+            }
+            else
+            {
+                throw new EntityNotFoundException();
+            }
         }
 
         public override User Map(UserTableEntity entity)
@@ -78,7 +109,7 @@ namespace Swabbr.Infrastructure.Data
                 Longitude = entity.Longitude,
 
                 Nickname = entity.Nickname,
-                Password = entity.Password,
+                PasswordHash = entity.PasswordHash,
                 PhoneNumber = entity.PhoneNumber,
                 ProfileImageUrl = entity.ProfileImageUrl,
                 Timezone = entity.Timezone
@@ -102,7 +133,7 @@ namespace Swabbr.Infrastructure.Data
                 Longitude = entity.Longitude,
 
                 Nickname = entity.Nickname,
-                Password = entity.Password,
+                PasswordHash = entity.PasswordHash,
                 PhoneNumber = entity.PhoneNumber,
                 ProfileImageUrl = entity.ProfileImageUrl,
                 Timezone = entity.Timezone

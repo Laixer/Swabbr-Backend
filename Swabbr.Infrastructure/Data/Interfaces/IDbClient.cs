@@ -34,10 +34,7 @@ namespace Swabbr.Infrastructure.Data
         /// <param name="rowKey">Row key (primary key) of the entity.</param>
         Task<T> DeleteEntityAsync(string partitionKey, string rowKey);
 
-        /// <summary>
-        /// Returns a collection of entities of type <typeparamref name="T"/> based on the given
-        /// search query.
-        /// </summary>
-        Task<IEnumerable<T>> QueryTableAsync(/*  TODO  what parameters??? */);
+        // TODO Type checking for arugment
+        Task<IEnumerable<T>> Query(TableQuery query);
     }
 }
