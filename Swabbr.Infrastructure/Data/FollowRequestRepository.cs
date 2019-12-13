@@ -34,7 +34,7 @@ namespace Swabbr.Infrastructure.Data
             {
                 throw new EntityNotFoundException();
             }
-            
+
             return Task.FromResult(Map(queryResults.First()));
         }
 

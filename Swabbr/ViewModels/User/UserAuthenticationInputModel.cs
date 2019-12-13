@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels

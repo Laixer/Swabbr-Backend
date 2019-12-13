@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Swabbr.Api.MockData
 {
@@ -10,6 +9,7 @@ namespace Swabbr.Api.MockData
     public static class MockRepository
     {
         private static readonly Random random = new Random();
+
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -18,6 +18,7 @@ namespace Swabbr.Api.MockData
         }
 
         #region I/O models
+
         public static UserOutputModel RandomUserOutputMock()
         {
             return new UserOutputModel
@@ -92,6 +93,7 @@ namespace Swabbr.Api.MockData
                 }
             };
         }
-        #endregion
+
+        #endregion I/O models
     }
 }

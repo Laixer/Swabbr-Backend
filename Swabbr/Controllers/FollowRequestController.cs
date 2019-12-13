@@ -1,17 +1,17 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
-using Swabbr.Core.Entities;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Swabbr.Api.Controllers
 {
@@ -27,7 +27,7 @@ namespace Swabbr.Api.Controllers
         private readonly UserManager<IdentityUserTableEntity> _userManager;
 
         public FollowRequestController(
-            IFollowRequestRepository repository, 
+            IFollowRequestRepository repository,
             UserManager<IdentityUserTableEntity> userManager)
         {
             _followRequestRepository = repository;
@@ -35,7 +35,8 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns a collection of <see cref="FollowRequest"/> models for the authenticated user that are pending.
+        /// Returns a collection of <see cref="FollowRequest"/> models for the authenticated user
+        /// that are pending.
         /// </summary>
         [HttpGet("incoming")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
@@ -46,7 +47,8 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns a collection of <see cref="FollowRequest"/> models sent by the authenticated user that are pending.
+        /// Returns a collection of <see cref="FollowRequest"/> models sent by the authenticated
+        /// user that are pending.
         /// </summary>
         [HttpGet("outgoing")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]

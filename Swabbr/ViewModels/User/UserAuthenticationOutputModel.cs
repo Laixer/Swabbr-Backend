@@ -15,7 +15,7 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("user")]
         public UserOutputModel User { get; set; }
-        
+
         /// <summary>
         /// Settings of the authenticated user.
         /// </summary>

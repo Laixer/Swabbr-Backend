@@ -17,7 +17,7 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Id of the user that sent the like.
         /// </summary>
-        [Required] 
+        [Required]
         [JsonProperty("userId")]
         public Guid UserId { get; set; }
 

@@ -55,9 +55,8 @@ namespace Swabbr.Api.Controllers
             {
                 return BadRequest("User already exists.");
             }
-            
-            // TODO Password check
-            // ...
+
+            // TODO Password check ...
 
             // Convert input model to a user model
             User userFromInput = input;
@@ -82,7 +81,7 @@ namespace Swabbr.Api.Controllers
             {
                 // Sign in the user that was just registered and return an access token
                 await _signInManager.SignInAsync(identityUser, true);
-                
+
                 var token = await _tokenService.GenerateToken(identityUser);
                 UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
 
@@ -107,7 +106,7 @@ namespace Swabbr.Api.Controllers
         [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized ,Type = typeof(string))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
         public async Task<IActionResult> Login([FromBody] UserAuthenticationInputModel input)
         {
             // Retrieve the identity user

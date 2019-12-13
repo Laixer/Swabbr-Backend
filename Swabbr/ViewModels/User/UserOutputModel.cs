@@ -2,7 +2,6 @@
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
-using System.Linq;
 
 namespace Swabbr.Api.ViewModels
 {

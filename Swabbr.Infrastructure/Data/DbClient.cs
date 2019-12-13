@@ -1,7 +1,4 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Infrastructure.Data;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
