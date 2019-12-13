@@ -8,6 +8,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -143,6 +144,58 @@ namespace Swabbr.Api.Controllers
         {
             return NoContent();
             ////await _repo.DeleteAsync(user.ToDocument());
+            //! TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns a collection of users that the specified user is following.
+        /// </summary>
+        [HttpGet("users/{userId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        public async Task<IActionResult> List([FromRoute] int userId)
+        {
+            return Ok(
+                new UserOutputModel[]
+                {
+                    UserOutputModel.NewRandomMock(),
+                    UserOutputModel.NewRandomMock(),
+                    UserOutputModel.NewRandomMock()
+                }
+            );
+
+            //! TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Unfollow the specified user.
+        /// </summary>
+        [HttpDelete("users/{userId}/unfollow")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> Unfollow([FromRoute] int userId)
+        {
+            return NoContent();
+            //! TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Get the followers of a single user.
+        /// </summary>
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [HttpGet("users/{userId}")]
+        public async Task<IActionResult> List([FromRoute] int userId)
+        {
+            return Ok(
+                    new UserOutputModel[]
+                    {
+                        UserOutputModel.NewRandomMock(),
+                        UserOutputModel.NewRandomMock(),
+                        UserOutputModel.NewRandomMock()
+                    }
+                );
+
             //! TODO
             throw new NotImplementedException();
         }
