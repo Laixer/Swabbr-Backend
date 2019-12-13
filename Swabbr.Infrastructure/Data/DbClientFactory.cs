@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
 {
-    public class DbClientFactory : IDbClientFactory
+    public sealed class DbClientFactory : IDbClientFactory
     {
         private readonly List<TableProperties> _tables;
         private readonly CloudTableClient _client;

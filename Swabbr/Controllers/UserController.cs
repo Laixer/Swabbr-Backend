@@ -151,7 +151,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Returns a collection of users that the specified user is following.
         /// </summary>
-        [HttpGet("users/{userId}")]
+        [HttpGet("users/{userId}/following")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> List([FromRoute] int userId)
         {
@@ -184,8 +184,8 @@ namespace Swabbr.Api.Controllers
         /// Get the followers of a single user.
         /// </summary>
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
-        [HttpGet("users/{userId}")]
-        public async Task<IActionResult> List([FromRoute] int userId)
+        [HttpGet("users/{userId}/followers")]
+        public async Task<IActionResult> ListFollowers([FromRoute] int userId)
         {
             return Ok(
                     new UserOutputModel[]

@@ -30,7 +30,7 @@ namespace Swabbr.Api.Authentication
         public Task<IdentityResult> DeleteAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
-            client.DeleteEntityAsync(user.Email, user.UserId.ToString());
+            client.DeleteEntityAsync(user);
             return Task.FromResult(IdentityResult.Success);
         }
 

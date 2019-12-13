@@ -6,7 +6,7 @@ namespace Swabbr.Api.ViewModels
     /// <summary>
     /// Represents an input model provided by the client for authenticating a user.
     /// </summary>
-    public class UserAuthenticateModel
+    public class UserAuthenticateInputModel
     {
         /// <summary>
         /// Email.
@@ -26,7 +26,7 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("rememberMe")]
         public bool RememberMe { get; set; }
 
-        public static implicit operator User(UserAuthenticateModel user)
+        public static implicit operator User(UserAuthenticateInputModel user)
             => new User
             {
                 Email = user.Email,

@@ -85,8 +85,6 @@ namespace Swabbr.Api.ViewModels
 
         //TODO Remove
         #region temporary
-
-
         private static Random random = new Random();
         public static string RandomString(int length)
         {
@@ -97,8 +95,6 @@ namespace Swabbr.Api.ViewModels
 
         public static UserOutputModel NewRandomMock()
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
             return new UserOutputModel
             {
                 UserId = Guid.NewGuid(),

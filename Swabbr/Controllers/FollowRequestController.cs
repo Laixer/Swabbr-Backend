@@ -126,6 +126,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Accept([FromRoute]Guid followRequestId)
         {
+            var todo = followRequestId;
             //! TODO
             throw new NotImplementedException();
         }
@@ -138,6 +139,8 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Decline([FromRoute]Guid followRequestId)
         {
             //! TODO
+            var todo = followRequestId;
+            await _repository.DeleteAsync(null);
             throw new NotImplementedException();
         }
     }

@@ -51,7 +51,7 @@ namespace Swabbr.Infrastructure.Data
                 var item = await client.InsertEntityAsync(insertEntity);
                 return Map(item);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw new EntityAlreadyExistsException();
 
@@ -67,11 +67,9 @@ namespace Swabbr.Infrastructure.Data
                 var client = _factory.GetClient<TDto>(TableName);
                 await client.UpdateEntityAsync(Map(entity));
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw new EntityNotFoundException();
-
-                throw;
             }
         }
 
@@ -81,26 +79,18 @@ namespace Swabbr.Infrastructure.Data
             {
                 var client = _factory.GetClient<TDto>(TableName);
 
-                //TODO
+                // Map model to dto
                 var e = Map(entity);
 
-                await client.DeleteEntityAsync(e.PartitionKey, e.RowKey);
+                // Perform delete
+                await client.DeleteEntityAsync(e);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw new EntityNotFoundException();
 
                 throw;
             }
-        }
-
-        // TODO Where should this be placed?
-        /// <summary>
-        /// Generates a new unique identifier for an entity.
-        /// </summary>
-        public static Guid GenerateEntityId()
-        {
-            return Guid.NewGuid();
         }
 
         /// <summary>

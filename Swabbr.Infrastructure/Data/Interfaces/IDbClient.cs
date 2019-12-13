@@ -1,5 +1,4 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
@@ -30,11 +29,12 @@ namespace Swabbr.Infrastructure.Data
         /// <summary>
         /// Deletes a single entity at the specified index of the database table.
         /// </summary>
-        /// <param name="partitionKey">Partition key of the entity.</param>
-        /// <param name="rowKey">Row key (primary key) of the entity.</param>
-        Task<T> DeleteEntityAsync(string partitionKey, string rowKey);
+        /// <param name="item">The entity to delete</param>
+        Task<T> DeleteEntityAsync(T item);
 
-        // TODO Documentation
+        /// <summary>
+        /// Used to get a reference to the type specific entity table of type <typeparamref name="T"/>
+        /// </summary>
         CloudTable CloudTableReference { get; }
     }
 }

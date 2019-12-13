@@ -23,9 +23,12 @@ namespace Swabbr.Infrastructure.Data
 
         public CloudTable CloudTableReference => _client.GetTableReference(_tableName);
 
-        public Task<T> DeleteEntityAsync(string partitionKey, string rowKey)
+        public async Task<T> DeleteEntityAsync(T item)
         {
-            throw new System.NotImplementedException();
+            var table = _client.GetTableReference(_tableName);
+            TableOperation operation = TableOperation.Delete(item);
+            var result = await table.ExecuteAsync(operation);
+            return result.Result as T;
         }
 
         public async Task<T> InsertEntityAsync(T item)
@@ -33,8 +36,6 @@ namespace Swabbr.Infrastructure.Data
             var table = _client.GetTableReference(_tableName);
             TableOperation operation = TableOperation.Insert(item, true);
             var result = await table.ExecuteAsync(operation);
-
-            // TODO: Ensure this is functioning correctly and as expectled
             return result.Result as T;
         }
 

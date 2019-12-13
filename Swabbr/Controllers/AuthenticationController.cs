@@ -44,19 +44,20 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
             // Ensure the user does not already exist
             var userCheck = await _userManager.FindByEmailAsync(input.Email);
 
-            if (userCheck == null)
+            if (userCheck != null)
+            {
                 return BadRequest("User already exists.");
-
+            }
             // TODO Password check
             // ...
-            
+
             // Convert input model to a user model
             User userFromInput = input;
 
@@ -75,21 +76,12 @@ namespace Swabbr.Api.Controllers
 
             if (identityResult.Succeeded)
             {
-                // TODO Sign in here?
-                //// Sign in the user that was just registered and return an access token
-                ////await _signInManager.SignInAsync(identityUser, true);
-                ////return Ok(await _tokenService.GenerateToken(identityUser));
-                ///
-
-                UserOutputModel outputModel = createdUser;
-
-                //TODO Created url /user/?
-                return Created(Url.ToString(), outputModel);
+                // Sign in the user that was just registered and return an access token
+                await _signInManager.SignInAsync(identityUser, true);
+                return Created(Url.ToString(), await _tokenService.GenerateToken(identityUser));
             }
-            else
-            {
-                return BadRequest();
-            }
+
+            return BadRequest();
         }
 
         /// <summary>
@@ -97,9 +89,9 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] UserAuthenticateModel input)
+        public async Task<IActionResult> Login([FromBody] UserAuthenticateInputModel input)
         {
             var user = await _userManager.FindByEmailAsync(input.Email);
 
@@ -109,13 +101,16 @@ namespace Swabbr.Api.Controllers
             }
 
             // Attempt a sign in using the user-provided password input
-            var result = await _signInManager.PasswordSignInAsync(user, input.Password, true, false);
+            var result = await _signInManager.PasswordSignInAsync(user, input.Password, input.RememberMe, false);
 
             if (result.IsLockedOut)
+            {
                 return Unauthorized("Too many attempts.");
-
+            }
             if (result.IsNotAllowed)
+            {
                 return Unauthorized("Not allowed to log in.");
+            }
 
             // Login succeeded, return access token
             if (result.Succeeded)
