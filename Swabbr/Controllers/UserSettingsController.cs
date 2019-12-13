@@ -21,7 +21,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type=typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Get()
         {
-            //! TODO
+            //TODO Not implemented
+            return Ok(MockData.MockRepository.RandomUserSettingsOutput());
             throw new NotImplementedException();
         }
 
@@ -32,13 +33,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Update([FromBody] UserSettings settings)
         {
-            if (settings != null)
-            {
-                return new OkResult();
-            }
-
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(MockData.MockRepository.RandomUserSettingsOutput());
         }
     }
 }

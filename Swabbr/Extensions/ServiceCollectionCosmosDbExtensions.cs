@@ -12,16 +12,6 @@ namespace Swabbr.Api.Extensions
             string connectionString,
             List<TableProperties> tables)
         {
-            ////var client = new CosmosClient(connectionString, clientOptions: new CosmosClientOptions
-            ////{
-            ////    SerializerOptions = new CosmosSerializationOptions
-            ////    {
-            ////        IgnoreNullValues = true,
-            ////        Indented = false,
-            ////        PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
-            ////    }
-            ////});
-
             var storageAccount = CloudStorageAccount.Parse(connectionString);
 
             // Initialize and add the Cosmos Db client factory service

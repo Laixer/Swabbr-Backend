@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Infrastructure.Data;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    // TODO make methods async
+    // TODO Implement remaining methods
     public class UserStore : IUserStore<IdentityUserTableEntity>, IUserEmailStore<IdentityUserTableEntity>, IUserPhoneNumberStore<IdentityUserTableEntity>,
     IUserTwoFactorStore<IdentityUserTableEntity>, IUserPasswordStore<IdentityUserTableEntity>
     {
@@ -20,18 +18,18 @@ namespace Swabbr.Api.Authentication
             _factory = factory;
         }
 
-        public Task<IdentityResult> CreateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> CreateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
-            client.InsertEntityAsync(user);
-            return Task.FromResult(IdentityResult.Success);
+            await client.InsertEntityAsync(user);
+            return IdentityResult.Success;
         }
 
-        public Task<IdentityResult> DeleteAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
-            client.DeleteEntityAsync(user);
-            return Task.FromResult(IdentityResult.Success);
+            await client.DeleteEntityAsync(user);
+            return IdentityResult.Success;
         }
 
         public void Dispose()
@@ -45,16 +43,15 @@ namespace Swabbr.Api.Authentication
             return null;
         }
 
-        public Task<IdentityUserTableEntity> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<IdentityUserTableEntity> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
-            var results = client.RetrieveEntityAsync(userId, userId);
-            return results;
+            return await client.RetrieveEntityAsync(userId, userId);
         }
 
-        public Task<IdentityUserTableEntity> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public async Task<IdentityUserTableEntity> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
-            return FindByEmailAsync(normalizedUserName, cancellationToken);
+            return await FindByEmailAsync(normalizedUserName, cancellationToken);
         }
 
         public Task<string> GetEmailAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
@@ -166,11 +163,11 @@ namespace Swabbr.Api.Authentication
             throw new NotImplementedException();
         }
 
-        public Task<IdentityResult> UpdateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
-            client.UpdateEntityAsync(user);
-            return Task.FromResult(IdentityResult.Success);
+            await client.UpdateEntityAsync(user);
+            return IdentityResult.Success;
         }
     }
 }

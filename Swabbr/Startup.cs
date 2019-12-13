@@ -11,7 +11,6 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
-using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data;
 using Swabbr.Infrastructure.Data.Entities;
@@ -46,12 +45,12 @@ namespace Swabbr
 
             var jwtOptionsSection = Configuration.GetSection("Jwt");
             var jwtOptions = jwtOptionsSection.Get<JwtOptions>();
-            
+
             // Configure authentication settings
             services.Configure<JwtOptions>(jwtOptionsSection);
-            
+
             var jwtKey = Encoding.ASCII.GetBytes(jwtOptions.SecretKey);
-            
+
             // Add authentication
             services.AddAuthentication(x =>
             {
@@ -91,7 +90,7 @@ namespace Swabbr
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference {
                     Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
-                        new string[] { } } }
+                        Array.Empty<string>() } }
                 );
             });
 
@@ -177,7 +176,7 @@ namespace Swabbr
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
-            
+
             // Add authentication and authorization middleware
             app.UseAuthentication();
             app.UseAuthorization();

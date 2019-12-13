@@ -1,5 +1,4 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,7 +12,7 @@ namespace Swabbr.Infrastructure.Data
 
         public DbClientFactory(List<TableProperties> tables, CloudStorageAccount storageAccount)
         {
-            _tables = tables ?? throw new ArgumentNullException(nameof(tables));
+            _tables = tables ?? throw new ArgumentNullException("Tables are not defined in the app settings.");
             _client = storageAccount.CreateCloudTableClient();
         }
 

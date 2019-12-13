@@ -38,8 +38,8 @@ namespace Swabbr.Infrastructure.Data
             return Map(queryResults.First());
         }
 
-        //TODO Documentation
-        public async Task<IEnumerable<FollowRequest>> GetIncomingRequestsForUserAsync(Guid userId)
+        //TODO Make async
+        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
@@ -53,7 +53,7 @@ namespace Swabbr.Infrastructure.Data
             return results;
         }
 
-        public async Task<IEnumerable<FollowRequest>> GetOutgoingRequestsForUserAsync(Guid userId)
+        public async Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 

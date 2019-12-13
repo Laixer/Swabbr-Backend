@@ -44,7 +44,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(string))]
+        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserAuthenticationOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
@@ -78,7 +78,19 @@ namespace Swabbr.Api.Controllers
             {
                 // Sign in the user that was just registered and return an access token
                 await _signInManager.SignInAsync(identityUser, true);
-                return Created(Url.ToString(), await _tokenService.GenerateToken(identityUser));
+                
+                var token = await _tokenService.GenerateToken(identityUser);
+                UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
+
+                return Ok(
+                    new UserAuthenticationOutputModel
+                    {
+                        AccessToken = token,
+                        User = userOutput,
+                        // TODO UserSettings
+                        UserSettings = MockData.MockRepository.RandomUserSettingsOutput()
+                    }
+                );
             }
 
             return BadRequest();
@@ -89,19 +101,19 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(string))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] UserAuthenticateInputModel input)
+        public async Task<IActionResult> Login([FromBody] UserAuthenticationInputModel input)
         {
-            var user = await _userManager.FindByEmailAsync(input.Email);
+            var identityUser = await _userManager.FindByEmailAsync(input.Email);
 
-            if (user == null)
+            if (identityUser == null)
             {
                 return Unauthorized("Invalid credentials.");
             }
 
             // Attempt a sign in using the user-provided password input
-            var result = await _signInManager.PasswordSignInAsync(user, input.Password, input.RememberMe, false);
+            var result = await _signInManager.PasswordSignInAsync(identityUser, input.Password, input.RememberMe, false);
 
             if (result.IsLockedOut)
             {
@@ -115,11 +127,19 @@ namespace Swabbr.Api.Controllers
             // Login succeeded, return access token
             if (result.Succeeded)
             {
-                var token = await _tokenService.GenerateToken(user);
-                return Ok(token);
+                var token = await _tokenService.GenerateToken(identityUser);
+                UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
+
+                return Ok(new UserAuthenticationOutputModel
+                {
+                    AccessToken = token,
+                    User = userOutput,
+                    // TODO UserSettings in output model
+                    UserSettings = MockData.MockRepository.RandomUserSettingsOutput()
+                });
             }
 
-            // If we get here something went wrong.
+            // If we get here something definitely went wrong.
             return Unauthorized();
         }
 

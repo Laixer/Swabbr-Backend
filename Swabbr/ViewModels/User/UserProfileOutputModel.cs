@@ -14,11 +14,6 @@ namespace Swabbr.Api.ViewModels
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Username.
-        /// </summary>
-        public string Username { get; set; }
-
-        /// <summary>
         /// First name of the user.
         /// </summary>
         [JsonProperty("firstName")]

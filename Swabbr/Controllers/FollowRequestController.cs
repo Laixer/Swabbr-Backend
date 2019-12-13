@@ -1,26 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Entities;
+using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
     /// Actions related to follow requests.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/v1/followrequests")]
     public class FollowRequestController : ControllerBase
     {
-        private readonly IFollowRequestRepository _repository;
+        private readonly IFollowRequestRepository _followRequestRepository;
+        private readonly UserManager<IdentityUserTableEntity> _userManager;
 
-        public FollowRequestController(IFollowRequestRepository repository)
+        public FollowRequestController(
+            IFollowRequestRepository repository, 
+            UserManager<IdentityUserTableEntity> userManager)
         {
-            this._repository = repository;
+            _followRequestRepository = repository;
+            _userManager = userManager;
         }
 
         // TODO Return user objects or user id's???
@@ -31,11 +42,10 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
         public async Task<IActionResult> Incoming()
         {
-            //TODO Implement using authenticated user id
-            return Ok(await _repository.GetIncomingRequestsForUserAsync(new Guid("0a102227-0821-4932-9869-906704d2a7d0")));
+            var user = await _userManager.GetUserAsync(User);
+            return Ok(await _followRequestRepository.GetIncomingForUserAsync(user.UserId));
         }
 
-        // TODO See todo above.
         /// <summary>
         /// Returns a collection of users that the authenticated user has requested to follow.
         /// </summary>
@@ -43,8 +53,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
         public async Task<IActionResult> Outgoing()
         {
-            //TODO Implement using authenticated user id
-            return Ok(await _repository.GetOutgoingRequestsForUserAsync(new Guid("0a102227-0821-4932-9869-906704d2a7d0")));
+            var user = await _userManager.GetUserAsync(User);
+            return Ok(await _followRequestRepository.GetOutgoingForUserAsync(user.UserId));
         }
 
         /// <summary>
@@ -54,22 +64,21 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> GetOutgoing([FromRoute]Guid receiverId)
         {
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 5));
         }
 
         /// <summary>
         /// Returns the status of a follow relationship from the authenticated user to the user with
         /// the specified id.
         /// </summary>
-        [HttpGet("{receiverId}/status")]
+        [Obsolete("May be removed. See endpoint above for followrequest status object.")]
+        [HttpGet("outgoing/{receiverId}/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
         public async Task<IActionResult> Status([FromRoute]Guid receiverId)
         {
-            return new OkObjectResult(FollowRequestStatus.Pending);
-
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(FollowRequestStatus.Pending);
         }
 
         /// <summary>
@@ -81,8 +90,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> Rejected()
         {
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 5));
         }
 
         /// <summary>
@@ -92,15 +101,16 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Create(FollowRequestInputModel input)
         {
-            //TODO use input (requesterId is Authenticated user id)
-            var createdEntity = await _repository.CreateAsync(new Core.Entities.FollowRequest
+            var authUser = await _userManager.GetUserAsync(User);
+
+            var entityToCreate = new FollowRequest
             {
-                FollowRequestId = Guid.NewGuid(),
-                ReceiverId = new Guid("0a102227-0821-4932-9869-906704d2a7d0"),
-                RequesterId = Guid.NewGuid(),
+                RequesterId = authUser.UserId,
                 Status = FollowRequestStatus.Pending,
                 TimeCreated = DateTime.Now
-            });
+            };
+
+            var createdEntity = await _followRequestRepository.CreateAsync(entityToCreate);
 
             FollowRequestOutputModel output = createdEntity;
 
@@ -114,8 +124,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Destroy([FromRoute]Guid followRequestId)
         {
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return NoContent();
         }
 
         //TODO: Update with model instead of accept/decline?
@@ -126,9 +136,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Accept([FromRoute]Guid followRequestId)
         {
-            var todo = followRequestId;
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(MockRepository.RandomFollowRequestOutput());
         }
 
         /// <summary>
@@ -138,10 +147,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Decline([FromRoute]Guid followRequestId)
         {
-            //! TODO
-            var todo = followRequestId;
-            await _repository.DeleteAsync(null);
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(MockRepository.RandomFollowRequestOutput());
         }
     }
 }

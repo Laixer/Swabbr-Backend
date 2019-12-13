@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace Swabbr
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {

@@ -7,15 +7,6 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// </summary>
     public class VlogLikeTableEntity
     {
-        public VlogLikeTableEntity()
-        {
-        }
-
-        public VlogLikeTableEntity(Guid vlogId, Guid userId)
-        {
-            // TO DO
-        }
-
         /// <summary>
         /// Id of the vlog that was given a like.
         /// </summary>

@@ -2,6 +2,7 @@
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels
 {
@@ -10,43 +11,44 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// First name of the user.
         /// </summary>
-        [JsonProperty("firstName")]
+        [Required, JsonProperty("firstName")]
         public string FirstName { get; set; }
 
         /// <summary>
         /// Surname of the user.
         /// </summary>
-        [JsonProperty("lastName")]
+        [Required, JsonProperty("lastName")]
         public string LastName { get; set; }
 
         /// <summary>
         /// Selected gender of the user.
         /// </summary>
-        [JsonProperty("gender")]
+        [Required, JsonProperty("gender")]
         public Gender Gender { get; set; }
 
         /// <summary>
         /// Selected country.
         /// </summary>
-        [JsonProperty("country")]
+        [Required, JsonProperty("country")]
         public string Country { get; set; }
 
         /// <summary>
         /// Email address.
         /// </summary>
-        [JsonProperty("email")]
+        [Required, JsonProperty("email")]
+        [EmailAddress, DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
         /// <summary>
-        /// Hashed password of the user.
+        /// Password input of the user.
         /// </summary>
-        [JsonProperty("password")]
+        [Required, JsonProperty("password")]
         public string Password { get; set; }
 
         /// <summary>
         /// Date of birth for the given user.
         /// </summary>
-        [JsonProperty("birthDate")]
+        [Required, JsonProperty("birthDate")]
         public DateTime BirthDate { get; set; }
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Nickname to display for the user.
         /// </summary>
-        [JsonProperty("nickname")]
+        [Required, JsonProperty("nickname")]
         public string Nickname { get; set; }
 
         /// <summary>
@@ -76,7 +78,7 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Phone number of the user stored as text.
         /// </summary>
-        [JsonProperty("phoneNumber")]
+        [Required,  JsonProperty("phoneNumber")]
         public string PhoneNumber { get; set; }
 
         public static implicit operator User(UserRegisterInputModel user)

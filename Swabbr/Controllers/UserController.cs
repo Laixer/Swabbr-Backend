@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.Services;
+using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -17,26 +16,16 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling user related Api requests.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/v1/users")]
-    [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly IUserRepository _repository;
-        private readonly ITokenService _tokenService;
-        private readonly UserManager<IdentityUserTableEntity> _userManager;
-        private readonly SignInManager<IdentityUserTableEntity> _signInManager;
-        
-        public UserController(
-            IUserRepository repository,
-            ITokenService tokenService,
-            UserManager<IdentityUserTableEntity> userManager,
-            SignInManager<IdentityUserTableEntity> signInManager)
+        private readonly IUserRepository _userRepository;
+
+        public UserController(IUserRepository repository)
         {
-            _repository = repository;
-            _tokenService = tokenService;
-            _userManager = userManager;
-            _signInManager = signInManager;
+            _userRepository = repository;
         }
 
         //TODO: Remove, temporary
@@ -44,7 +33,7 @@ namespace Swabbr.Api.Controllers
         [HttpGet("deletetables")]
         public async Task<IActionResult> TempDeleteTables()
         {
-            await _repository.TempDeleteTables();
+            await _userRepository.TempDeleteTables();
             return Ok();
         }
 
@@ -57,7 +46,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                User user = await _repository.GetByIdAsync(userId);
+                User user = await _userRepository.GetByIdAsync(userId);
                 UserOutputModel output = user;
                 return Ok(output);
             }
@@ -71,20 +60,13 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Search for users.
         /// </summary>
-        /// <param name="q">Search query.</param>
+        /// <param name="query">Search query.</param>
         [HttpGet("search")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel[]))]
-        public async Task<IActionResult> Search(
-            [FromQuery]string q)
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        public async Task<IActionResult> Search([FromQuery]string query)
         {
-            var mockData = new UserOutputModel[]
-            {
-                UserOutputModel.NewRandomMock(),
-                UserOutputModel.NewRandomMock(),
-                UserOutputModel.NewRandomMock()
-            };
-
-            return Ok(mockData);
+            //TODO Not implemented
+            return Ok(Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 5));
         }
 
         /// <summary>
@@ -94,6 +76,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Self()
         {
+            // TODO testing
             var identity = User.Identity;
             var claims = User.Claims;
 
@@ -109,14 +92,6 @@ namespace Swabbr.Api.Controllers
             }
 
             return Ok(testb);
-
-            var userId = _userManager.GetUserId(HttpContext.User);
-
-            return Ok(userId);
-
-            return Ok(UserOutputModel.NewRandomMock());
-            //! TODO
-            //Get authenticated user id, get and return associated user vm
         }
 
         /// <summary>
@@ -124,12 +99,10 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
-        public async Task<IActionResult> Update([FromBody] Core.Entities.User user)
+        public async Task<IActionResult> Update([FromBody] UserUpdateInputModel input)
         {
-            return Ok(user);
-
-            //! TODO
-            throw new NotImplementedException();
+            // TODO not implemented
+            return Ok(input);
         }
 
         /// <summary>
@@ -137,15 +110,10 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpDelete("delete")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> Delete()
         {
+            // TODO Not implemented
             return NoContent();
-            ////await _repo.DeleteAsync(user.ToDocument());
-            //! TODO
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -155,17 +123,10 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> List([FromRoute] int userId)
         {
+            // TODO Not implemented
             return Ok(
-                new UserOutputModel[]
-                {
-                    UserOutputModel.NewRandomMock(),
-                    UserOutputModel.NewRandomMock(),
-                    UserOutputModel.NewRandomMock()
-                }
+                Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 10)
             );
-
-            //! TODO
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -175,9 +136,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Unfollow([FromRoute] int userId)
         {
+            // TODO Not implemented
             return NoContent();
-            //! TODO
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -187,17 +147,10 @@ namespace Swabbr.Api.Controllers
         [HttpGet("users/{userId}/followers")]
         public async Task<IActionResult> ListFollowers([FromRoute] int userId)
         {
+            //TODO Not implemented
             return Ok(
-                    new UserOutputModel[]
-                    {
-                        UserOutputModel.NewRandomMock(),
-                        UserOutputModel.NewRandomMock(),
-                        UserOutputModel.NewRandomMock()
-                    }
+                    Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 20)
                 );
-
-            //! TODO
-            throw new NotImplementedException();
         }
     }
 }

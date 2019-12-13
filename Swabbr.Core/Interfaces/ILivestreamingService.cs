@@ -2,7 +2,6 @@
 
 namespace Swabbr.Core.Interfaces
 {
-    //! TO DO
     //TODO: Unfinished
     //TODO: Add options?
     public interface ILivestreamingService

@@ -13,11 +13,6 @@ namespace Swabbr.Api.ViewModels
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Username.
-        /// </summary>
-        public string Username { get; set; }
-
-        /// <summary>
         /// First name of the user.
         /// </summary>
         public string FirstName { get; set; }
@@ -82,29 +77,5 @@ namespace Swabbr.Api.ViewModels
                 ProfileImageUrl = user.ProfileImageUrl,
                 Timezone = user.Timezone
             };
-
-        //TODO Remove
-        #region temporary
-        private static Random random = new Random();
-        public static string RandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-        public static UserOutputModel NewRandomMock()
-        {
-            return new UserOutputModel
-            {
-                UserId = Guid.NewGuid(),
-                Email = $"{RandomString(3)}@{RandomString(4)}.{RandomString(3)}",
-                FirstName = RandomString(2),
-                LastName = RandomString(10),
-                BirthDate = DateTime.Now,
-                Nickname = RandomString(4)
-            };
-        }
-        #endregion
     }
 }

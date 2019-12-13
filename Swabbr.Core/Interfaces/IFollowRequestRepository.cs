@@ -9,8 +9,8 @@ namespace Swabbr.Core.Interfaces
     {
         Task<FollowRequest> GetByIdAsync(Guid followRequestId);
 
-        Task<IEnumerable<FollowRequest>> GetIncomingRequestsForUserAsync(Guid userId);
+        Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId);
 
-        Task<IEnumerable<FollowRequest>> GetOutgoingRequestsForUserAsync(Guid userId);
+        Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId);
     }
 }
