@@ -30,14 +30,12 @@ namespace Swabbr.Infrastructure.Data
 
             var queryResults = table.ExecuteQuery(tq);
 
-            if (queryResults.Any())
-            {
-                return Map(queryResults.First());
-            }
-            else
+            if (!queryResults.Any())
             {
                 throw new EntityNotFoundException();
             }
+            
+            return Map(queryResults.First());
         }
 
         //TODO Documentation

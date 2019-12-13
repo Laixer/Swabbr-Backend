@@ -8,11 +8,6 @@ namespace Swabbr.Api.ViewModels
     public class UserRegisterInputModel
     {
         /// <summary>
-        /// Username.
-        /// </summary>
-        public string Username { get; set; }
-
-        /// <summary>
         /// First name of the user.
         /// </summary>
         [JsonProperty("firstName")]
@@ -85,8 +80,7 @@ namespace Swabbr.Api.ViewModels
         public string PhoneNumber { get; set; }
 
         public static implicit operator User(UserRegisterInputModel user)
-        {
-            return new User
+            => new User
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -101,6 +95,5 @@ namespace Swabbr.Api.ViewModels
                 PasswordHash = user.Password,
                 PhoneNumber = user.PhoneNumber
             };
-        }
     }
 }

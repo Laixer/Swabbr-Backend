@@ -1,17 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class FollowRequestOutput
+    public class FollowRequestInputModel
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        [JsonProperty("followRequestId")]
-        public Guid FollowRequestId { get; set; }
-
         /// <summary>
         /// Id of the user that initiated the follow request.
         /// </summary>
@@ -30,10 +25,12 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("status")]
         public FollowRequestStatus Status { get; set; }
 
-        /// <summary>
-        /// Timestamp of when the request was initiated.
-        /// </summary>
-        [JsonProperty("timeCreated")]
-        public DateTime TimeCreated { get; set; }
+        public static implicit operator FollowRequest(FollowRequestInputModel model)
+            => new FollowRequest
+            {
+                ReceiverId = model.ReceiverId,
+                RequesterId = model.RequesterId,
+                Status = model.Status
+            };
     }
 }

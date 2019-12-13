@@ -7,6 +7,9 @@ namespace Swabbr.Api.ViewModels
 {
     public class VlogOutputModel
     {
+        /// <summary>
+        /// Id of the vlog.
+        /// </summary>
         [JsonProperty("vlogId")]
         public Guid VlogId { get; set; }
 

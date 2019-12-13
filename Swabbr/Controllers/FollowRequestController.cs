@@ -31,6 +31,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
         public async Task<IActionResult> Incoming()
         {
+            //TODO Implement using authenticated user id
             return Ok(await _repository.GetIncomingRequestsForUserAsync(new Guid("0a102227-0821-4932-9869-906704d2a7d0")));
         }
 
@@ -42,7 +43,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
         public async Task<IActionResult> Outgoing()
         {
-            //! TODO
+            //TODO Implement using authenticated user id
             return Ok(await _repository.GetOutgoingRequestsForUserAsync(new Guid("0a102227-0821-4932-9869-906704d2a7d0")));
         }
 
@@ -85,21 +86,14 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Send a follow request to the specified user.
+        /// Send a follow request from the authenticated user to the specified user.
         /// </summary>
         [HttpPost("create")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
         public async Task<IActionResult> Create(FollowRequestInput input)
         {
-            ////_repo.AddAsync(new Core.Models.FollowRequest
-            ////{
-            ////    ReceiverId = "test",
-            ////    RequesterId = "test2",
-            ////    TimeCreated = DateTime.Now
-            ////});
-            //! TODO
-
-            await _repository.CreateAsync(new Core.Entities.FollowRequest
+            //TODO use input (requesterId is Authenticated user id)
+            var createdEntity = await _repository.CreateAsync(new Core.Entities.FollowRequest
             {
                 FollowRequestId = Guid.NewGuid(),
                 ReceiverId = new Guid("0a102227-0821-4932-9869-906704d2a7d0"),
@@ -108,12 +102,13 @@ namespace Swabbr.Api.Controllers
                 TimeCreated = DateTime.Now
             });
 
-            //TODO Output
-            throw new NotImplementedException();
+            FollowRequestOutput output = createdEntity;
+
+            return Created(Url.ToString(), output);
         }
 
         /// <summary>
-        /// Cancel a follow request sent to the specified user.
+        /// Cancel a follow request from the authenticated user sent to the specified user.
         /// </summary>
         [HttpDelete("{followRequestId}/destroy")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]

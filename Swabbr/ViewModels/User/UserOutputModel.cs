@@ -68,8 +68,7 @@ namespace Swabbr.Api.ViewModels
         public bool IsPrivate { get; set; }
 
         public static implicit operator UserOutputModel(User user)
-        {
-            return new UserOutputModel
+            => new UserOutputModel
             {
                 UserId = user.UserId,
                 FirstName = user.FirstName,
@@ -83,7 +82,6 @@ namespace Swabbr.Api.ViewModels
                 ProfileImageUrl = user.ProfileImageUrl,
                 Timezone = user.Timezone
             };
-        }
 
         //TODO Remove
         #region temporary

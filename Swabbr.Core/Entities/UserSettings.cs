@@ -22,5 +22,10 @@ namespace Swabbr.Core.Entities
         /// Determines how follow requests are processed for the user.
         /// </summary>
         public FollowMode FollowMode { get; set; }
+
+        /// <summary>
+        /// Setting that determines if the user account is private.
+        /// </summary>
+        public bool IsPrivate { get; set; }
     }
 }

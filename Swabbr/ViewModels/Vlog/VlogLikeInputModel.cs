@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using System;
 
 namespace Swabbr.Api.ViewModels
@@ -16,5 +17,12 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("userId")]
         public Guid UserId { get; set; }
+
+        public static implicit operator VlogLike(VlogLikeInputModel entity)
+            => new VlogLike
+            {
+                UserId = entity.UserId,
+                VlogId = entity.VlogId
+            };
     }
 }

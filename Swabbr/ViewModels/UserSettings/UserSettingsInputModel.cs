@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
 
@@ -29,5 +30,14 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("followMode")]
         public FollowMode FollowMode { get; set; }
+
+        public static implicit operator UserSettings(UserSettingsInputModel entity)
+            => new UserSettings
+            {
+                UserId = entity.UserId,
+                FollowMode = entity.FollowMode,
+                DailyVlogRequestLimit = entity.DailyVlogRequestLimit,
+                IsPrivate = entity.IsPrivate
+            };
     }
 }

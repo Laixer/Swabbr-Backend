@@ -27,13 +27,11 @@ namespace Swabbr.Api.ViewModels
         public bool RememberMe { get; set; }
 
         public static implicit operator User(UserAuthenticateModel user)
-        {
-            return new User
+            => new User
             {
                 Email = user.Email,
                 // TODO Password should be hashed (this conversion is unnecessary)
                 PasswordHash = user.Password
             };
-        }
     }
 }

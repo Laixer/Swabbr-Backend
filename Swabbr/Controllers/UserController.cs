@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.Authentication;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Net;
@@ -21,18 +21,18 @@ namespace Swabbr.Api.Controllers
     [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _service;
+        private readonly IUserRepository _repository;
         private readonly ITokenService _tokenService;
         private readonly UserManager<IdentityUserTableEntity> _userManager;
         private readonly SignInManager<IdentityUserTableEntity> _signInManager;
-
+        
         public UserController(
-            IUserService service,
+            IUserRepository repository,
             ITokenService tokenService,
             UserManager<IdentityUserTableEntity> userManager,
             SignInManager<IdentityUserTableEntity> signInManager)
         {
-            _service = service;
+            _repository = repository;
             _tokenService = tokenService;
             _userManager = userManager;
             _signInManager = signInManager;
@@ -43,93 +43,8 @@ namespace Swabbr.Api.Controllers
         [HttpGet("deletetables")]
         public async Task<IActionResult> TempDeleteTables()
         {
-            await _service.TempDeleteTables();
+            await _repository.TempDeleteTables();
             return Ok();
-        }
-
-        /// <summary>
-        /// Create a new user account.
-        /// </summary>
-        /// <param name="input">Input for a new user to register</param>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
-        {
-            // Convert input model to an identity user model
-            User user = input;
-
-            //TODO Do this here?
-            // Generate new id
-            user.UserId = Guid.NewGuid();
-
-            var u = new IdentityUserTableEntity { UserId = Guid.NewGuid(), Email = input.Email };
-
-            try
-            {
-                var x = await _userManager.CreateAsync(u, input.Password);
-
-                if (x.Succeeded)
-                {
-                    await _signInManager.SignInAsync(u, true);
-                    return Ok(_tokenService.GenerateToken(u));
-
-                    UserOutputModel userOutput = user;
-                    return Created(Url.ToString(), userOutput);
-                }
-                else
-                {
-                    return BadRequest();
-                }
-            }
-            catch (Exception e)
-            {
-                // TODO ??? What to do on error
-                return new BadRequestObjectResult(e.Message);
-            }
-        }
-
-        /// <summary>
-        /// Authorizes a registered user.
-        /// </summary>
-        [AllowAnonymous]
-        [HttpPost("login")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> Login([FromBody] UserAuthenticateModel input)
-        {
-            //! TODO
-            IdentityUserTableEntity user = new IdentityUserTableEntity
-            {
-                Email = input.Email,
-                UserId = Guid.NewGuid()
-            };
-
-            // Attempt a sign in
-            var result = await _signInManager.PasswordSignInAsync(input.Email, input.Password, true, false);
-
-            // logged in
-            if (result.Succeeded)
-            {
-                var token = _tokenService.GenerateToken(user);
-                return Ok(token);
-            }
-
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Deauthorizes the authenticated user.
-        /// </summary>
-        [HttpDelete("logout")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult Logout()
-        {
-            // TODO Deauthorize user, delete user access token
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -141,7 +56,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                User user = await _service.GetByIdAsync(userId);
+                User user = await _repository.GetByIdAsync(userId);
                 UserOutputModel output = user;
                 return Ok(output);
             }

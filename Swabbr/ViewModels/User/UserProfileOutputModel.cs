@@ -91,8 +91,7 @@ namespace Swabbr.Api.ViewModels
         public int TotalFollowing { get; set; }
 
         public static implicit operator UserProfileOutputModel(User user)
-        {
-            return new UserProfileOutputModel
+            => new UserProfileOutputModel
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -105,6 +104,5 @@ namespace Swabbr.Api.ViewModels
                 Timezone = user.Timezone,
                 // TODO Where to assign TotalVlogs, TotalFollowers etc. ?
             };
-        }
     }
 }
