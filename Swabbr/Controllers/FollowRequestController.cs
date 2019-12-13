@@ -28,7 +28,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a collection of users who have a pending follow request for the authenticated user.
         /// </summary>
         [HttpGet("incoming")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
         public async Task<IActionResult> Incoming()
         {
             //TODO Implement using authenticated user id
@@ -40,7 +40,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a collection of users that the authenticated user has requested to follow.
         /// </summary>
         [HttpGet("outgoing")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutput>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
         public async Task<IActionResult> Outgoing()
         {
             //TODO Implement using authenticated user id
@@ -51,7 +51,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a single outgoing follow request from the authenticated user to the specified user.
         /// </summary>
         [HttpGet("outgoing/{receiverId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> GetOutgoing([FromRoute]Guid receiverId)
         {
             //! TODO
@@ -89,8 +89,8 @@ namespace Swabbr.Api.Controllers
         /// Send a follow request from the authenticated user to the specified user.
         /// </summary>
         [HttpPost("create")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
-        public async Task<IActionResult> Create(FollowRequestInput input)
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
+        public async Task<IActionResult> Create(FollowRequestInputModel input)
         {
             //TODO use input (requesterId is Authenticated user id)
             var createdEntity = await _repository.CreateAsync(new Core.Entities.FollowRequest
@@ -102,7 +102,7 @@ namespace Swabbr.Api.Controllers
                 TimeCreated = DateTime.Now
             });
 
-            FollowRequestOutput output = createdEntity;
+            FollowRequestOutputModel output = createdEntity;
 
             return Created(Url.ToString(), output);
         }
@@ -123,7 +123,7 @@ namespace Swabbr.Api.Controllers
         /// Accept a pending follow request for the authenticated user.
         /// </summary>
         [HttpPut("{followRequestId}/accept")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Accept([FromRoute]Guid followRequestId)
         {
             //! TODO
@@ -134,7 +134,7 @@ namespace Swabbr.Api.Controllers
         /// Decline a follow request for the authenticated user.
         /// </summary>
         [HttpPut("{followRequestId}/decline")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutput))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Decline([FromRoute]Guid followRequestId)
         {
             //! TODO

@@ -35,7 +35,7 @@ namespace Swabbr.Api.Services
                 new Claim(SwabbrClaimTypes.Email, user.Email),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.Now.AddDays(Convert.ToDouble(_jwtOptions.ExpireDays));
 

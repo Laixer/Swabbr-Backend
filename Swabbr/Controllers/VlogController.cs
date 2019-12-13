@@ -15,9 +15,9 @@ namespace Swabbr.Api.Controllers
     [Route("api/v1/vlogs")]
     public class VlogController : ControllerBase
     {
-        private readonly IVlogService _service;
+        private readonly IVlogRepository _service;
 
-        public VlogController(IVlogService service)
+        public VlogController(IVlogRepository service)
         {
             _service = service;
         }

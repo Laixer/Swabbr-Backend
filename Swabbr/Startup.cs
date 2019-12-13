@@ -50,7 +50,7 @@ namespace Swabbr
             // Configure authentication settings
             services.Configure<JwtOptions>(jwtOptionsSection);
             
-            var jwtKey = Encoding.ASCII.GetBytes(jwtOptions.Key);
+            var jwtKey = Encoding.ASCII.GetBytes(jwtOptions.SecretKey);
             
             // Add authentication
             services.AddAuthentication(x =>
@@ -110,8 +110,6 @@ namespace Swabbr
 
             // Configure DI for services
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IVlogService, VlogService>();
 
             // DI for stores
             services.AddTransient<IUserStore<IdentityUserTableEntity>, UserStore>();
