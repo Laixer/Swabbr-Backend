@@ -34,7 +34,7 @@ namespace Swabbr.Infrastructure.Data
             return RetrieveAsync(id, id);
         }
 
-        public async Task<User> GetByEmailAsync(string email)
+        public Task<User> GetByEmailAsync(string email)
         {
             var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
@@ -45,12 +45,10 @@ namespace Swabbr.Infrastructure.Data
 
             if (queryResults.Any())
             {
-                return Map(queryResults.First());
+                return Task.FromResult(Map(queryResults.First()));
             }
-            else
-            {
-                throw new EntityNotFoundException();
-            }
+
+            throw new EntityNotFoundException();
         }
 
         /// <summary>
@@ -58,18 +56,34 @@ namespace Swabbr.Infrastructure.Data
         /// last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
-        public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
+        public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
             var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
+            //TODO Comments for querycomparisons!!!!!
+            //! Important: Only right side can be tested this way
             var tq = new TableQuery<UserTableEntity>().Where(
-                TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.Equal, q));
+                TableQuery.CombineFilters(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.GreaterThanOrEqual, q),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.LessThanOrEqual, q + "0")
+                    ),
+                    TableOperators.Or,
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("LastName", QueryComparisons.GreaterThanOrEqual, q),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition("LastName", QueryComparisons.LessThanOrEqual, q + "0")
+                    )
+                )
+            );
 
             var queryResults = table.ExecuteQuery(tq);
 
-            return queryResults.Select(x => Map(x));
+            return Task.FromResult(queryResults.Select(x => Map(x)));
         }
 
+        //TODO Check mapping
         public override User Map(UserTableEntity entity)
         {
             return new User

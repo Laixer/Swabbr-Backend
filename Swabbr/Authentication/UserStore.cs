@@ -21,6 +21,8 @@ namespace Swabbr.Api.Authentication
         public async Task<IdentityResult> CreateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            user.PartitionKey = user.UserId.ToString();
+            user.RowKey = user.UserId.ToString();
             await client.InsertEntityAsync(user);
             return IdentityResult.Success;
         }

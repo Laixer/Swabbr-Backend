@@ -65,6 +65,15 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> Search([FromQuery]string query)
         {
+            var users = await _userRepository.SearchAsync(query, 0, 100);
+
+            var usersOutput = users.Select(x =>
+            {
+                UserOutputModel o = x;
+                return o;
+            });
+
+            return Ok(users);
             //TODO Not implemented
             return Ok(Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 5));
         }
