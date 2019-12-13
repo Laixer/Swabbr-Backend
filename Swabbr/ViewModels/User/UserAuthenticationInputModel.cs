@@ -10,22 +10,24 @@ namespace Swabbr.Api.ViewModels
     public class UserAuthenticationInputModel
     {
         /// <summary>
-        /// Email.
+        /// Email address input.
         /// </summary>
-        [Required, JsonProperty("email")]
+        [Required(AllowEmptyStrings = false)]
+        [JsonProperty("email")]
         [EmailAddress, DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
         /// <summary>
         /// Password input.
         /// </summary>
-        [Required, JsonProperty("password")]
+        [Required(AllowEmptyStrings = false)]
+        [JsonProperty("password")]
         public string Password { get; set; }
 
         /// <summary>
         /// Remember login option.
         /// </summary>
         [JsonProperty("rememberMe")]
-        public bool RememberMe { get; set; }
+        public bool RememberMe { get; set; } = false;
     }
 }

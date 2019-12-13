@@ -5,6 +5,9 @@ namespace Swabbr.Api.ViewModels
 {
     public class ReactionOutputModel
     {
+        /// <summary>
+        /// Id of the reaction.
+        /// </summary>
         [JsonProperty("reactionId")]
         public Guid ReactionId { get; set; }
 

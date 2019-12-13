@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Controller for handling user related Api requests.
+    /// Controller for handling requests related to users.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -76,7 +76,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Self()
         {
-            // TODO testing
+            // TODO Implement, remove testing code
             var identity = User.Identity;
             var claims = User.Claims;
 

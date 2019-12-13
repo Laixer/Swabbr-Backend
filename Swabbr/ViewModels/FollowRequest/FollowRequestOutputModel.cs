@@ -38,7 +38,8 @@ namespace Swabbr.Api.ViewModels
         public DateTime TimeCreated { get; set; }
 
         public static implicit operator FollowRequestOutputModel(FollowRequest followRequest)
-            => new FollowRequestOutputModel
+        {
+            return new FollowRequestOutputModel
             {
                 FollowRequestId = followRequest.FollowRequestId,
                 ReceiverId = followRequest.ReceiverId,
@@ -46,5 +47,6 @@ namespace Swabbr.Api.ViewModels
                 Status = followRequest.Status,
                 TimeCreated = followRequest.TimeCreated
             };
+        }
     }
 }

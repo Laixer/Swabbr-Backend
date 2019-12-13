@@ -32,12 +32,14 @@ namespace Swabbr.Api.ViewModels
         public FollowMode FollowMode { get; set; }
 
         public static implicit operator UserSettingsOutputModel(UserSettings entity)
-            => new UserSettingsOutputModel
+        {
+            return new UserSettingsOutputModel
             {
                 UserId = entity.UserId,
                 FollowMode = entity.FollowMode,
                 DailyVlogRequestLimit = entity.DailyVlogRequestLimit,
                 IsPrivate = entity.IsPrivate
             };
+        }
     }
 }

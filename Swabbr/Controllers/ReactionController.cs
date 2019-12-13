@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Actions related to reactions to vlogs.
+    /// Controller for handling requests related to vlog reactions.
     /// </summary>
     [Obsolete("Not yet supported/implemented")]
     [ApiController]

@@ -10,13 +10,15 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Id of the vlog to send the like to.
         /// </summary>
-        [Required, JsonProperty("vlogId")]
+        [Required]
+        [JsonProperty("vlogId")]
         public Guid VlogId { get; set; }
 
         /// <summary>
         /// Id of the user that sent the like.
         /// </summary>
-        [Required, JsonProperty("userId")]
+        [Required] 
+        [JsonProperty("userId")]
         public Guid UserId { get; set; }
 
         public static implicit operator VlogLike(VlogLikeInputModel entity)

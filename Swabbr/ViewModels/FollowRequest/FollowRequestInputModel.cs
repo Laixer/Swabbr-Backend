@@ -27,11 +27,13 @@ namespace Swabbr.Api.ViewModels
         public FollowRequestStatus Status { get; set; }
 
         public static implicit operator FollowRequest(FollowRequestInputModel model)
-            => new FollowRequest
+        {
+            return new FollowRequest
             {
                 ReceiverId = model.ReceiverId,
                 RequesterId = model.RequesterId,
                 Status = model.Status
             };
+        }
     }
 }

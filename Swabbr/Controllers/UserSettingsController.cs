@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
-using System;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Actions related to user settings and preferences.
+    /// Controller for handling requests related to user settings.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/v1/vlogs")]
     public class UserSettingsController : ControllerBase
@@ -18,12 +19,11 @@ namespace Swabbr.Api.Controllers
         /// Get user settings for the authenticated user.
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type=typeof(UserSettingsOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Get()
         {
             //TODO Not implemented
             return Ok(MockData.MockRepository.RandomUserSettingsOutput());
-            throw new NotImplementedException();
         }
 
         /// <summary>

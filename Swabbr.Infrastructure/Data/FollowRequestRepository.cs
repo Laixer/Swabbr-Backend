@@ -21,7 +21,7 @@ namespace Swabbr.Infrastructure.Data
 
         public override string TableName => "FollowRequests";
 
-        public async Task<FollowRequest> GetByIdAsync(Guid followRequestId)
+        public Task<FollowRequest> GetByIdAsync(Guid followRequestId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
@@ -35,11 +35,11 @@ namespace Swabbr.Infrastructure.Data
                 throw new EntityNotFoundException();
             }
             
-            return Map(queryResults.First());
+            return Task.FromResult(Map(queryResults.First()));
         }
 
         //TODO Make async
-        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
+        public Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
@@ -47,13 +47,12 @@ namespace Swabbr.Infrastructure.Data
                 TableQuery.GenerateFilterCondition("ReceiverId", QueryComparisons.Equal, userId.ToString()));
 
             var queryResults = table.ExecuteQuery(tq);
+            var mappedResults = queryResults.Select(x => Map(x));
 
-            var results = queryResults.Select(x => Map(x));
-
-            return results;
+            return Task.FromResult(mappedResults);
         }
 
-        public async Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
+        public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
@@ -61,10 +60,9 @@ namespace Swabbr.Infrastructure.Data
                 TableQuery.GenerateFilterCondition("RequesterId", QueryComparisons.Equal, userId.ToString()));
 
             var queryResults = table.ExecuteQuery(tq);
+            var mappedResults = queryResults.Select(x => Map(x));
 
-            var results = queryResults.Select(x => Map(x));
-
-            return results;
+            return Task.FromResult(mappedResults);
         }
 
         public override FollowRequestTableEntity Map(FollowRequest entity)

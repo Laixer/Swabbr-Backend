@@ -44,8 +44,8 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(UserAuthenticationOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
         {
             // Ensure the user does not already exist
@@ -55,6 +55,7 @@ namespace Swabbr.Api.Controllers
             {
                 return BadRequest("User already exists.");
             }
+            
             // TODO Password check
             // ...
 
@@ -64,14 +65,17 @@ namespace Swabbr.Api.Controllers
             // Generate new id for user to create
             userFromInput.UserId = Guid.NewGuid();
 
+            // Create the user
             var createdUser = await _userRepository.CreateAsync(userFromInput);
 
+            // Construct a new identity user based on the created user entity
             var identityUser = new IdentityUserTableEntity
             {
                 UserId = createdUser.UserId,
                 Email = createdUser.Email
             };
 
+            // Create the identity user
             var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
 
             if (identityResult.Succeeded)
@@ -93,6 +97,7 @@ namespace Swabbr.Api.Controllers
                 );
             }
 
+            // Something went wrong.
             return BadRequest();
         }
 
@@ -102,9 +107,10 @@ namespace Swabbr.Api.Controllers
         [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized ,Type = typeof(string))]
         public async Task<IActionResult> Login([FromBody] UserAuthenticationInputModel input)
         {
+            // Retrieve the identity user
             var identityUser = await _userManager.FindByEmailAsync(input.Email);
 
             if (identityUser == null)
@@ -124,9 +130,9 @@ namespace Swabbr.Api.Controllers
                 return Unauthorized("Not allowed to log in.");
             }
 
-            // Login succeeded, return access token
             if (result.Succeeded)
             {
+                // Login succeeded, generate and return access token
                 var token = await _tokenService.GenerateToken(identityUser);
                 UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
 
@@ -149,7 +155,6 @@ namespace Swabbr.Api.Controllers
         [Authorize]
         [HttpDelete("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

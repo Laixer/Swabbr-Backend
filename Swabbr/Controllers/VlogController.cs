@@ -1,14 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.Services;
-using Swabbr.Core.Entities;
+using Swabbr.Api.MockData;
+using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Controller for handling vlog related Api requests.
+    /// Controller for handling requests related to vlogs.
     /// </summary>
     [Obsolete("Vlog related requests are not supported yet.")]
     [ApiController]
@@ -26,13 +29,11 @@ namespace Swabbr.Api.Controllers
         /// Get a single vlog.
         /// </summary>
         [HttpGet("{vlogId}")]
-        public async Task<IActionResult> Get([FromRoute]int vlogId)
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
+        public async Task<IActionResult> Get([FromRoute]Guid vlogId)
         {
-            //! TODO
-            throw new NotImplementedException();
-
-            ////var vlog = await _repo.GetByIdAsync(vlogId);
-            ////var vlogConverted = converted.Convert(vlog);
+            //TODO Not implemented
+            return Ok(MockRepository.RandomVlogOutput());
         }
 
         /// <summary>
@@ -40,71 +41,58 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("featured")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> Featured()
         {
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 10));
         }
 
+        // TODO Specify limit?
         /// <summary>
         /// Get vlogs from the specified user.
         /// </summary>
         [HttpGet("users/{userId}")]
-        public async Task<IActionResult> ListForUser([FromRoute]int userId)
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
+        public async Task<IActionResult> ListForUser([FromRoute]Guid userId)
         {
-            //! TODO
-            throw new NotImplementedException();
-        }
-
-        // TODO: How to handle Livestreaming Functions?
-        /// <summary>
-        /// Create a new vlog
-        /// </summary>
-        /// <param name="users">Users to share the vlog with.</param>
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody]User[] users)
-        {
-            //! TODO
-            ////var x = await _repo.AddAsync(new VlogDocument
-            ////{
-            ////    UserId = Guid.NewGuid(),
-            ////    DateStarted = DateTime.Now
-            ////});
-            ////
-            ////return Ok(x);
-
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 5));
         }
 
         /// <summary>
-        /// Delete a vlog.
+        /// Delete a vlog that is owned by the authenticated user.
         /// </summary>
         /// <returns></returns>
         [HttpDelete("{vlogId}")]
-        public async Task<IActionResult> Delete()
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> Delete([FromRoute]Guid vlogId)
         {
-            //! TODO
-            throw new NotImplementedException();
+            //TODO Not implemented
+            return NoContent();
         }
 
+        // TODO What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog.
         /// <summary>
         /// Leave a like on a single vlog.
         /// </summary>
         [HttpPost("like/{vlogId}")]
-        public async Task<IActionResult> Like([FromRoute]int vlogId)
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Like([FromRoute]Guid vlogId)
         {
-            //! TODO
-            return new OkResult();
+            //TODO Not implemented, create a new vloglike for the vlog
+            return Ok();
         }
 
         /// <summary>
         /// Remove a like previously given to a single vlog.
         /// </summary>
         [HttpDelete("like/{vlogId}")]
-        public async Task<IActionResult> Unlike([FromRoute]int vlogId)
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> Unlike([FromRoute]Guid vlogId)
         {
-            //! TODO
-            return new OkResult();
+            //TODO Not implemented
+            return NoContent();
         }
     }
 }

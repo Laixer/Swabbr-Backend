@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Actions related to follow requests.
+    /// Controller for handling requests related to follow requests.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -34,9 +34,8 @@ namespace Swabbr.Api.Controllers
             _userManager = userManager;
         }
 
-        // TODO Return user objects or user id's???
         /// <summary>
-        /// Returns a collection of users who have a pending follow request for the authenticated user.
+        /// Returns a collection of <see cref="FollowRequest"/> models for the authenticated user that are pending.
         /// </summary>
         [HttpGet("incoming")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
@@ -47,7 +46,7 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns a collection of users that the authenticated user has requested to follow.
+        /// Returns a collection of <see cref="FollowRequest"/> models sent by the authenticated user that are pending.
         /// </summary>
         [HttpGet("outgoing")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
@@ -101,11 +100,11 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> Create(FollowRequestInputModel input)
         {
-            var authUser = await _userManager.GetUserAsync(User);
+            var identityUser = await _userManager.GetUserAsync(User);
 
             var entityToCreate = new FollowRequest
             {
-                RequesterId = authUser.UserId,
+                RequesterId = identityUser.UserId,
                 Status = FollowRequestStatus.Pending,
                 TimeCreated = DateTime.Now
             };
@@ -114,7 +113,7 @@ namespace Swabbr.Api.Controllers
 
             FollowRequestOutputModel output = createdEntity;
 
-            return Created(Url.ToString(), output);
+            return Ok(output);
         }
 
         /// <summary>
