@@ -82,7 +82,7 @@ namespace Swabbr.Api.Services.NotificationHubs
         /// </summary>
         /// <param name="newNotification"></param>
         /// <returns></returns>
-        public async Task<HubResponse<NotificationOutcome>> SendNotification(Notification newNotification)
+        public async Task<HubResponse<NotificationOutcome>> SendNotification(SwabbrNotification newNotification)
         {
             try
             {

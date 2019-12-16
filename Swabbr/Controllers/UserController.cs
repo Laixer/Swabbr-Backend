@@ -129,7 +129,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("users/{userId}/following")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
-        public async Task<IActionResult> List([FromRoute] int userId)
+        public async Task<IActionResult> List([FromRoute] Guid userId)
         {
             // TODO Not implemented
             return Ok(
@@ -142,7 +142,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpDelete("users/{userId}/unfollow")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Unfollow([FromRoute] int userId)
+        public async Task<IActionResult> Unfollow([FromRoute] Guid userId)
         {
             // TODO Not implemented
             return NoContent();
@@ -153,7 +153,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         [HttpGet("users/{userId}/followers")]
-        public async Task<IActionResult> ListFollowers([FromRoute] int userId)
+        public async Task<IActionResult> ListFollowers([FromRoute] Guid userId)
         {
             //TODO Not implemented
             return Ok(

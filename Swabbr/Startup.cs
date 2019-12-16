@@ -155,7 +155,7 @@ namespace Swabbr
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // For some reason
-            if (/*env.IsDevelopment()*/Configuration.GetSection("ConnectionStrings").Get<ConnectionStringConfiguration>().Mode == ConnectionStringMode.Emulator)
+            if (/*env.IsDevelopment()*/Configuration.GetSection("ConnectionStrings").Get<ConnectionStringsConfiguration>().Mode == ConnectionStringMode.Emulator)
             {
                 app.UseDeveloperExceptionPage();
             }

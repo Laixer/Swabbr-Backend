@@ -12,7 +12,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("api/v1/vlogs")]
+    [Route("api/v1/users/self/settings")]
     public class UserSettingsController : ControllerBase
     {
         /// <summary>

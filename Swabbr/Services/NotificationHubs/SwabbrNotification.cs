@@ -1,6 +1,6 @@
 ﻿namespace Swabbr.Api.Services.NotificationHubs
 {
-    public class Notification : DeviceRegistration
+    public class SwabbrNotification : DeviceRegistration
     {
         public string Content { get; set; }
     }

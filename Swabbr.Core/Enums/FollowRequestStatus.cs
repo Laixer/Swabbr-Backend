@@ -1,4 +1,7 @@
-﻿namespace Swabbr.Core.Enums
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+namespace Swabbr.Core.Enums
 {
     /// <summary>
     /// Enum that represents the status of an active <see cref="FollowRequest"/> between two users.
