@@ -12,7 +12,7 @@ namespace Swabbr.Infrastructure.Data
 
         public DbClientFactory(List<TableProperties> tables, CloudStorageAccount storageAccount)
         {
-            _tables = tables ?? throw new ArgumentNullException("Tables are not defined in the app settings.");
+            _tables = tables ?? throw new ArgumentNullException(nameof(tables));
             _client = storageAccount.CreateCloudTableClient();
         }
 
@@ -24,7 +24,7 @@ namespace Swabbr.Infrastructure.Data
         /// <summary>
         /// Ensure all specified tables exist in the database.
         /// </summary>
-        public async Task EnsureDbSetupAsync(TableRequestOptions requestOptions = null)
+        public async Task EnsureDbSetupAsync()
         {
             // Create the tables if they do not already exist within the database.
             foreach (var table in _tables)

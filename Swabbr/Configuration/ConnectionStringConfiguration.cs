@@ -6,7 +6,7 @@
         Emulator
     }
 
-    public class ConnectionStringOptions
+    public class ConnectionStringConfiguration
     {
         public ConnectionStringMode Mode { get; set; }
         public string Azure { get; set; }

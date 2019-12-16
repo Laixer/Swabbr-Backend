@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
+    /// <summary>
+    /// Repository for User entities.
+    /// </summary>
     public interface IUserRepository : IRepository<User>
     {
         /// <summary>

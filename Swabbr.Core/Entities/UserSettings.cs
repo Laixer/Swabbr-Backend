@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Personal settings and preferences for a user.
     /// </summary>
-    public class UserSettings
+    public class UserSettings : EntityBase
     {
         /// <summary>
         /// Id of the user these settings belong to.

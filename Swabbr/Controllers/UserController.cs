@@ -67,15 +67,14 @@ namespace Swabbr.Api.Controllers
         {
             var users = await _userRepository.SearchAsync(query, 0, 100);
 
+            // Convert entities to output models
             var usersOutput = users.Select(x =>
             {
                 UserOutputModel o = x;
                 return o;
             });
 
-            return Ok(users);
-            //TODO Not implemented
-            return Ok(Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 5));
+            return Ok(usersOutput);
         }
 
         /// <summary>

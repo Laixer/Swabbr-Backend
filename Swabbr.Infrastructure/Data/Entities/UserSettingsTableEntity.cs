@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Enums;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Infrastructure.Data.Entities
@@ -6,12 +7,8 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Personal settings and preferences for a user.
     /// </summary>
-    public class UserSettingsTableEntity
+    public class UserSettingsTableEntity : TableEntity
     {
-        public UserSettingsTableEntity()
-        {
-        }
-
         /// <summary>
         /// Unique identifier of the user these settings belong to.
         /// </summary>

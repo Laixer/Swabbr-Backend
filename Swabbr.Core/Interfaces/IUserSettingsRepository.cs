@@ -3,9 +3,9 @@
 namespace Swabbr.Core.Interfaces
 {
     /// <summary>
-    /// Repository for Vlog entities.
+    /// Repository for User Settings.
     /// </summary>
-    public interface IVlogRepository : IRepository<Vlog>
+    public interface IUserSettingsRepository : IRepository<UserSettings>
     {
     }
 }

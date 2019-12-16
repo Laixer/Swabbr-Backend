@@ -2,7 +2,7 @@
 {
     public static class SwabbrClaimTypes
     {
-        public const string UserId = "UserId";
-        public const string Email = "Email";
+        public const string UserId = "https://swabbr.azurewebsites.net/claims/userid";
+        public const string Email = "https://swabbr.azurewebsites.net/claims/email";
     }
 }

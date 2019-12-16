@@ -18,6 +18,12 @@ namespace Swabbr.Infrastructure.Data
             _factory = factory;
         }
 
+        /// <summary>
+        /// Retrieves an entity by providing the key (PartitionKey/RowKey)
+        /// </summary>
+        /// <param name="partitionKey"></param>
+        /// <param name="rowKey"></param>
+        /// <returns></returns>
         public async Task<TModel> RetrieveAsync(string partitionKey, string rowKey)
         {
             try

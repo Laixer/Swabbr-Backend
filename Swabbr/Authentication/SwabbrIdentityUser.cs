@@ -1,9 +1,9 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using System;
 
-namespace Swabbr.Infrastructure.Data.Entities
+namespace Swabbr.Api.Authentication
 {
-    public class IdentityUserTableEntity : TableEntity
+    public class SwabbrIdentityUser : TableEntity
     {
         public Guid UserId { get; set; }
 
@@ -12,8 +12,6 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string PhoneNumber { get; set; }
 
         public string PasswordHash { get; set; }
-
-        public string NormalizedUserName { get; set; }
 
         public string NormalizedEmail { get; set; }
 

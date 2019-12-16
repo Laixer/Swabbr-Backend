@@ -13,7 +13,6 @@ using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.IO;
 using System.Reflection;
@@ -44,10 +43,10 @@ namespace Swabbr
             });
 
             var jwtOptionsSection = Configuration.GetSection("Jwt");
-            var jwtOptions = jwtOptionsSection.Get<JwtOptions>();
+            var jwtOptions = jwtOptionsSection.Get<JwtConfiguration>();
 
             // Configure authentication settings
-            services.Configure<JwtOptions>(jwtOptionsSection);
+            services.Configure<JwtConfiguration>(jwtOptionsSection);
 
             var jwtKey = Encoding.ASCII.GetBytes(jwtOptions.SecretKey);
 
@@ -94,10 +93,10 @@ namespace Swabbr
                 );
             });
 
-            var connectionStringOptions = Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>();
-            var cosmosDbOptions = Configuration.GetSection("CosmosDb").Get<CosmosDbOptions>();
-            var connectionString = connectionStringOptions.ActiveConnectionString;
-            var tableProperties = cosmosDbOptions.Tables;
+            var cosmosDbConfig = Configuration.GetSection("CosmosDb").Get<CosmosDbConfiguration>();
+            var connectionStringConfig = cosmosDbConfig.ConnectionStrings;
+            var connectionString = connectionStringConfig.ActiveConnectionString;
+            var tableProperties = cosmosDbConfig.Tables;
 
             // Add CosmosDb. Ensure database and tables exist.
             services.AddCosmosDb(connectionString, tableProperties);
@@ -111,10 +110,10 @@ namespace Swabbr
             services.AddScoped<ITokenService, TokenService>();
 
             // DI for stores
-            services.AddTransient<IUserStore<IdentityUserTableEntity>, UserStore>();
-            services.AddTransient<IRoleStore<AppRole>, RoleStore>();
+            services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
+            services.AddTransient<IRoleStore<SwabbrIdentityRole>, RoleStore>();
 
-            services.AddIdentity<IdentityUserTableEntity, AppRole>(o =>
+            services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(o =>
              {
                  // TODO Determine configuration
                  o.Password.RequireDigit = false;
@@ -156,7 +155,7 @@ namespace Swabbr
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // For some reason
-            if (/*env.IsDevelopment()*/Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>().Mode == ConnectionStringMode.Emulator)
+            if (/*env.IsDevelopment()*/Configuration.GetSection("ConnectionStrings").Get<ConnectionStringConfiguration>().Mode == ConnectionStringMode.Emulator)
             {
                 app.UseDeveloperExceptionPage();
             }

@@ -14,19 +14,19 @@ namespace Swabbr.Api.Services
 {
     public interface ITokenService
     {
-        Task<string> GenerateToken(IdentityUserTableEntity user);
+        string GenerateToken(SwabbrIdentityUser user);
     }
 
     public class TokenService : ITokenService
     {
-        private readonly JwtOptions _jwtOptions;
+        private readonly JwtConfiguration _jwtOptions;
 
-        public TokenService(IOptions<JwtOptions> jwtOptions)
+        public TokenService(IOptions<JwtConfiguration> jwtOptions)
         {
             _jwtOptions = jwtOptions.Value;
         }
 
-        public async Task<string> GenerateToken(IdentityUserTableEntity user)
+        public string GenerateToken(SwabbrIdentityUser user)
         {
             // Add claims
             var claims = new List<Claim>

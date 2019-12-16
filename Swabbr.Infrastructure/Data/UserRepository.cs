@@ -28,8 +28,8 @@ namespace Swabbr.Infrastructure.Data
 
         public Task<User> GetByIdAsync(Guid userId)
         {
-            // Partition key and row key are the same. TODO Change partition key if there is a
-            // better alternative.
+            // Partition key and row key are the same. 
+            //TODO Change partition key if there is a better alternative.
             var id = userId.ToString();
             return RetrieveAsync(id, id);
         }
@@ -52,30 +52,41 @@ namespace Swabbr.Infrastructure.Data
         }
 
         /// <summary>
-        /// Search for a user by checking if the search query (partially) matches their first name,
+        /// Search for a user by checking if the given search query matches the beginning of their first name,
         /// last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
         public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
+            if (q.Length <= 0)
+                return null;
+
             var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
-            //TODO Comments for querycomparisons!!!!!
-            //! Important: Only right side can be tested this way
+            // The filter that is currently used is similar to a T-SQL 'LIKE' query with a wildcard at the end of the query.
+            //! Important: Only the right side of the search query can be tested against the table. This has the same functionality as a 'StartsWith' function.
+            string constructColumnFilter(string column) {
+                var lastChar = q[q.Length - 1];
+
+                // Similar to 'SELECT WHERE <column> LIKE '<query>%'
+                return TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition(column, QueryComparisons.GreaterThanOrEqual, q),
+                    TableOperators.And,
+                    // Column must be less than or equal to (lte) the query + last character incremented by 1. 
+                    TableQuery.GenerateFilterCondition(column, QueryComparisons.LessThanOrEqual, $"{q}{char.ToString((char)(lastChar + 1))}")
+                );
+            }
+
             var tq = new TableQuery<UserTableEntity>().Where(
-                TableQuery.CombineFilters(
                     TableQuery.CombineFilters(
-                        TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.GreaterThanOrEqual, q),
-                        TableOperators.And,
-                        TableQuery.GenerateFilterCondition("FirstName", QueryComparisons.LessThanOrEqual, q + "0")
-                    ),
-                    TableOperators.Or,
-                    TableQuery.CombineFilters(
-                        TableQuery.GenerateFilterCondition("LastName", QueryComparisons.GreaterThanOrEqual, q),
-                        TableOperators.And,
-                        TableQuery.GenerateFilterCondition("LastName", QueryComparisons.LessThanOrEqual, q + "0")
+                        TableQuery.CombineFilters(
+                            constructColumnFilter("FirstName"),
+                            TableOperators.Or,
+                            constructColumnFilter("LastName")
+                        ),
+                        TableOperators.Or,
+                        constructColumnFilter("Nickname")
                     )
-                )
             );
 
             var queryResults = table.ExecuteQuery(tq);
@@ -83,7 +94,6 @@ namespace Swabbr.Infrastructure.Data
             return Task.FromResult(queryResults.Select(x => Map(x)));
         }
 
-        //TODO Check mapping
         public override User Map(UserTableEntity entity)
         {
             return new User

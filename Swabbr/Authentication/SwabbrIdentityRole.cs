@@ -1,11 +1,13 @@
-﻿namespace Swabbr.Api.Authentication
+﻿using System;
+
+namespace Swabbr.Api.Authentication
 {
-    public class AppRole
+    public class SwabbrIdentityRole
     {
         /// <summary>
         /// Id of the role.
         /// </summary>
-        public int RoleId { get; set; }
+        public Guid RoleId { get; set; }
 
         /// <summary>
         /// The name which the role represents.

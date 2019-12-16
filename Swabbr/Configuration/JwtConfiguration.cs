@@ -1,6 +1,6 @@
 ﻿namespace Swabbr.Api.Options
 {
-    public class JwtOptions
+    public class JwtConfiguration
     {
         public string SecretKey { get; set; }
         public string Issuer { get; set; }

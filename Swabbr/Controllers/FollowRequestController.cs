@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,11 +24,11 @@ namespace Swabbr.Api.Controllers
     public class FollowRequestController : ControllerBase
     {
         private readonly IFollowRequestRepository _followRequestRepository;
-        private readonly UserManager<IdentityUserTableEntity> _userManager;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
 
         public FollowRequestController(
             IFollowRequestRepository repository,
-            UserManager<IdentityUserTableEntity> userManager)
+            UserManager<SwabbrIdentityUser> userManager)
         {
             _followRequestRepository = repository;
             _userManager = userManager;

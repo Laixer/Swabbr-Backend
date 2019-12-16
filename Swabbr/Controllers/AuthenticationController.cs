@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -22,14 +22,14 @@ namespace Swabbr.Api.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
-        private readonly UserManager<IdentityUserTableEntity> _userManager;
-        private readonly SignInManager<IdentityUserTableEntity> _signInManager;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly SignInManager<SwabbrIdentityUser> _signInManager;
 
         public AuthenticationController(
             IUserRepository userRepository,
             ITokenService tokenService,
-            UserManager<IdentityUserTableEntity> userManager,
-            SignInManager<IdentityUserTableEntity> signInManager)
+            UserManager<SwabbrIdentityUser> userManager,
+            SignInManager<SwabbrIdentityUser> signInManager)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
@@ -68,10 +68,12 @@ namespace Swabbr.Api.Controllers
             var createdUser = await _userRepository.CreateAsync(userFromInput);
 
             // Construct a new identity user based on the created user entity
-            var identityUser = new IdentityUserTableEntity
+            var identityUser = new SwabbrIdentityUser
             {
                 UserId = createdUser.UserId,
-                Email = createdUser.Email
+                Email = createdUser.Email,
+                PartitionKey = createdUser.UserId.ToString(),
+                RowKey = createdUser.UserId.ToString()
             };
 
             // Create the identity user
@@ -82,15 +84,17 @@ namespace Swabbr.Api.Controllers
                 // Sign in the user that was just registered and return an access token
                 await _signInManager.SignInAsync(identityUser, true);
 
-                var token = await _tokenService.GenerateToken(identityUser);
+                var token = _tokenService.GenerateToken(identityUser);
                 UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
 
                 return Ok(
                     new UserAuthenticationOutputModel
                     {
-                        AccessToken = token,
+                        Token = token,
+                        Claims = await _userManager.GetClaimsAsync(identityUser),
+                        Roles = await _userManager.GetRolesAsync(identityUser),
                         User = userOutput,
-                        // TODO UserSettings
+                        // TODO UserSettings (Must be created and initialized to default during registration)
                         UserSettings = MockData.MockRepository.RandomUserSettingsOutput()
                     }
                 );
@@ -132,12 +136,14 @@ namespace Swabbr.Api.Controllers
             if (result.Succeeded)
             {
                 // Login succeeded, generate and return access token
-                var token = await _tokenService.GenerateToken(identityUser);
+                var token = _tokenService.GenerateToken(identityUser);
                 UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
 
                 return Ok(new UserAuthenticationOutputModel
                 {
-                    AccessToken = token,
+                    Token = token,
+                    Claims = await _userManager.GetClaimsAsync(identityUser),
+                    Roles = await _userManager.GetRolesAsync(identityUser),
                     User = userOutput,
                     // TODO UserSettings in output model
                     UserSettings = MockData.MockRepository.RandomUserSettingsOutput()

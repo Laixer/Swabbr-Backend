@@ -1,15 +1,24 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Infrastructure.Data;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
     // TODO Implement remaining methods
-    public class UserStore : IUserStore<IdentityUserTableEntity>, IUserEmailStore<IdentityUserTableEntity>, IUserPhoneNumberStore<IdentityUserTableEntity>,
-    IUserTwoFactorStore<IdentityUserTableEntity>, IUserPasswordStore<IdentityUserTableEntity>
+    public class UserStore : 
+        IUserStore<SwabbrIdentityUser>, 
+        IUserEmailStore<SwabbrIdentityUser>, 
+        IUserPhoneNumberStore<SwabbrIdentityUser>,
+        IUserTwoFactorStore<SwabbrIdentityUser>, 
+        IUserPasswordStore<SwabbrIdentityUser>, 
+        IUserClaimStore<SwabbrIdentityUser>,
+        IUserRoleStore<SwabbrIdentityUser>
     {
         private readonly IDbClientFactory _factory;
 
@@ -18,158 +27,277 @@ namespace Swabbr.Api.Authentication
             _factory = factory;
         }
 
-        public async Task<IdentityResult> CreateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public static string TableName => "Users";
+
+        public async Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
             user.PartitionKey = user.UserId.ToString();
             user.RowKey = user.UserId.ToString();
-            await client.InsertEntityAsync(user);
+            await client.InsertOrMergeEntityAsync(user);
             return IdentityResult.Success;
         }
 
-        public async Task<IdentityResult> DeleteAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
             await client.DeleteEntityAsync(user);
             return IdentityResult.Success;
         }
 
-        public void Dispose()
+        public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            // Nothing to dispose.
-        }
+            var table = _factory.GetClient<SwabbrIdentityUser>(TableName).CloudTableReference;
 
-        public async Task<IdentityUserTableEntity> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
-        {
-            // TODO Implement
+            var tq = new TableQuery<SwabbrIdentityUser>().Where(
+                TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
+
+            var queryResults = table.ExecuteQuery(tq);
+
+            if (queryResults.Any())
+            {
+                return queryResults.First();
+            }
+
             return null;
         }
 
-        public async Task<IdentityUserTableEntity> FindByIdAsync(string userId, CancellationToken cancellationToken)
+        public async Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
             return await client.RetrieveEntityAsync(userId, userId);
         }
 
-        public async Task<IdentityUserTableEntity> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public Task<SwabbrIdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
-            return await FindByEmailAsync(normalizedUserName, cancellationToken);
+            // Usernames are e-mails in this application.
+            return FindByEmailAsync(normalizedUserName, cancellationToken);
         }
 
-        public Task<string> GetEmailAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.Email);
         }
 
-        public Task<bool> GetEmailConfirmedAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<bool> GetEmailConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.EmailConfirmed);
         }
 
-        public Task<string> GetNormalizedEmailAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public Task<string> GetNormalizedUserNameAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.NormalizedEmail);
         }
 
-        public async Task<string> GetPasswordHashAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetPasswordHashAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return user.PasswordHash.ToString();
+            return Task.FromResult(user.PasswordHash);
         }
 
-        public Task<string> GetPhoneNumberAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetPhoneNumberAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.PhoneNumber);
         }
 
-        public Task<bool> GetPhoneNumberConfirmedAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<bool> GetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.PhoneNumberConfirmed);
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<bool> GetTwoFactorEnabledAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.TwoFactorEnabled);
         }
 
-        public Task<string> GetUserIdAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetUserIdAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.UserId.ToString());
         }
 
-        public Task<string> GetUserNameAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<string> GetUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.Email.ToString());
+            return Task.FromResult(user.Email);
         }
 
-        public Task<bool> HasPasswordAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public Task<bool> HasPasswordAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
         }
 
-        public Task SetEmailAsync(IdentityUserTableEntity user, string email, CancellationToken cancellationToken)
+        public Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetEmailConfirmedAsync(IdentityUserTableEntity user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetEmailConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetNormalizedEmailAsync(IdentityUserTableEntity user, string normalizedEmail, CancellationToken cancellationToken)
+        public Task SetNormalizedEmailAsync(SwabbrIdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetNormalizedUserNameAsync(IdentityUserTableEntity user, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedUserNameAsync(SwabbrIdentityUser user, string normalizedName, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetPasswordHashAsync(IdentityUserTableEntity user, string passwordHash, CancellationToken cancellationToken)
+        public Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetPhoneNumberAsync(IdentityUserTableEntity user, string phoneNumber, CancellationToken cancellationToken)
+        public Task SetPhoneNumberAsync(SwabbrIdentityUser user, string phoneNumber, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetPhoneNumberConfirmedAsync(IdentityUserTableEntity user, bool confirmed, CancellationToken cancellationToken)
+        public Task SetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetTwoFactorEnabledAsync(IdentityUserTableEntity user, bool enabled, CancellationToken cancellationToken)
+        public Task SetTwoFactorEnabledAsync(SwabbrIdentityUser user, bool enabled, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public Task SetUserNameAsync(IdentityUserTableEntity user, string userName, CancellationToken cancellationToken)
+        public Task SetUserNameAsync(SwabbrIdentityUser user, string userName, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
             throw new NotImplementedException();
         }
 
-        public async Task<IdentityResult> UpdateAsync(IdentityUserTableEntity user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<IdentityUserTableEntity>("IdentityUser");
+            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
             await client.UpdateEntityAsync(user);
             return IdentityResult.Success;
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~UserStore()
+        // {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            GC.SuppressFinalize(this);
+        }
+        #endregion
+
+        #region IUserClaimStore
+        public Task AddClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        {
+            foreach(Claim c in claims)
+            {
+                // TODO insert c for user
+            }
+            return Task.CompletedTask;
+        }
+
+        public async Task<IList<Claim>> GetClaimsAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        {
+            // TODO?
+            return new List<Claim>();
+        }
+
+        public Task<IList<SwabbrIdentityUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
+        {
+            // TODO?
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
+        {
+            foreach (Claim c in claims)
+            {
+                // TODO remove c for user
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task ReplaceClaimAsync(SwabbrIdentityUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
+        {
+            // TODO Update c
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region IUserRoleStore
+        public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
+        {
+            // TODO
+            return Task.CompletedTask;
+            throw new NotImplementedException();
+        }
+
+        public async Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        {
+            //TODO
+            return new List<string>();
+            throw new NotImplementedException();
+        }
+
+        public async Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            //TODO
+            return new List<SwabbrIdentityUser>();
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
+        {
+            //TODO
+            return false;
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveFromRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

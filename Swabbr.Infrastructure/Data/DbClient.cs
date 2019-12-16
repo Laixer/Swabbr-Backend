@@ -36,6 +36,14 @@ namespace Swabbr.Infrastructure.Data
             return result.Result as T;
         }
 
+        public async Task<T> InsertOrMergeEntityAsync(T item)
+        {
+            var table = _client.GetTableReference(_tableName);
+            TableOperation operation = TableOperation.InsertOrMerge(item);
+            var result = await table.ExecuteAsync(operation);
+            return result.Result as T;
+        }
+
         public async Task<T> RetrieveEntityAsync(string partitionKey, string rowKey)
         {
             // TODO: STORE TABLE REFERENCE IN PRIVATE PROPERTY? instead of continuosly creating it from the client?
