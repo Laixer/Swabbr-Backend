@@ -20,7 +20,6 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         Task<User> GetByEmailAsync(string email);
 
-        // TODO: Make this generic?S
         /// <summary>
         /// Searching for users.
         /// </summary>

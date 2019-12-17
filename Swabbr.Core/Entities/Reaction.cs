@@ -41,6 +41,6 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>
-        public object MediaServiceData { get; set; }
+        public string MediaServiceData { get; set; }
     }
 }

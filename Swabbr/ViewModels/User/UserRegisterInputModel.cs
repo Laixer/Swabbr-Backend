@@ -12,14 +12,14 @@ namespace Swabbr.Api.ViewModels
         /// First name of the user.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("firstName")]
+        [JsonProperty("firstName", Required = Required.DisallowNull)]
         public string FirstName { get; set; }
 
         /// <summary>
         /// Surname of the user.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("lastName")]
+        [JsonProperty("lastName", Required = Required.DisallowNull)]
         public string LastName { get; set; }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Swabbr.Api.ViewModels
         /// Email address.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("email")]
+        [JsonProperty("email", Required = Required.DisallowNull)]
         [EmailAddress, DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
@@ -48,7 +48,7 @@ namespace Swabbr.Api.ViewModels
         /// Password input of the user.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("password")]
+        [JsonProperty("password", Required = Required.DisallowNull)]
         public string Password { get; set; }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Swabbr.Api.ViewModels
         /// Nickname to display for the user.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("nickname")]
+        [JsonProperty("nickname", Required = Required.DisallowNull)]
         public string Nickname { get; set; }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Swabbr.Api.ViewModels
         /// Phone number of the user stored as text.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("phoneNumber")]
+        [JsonProperty("phoneNumber", Required = Required.DisallowNull)]
         public string PhoneNumber { get; set; }
 
         public static implicit operator User(UserRegisterInputModel user)

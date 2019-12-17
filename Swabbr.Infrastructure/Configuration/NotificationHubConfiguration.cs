@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Api.Configuration
+﻿namespace Swabbr.Infrastructure.Configuration
 {
     public class NotificationHubConfiguration
     {

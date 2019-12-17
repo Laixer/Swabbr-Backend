@@ -44,7 +44,6 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public List<VlogLike> Likes { get; set; }
 
-        // TODO: Add Metadata from Media Service to model?
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>

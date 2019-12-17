@@ -5,32 +5,32 @@ namespace Swabbr.Infrastructure.Services
 {
     public class LivestreamingService : ILivestreamingService
     {
-        public Task Create()
+        public Task CreateStreamAsync()
         {
             throw new System.NotImplementedException();
         }
 
-        public Task Get(string id)
+        public Task GetStreamAsync(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task Reset(string id)
+        public Task ResetStreamAsync(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task Start(string id)
+        public Task StartStreamAsync(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task Stop(string id)
+        public Task StopStreamAsync(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task Update(string id)
+        public Task UpdateStreamAsync(string id)
         {
             throw new System.NotImplementedException();
         }

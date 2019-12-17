@@ -12,7 +12,9 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces;
+using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Data;
+using Swabbr.Infrastructure.Services;
 using System;
 using System.IO;
 using System.Reflection;
@@ -101,13 +103,14 @@ namespace Swabbr
             // Add CosmosDb. Ensure database and tables exist.
             services.AddCosmosDb(connectionString, tableProperties);
 
-            // Configure DI for repositories
+            // Configure DI for data repositories
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFollowRequestRepository, FollowRequestRepository>();
             services.AddScoped<IVlogRepository, VlogRepository>();
 
             // Configure DI for services
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             // DI for stores
             services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
@@ -131,7 +134,7 @@ namespace Swabbr
                 {
                     OnRedirectToLogin = (ctx) =>
                     {
-                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                        if (ctx.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCultureIgnoreCase) && ctx.Response.StatusCode == 200)
                         {
                             ctx.Response.StatusCode = 401;
                         }
@@ -140,7 +143,7 @@ namespace Swabbr
                     },
                     OnRedirectToAccessDenied = (ctx) =>
                     {
-                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == 200)
+                        if (ctx.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCultureIgnoreCase) && ctx.Response.StatusCode == 200)
                         {
                             ctx.Response.StatusCode = 403;
                         }

@@ -9,7 +9,7 @@ namespace Swabbr.Api.Controllers
     [Obsolete("Livestreaming has not been implemented yet")]
     [ApiController]
     [Route("api/v1/livestreams")]
-    public class LivestreamController : ControllerBase
+    public class LivestreamsController : ControllerBase
     {
         /// <summary>
         /// Start a new livestream.

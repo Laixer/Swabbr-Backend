@@ -10,7 +10,7 @@ namespace Swabbr.Api.Controllers
     [Obsolete("Not yet supported/implemented")]
     [ApiController]
     [Route("api/v1/reactions")]
-    public class ReactionController : ControllerBase
+    public class ReactionsController : ControllerBase
     {
         /// <summary>
         /// Create a new reaction to a vlog.

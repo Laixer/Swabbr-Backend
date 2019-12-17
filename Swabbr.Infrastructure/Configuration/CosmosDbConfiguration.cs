@@ -1,7 +1,7 @@
 ﻿using Swabbr.Infrastructure.Data;
 using System.Collections.Generic;
 
-namespace Swabbr.Api.Options
+namespace Swabbr.Infrastructure.Configuration
 {
     public class CosmosDbConfiguration
     {

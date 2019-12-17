@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    // TODO Implement remaining methods
     public class UserStore : 
         IUserStore<SwabbrIdentityUser>, 
         IUserEmailStore<SwabbrIdentityUser>, 
@@ -27,27 +26,25 @@ namespace Swabbr.Api.Authentication
             _factory = factory;
         }
 
-        public static string TableName => "Users";
+        public static string UserTableName => "Users";
 
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
-            user.PartitionKey = user.UserId.ToString();
-            user.RowKey = user.UserId.ToString();
+            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
             await client.InsertOrMergeEntityAsync(user);
             return IdentityResult.Success;
         }
 
         public async Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
             await client.DeleteEntityAsync(user);
             return IdentityResult.Success;
         }
 
         public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var table = _factory.GetClient<SwabbrIdentityUser>(TableName).CloudTableReference;
+            var table = _factory.GetClient<SwabbrIdentityUser>(UserTableName).CloudTableReference;
 
             var tq = new TableQuery<SwabbrIdentityUser>().Where(
                 TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
@@ -64,69 +61,69 @@ namespace Swabbr.Api.Authentication
 
         public async Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
             return await client.RetrieveEntityAsync(userId, userId);
         }
 
-        public Task<SwabbrIdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+        public async Task<SwabbrIdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             // Usernames are e-mails in this application.
-            return FindByEmailAsync(normalizedUserName, cancellationToken);
+            return await FindByEmailAsync(normalizedUserName, cancellationToken);
         }
 
-        public Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.Email);
+            return user.Email;
         }
 
-        public Task<bool> GetEmailConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<bool> GetEmailConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.EmailConfirmed);
+            return user.EmailConfirmed;
         }
 
-        public Task<string> GetNormalizedEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetNormalizedEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.NormalizedEmail);
+            return user.NormalizedEmail;
         }
 
-        public Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.NormalizedEmail);
+            return user.NormalizedEmail;
         }
 
-        public Task<string> GetPasswordHashAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetPasswordHashAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.PasswordHash);
+            return user.PasswordHash;
         }
 
-        public Task<string> GetPhoneNumberAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetPhoneNumberAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.PhoneNumber);
+            return user.PhoneNumber;
         }
 
-        public Task<bool> GetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<bool> GetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.PhoneNumberConfirmed);
+            return user.PhoneNumberConfirmed;
         }
 
-        public Task<bool> GetTwoFactorEnabledAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<bool> GetTwoFactorEnabledAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.TwoFactorEnabled);
+            return user.TwoFactorEnabled;
         }
 
-        public Task<string> GetUserIdAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetUserIdAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.UserId.ToString());
+            return user.UserId.ToString();
         }
 
-        public Task<string> GetUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<string> GetUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(user.Email);
+            return user.Email;
         }
 
-        public Task<bool> HasPasswordAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        public async Task<bool> HasPasswordAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
+            return !string.IsNullOrEmpty(user.PasswordHash);
         }
 
         public Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
@@ -185,8 +182,9 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(TableName);
-            await client.UpdateEntityAsync(user);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
+            //! Important: Merging the entity because we do not want to discard the existing properties
+            await client.MergeEntityAsync(user);
             return IdentityResult.Success;
         }
 

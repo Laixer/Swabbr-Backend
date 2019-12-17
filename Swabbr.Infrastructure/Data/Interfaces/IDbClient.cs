@@ -28,9 +28,14 @@ namespace Swabbr.Infrastructure.Data
         Task<T> RetrieveEntityAsync(string partitionKey, string rowKey);
 
         /// <summary>
-        /// Update a single entity of type <typeparamref name="T"/> to the database.
+        /// Update a single entity of type <typeparamref name="T"/> to the database, replacing the entire row.
         /// </summary>
-        Task<T> UpdateEntityAsync(T item);
+        Task<T> ReplaceEntityAsync(T item);
+
+        /// <summary>
+        /// Merge a single entity of type <typeparamref name="T"/> to a row of the database.
+        /// </summary>
+        Task<T> MergeEntityAsync(T item);
 
         /// <summary>
         /// Deletes a single entity at the specified index of the database.

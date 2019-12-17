@@ -10,41 +10,41 @@ namespace Swabbr.Core.Interfaces
         /// Create a new livestream.
         /// </summary>
         /// <returns></returns>
-        Task Create();
+        Task CreateStreamAsync();
 
         /// <summary>
         /// Start a livestream.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task Start(string id);
+        Task StartStreamAsync(string id);
 
         /// <summary>
         /// Update a livestream.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task Update(string id);
+        Task UpdateStreamAsync(string id);
 
         /// <summary>
         /// Stop a livestream.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task Stop(string id);
+        Task StopStreamAsync(string id);
 
         /// <summary>
         /// Resets a livestream.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task Reset(string id);
+        Task ResetStreamAsync(string id);
 
         /// <summary>
         /// Fetch a livestream.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task Get(string id);
+        Task GetStreamAsync(string id);
     }
 }

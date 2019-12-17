@@ -21,12 +21,12 @@ namespace Swabbr.Api.Controllers
     [Authorize]
     [ApiController]
     [Route("api/v1/followrequests")]
-    public class FollowRequestController : ControllerBase
+    public class FollowRequestsController : ControllerBase
     {
         private readonly IFollowRequestRepository _followRequestRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public FollowRequestController(
+        public FollowRequestsController(
             IFollowRequestRepository repository,
             UserManager<SwabbrIdentityUser> userManager)
         {

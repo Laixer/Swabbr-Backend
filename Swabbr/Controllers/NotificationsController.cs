@@ -1,35 +1,35 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.NotificationHubs;
-using Microsoft.Extensions.Options;
-using Swabbr.Api.Configuration;
-using Swabbr.Api.Services.NotificationHubs;
+using Swabbr.Core.Notifications;
+using Swabbr.Infrastructure.Services;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
-    /// Controller for handling notification related requests.
+    /// Controller for registering devices for notifications and sending out push notifications.
     /// </summary>
     [Authorize]
     [Route("api/v1/notifications")]
-    public class PushNotificationsController : Controller
+    public class NotificationsController : Controller
     {
-        private NotificationHubProxy _notificationHubProxy;
+        private readonly NotificationService _notificationService;
 
-        public PushNotificationsController(IOptions<NotificationHubConfiguration> configurationOptions)
+        public NotificationsController(NotificationService service)
         {
-            _notificationHubProxy = new NotificationHubProxy(configurationOptions.Value);
+            _notificationService = service;
         }
 
         /// <summary>
         /// Get registration ID
         /// </summary>
         /// <returns></returns>
+        [Authorize(Roles = "User")]
         [HttpGet("register")]
         public async Task<IActionResult> CreatePushRegistrationId()
         {
-            var registrationId = await _notificationHubProxy.CreateRegistrationId();
+            var registrationId = await _notificationService.CreateRegistrationIdAsync();
             return Ok(registrationId);
         }
 
@@ -38,10 +38,11 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="registrationId"></param>
         /// <returns></returns>
+        [Authorize(Roles = "User")]
         [HttpDelete("unregister/{registrationId}")]
         public async Task<IActionResult> UnregisterFromNotifications(string registrationId)
         {
-            await _notificationHubProxy.DeleteRegistration(registrationId);
+            await _notificationService.DeleteRegistrationAsync(registrationId);
             return Ok();
         }
 
@@ -51,10 +52,11 @@ namespace Swabbr.Api.Controllers
         /// <param name="id"></param>
         /// <param name="deviceUpdate"></param>
         /// <returns></returns>
+        [Authorize(Roles = "User")]
         [HttpPut("enable/{id}")]
         public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] DeviceRegistration deviceUpdate)
         {
-            HubResponse registrationResult = await _notificationHubProxy.RegisterForPushNotifications(id, deviceUpdate);
+            HubResponse registrationResult = await _notificationService.RegisterForPushNotificationsAsync(id, deviceUpdate);
 
             if (registrationResult.CompletedWithSuccess)
                 return Ok();
@@ -68,10 +70,11 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="newNotification"></param>
         /// <returns></returns>
+        [Authorize(Roles = "Admin")]
         [HttpPost("send")]
-        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification)
+        public async Task<IActionResult> SendNotification([FromBody] PushNotification newNotification)
         {
-            HubResponse<NotificationOutcome> pushDeliveryResult = await _notificationHubProxy.SendNotification(newNotification);
+            HubResponse<NotificationOutcome> pushDeliveryResult = await _notificationService.SendNotificationAsync(newNotification);
 
             if (pushDeliveryResult.CompletedWithSuccess)
                 return Ok();

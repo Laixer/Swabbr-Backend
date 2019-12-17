@@ -71,7 +71,7 @@ namespace Swabbr.Infrastructure.Data
             try
             {
                 var client = _factory.GetClient<TDto>(TableName);
-                await client.UpdateEntityAsync(Map(entity));
+                await client.ReplaceEntityAsync(Map(entity));
             }
             catch (Exception)
             {

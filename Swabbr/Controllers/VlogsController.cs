@@ -16,11 +16,11 @@ namespace Swabbr.Api.Controllers
     [Obsolete("Vlog related requests are not supported yet.")]
     [ApiController]
     [Route("api/v1/vlogs")]
-    public class VlogController : ControllerBase
+    public class VlogsController : ControllerBase
     {
         private readonly IVlogRepository _repository;
 
-        public VlogController(IVlogRepository repository)
+        public VlogsController(IVlogRepository repository)
         {
             _repository = repository;
         }

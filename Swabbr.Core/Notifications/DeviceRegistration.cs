@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json.Converters;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
-namespace Swabbr.Api.Services.NotificationHubs
+namespace Swabbr.Core.Notifications
 {
     public class DeviceRegistration
     {
         [JsonConverter(typeof(StringEnumConverter))]
-        public MobilePlatform Platform { get; set; }
+        public PushNotificationPlatform Platform { get; set; }
         public string Handle { get; set; }
         public IList<string> Tags { get; set; }
     }

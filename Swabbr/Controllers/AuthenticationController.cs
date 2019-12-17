@@ -56,7 +56,7 @@ namespace Swabbr.Api.Controllers
                 return BadRequest("User already exists.");
             }
 
-            // TODO Password check ...
+            // TODO Password (strength?) check ...
 
             // Convert input model to a user model
             User userFromInput = input;
@@ -145,7 +145,7 @@ namespace Swabbr.Api.Controllers
                     Claims = await _userManager.GetClaimsAsync(identityUser),
                     Roles = await _userManager.GetRolesAsync(identityUser),
                     User = userOutput,
-                    // TODO UserSettings in output model
+                    // TODO Actual userSettings in output model
                     UserSettings = MockData.MockRepository.RandomUserSettingsOutput()
                 });
             }

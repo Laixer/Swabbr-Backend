@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
@@ -19,13 +21,15 @@ namespace Swabbr.Api.Controllers
     [Authorize]
     [ApiController]
     [Route("api/v1/users")]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public UserController(IUserRepository repository)
+        public UsersController(IUserRepository repository, UserManager<SwabbrIdentityUser> userManager)
         {
             _userRepository = repository;
+            _userManager = userManager;
         }
 
         //TODO: Remove, temporary
@@ -84,37 +88,41 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Self()
         {
-            // TODO Implement, remove testing code
-            var identity = User.Identity;
-            var claims = User.Claims;
-
-            string testb = "";
-
-            testb += (identity.IsAuthenticated ? "YES./" : "NO./");
-            testb += ($"TYPE:{identity.AuthenticationType}/");
-            testb += ($"NAME:{identity.Name}/");
-
-            foreach (var c in claims)
-            {
-                testb += $"{c.Value}/";
-            }
-
-            return Ok(testb);
+            // TODO Remove testing code
+            //var identity = User.Identity;
+            //var claims = User.Claims;
+            //
+            //string testb = "";
+            //
+            //testb += (identity.IsAuthenticated ? "YES./" : "NO./");
+            //testb += ($"TYPE:{identity.AuthenticationType}/");
+            //testb += ($"NAME:{identity.Name}/");
+            //
+            //foreach (var c in claims)
+            //{
+            //    testb += $"{c.Value}/";
+            //}
+            //
+            //return Ok(testb);
+            var userId = Guid.Parse(User.FindFirst(SwabbrClaimTypes.UserId).Value);
+            UserOutputModel output = await _userRepository.GetByIdAsync(userId);
+            return Ok(output);
         }
 
         /// <summary>
-        /// Update the authenticated user.
+        /// Updates the authenticated user.
         /// </summary>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Update([FromBody] UserUpdateInputModel input)
         {
             // TODO not implemented
+            //_userRepository.UpdateAsync(input);
             return Ok(input);
         }
 
         /// <summary>
-        /// Delete the account of the authenticated user.
+        /// Deletes the account of the authenticated user.
         /// </summary>
         [HttpDelete("delete")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -138,7 +146,7 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Unfollow the specified user.
+        /// Deletes the follow relationship from the authorized user to the specified user.
         /// </summary>
         [HttpDelete("users/{userId}/unfollow")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]

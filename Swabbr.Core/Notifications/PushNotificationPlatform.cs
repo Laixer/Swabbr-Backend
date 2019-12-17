@@ -1,9 +1,9 @@
-﻿namespace Swabbr.Api.Services.NotificationHubs
+﻿namespace Swabbr.Core.Notifications
 {
     /// <summary>
     /// Represents the supported mobile platform services for push notifications
     /// </summary>
-    public enum MobilePlatform
+    public enum PushNotificationPlatform
     {
         /// <summary>
         /// Apple Push Notification Service (iOS)
@@ -11,7 +11,7 @@
         APNS,
 
         /// <summary>
-        /// FireBase Cloud Messaging (Android)
+        /// Firebase Cloud Messaging
         /// </summary>
         FCM
     }

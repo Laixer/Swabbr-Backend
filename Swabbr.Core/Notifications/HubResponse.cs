@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Swabbr.Api.Services.NotificationHubs
+namespace Swabbr.Core.Notifications
 {
     public sealed class HubResponse<TResult> : HubResponse where TResult : class
     {

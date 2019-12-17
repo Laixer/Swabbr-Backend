@@ -12,7 +12,7 @@ namespace Swabbr.Api.ViewModels
         /// Email address input.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("email")]
+        [JsonProperty("email", Required = Required.DisallowNull)]
         [EmailAddress, DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
@@ -20,7 +20,8 @@ namespace Swabbr.Api.ViewModels
         /// Password input.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("password")]
+        [JsonProperty("password", Required = Required.DisallowNull)]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
 
         /// <summary>

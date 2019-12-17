@@ -50,39 +50,24 @@ namespace Swabbr.Infrastructure.Data
             var table = _client.GetTableReference(_tableName);
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             var result = await table.ExecuteAsync(operation);
-
-            //TODO is this correct???
-            var xxxxx = result.Result as T;
-            return xxxxx;
+            var entity = result.Result as T;
+            return entity;
         }
 
-        public async Task<T> UpdateEntityAsync(T item)
+        public async Task<T> ReplaceEntityAsync(T item)
         {
             var table = _client.GetTableReference(_tableName);
-            //TODO: Replace or merge here?
             TableOperation operation = TableOperation.Replace(item);
             var result = await table.ExecuteAsync(operation);
             return result.Result as T;
         }
 
-        /*
-                 public async Task<IEnumerable<T>> QueryAsync(QueryDefinition query, ItemRequestOptions options = null, CancellationToken cancellationToken = default)
-                 {
-                     FeedIterator<T> feedIterator = _container.GetItemQueryIterator<T>(query);
-
-                     var results = new List<T>();
-
-                     while(feedIterator.HasMoreResults)
-                     {
-                         FeedResponse<T> currentResultSet = await feedIterator.ReadNextAsync(cancellationToken);
-
-                         foreach(T item in currentResultSet)
-                         {
-                             results.Add(item);
-                         }
-                     }
-                     return results;
-                 }
-                 */
+        public async Task<T> MergeEntityAsync(T item)
+        {
+            var table = _client.GetTableReference(_tableName);
+            TableOperation operation = TableOperation.Merge(item);
+            var result = await table.ExecuteAsync(operation);
+            return result.Result as T;
+        }
     }
 }

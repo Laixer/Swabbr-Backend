@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Api.Options
+﻿namespace Swabbr.Infrastructure.Configuration
 {
     public enum ConnectionStringMode
     {
