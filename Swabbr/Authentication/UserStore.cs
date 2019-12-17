@@ -35,28 +35,19 @@ namespace Swabbr.Api.Authentication
             return IdentityResult.Success;
         }
 
+        public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        {
+            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
+            //! Important: Merging the entity because we do not want to discard the existing properties
+            await client.MergeEntityAsync(user);
+            return IdentityResult.Success;
+        }
+
         public async Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
             await client.DeleteEntityAsync(user);
             return IdentityResult.Success;
-        }
-
-        public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
-        {
-            var table = _factory.GetClient<SwabbrIdentityUser>(UserTableName).CloudTableReference;
-
-            var tq = new TableQuery<SwabbrIdentityUser>().Where(
-                TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
-
-            var queryResults = table.ExecuteQuery(tq);
-
-            if (queryResults.Any())
-            {
-                return queryResults.First();
-            }
-
-            return null;
         }
 
         public async Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
@@ -69,21 +60,6 @@ namespace Swabbr.Api.Authentication
         {
             // Usernames are e-mails in this application.
             return await FindByEmailAsync(normalizedUserName, cancellationToken);
-        }
-
-        public async Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
-            return user.Email;
-        }
-
-        public async Task<bool> GetEmailConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
-            return user.EmailConfirmed;
-        }
-
-        public async Task<string> GetNormalizedEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
-            return user.NormalizedEmail;
         }
 
         public async Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
@@ -126,24 +102,6 @@ namespace Swabbr.Api.Authentication
             return !string.IsNullOrEmpty(user.PasswordHash);
         }
 
-        public Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
-        }
-
-        public Task SetEmailConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
-        }
-
-        public Task SetNormalizedEmailAsync(SwabbrIdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
-        }
-
         public Task SetNormalizedUserNameAsync(SwabbrIdentityUser user, string normalizedName, CancellationToken cancellationToken)
         {
             return Task.FromResult(0);//TODO Implement Method
@@ -180,13 +138,57 @@ namespace Swabbr.Api.Authentication
             throw new NotImplementedException();
         }
 
-        public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        #region IUserEmailStore
+        public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
-            //! Important: Merging the entity because we do not want to discard the existing properties
-            await client.MergeEntityAsync(user);
-            return IdentityResult.Success;
+            var table = _factory.GetClient<SwabbrIdentityUser>(UserTableName).CloudTableReference;
+
+            var tq = new TableQuery<SwabbrIdentityUser>().Where(
+                TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
+
+            var queryResults = table.ExecuteQuery(tq);
+
+            if (queryResults.Any())
+            {
+                return queryResults.First();
+            }
+
+            return null;
         }
+
+        public async Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        {
+            return user.Email;
+        }
+
+        public async Task<bool> GetEmailConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        {
+            return user.EmailConfirmed;
+        }
+
+        public async Task<string> GetNormalizedEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
+        {
+            return user.NormalizedEmail;
+        }
+
+        public Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetEmailConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+
+        public Task SetNormalizedEmailAsync(SwabbrIdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(0);//TODO Implement Method
+            throw new NotImplementedException();
+        }
+        #endregion
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls

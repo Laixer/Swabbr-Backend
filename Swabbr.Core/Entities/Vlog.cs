@@ -18,12 +18,6 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public Guid UserId { get; set; }
 
-        //TODO: Is the duration of the vlog available from the media service metadata or should this be stored seperately?
-        /// <summary>
-        /// The duration of the vlog.
-        /// </summary>
-        public uint Duration { get; set; }
-
         /// <summary>
         /// Indicates if the vlog should be publicly available to other users.
         /// </summary>

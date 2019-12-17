@@ -8,21 +8,36 @@ namespace Swabbr.Infrastructure.Data
     public class VlogRepository : DbRepository<Vlog, VlogTableEntity>, IVlogRepository
     {
         public VlogRepository(IDbClientFactory factory) : base(factory)
-        {
+        { 
+        
         }
 
         public override string TableName { get; } = "Vlogs";
 
         public override Vlog Map(VlogTableEntity entity)
         {
-            //TODO Implement method
-            throw new NotImplementedException();
+            return new Vlog
+            {
+                DateStarted      = entity.DateStarted,
+                IsLive           = entity.IsLive,
+                IsPrivate        = entity.IsPrivate,
+                MediaServiceData = entity.MediaServiceData,
+                UserId           = entity.UserId,
+                VlogId           = entity.VlogId
+            };
         }
 
         public override VlogTableEntity Map(Vlog entity)
         {
-            //TODO Implement method
-            throw new NotImplementedException();
+            return new VlogTableEntity
+            {
+                DateStarted      = entity.DateStarted,
+                IsLive           = entity.IsLive,
+                IsPrivate        = entity.IsPrivate,
+                MediaServiceData = entity.MediaServiceData,
+                UserId           = entity.UserId,
+                VlogId           = entity.VlogId
+            };
         }
 
         public override string ResolvePartitionKey(VlogTableEntity entity) => entity.UserId.ToString();

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.NotificationHubs;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Services;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -27,6 +28,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [Authorize(Roles = "User")]
         [HttpGet("register")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(string))]
         public async Task<IActionResult> CreatePushRegistrationId()
         {
             var registrationId = await _notificationService.CreateRegistrationIdAsync();
@@ -40,6 +42,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [Authorize(Roles = "User")]
         [HttpDelete("unregister/{registrationId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> UnregisterFromNotifications(string registrationId)
         {
             await _notificationService.DeleteRegistrationAsync(registrationId);
@@ -54,6 +57,8 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [Authorize(Roles = "User")]
         [HttpPut("enable/{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] DeviceRegistration deviceUpdate)
         {
             HubResponse registrationResult = await _notificationService.RegisterForPushNotificationsAsync(id, deviceUpdate);
@@ -64,7 +69,6 @@ namespace Swabbr.Api.Controllers
             return BadRequest("An error occurred while sending push notification: " + registrationResult.FormattedErrorMessages);
         }
 
-        // TODO Implement in NHUB service
         /// <summary>
         /// Send push notification
         /// </summary>
@@ -72,6 +76,8 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin")]
         [HttpPost("send")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> SendNotification([FromBody] PushNotification newNotification)
         {
             HubResponse<NotificationOutcome> pushDeliveryResult = await _notificationService.SendNotificationAsync(newNotification);

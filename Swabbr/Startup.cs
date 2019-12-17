@@ -44,13 +44,16 @@ namespace Swabbr
                 options.LowercaseUrls = true;
             });
 
-            var jwtOptionsSection = Configuration.GetSection("Jwt");
-            var jwtOptions = jwtOptionsSection.Get<JwtConfiguration>();
+            var jwtConfigSection = Configuration.GetSection("Jwt");
+            var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
 
-            // Configure authentication settings
-            services.Configure<JwtConfiguration>(jwtOptionsSection);
+            var notificationHubConfigSection = Configuration.GetSection("NotificationHub");
 
-            var jwtKey = Encoding.ASCII.GetBytes(jwtOptions.SecretKey);
+            // Add configurations
+            services.Configure<JwtConfiguration>(jwtConfigSection);
+            services.Configure<NotificationHubConfiguration>(notificationHubConfigSection);
+
+            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
 
             // Add authentication
             services.AddAuthentication(x =>
@@ -105,6 +108,7 @@ namespace Swabbr
 
             // Configure DI for data repositories
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
             services.AddScoped<IFollowRequestRepository, FollowRequestRepository>();
             services.AddScoped<IVlogRepository, VlogRepository>();
 
@@ -157,17 +161,9 @@ namespace Swabbr
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // For some reason
-            if (/*env.IsDevelopment()*/Configuration.GetSection("ConnectionStrings").Get<ConnectionStringsConfiguration>().Mode == ConnectionStringMode.Emulator)
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                // The default HSTS value is 30 days. You may want to change this for production
-                // scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
+            // The default HSTS value is 30 days. You may want to change this for production
+            // scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
 
             app.UseHttpsRedirection();
 
@@ -192,7 +188,7 @@ namespace Swabbr
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Swabbr v1 (Published on {DateTime.Now.Date.ToShortDateString()})");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Swabbr v1");
             });
         }
     }
