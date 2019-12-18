@@ -47,13 +47,13 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
-        public async Task<IActionResult> Update([FromBody] UserSettings settings)
+        public async Task<IActionResult> Update([FromBody] UserSettingsInputModel input)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             //TODO Check if invalid userid has been given?
-            settings.UserId = currentUser.UserId;
+            input.UserId = currentUser.UserId;
             
-            await _userSettingsRepository.UpdateAsync(settings);
+            await _userSettingsRepository.UpdateAsync(input);
 
             // TODO Return updated settings (input model that was updated)
 
