@@ -19,11 +19,11 @@ namespace Swabbr.Api.Services
 
     public class TokenService : ITokenService
     {
-        private readonly JwtConfiguration _jwtOptions;
+        private readonly JwtConfiguration _jwtConfig;
 
-        public TokenService(IOptions<JwtConfiguration> jwtOptions)
+        public TokenService(IOptions<JwtConfiguration> jwtConfigOptions)
         {
-            _jwtOptions = jwtOptions.Value;
+            _jwtConfig = jwtConfigOptions.Value;
         }
 
         public string GenerateToken(SwabbrIdentityUser user)
@@ -35,13 +35,13 @@ namespace Swabbr.Api.Services
                 new Claim(SwabbrClaimTypes.Email, user.Email),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.SecretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_jwtOptions.ExpireDays));
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(_jwtConfig.ExpireDays));
 
             var token = new JwtSecurityToken(
-                _jwtOptions.Issuer,
-                _jwtOptions.Issuer,
+                _jwtConfig.Issuer,
+                _jwtConfig.Issuer,
                 claims,
                 expires: expires,
                 signingCredentials: credentials

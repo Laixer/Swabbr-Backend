@@ -120,18 +120,18 @@ namespace Swabbr
             services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
             services.AddTransient<IRoleStore<SwabbrIdentityRole>, RoleStore>();
 
-            services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(o =>
+            services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
              {
-                 // TODO Determine configuration
-                 o.Password.RequireDigit = false;
-                 o.Password.RequireUppercase = false;
-                 o.Password.RequireLowercase = false;
-                 o.Password.RequireNonAlphanumeric = false;
-                 o.User.RequireUniqueEmail = true;
+                 // TODO Determine configuration for password strength
+                 setup.Password.RequireDigit = false;
+                 setup.Password.RequireUppercase = false;
+                 setup.Password.RequireLowercase = false;
+                 setup.Password.RequireNonAlphanumeric = false;
+                 setup.User.RequireUniqueEmail = true;
              })
             .AddDefaultTokenProviders();
 
-            // TODO Workaround for page redirect instead of status code(!)
+            // TODO Keep this workaround for 'page redirect instead of status code'(?!)
             services.ConfigureApplicationCookie(o =>
             {
                 o.Events = new CookieAuthenticationEvents()

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.NotificationHubs;
+using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
-using Swabbr.Infrastructure.Services;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -11,13 +11,15 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for registering devices for notifications and sending out push notifications.
     /// </summary>
-    [Authorize]
+    
+        // TODO Enable authorization?
+    //[Authorize]
     [Route("api/v1/notifications")]
     public class NotificationsController : Controller
     {
-        private readonly NotificationService _notificationService;
+        private readonly INotificationService _notificationService;
 
-        public NotificationsController(NotificationService service)
+        public NotificationsController(INotificationService service)
         {
             _notificationService = service;
         }
@@ -26,7 +28,6 @@ namespace Swabbr.Api.Controllers
         /// Get registration ID
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = "User")]
         [HttpGet("register")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(string))]
         public async Task<IActionResult> CreatePushRegistrationId()
@@ -40,7 +41,6 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="registrationId"></param>
         /// <returns></returns>
-        [Authorize(Roles = "User")]
         [HttpDelete("unregister/{registrationId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> UnregisterFromNotifications(string registrationId)
@@ -55,12 +55,12 @@ namespace Swabbr.Api.Controllers
         /// <param name="id"></param>
         /// <param name="deviceUpdate"></param>
         /// <returns></returns>
-        [Authorize(Roles = "User")]
         [HttpPut("enable/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] DeviceRegistration deviceUpdate)
         {
+            // Create or update the given registration for push notifications
             HubResponse registrationResult = await _notificationService.RegisterForPushNotificationsAsync(id, deviceUpdate);
 
             if (registrationResult.CompletedWithSuccess)
@@ -74,7 +74,11 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="newNotification"></param>
         /// <returns></returns>
-        [Authorize(Roles = "Admin")]
+        
+            //TODO: IMPORTANT! Make sure this method requires authorization. Temporarily disabled for testing purposes
+        [AllowAnonymous]       
+            //[Authorize(Roles = "Admin")]
+
         [HttpPost("send")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]

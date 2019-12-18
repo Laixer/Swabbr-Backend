@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.NotificationHubs;
 using Microsoft.Azure.NotificationHubs.Messaging;
+using Microsoft.Extensions.Options;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
@@ -14,9 +15,9 @@ namespace Swabbr.Infrastructure.Services
         private readonly NotificationHubConfiguration _configuration;
         private readonly NotificationHubClient _hubClient;
 
-        public NotificationService(NotificationHubConfiguration configuration)
+        public NotificationService(IOptions<NotificationHubConfiguration> notificationHubConfigurationOptions)
         {
-            _configuration = configuration;
+            _configuration = notificationHubConfigurationOptions.Value;
             _hubClient = NotificationHubClient.CreateClientFromConnectionString(_configuration.ConnectionString, _configuration.HubName);
         }
 
