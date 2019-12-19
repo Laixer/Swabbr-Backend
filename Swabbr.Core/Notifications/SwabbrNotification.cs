@@ -1,6 +1,6 @@
 ﻿namespace Swabbr.Core.Notifications
 {
-    public class PushNotification : DeviceRegistration
+    public class SwabbrNotification : NotificationDeviceRegistration
     {
         public string Content { get; set; }
     }

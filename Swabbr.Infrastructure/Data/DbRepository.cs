@@ -57,7 +57,7 @@ namespace Swabbr.Infrastructure.Data
                 var item = await client.InsertEntityAsync(insertEntity);
                 return Map(item);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }

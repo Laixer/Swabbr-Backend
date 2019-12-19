@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Data
+namespace Swabbr.Infrastructure.Data.Repositories
 {
     public class UserRepository : DbRepository<User, UserTableEntity>, IUserRepository
     {

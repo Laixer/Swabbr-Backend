@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Exceptions;
 using Swabbr.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,16 @@ namespace Swabbr.Api.Authentication
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
-            var insertedUser = await client.InsertOrMergeEntityAsync(user);
+
+            // Ensure user does not exist
+            var checkUser = await FindByEmailAsync(user.NormalizedEmail, new CancellationToken());
+            if (checkUser != null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "User already exists." });
+            }
+
+            // Insert the user
+            var insertedUser = await client.InsertEntityAsync(user);
 
             if (insertedUser != null)
             {

@@ -3,7 +3,7 @@ using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
 
-namespace Swabbr.Infrastructure.Data
+namespace Swabbr.Infrastructure.Data.Repositories
 {
     public class VlogRepository : DbRepository<Vlog, VlogTableEntity>, IVlogRepository
     {

@@ -1,9 +1,9 @@
-﻿namespace Swabbr.Infrastructure.Data
+﻿namespace Swabbr.Infrastructure.Configuration
 {
     /// <summary>
-    /// To represent the properties of a database table
+    /// Represents the properties of a database table
     /// </summary>
-    public class TableProperties
+    public class StorageTableInfo
     {
         /// <summary>
         /// Uniquely identifiable name of the table.

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Data
+namespace Swabbr.Infrastructure.Data.Repositories
 {
     public class FollowRequestRepository : DbRepository<FollowRequest, FollowRequestTableEntity>, IFollowRequestRepository
     {

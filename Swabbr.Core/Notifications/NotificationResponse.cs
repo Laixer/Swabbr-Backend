@@ -4,46 +4,46 @@ using System.Linq;
 
 namespace Swabbr.Core.Notifications
 {
-    public sealed class HubResponse<TResult> : HubResponse where TResult : class
+    public sealed class NotificationResponse<TResult> : NotificationResponse where TResult : class
     {
         public TResult Result { get; set; }
 
-        public HubResponse()
+        public NotificationResponse()
         {
         }
 
-        public new HubResponse<TResult> SetAsFailureResponse()
+        public new NotificationResponse<TResult> SetAsFailureResponse()
         {
             base.SetAsFailureResponse();
             return this;
         }
 
-        public new HubResponse<TResult> AddErrorMessage(string errorMessage)
+        public new NotificationResponse<TResult> AddErrorMessage(string errorMessage)
         {
             base.AddErrorMessage(errorMessage);
             return this;
         }
     }
 
-    public class HubResponse
+    public class NotificationResponse
     {
         private bool _forcedFailedResponse;
 
         public bool CompletedWithSuccess => !ErrorMessages.Any() && !_forcedFailedResponse;
         public IList<string> ErrorMessages { get; private set; }
 
-        public HubResponse()
+        public NotificationResponse()
         {
             ErrorMessages = new List<string>();
         }
 
-        public HubResponse SetAsFailureResponse()
+        public NotificationResponse SetAsFailureResponse()
         {
             _forcedFailedResponse = true;
             return this;
         }
 
-        public HubResponse AddErrorMessage(string errorMessage)
+        public NotificationResponse AddErrorMessage(string errorMessage)
         {
             ErrorMessages.Add(errorMessage);
             return this;

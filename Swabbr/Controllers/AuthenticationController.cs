@@ -49,7 +49,7 @@ namespace Swabbr.Api.Controllers
         {
             // Ensure the user does not already exist
             var userCheck = await _userManager.FindByEmailAsync(input.Email);
-
+            
             if (userCheck != null)
             {
                 return BadRequest("User already exists.");

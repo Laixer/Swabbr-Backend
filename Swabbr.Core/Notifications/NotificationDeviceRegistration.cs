@@ -4,10 +4,13 @@ using System.Collections.Generic;
 
 namespace Swabbr.Core.Notifications
 {
-    public class DeviceRegistration
+    public class NotificationDeviceRegistration
     {
-        [JsonConverter(typeof(StringEnumConverter))]
-        public PushNotificationPlatform Platform { get; set; }
+        public PushNotificationService Platform { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public string Handle { get; set; }
         public IList<string> Tags { get; set; }
     }

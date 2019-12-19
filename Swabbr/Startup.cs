@@ -13,7 +13,7 @@ using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Configuration;
-using Swabbr.Infrastructure.Data;
+using Swabbr.Infrastructure.Data.Repositories;
 using Swabbr.Infrastructure.Services;
 using System;
 using System.IO;
@@ -48,10 +48,12 @@ namespace Swabbr
             var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
 
             var notificationHubConfigSection = Configuration.GetSection("NotificationHub");
+            var wowzaSection = Configuration.GetSection("WowzaStreamingCloud");
 
             // Add configurations
             services.Configure<JwtConfiguration>(jwtConfigSection);
             services.Configure<NotificationHubConfiguration>(notificationHubConfigSection);
+            services.Configure<WowzaStreamingCloudConfiguration>(wowzaSection);
 
             var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
 
@@ -115,6 +117,7 @@ namespace Swabbr
             // Configure DI for services
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<ILivestreamingService, LivestreamingService>();
 
             // DI for stores
             services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();

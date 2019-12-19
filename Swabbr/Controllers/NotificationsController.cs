@@ -58,10 +58,10 @@ namespace Swabbr.Api.Controllers
         [HttpPut("enable/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] DeviceRegistration deviceUpdate)
+        public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] NotificationDeviceRegistration deviceUpdate)
         {
             // Create or update the given registration for push notifications
-            HubResponse registrationResult = await _notificationService.RegisterForPushNotificationsAsync(id, deviceUpdate);
+            NotificationResponse registrationResult = await _notificationService.RegisterForPushNotificationsAsync(id, deviceUpdate);
 
             if (registrationResult.CompletedWithSuccess)
                 return Ok();
@@ -82,9 +82,9 @@ namespace Swabbr.Api.Controllers
         [HttpPost("send")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> SendNotification([FromBody] PushNotification newNotification)
+        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification)
         {
-            HubResponse<NotificationOutcome> pushDeliveryResult = await _notificationService.SendNotificationAsync(newNotification);
+            NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationAsync(newNotification);
 
             if (pushDeliveryResult.CompletedWithSuccess)
                 return Ok();

@@ -3,7 +3,7 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 
-namespace Swabbr.Infrastructure.Data
+namespace Swabbr.Infrastructure.Data.Repositories
 {
     public class UserSettingsRepository : DbRepository<UserSettings, UserSettingsTableEntity>, IUserSettingsRepository
     {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Infrastructure.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,10 +8,10 @@ namespace Swabbr.Infrastructure.Data
 {
     public sealed class DbClientFactory : IDbClientFactory
     {
-        private readonly List<TableProperties> _tables;
+        private readonly List<StorageTableInfo> _tables;
         private readonly CloudTableClient _client;
 
-        public DbClientFactory(List<TableProperties> tables, CloudStorageAccount storageAccount)
+        public DbClientFactory(List<StorageTableInfo> tables, CloudStorageAccount storageAccount)
         {
             _tables = tables ?? throw new ArgumentNullException(nameof(tables));
             _client = storageAccount.CreateCloudTableClient();

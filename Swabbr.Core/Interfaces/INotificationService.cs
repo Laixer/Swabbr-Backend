@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.NotificationHubs;
-using Swabbr.Core.Notifications;
+﻿using Swabbr.Core.Notifications;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
@@ -20,16 +19,18 @@ namespace Swabbr.Core.Interfaces
         Task DeleteRegistrationAsync(string registrationId);
 
         /// <summary>
-        /// Register a device for push notifications
+        /// Enable push notifications for a device
         /// </summary>
         /// <param name="id">Id of the device</param>
         /// <param name="deviceUpdate">Registration information</param>
-        Task<HubResponse> RegisterForPushNotificationsAsync(string id, DeviceRegistration deviceUpdate);
+        Task<NotificationResponse> RegisterForPushNotificationsAsync(string id, NotificationDeviceRegistration deviceUpdate);
 
         /// <summary>
-        /// Send out a push notification
+        /// Send out a notification
         /// </summary>
-        /// <param name="notification"></param>
-        Task<HubResponse<NotificationOutcome>> SendNotificationAsync(PushNotification notification);
+        /// <typeparam name="T">The notification outcome type</typeparam>
+        /// <param name="notification">The notification to send</param>
+        /// <returns>A response containing</returns>
+        Task<NotificationResponse> SendNotificationAsync(SwabbrNotification notification);
     }
 }

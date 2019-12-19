@@ -40,27 +40,27 @@ namespace Swabbr.Infrastructure.Services
 
         /// <summary>
         /// Register device to receive push notifications. 
-        /// Registration ID ontained from Azure Notification Hub has to be provided
-        /// Then basing on platform (Android, iOS or Windows) specific
+        /// Registration ID obtained from Azure Notification Hub has to be provided
+        /// Then basing on the platform (Android or iOS) a specific
         /// handle (token) obtained from Push Notification Service has to be provided
         /// </summary>
         /// <param name="id"></param>
         /// <param name="deviceUpdate"></param>
         /// <returns></returns>
-        public async Task<HubResponse> RegisterForPushNotificationsAsync(string id, DeviceRegistration deviceUpdate)
+        public async Task<NotificationResponse> RegisterForPushNotificationsAsync(string id, NotificationDeviceRegistration deviceUpdate)
         {
             RegistrationDescription registrationDescription;
 
             switch (deviceUpdate.Platform)
             {
-                case PushNotificationPlatform.APNS:
+                case PushNotificationService.APNS:
                     registrationDescription = new AppleRegistrationDescription(deviceUpdate.Handle);
                     break;
-                case PushNotificationPlatform.FCM:
+                case PushNotificationService.FCM:
                     registrationDescription = new FcmRegistrationDescription(deviceUpdate.Handle);
                     break;
                 default:
-                    return new HubResponse().AddErrorMessage("Please provide a correct platform notification service name.");
+                    return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service name.");
             }
 
             registrationDescription.RegistrationId = id;
@@ -70,20 +70,20 @@ namespace Swabbr.Infrastructure.Services
             try
             {
                 await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
-                return new HubResponse();
+                return new NotificationResponse();
             }
             catch (MessagingException)
             {
-                return new HubResponse().AddErrorMessage("Registration failed. Please register again.");
+                return new NotificationResponse().AddErrorMessage("Registration failed. Please register again.");
             }
         }
 
         /// <summary>
-        /// Send push notification to specific platform (Android, iOS or Windows)
+        /// Send push notification to specific platform (Android or iOS)
         /// </summary>
         /// <param name="newNotification"></param>
         /// <returns></returns>
-        public async Task<HubResponse<NotificationOutcome>> SendNotificationAsync(PushNotification newNotification)
+        public async Task<NotificationResponse> SendNotificationAsync(SwabbrNotification newNotification)
         {
             try
             {
@@ -91,13 +91,13 @@ namespace Swabbr.Infrastructure.Services
 
                 switch (newNotification.Platform)
                 {
-                    case PushNotificationPlatform.APNS:
+                    case PushNotificationService.APNS:
                         if (newNotification.Tags == null)
                             outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content);
                         else
                             outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content, newNotification.Tags);
                         break;
-                    case PushNotificationPlatform.FCM:
+                    case PushNotificationService.FCM:
                         if (newNotification.Tags == null)
                             outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content);
                         else
@@ -109,20 +109,20 @@ namespace Swabbr.Infrastructure.Services
                 {
                     if (!((outcome.State == NotificationOutcomeState.Abandoned) ||
                         (outcome.State == NotificationOutcomeState.Unknown)))
-                        return new HubResponse<NotificationOutcome>();
+                        return new NotificationResponse<NotificationOutcome>();
                 }
 
-                return new HubResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Notification was not sent. Please try again.");
+                return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Notification was not sent. Please try again.");
             }
 
             catch (MessagingException e)
             {
-                return new HubResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
+                return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
             }
 
             catch (ArgumentException e)
             {
-                return new HubResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
+                return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
             }
         }
     }

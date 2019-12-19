@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
+using Swabbr.Core.Entities;
 
 namespace Swabbr.Core.Interfaces
 {
@@ -9,22 +11,22 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Create a new livestream.
         /// </summary>
-        /// <returns></returns>
-        Task CreateStreamAsync();
+        /// <returns>JSON object representing the created livestream</returns>
+        Task<StreamConnectionDetails> CreateNewStreamAsync(string name);
 
         /// <summary>
         /// Start a livestream.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">Id of the livestream.</param>
+        /// <returns>JSON object representing the stream that was started</returns>
         Task StartStreamAsync(string id);
 
         /// <summary>
         /// Update a livestream.
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
-        Task UpdateStreamAsync(string id);
+        /// <returns>JSON object representing the updated stream.</returns>
+        Task<JObject> UpdateStreamAsync(string id);
 
         /// <summary>
         /// Stop a livestream.
@@ -45,6 +47,6 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task GetStreamAsync(string id);
+        Task<StreamConnectionDetails> GetStreamAsync(string id);
     }
 }
