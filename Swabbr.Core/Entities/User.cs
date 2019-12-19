@@ -14,16 +14,6 @@ namespace Swabbr.Core.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Email address.
-        /// </summary>
-        public string Email { get; set; }
-
-        /// <summary>
-        /// Hashed password of the user.
-        /// </summary>
-        public string PasswordHash { get; set; }
-
-        /// <summary>
         /// First name of the user.
         /// </summary>
         public string FirstName { get; set; }
@@ -71,17 +61,12 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Angular longitude coordinate.
         /// </summary>
-        public decimal Longitude { get; set; }
+        public double Longitude { get; set; }
 
         /// <summary>
         /// Angular latitude coordinate.
         /// </summary>
-        public decimal Latitude { get; set; }
-
-        /// <summary>
-        /// Phone number of the user stored as text.
-        /// </summary>
-        public string PhoneNumber { get; set; }
+        public double Latitude { get; set; }
 
         /// <summary>
         /// Personal settings and preferences.

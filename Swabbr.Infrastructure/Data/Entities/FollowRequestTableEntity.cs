@@ -27,7 +27,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// Current status of the follow request.
         /// </summary>
-        public FollowRequestStatus Status { get; set; }
+        public int Status { get; set; }
 
         /// <summary>
         /// Timestamp of when the request was initiated.

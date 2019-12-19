@@ -29,24 +29,14 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string LastName { get; set; }
 
         /// <summary>
-        /// Selected gender of the user.
+        /// Selected gender of the user represented by an integer.
         /// </summary>
-        public Gender Gender { get; set; }
+        public int Gender { get; set; }
 
         /// <summary>
         /// Selected country.
         /// </summary>
         public string Country { get; set; }
-
-        /// <summary>
-        /// Email address.
-        /// </summary>
-        public string Email { get; set; }
-
-        /// <summary>
-        /// Hashed password of the user.
-        /// </summary>
-        public string PasswordHash { get; set; }
 
         /// <summary>
         /// Date of birth for the given user.
@@ -76,16 +66,11 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// Angular longitude coordinate.
         /// </summary>
-        public decimal Longitude { get; set; }
+        public double Longitude { get; set; }
 
         /// <summary>
         /// Angular latitude coordinate.
         /// </summary>
-        public decimal Latitude { get; set; }
-
-        /// <summary>
-        /// Phone number of the user stored as text.
-        /// </summary>
-        public string PhoneNumber { get; set; }
+        public double Latitude { get; set; }
     }
 }

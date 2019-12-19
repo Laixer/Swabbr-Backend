@@ -87,8 +87,7 @@ namespace Swabbr.Api.ViewModels
                 IsPrivate = user.IsPrivate,
                 Nickname = user.Nickname,
                 ProfileImageUrl = user.ProfileImageUrl,
-                Timezone = user.Timezone,
-                PhoneNumber = user.PhoneNumber
+                Timezone = user.Timezone
             };
         }
     }

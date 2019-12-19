@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
-using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using System;
 using System.Net;
@@ -58,25 +57,30 @@ namespace Swabbr.Api.Controllers
 
             // TODO Password (strength?) check ...
 
-            // Convert input model to a user model
-            User userFromInput = input;
-
-            // Generate new id for user to create
-            userFromInput.UserId = Guid.NewGuid();
-
-            // Create the user
-            var createdUser = await _userRepository.CreateAsync(userFromInput);
-
-            // Construct a new identity user based on the created user entity
+            // Construct a new identity user for a new user based on the given input
             var identityUser = new SwabbrIdentityUser
             {
-                UserId = createdUser.UserId,
-                Email = createdUser.Email,
-                PartitionKey = createdUser.UserId.ToString(),
-                RowKey = createdUser.UserId.ToString()
+                // Generate new id for user to create
+                UserId = Guid.NewGuid(),
+
+                // Use the input to set the properties
+                Email = input.Email,
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                BirthDate = input.BirthDate,
+                Country = input.Country,
+                Gender = (int)input.Gender,
+                IsPrivate = input.IsPrivate,
+                Nickname = input.Nickname,
+                ProfileImageUrl = input.ProfileImageUrl,
+                Timezone = input.Timezone
             };
 
-            // Create the identity user
+            // The partition key and row key are both the UserId for now
+            identityUser.PartitionKey = identityUser.UserId.ToString();
+            identityUser.RowKey = identityUser.UserId.ToString();
+
+            // Create the user
             var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
 
             if (identityResult.Succeeded)
@@ -101,7 +105,7 @@ namespace Swabbr.Api.Controllers
             }
 
             // Something went wrong.
-            return BadRequest();
+            return BadRequest(identityResult.Errors);
         }
 
         /// <summary>

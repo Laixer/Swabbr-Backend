@@ -25,6 +25,7 @@ namespace Swabbr.Infrastructure.Data
             var table = _client.GetTableReference(_tableName);
             TableOperation operation = TableOperation.Delete(item);
             var result = await table.ExecuteAsync(operation);
+
             return result.Result as T;
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
@@ -103,16 +104,13 @@ namespace Swabbr.Infrastructure.Data
                 LastName = entity.LastName,
                 BirthDate = entity.BirthDate,
                 Country = entity.Country,
-                Email = entity.Email,
-                Gender = entity.Gender,
+                Gender = (Gender)entity.Gender,
                 IsPrivate = entity.IsPrivate,
 
                 Latitude = entity.Latitude,
                 Longitude = entity.Longitude,
 
                 Nickname = entity.Nickname,
-                PasswordHash = entity.PasswordHash,
-                PhoneNumber = entity.PhoneNumber,
                 ProfileImageUrl = entity.ProfileImageUrl,
                 Timezone = entity.Timezone
             };
@@ -127,16 +125,13 @@ namespace Swabbr.Infrastructure.Data
                 LastName = entity.LastName,
                 BirthDate = entity.BirthDate,
                 Country = entity.Country,
-                Email = entity.Email,
-                Gender = entity.Gender,
+                Gender = (int)entity.Gender,
                 IsPrivate = entity.IsPrivate,
 
                 Latitude = entity.Latitude,
                 Longitude = entity.Longitude,
 
                 Nickname = entity.Nickname,
-                PasswordHash = entity.PasswordHash,
-                PhoneNumber = entity.PhoneNumber,
                 ProfileImageUrl = entity.ProfileImageUrl,
                 Timezone = entity.Timezone
             };

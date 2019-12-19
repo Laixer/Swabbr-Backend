@@ -81,7 +81,6 @@ namespace Swabbr.Api.ViewModels
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 BirthDate = user.BirthDate,
-                Email = user.Email,
                 Country = user.Country,
                 Gender = user.Gender,
                 IsPrivate = user.IsPrivate,

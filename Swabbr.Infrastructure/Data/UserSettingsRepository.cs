@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 
@@ -20,7 +21,7 @@ namespace Swabbr.Infrastructure.Data
             return new UserSettingsTableEntity
             {
                 DailyVlogRequestLimit = entity.DailyVlogRequestLimit,
-                FollowMode = entity.FollowMode,
+                FollowMode = (int)entity.FollowMode,
                 IsPrivate = entity.IsPrivate,
                 UserId = entity.UserId
             };
@@ -31,7 +32,7 @@ namespace Swabbr.Infrastructure.Data
             return new UserSettings
             {
                 DailyVlogRequestLimit = entity.DailyVlogRequestLimit,
-                FollowMode = entity.FollowMode,
+                FollowMode = (FollowMode)entity.FollowMode,
                 IsPrivate = entity.IsPrivate,
                 UserId = entity.UserId
             };

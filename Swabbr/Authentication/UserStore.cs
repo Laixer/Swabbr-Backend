@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
+    // TODO Not optimized
     public class UserStore : 
         IUserStore<SwabbrIdentityUser>, 
         IUserEmailStore<SwabbrIdentityUser>, 
@@ -31,8 +32,14 @@ namespace Swabbr.Api.Authentication
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
-            await client.InsertOrMergeEntityAsync(user);
-            return IdentityResult.Success;
+            var insertedUser = await client.InsertOrMergeEntityAsync(user);
+
+            if (insertedUser != null)
+            {
+                return IdentityResult.Success;
+            }
+
+            return IdentityResult.Failed(new IdentityError { Description = "Could not insert user" });
         }
 
         public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
@@ -104,38 +111,33 @@ namespace Swabbr.Api.Authentication
 
         public Task SetNormalizedUserNameAsync(SwabbrIdentityUser user, string normalizedName, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
-        public Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
+        public async Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.PasswordHash = passwordHash;
         }
 
-        public Task SetPhoneNumberAsync(SwabbrIdentityUser user, string phoneNumber, CancellationToken cancellationToken)
+        public async Task SetPhoneNumberAsync(SwabbrIdentityUser user, string phoneNumber, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.PhoneNumber = phoneNumber;
         }
 
-        public Task SetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
+        public async Task SetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.PhoneNumberConfirmed = confirmed;
         }
 
-        public Task SetTwoFactorEnabledAsync(SwabbrIdentityUser user, bool enabled, CancellationToken cancellationToken)
+        public async Task SetTwoFactorEnabledAsync(SwabbrIdentityUser user, bool enabled, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.TwoFactorEnabled = enabled;
         }
 
         public Task SetUserNameAsync(SwabbrIdentityUser user, string userName, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            // Username == Email
+            return Task.CompletedTask;
         }
 
         #region IUserEmailStore
@@ -143,6 +145,7 @@ namespace Swabbr.Api.Authentication
         {
             var table = _factory.GetClient<SwabbrIdentityUser>(UserTableName).CloudTableReference;
 
+            // Check if the normalized email already exists in the table.
             var tq = new TableQuery<SwabbrIdentityUser>().Where(
                 TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
 
@@ -171,22 +174,19 @@ namespace Swabbr.Api.Authentication
             return user.NormalizedEmail;
         }
 
-        public Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
+        public async Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.Email = email;
         }
 
-        public Task SetEmailConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
+        public async Task SetEmailConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.EmailConfirmed = confirmed;
         }
 
-        public Task SetNormalizedEmailAsync(SwabbrIdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
+        public async Task SetNormalizedEmailAsync(SwabbrIdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);//TODO Implement Method
-            throw new NotImplementedException();
+            user.NormalizedEmail = normalizedEmail;
         }
         #endregion
 
@@ -267,34 +267,35 @@ namespace Swabbr.Api.Authentication
         #region IUserRoleStore
         public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            // TODO
+            // TODO Implement
             return Task.CompletedTask;
             throw new NotImplementedException();
         }
 
         public async Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            //TODO
+            //TODO Implement
             return new List<string>();
             throw new NotImplementedException();
         }
 
         public async Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            //TODO
+            //TODO Implement
             return new List<SwabbrIdentityUser>();
             throw new NotImplementedException();
         }
 
         public async Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            //TODO
+            //TODO Implement
             return false;
             throw new NotImplementedException();
         }
 
         public Task RemoveFromRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
+            // TODO Implement
             return Task.CompletedTask;
             throw new NotImplementedException();
         }

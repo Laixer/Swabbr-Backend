@@ -27,6 +27,6 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// Determines how follow requests are processed for the user.
         /// </summary>
-        public FollowMode FollowMode { get; set; }
+        public int FollowMode { get; set; }
     }
 }

@@ -97,15 +97,12 @@ namespace Swabbr.Api.ViewModels
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 BirthDate = user.BirthDate,
-                Email = user.Email,
                 Country = user.Country,
                 Gender = user.Gender,
                 IsPrivate = user.IsPrivate,
                 Nickname = user.Nickname,
                 ProfileImageUrl = user.ProfileImageUrl,
                 Timezone = user.Timezone,
-                PasswordHash = user.Password,
-                PhoneNumber = user.PhoneNumber
             };
         }
     }

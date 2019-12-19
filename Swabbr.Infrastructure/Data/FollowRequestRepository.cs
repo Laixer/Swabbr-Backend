@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
@@ -72,7 +73,7 @@ namespace Swabbr.Infrastructure.Data
                 FollowRequestId = entity.FollowRequestId,
                 ReceiverId = entity.ReceiverId,
                 RequesterId = entity.RequesterId,
-                Status = entity.Status,
+                Status = (int)entity.Status,
                 TimeCreated = entity.TimeCreated
             };
         }
@@ -84,7 +85,7 @@ namespace Swabbr.Infrastructure.Data
                 FollowRequestId = entity.FollowRequestId,
                 ReceiverId = entity.ReceiverId,
                 RequesterId = entity.RequesterId,
-                Status = entity.Status,
+                Status = (FollowRequestStatus)entity.Status,
                 TimeCreated = entity.TimeCreated
             };
         }

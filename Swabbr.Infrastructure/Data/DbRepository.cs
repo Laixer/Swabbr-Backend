@@ -57,10 +57,8 @@ namespace Swabbr.Infrastructure.Data
                 var item = await client.InsertEntityAsync(insertEntity);
                 return Map(item);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new EntityAlreadyExistsException();
-
                 throw;
             }
         }

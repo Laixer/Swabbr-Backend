@@ -13,7 +13,6 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to vlogs.
     /// </summary>
-    [Obsolete("Vlog related requests are not supported yet.")]
     [ApiController]
     [Route("api/v1/vlogs")]
     public class VlogsController : ControllerBase
@@ -64,6 +63,7 @@ namespace Swabbr.Api.Controllers
         /// Delete a vlog that is owned by the authenticated user.
         /// </summary>
         /// <returns></returns>
+        [Obsolete("Not implemented")]
         [HttpDelete("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Delete([FromRoute]Guid vlogId)
@@ -76,6 +76,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Leave a like on a single vlog.
         /// </summary>
+        [Obsolete("Not implemented")]
         [HttpPost("like/{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Like([FromRoute]Guid vlogId)
@@ -87,6 +88,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Remove a like previously given to a single vlog.
         /// </summary>
+        [Obsolete("Not implemented")]
         [HttpDelete("like/{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Unlike([FromRoute]Guid vlogId)
