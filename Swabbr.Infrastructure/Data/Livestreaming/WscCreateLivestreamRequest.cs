@@ -3,9 +3,9 @@
 namespace Swabbr.Infrastructure.Data.Livestreaming
 {
     /// <summary>
-    /// Represents a JSON object class for creating a new Wowza Streaming Cloud livestream.
+    /// Wowza Streaming Cloud API Version 1.3 Creating live stream object
     /// </summary>
-    public partial class WcsCreateLivestreamRequest
+    public partial class WscCreateLivestreamRequest
     {
         [JsonProperty("live_stream")]
         public WcsCreateLiveStreamRequestBody Livestream { get; set; }
@@ -40,6 +40,9 @@ namespace Swabbr.Infrastructure.Data.Livestreaming
         [JsonProperty("hosted_page_sharing_icons")]
         public bool HostedPageSharingIcons { get; set; }
 
+        [JsonProperty("low_latency")]
+        public bool LowLatency { get; set; }
+
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -48,6 +51,9 @@ namespace Swabbr.Infrastructure.Data.Livestreaming
 
         [JsonProperty("player_type")]
         public string PlayerType { get; set; }
+
+        [JsonProperty("recording")]
+        public bool Recording { get; set; }
 
         [JsonProperty("transcoder_type")]
         public string TranscoderType { get; set; }

@@ -4,6 +4,9 @@ namespace Swabbr.Core.Entities
 {
     public class StreamConnectionDetails
     {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
         [JsonProperty("host_address")]
         public string HostAddress { get; set; }
 

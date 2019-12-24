@@ -4,7 +4,10 @@ using System.Collections.Generic;
 
 namespace Swabbr.Infrastructure.Data.Livestreaming
 {
-    public partial class WcsLivestream
+    /// <summary>
+    /// Wowza Streaming Cloud API Version 1.3 Livestream object
+    /// </summary>
+    public partial class WscLivestream
     {
         [JsonProperty("id")]
         public string Id { get; set; }

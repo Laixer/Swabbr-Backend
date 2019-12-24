@@ -13,6 +13,16 @@ namespace Swabbr.Infrastructure.Data.Repositories
 {
     public class UserRepository : DbRepository<User, UserTableEntity>, IUserRepository
     {
+        private struct UserIdWithName
+        {
+            public Guid UserId { get; set; }
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string Nickname { get; set; }
+        }
+
+        private List<UserIdWithName> userIdsWithNames = new List<UserIdWithName>();
+
         private readonly IDbClientFactory _factory;
 
         public UserRepository(IDbClientFactory factory) : base(factory)
@@ -57,11 +67,13 @@ namespace Swabbr.Infrastructure.Data.Repositories
         /// last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
-        public Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
+        public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
             if (q.Length <= 0)
                 return null;
 
+            var qNormalized = q.ToUpper(System.Globalization.CultureInfo.InvariantCulture);
+            
             var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
             // The filter that is currently used is similar to a T-SQL 'LIKE' query with a wildcard at the end of the query.
@@ -92,7 +104,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
             var queryResults = table.ExecuteQuery(tq);
 
-            return Task.FromResult(queryResults.Select(x => Map(x)));
+            return queryResults.Select(x => Map(x));
         }
 
         public override User Map(UserTableEntity entity)

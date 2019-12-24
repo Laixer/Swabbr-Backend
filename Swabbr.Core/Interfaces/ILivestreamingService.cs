@@ -4,8 +4,6 @@ using Swabbr.Core.Entities;
 
 namespace Swabbr.Core.Interfaces
 {
-    //TODO: Unfinished
-    //TODO: Add options?
     public interface ILivestreamingService
     {
         /// <summary>
@@ -13,6 +11,11 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <returns>JSON object representing the created livestream</returns>
         Task<StreamConnectionDetails> CreateNewStreamAsync(string name);
+
+        /// <summary>
+        /// Delete a new livestream.
+        /// </summary>
+        Task DeleteStreamAsync(string id);
 
         /// <summary>
         /// Start a livestream.
@@ -28,6 +31,7 @@ namespace Swabbr.Core.Interfaces
         /// <returns>JSON object representing the updated stream.</returns>
         Task<JObject> UpdateStreamAsync(string id);
 
+        // TODO Determine 
         /// <summary>
         /// Stop a livestream.
         /// </summary>
@@ -43,10 +47,17 @@ namespace Swabbr.Core.Interfaces
         Task ResetStreamAsync(string id);
 
         /// <summary>
-        /// Fetch a livestream.
+        /// Fetch the connection details of a livestream.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<StreamConnectionDetails> GetStreamAsync(string id);
+        Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
+
+        /// <summary>
+        /// Fetch the playback of a livestream.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<StreamPlaybackDetails> GetStreamPlaybackAsync(string id);
     }
 }

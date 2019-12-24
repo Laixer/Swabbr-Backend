@@ -5,12 +5,8 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// A reaction to a vlog.
     /// </summary>
-    public class ReactionTableEntity
+    public class ReactionTableEntity 
     {
-        public ReactionTableEntity()
-        {
-        }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>
