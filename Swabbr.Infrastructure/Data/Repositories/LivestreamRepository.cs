@@ -1,9 +1,10 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {
-    public class LivestreamRepository : DbRepository<Livestream, LivestreamTableEntity>
+    public class LivestreamRepository : DbRepository<Livestream, LivestreamTableEntity>, ILivestreamRepository
     {
         private readonly IDbClientFactory _factory;
 
@@ -23,7 +24,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
                 Name = entity.Name,
-                PlaybackUrl = entity.PlaybackUrl,
                 UpdatedAt = entity.UpdatedAt,
             };
         }
@@ -37,7 +37,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
                 Name = entity.Name,
-                PlaybackUrl = entity.PlaybackUrl,
                 UpdatedAt = entity.UpdatedAt,
             };
         }

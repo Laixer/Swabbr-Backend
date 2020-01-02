@@ -30,9 +30,11 @@ namespace Swabbr.Infrastructure.Services
             {
                 Livestream = new WcsCreateLiveStreamRequestBody
                 {
+                    // TODO Always use 1080p as default resolution?
                     AspectRatioWidth = 1920,
                     AspectRatioHeight = 1080,
 
+                    // TODO Determine broadcast location based on user location
                     BroadcastLocation = "eu_belgium",
 
                     BillingMode = "pay_as_you_go",
@@ -86,6 +88,9 @@ namespace Swabbr.Infrastructure.Services
                         Password = response.Livestream.SourceConnectionInformation.Password,
                     };
                 }
+
+                return null;
+
             };
         }
 

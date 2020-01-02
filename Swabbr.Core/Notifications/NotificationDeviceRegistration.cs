@@ -6,7 +6,7 @@ namespace Swabbr.Core.Notifications
 {
     public class NotificationDeviceRegistration
     {
-        public PushNotificationService Platform { get; set; }
+        public PushNotificationPlatform Platform { get; set; }
 
         /// <summary>
         /// 

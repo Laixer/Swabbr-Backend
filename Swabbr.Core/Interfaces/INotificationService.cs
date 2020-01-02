@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Notifications;
+using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
@@ -23,7 +24,7 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="id">Id of the device</param>
         /// <param name="deviceUpdate">Registration information</param>
-        Task<NotificationResponse> RegisterForPushNotificationsAsync(string id, NotificationDeviceRegistration deviceUpdate);
+        Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, NotificationDeviceRegistration deviceUpdate);
 
         /// <summary>
         /// Send out a notification
@@ -31,6 +32,6 @@ namespace Swabbr.Core.Interfaces
         /// <typeparam name="T">The notification outcome type</typeparam>
         /// <param name="notification">The notification to send</param>
         /// <returns>A response containing</returns>
-        Task<NotificationResponse> SendNotificationAsync(SwabbrNotification notification);
+        Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId);
     }
 }

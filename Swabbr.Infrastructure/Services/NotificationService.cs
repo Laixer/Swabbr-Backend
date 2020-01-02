@@ -12,13 +12,13 @@ namespace Swabbr.Infrastructure.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly NotificationHubConfiguration _configuration;
+        private readonly NotificationHubConfiguration _hubConfiguration;
         private readonly NotificationHubClient _hubClient;
 
         public NotificationService(IOptions<NotificationHubConfiguration> notificationHubConfigurationOptions)
         {
-            _configuration = notificationHubConfigurationOptions.Value;
-            _hubClient = NotificationHubClient.CreateClientFromConnectionString(_configuration.ConnectionString, _configuration.HubName);
+            _hubConfiguration = notificationHubConfigurationOptions.Value;
+            _hubClient = NotificationHubClient.CreateClientFromConnectionString(_hubConfiguration.ConnectionString, _hubConfiguration.HubName);
         }
 
         /// <summary>
@@ -47,25 +47,28 @@ namespace Swabbr.Infrastructure.Services
         /// <param name="id"></param>
         /// <param name="deviceUpdate"></param>
         /// <returns></returns>
-        public async Task<NotificationResponse> RegisterForPushNotificationsAsync(string id, NotificationDeviceRegistration deviceUpdate)
+        public async Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, NotificationDeviceRegistration deviceUpdate)
         {
             RegistrationDescription registrationDescription;
 
             switch (deviceUpdate.Platform)
             {
-                case PushNotificationService.APNS:
+                case PushNotificationPlatform.APNS:
                     registrationDescription = new AppleRegistrationDescription(deviceUpdate.Handle);
                     break;
-                case PushNotificationService.FCM:
+                case PushNotificationPlatform.FCM:
                     registrationDescription = new FcmRegistrationDescription(deviceUpdate.Handle);
                     break;
                 default:
-                    return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service name.");
+                    return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service.");
             }
 
             registrationDescription.RegistrationId = id;
-            if (deviceUpdate.Tags != null)
-                registrationDescription.Tags = new HashSet<string>(deviceUpdate.Tags);
+
+            List<string> tags = new List<string>();
+            tags.Add(userId.ToString());
+            
+            registrationDescription.Tags = new HashSet<string>(tags);
 
             try
             {
@@ -83,25 +86,28 @@ namespace Swabbr.Infrastructure.Services
         /// </summary>
         /// <param name="newNotification"></param>
         /// <returns></returns>
-        public async Task<NotificationResponse> SendNotificationAsync(SwabbrNotification newNotification)
+        public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification newNotification, Guid userId)
         {
+            List<string> userTag = new List<string>();
+            userTag.Add(userId.ToString());
+
             try
             {
                 NotificationOutcome outcome = null;
 
                 switch (newNotification.Platform)
                 {
-                    case PushNotificationService.APNS:
+                    case PushNotificationPlatform.APNS:
                         if (newNotification.Tags == null)
                             outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content);
                         else
-                            outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content, newNotification.Tags);
+                            outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content, userTag);
                         break;
-                    case PushNotificationService.FCM:
+                    case PushNotificationPlatform.FCM:
                         if (newNotification.Tags == null)
                             outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content);
                         else
-                            outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content, newNotification.Tags);
+                            outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content, userTag);
                         break;
                 }
 

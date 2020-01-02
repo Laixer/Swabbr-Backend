@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the supported mobile platform services for push notifications
     /// </summary>
-    public enum PushNotificationService
+    public enum PushNotificationPlatform
     {
         /// <summary>
         /// Apple Push Notification Service (iOS)
