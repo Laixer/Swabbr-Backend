@@ -13,16 +13,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
 {
     public class UserRepository : DbRepository<User, UserTableEntity>, IUserRepository
     {
-        private struct UserIdWithName
-        {
-            public Guid UserId { get; set; }
-            public string FirstName { get; set; }
-            public string LastName { get; set; }
-            public string Nickname { get; set; }
-        }
-
-        private List<UserIdWithName> userIdsWithNames = new List<UserIdWithName>();
-
         private readonly IDbClientFactory _factory;
 
         public UserRepository(IDbClientFactory factory) : base(factory)
@@ -69,6 +59,11 @@ namespace Swabbr.Infrastructure.Data.Repositories
         /// <param name="q">The search query that is supplied by the client.</param>
         public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
+            await Task.FromResult(0);
+            throw new NotImplementedException();
+            //TODO Use cognitive search
+            //TODO IMportant
+
             if (q.Length <= 0)
                 return null;
 
@@ -91,15 +86,15 @@ namespace Swabbr.Infrastructure.Data.Repositories
             }
 
             var tq = new TableQuery<UserTableEntity>().Where(
+                TableQuery.CombineFilters(
                     TableQuery.CombineFilters(
-                        TableQuery.CombineFilters(
-                            constructColumnFilter("FirstName"),
-                            TableOperators.Or,
-                            constructColumnFilter("LastName")
-                        ),
+                        constructColumnFilter("FirstName"),
                         TableOperators.Or,
-                        constructColumnFilter("Nickname")
-                    )
+                        constructColumnFilter("LastName")
+                    ),
+                    TableOperators.Or,
+                    constructColumnFilter("Nickname")
+                )
             );
 
             var queryResults = table.ExecuteQuery(tq);

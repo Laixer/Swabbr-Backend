@@ -73,7 +73,6 @@ namespace Swabbr.Api.Controllers
         /// Returns the status of a follow relationship from the authenticated user to the user with
         /// the specified id.
         /// </summary>
-        [Obsolete("May be removed. See endpoint above for followrequest status object.")]
         [HttpGet("outgoing/{receiverId}/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
         public async Task<IActionResult> Status([FromRoute]Guid receiverId)

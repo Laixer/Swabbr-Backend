@@ -24,7 +24,7 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="id">Id of the device</param>
         /// <param name="deviceUpdate">Registration information</param>
-        Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, NotificationDeviceRegistration deviceUpdate);
+        Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, DeviceRegistration deviceUpdate);
 
         /// <summary>
         /// Send out a notification

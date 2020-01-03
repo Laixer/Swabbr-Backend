@@ -5,6 +5,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Data.Livestreaming;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Swabbr.Infrastructure.Services
             {
                 Livestream = new WcsCreateLiveStreamRequestBody
                 {
-                    // TODO Always use 1080p as default resolution?
+                    // TODO Always use 1080p as default frame resolution?
                     AspectRatioWidth = 1920,
                     AspectRatioHeight = 1080,
 
@@ -186,7 +187,8 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task<JObject> UpdateStreamAsync(string id)
         {
-            throw new System.NotImplementedException();
+            await Task.FromResult(0);
+            throw new NotImplementedException();
         }
     }
 }

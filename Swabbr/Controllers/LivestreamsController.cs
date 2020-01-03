@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
 using System;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/livestreams")]
     public class LivestreamsController : ControllerBase
@@ -18,8 +20,8 @@ namespace Swabbr.Api.Controllers
         }
 
         // TODO Remove
-        [HttpGet("/createstream")]
-        public async Task<IActionResult> TestStream()
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateStream()
         {
             var output = await livestreamingService.CreateNewStreamAsync("testName");
 
@@ -35,17 +37,24 @@ namespace Swabbr.Api.Controllers
             });
         }
 
-        // TODO Remove
-        [HttpGet("/startstream/{id}")]
+        /// <summary>
+        /// Start an available livestream
+        /// </summary>
+        /// <param name="id">Id of the livestream</param>
+        [HttpGet("start/{id}")]
         public async Task<IActionResult> StartStream([FromQuery] string id)
         {
             await livestreamingService.StartStreamAsync(id);
 
+            // TODO Notify followers that this user went live...
+
             return Ok();
         }
 
-        // TODO Remove
-        [HttpGet("/stop/{id}")]
+        /// <summary>
+        /// Stop a running livestream
+        /// </summary>
+        [HttpGet("stop/{id}")]
         public async Task<IActionResult> StopStream([FromQuery] string id)
         {
             await livestreamingService.StopStreamAsync(id);
@@ -53,7 +62,10 @@ namespace Swabbr.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("/get/stream/terribleurl/playback/{id}")]
+        /// <summary>
+        /// Returns playback details of a livestream.
+        /// </summary>
+        [HttpGet("playback/{id}")]
         public async Task<IActionResult> GetPlayback(string id)
         {
             var details = await livestreamingService.GetStreamPlaybackAsync(id);
@@ -64,29 +76,33 @@ namespace Swabbr.Api.Controllers
             });
         }
 
-        [HttpGet("/deletes/stream/terribleurl/playback/{id}")]
-        public async Task<IActionResult> DePlayback(string id)
+        /// <summary>
+        /// Returns playback details of a livestream that is broadcasted by the specified user.
+        /// </summary>
+        [HttpGet("playback/user/{userId}")]
+        public async Task<IActionResult> GetPlaybackForUser(Guid userId)
         {
-            await livestreamingService.DeleteStreamAsync(id);
-
-            return Ok("KK☻");
+            // TODO
+            throw new NotImplementedException();
         }
 
-        [HttpGet("/mulktipledelete/stream/terribleurl/playback/{id}")]
-        public async Task<IActionResult> DeleteMany(string[] id)
+        /// <summary>
+        /// Delete an existing livestream
+        /// </summary>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("delete/{id}")]
+        public async Task<IActionResult> DeleteStream(string id)
         {
-            foreach(string i in id)
-            {
-                await livestreamingService.DeleteStreamAsync(i);
-            }
-
-            return Ok("200/OK☻•◘○");
+            await livestreamingService.DeleteStreamAsync(id);
+            return Ok();
         }
 
         // TODO Remove
-        [HttpGet("/getstream/{id}")]
-        public async Task<IActionResult> GetAStream([FromQuery] string id)
+        [HttpGet("stream/{id}")]
+        public async Task<IActionResult> GetConnectionDetails([FromQuery] string id)
         {
+            //TODO Check if user has permission to request these details
+
             var output = await livestreamingService.GetStreamConnectionAsync(id);
 
             return Ok(new StreamConnectionDetailsOutputModel

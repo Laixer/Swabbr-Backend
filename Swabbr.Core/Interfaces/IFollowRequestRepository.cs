@@ -27,5 +27,19 @@ namespace Swabbr.Core.Interfaces
         /// <param name="userId">Unique identifier of the user that sent out the requests.</param>
         /// <returns></returns>
         Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId);
+
+        /// <summary>
+        /// Returns the amount of users that follow the specified user.
+        /// </summary>
+        /// <param name="userId">Unique identifier of the user that is being followed.</param>
+        /// <returns></returns>
+        Task<int> GetFollowerCountAsync(Guid userId);
+
+        /// <summary>
+        /// Returns the amount of users that the specified user is following.
+        /// </summary>
+        /// <param name="userId">Unique identifier of the user to check the amount of followers for.</param>
+        /// <returns></returns>
+        Task<int> GetFollowingCountAsync(Guid userId);
     }
 }

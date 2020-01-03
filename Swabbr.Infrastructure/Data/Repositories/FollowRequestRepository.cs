@@ -66,6 +66,32 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return Task.FromResult(mappedResults);
         }
 
+        public async Task<int> GetFollowerCountAsync(Guid userId)
+        {
+            TableQuery<DynamicTableEntity> tableQuery = new TableQuery<DynamicTableEntity>()
+                .Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString()),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterConditionForInt("Status", QueryComparisons.Equal, (int)FollowRequestStatus.Accepted)
+                    )
+                );
+            return await GetEntityCount(tableQuery);
+        }
+
+        public async Task<int> GetFollowingCountAsync(Guid userId)
+        {
+            TableQuery<DynamicTableEntity> tableQuery = new TableQuery<DynamicTableEntity>()
+                .Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, userId.ToString()),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterConditionForInt("Status", QueryComparisons.Equal, (int)FollowRequestStatus.Accepted)
+                    )
+                );
+            return await GetEntityCount(tableQuery);
+        }
+
         public override FollowRequestTableEntity Map(FollowRequest entity)
         {
             return new FollowRequestTableEntity

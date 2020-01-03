@@ -3,6 +3,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data
@@ -95,6 +96,35 @@ namespace Swabbr.Infrastructure.Data
 
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Returns the count of entities matching the given table query within the storage table.
+        /// </summary>
+        /// <param name="tableQuery">The query to match entities on.</param>
+        /// <returns>The amount of entities in the table matching the table query.</returns>
+        public async Task<int> GetEntityCount(TableQuery<DynamicTableEntity> tableQuery)
+        {
+            // Select only the partition key from the entity.
+            tableQuery = tableQuery.Select(new string[] { "PartitionKey" });
+
+            CloudTable cloudTable = _factory.GetClient<TDto>(TableName).CloudTableReference;
+
+            EntityResolver<string> resolver = (pk, rk, ts, props, etag) => props.ContainsKey("PartitionKey") ? props["PartitionKey"].StringValue : null;
+
+            List<string> entities = new List<string>();
+
+            TableContinuationToken continuationToken = null;
+            do
+            {
+                TableQuerySegment<string> tableQueryResult =
+                    await cloudTable.ExecuteQuerySegmentedAsync(tableQuery, resolver, continuationToken);
+                continuationToken = tableQueryResult.ContinuationToken;
+                entities.AddRange(tableQueryResult.Results);
+            }
+            while (continuationToken != null);
+
+            return entities.Count;
         }
 
         /// <summary>

@@ -45,19 +45,19 @@ namespace Swabbr.Infrastructure.Services
         /// handle (token) obtained from Push Notification Service has to be provided
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="deviceUpdate"></param>
+        /// <param name="deviceRegistration"></param>
         /// <returns></returns>
-        public async Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, NotificationDeviceRegistration deviceUpdate)
+        public async Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, DeviceRegistration deviceRegistration)
         {
             RegistrationDescription registrationDescription;
 
-            switch (deviceUpdate.Platform)
+            switch (deviceRegistration.Platform)
             {
                 case PushNotificationPlatform.APNS:
-                    registrationDescription = new AppleRegistrationDescription(deviceUpdate.Handle);
+                    registrationDescription = new AppleRegistrationDescription(deviceRegistration.Handle);
                     break;
                 case PushNotificationPlatform.FCM:
-                    registrationDescription = new FcmRegistrationDescription(deviceUpdate.Handle);
+                    registrationDescription = new FcmRegistrationDescription(deviceRegistration.Handle);
                     break;
                 default:
                     return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service.");
@@ -65,13 +65,16 @@ namespace Swabbr.Infrastructure.Services
 
             registrationDescription.RegistrationId = id;
 
-            List<string> tags = new List<string>();
-            tags.Add(userId.ToString());
-            
+            List<string> tags = new List<string>
+            {
+                userId.ToString()
+            };
+
             registrationDescription.Tags = new HashSet<string>(tags);
 
             try
             {
+                //TODO TEST/CHECK RESPONSE
                 await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
                 return new NotificationResponse();
             }
@@ -88,8 +91,10 @@ namespace Swabbr.Infrastructure.Services
         /// <returns></returns>
         public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification newNotification, Guid userId)
         {
-            List<string> userTag = new List<string>();
-            userTag.Add(userId.ToString());
+            List<string> userTag = new List<string>()
+            {
+                userId.ToString()
+            };
 
             try
             {
@@ -98,13 +103,15 @@ namespace Swabbr.Infrastructure.Services
                 switch (newNotification.Platform)
                 {
                     case PushNotificationPlatform.APNS:
-                        if (newNotification.Tags == null)
+                        // TODO ???
+                        if (userId == Guid.Empty)
                             outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content);
                         else
                             outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content, userTag);
                         break;
                     case PushNotificationPlatform.FCM:
-                        if (newNotification.Tags == null)
+                        // TODO ???
+                        if (userId == Guid.Empty)
                             outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content);
                         else
                             outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content, userTag);
@@ -113,8 +120,8 @@ namespace Swabbr.Infrastructure.Services
 
                 if (outcome != null)
                 {
-                    if (!((outcome.State == NotificationOutcomeState.Abandoned) ||
-                        (outcome.State == NotificationOutcomeState.Unknown)))
+                    if (!(outcome.State == NotificationOutcomeState.Abandoned ||
+                          outcome.State == NotificationOutcomeState.Unknown))
                         return new NotificationResponse<NotificationOutcome>();
                 }
 

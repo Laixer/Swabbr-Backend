@@ -24,11 +24,15 @@ namespace Swabbr.Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IFollowRequestRepository _followRequestRepository;
+        private readonly IVlogRepository _vlogRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public UsersController(IUserRepository repository, UserManager<SwabbrIdentityUser> userManager)
+        public UsersController(IUserRepository userRepository, IFollowRequestRepository followRequestRepository, IVlogRepository vlogRepository, UserManager<SwabbrIdentityUser> userManager)
         {
-            _userRepository = repository;
+            _userRepository = userRepository;
+            _followRequestRepository = followRequestRepository;
+            _vlogRepository = vlogRepository;
             _userManager = userManager;
         }
 
@@ -167,6 +171,28 @@ namespace Swabbr.Api.Controllers
             return Ok(
                 Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 20)
             );
+        }
+
+        /// <summary>
+        /// Get statistics for a user
+        /// </summary>
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [HttpGet("users/{userId}/statistics")]
+        public async Task<IActionResult> GetStatistics([FromRoute] Guid userId)
+        {
+            //TODO Not fully implemented
+            return Ok(new UserStatisticsOutputModel
+            {
+                TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(userId),
+                TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(userId),
+                TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(userId),
+
+                //TODO Counting methods for these are not yet implemented, temporarily set to -1 to indicate it is missing.
+                TotalLikes = -1,
+                TotalReactionsGiven = -1,
+                TotalReactionsReceived = -1,
+                TotalViews = -1
+            });
         }
     }
 }

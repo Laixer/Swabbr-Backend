@@ -57,7 +57,7 @@ namespace Swabbr.Api.Controllers
         [HttpPut("enable/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] NotificationDeviceRegistration deviceUpdate)
+        public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] DeviceRegistration deviceUpdate)
         {
             //TODO Get user id and pass to method
             var userId = Guid.Parse(User.FindFirst(SwabbrClaimTypes.UserId).Value);
@@ -89,7 +89,7 @@ namespace Swabbr.Api.Controllers
             NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, new Guid("415adb6f-9573-49c1-83a5-ac72115a786f"));
 
             if (pushDeliveryResult.CompletedWithSuccess)
-                return Ok();
+                return Ok("Notification was sent succesfully");
 
             return BadRequest("An error occurred while sending push notification: " + pushDeliveryResult.FormattedErrorMessages);
         }
