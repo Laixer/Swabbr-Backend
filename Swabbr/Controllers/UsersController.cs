@@ -169,7 +169,7 @@ namespace Swabbr.Api.Controllers
         {
             //TODO Not implemented
             return Ok(
-                Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 20)
+                Enumerable.Repeat(MockRepository.RandomUserOutputMock(userId), 20)
             );
         }
 

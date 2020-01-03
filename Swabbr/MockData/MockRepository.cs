@@ -19,11 +19,11 @@ namespace Swabbr.Api.MockData
 
         #region I/O models
 
-        public static UserOutputModel RandomUserOutputMock()
+        public static UserOutputModel RandomUserOutputMock(Guid id = default)
         {
             return new UserOutputModel
             {
-                UserId = Guid.NewGuid(),
+                UserId = id,
                 Email = $"{RandomString(3)}@{RandomString(4)}.{RandomString(3)}",
                 FirstName = RandomString(2),
                 LastName = RandomString(10),
@@ -34,11 +34,11 @@ namespace Swabbr.Api.MockData
             };
         }
 
-        public static UserProfileOutputModel RandomUserProfileOutput()
+        public static UserProfileOutputModel RandomUserProfileOutput(Guid id = default)
         {
             return new UserProfileOutputModel
             {
-                UserId = Guid.NewGuid(),
+                UserId = id,
                 FirstName = RandomString(2),
                 LastName = RandomString(10),
                 Nickname = RandomString(4),
@@ -71,13 +71,13 @@ namespace Swabbr.Api.MockData
             };
         }
 
-        public static VlogOutputModel RandomVlogOutput()
+        public static VlogOutputModel RandomVlogOutput(Guid id = default)
         {
             var vlogId = Guid.NewGuid();
 
             return new VlogOutputModel
             {
-                UserId = Guid.NewGuid(),
+                UserId = id,
                 VlogId = vlogId,
                 IsLive = true,
                 IsPrivate = false,
