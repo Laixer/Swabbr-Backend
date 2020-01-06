@@ -29,6 +29,11 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string LastName { get; set; }
 
         /// <summary>
+        /// Email address of the user.
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
         /// Selected gender of the user represented by an integer.
         /// </summary>
         public int Gender { get; set; }

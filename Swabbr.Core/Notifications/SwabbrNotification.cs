@@ -2,6 +2,6 @@
 {
     public class SwabbrNotification : DeviceRegistration
     {
-        public string Content { get; set; }
+        public SwabbrMessage Content { get; set; }
     }
 }

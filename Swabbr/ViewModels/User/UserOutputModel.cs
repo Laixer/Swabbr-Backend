@@ -26,6 +26,12 @@ namespace Swabbr.Api.ViewModels
         public string LastName { get; set; }
 
         /// <summary>
+        /// Email address.
+        /// </summary>
+        [JsonProperty("email")]
+        public string Email { get; set; }
+
+        /// <summary>
         /// Selected gender of the user.
         /// </summary>
         [JsonProperty("gender")]
@@ -36,12 +42,6 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("country")]
         public string Country { get; set; }
-
-        /// <summary>
-        /// Email address.
-        /// </summary>
-        [JsonProperty("email")]
-        public string Email { get; set; }
 
         /// <summary>
         /// Date of birth for the given user.
@@ -98,6 +98,7 @@ namespace Swabbr.Api.ViewModels
                 UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                Email = user.Email,
                 BirthDate = user.BirthDate,
                 Country = user.Country,
                 Gender = user.Gender,

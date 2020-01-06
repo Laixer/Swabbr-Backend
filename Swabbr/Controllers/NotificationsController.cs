@@ -89,7 +89,9 @@ namespace Swabbr.Api.Controllers
             NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, new Guid("415adb6f-9573-49c1-83a5-ac72115a786f"));
 
             if (pushDeliveryResult.CompletedWithSuccess)
+            {
                 return Ok("Notification was sent succesfully");
+            }
 
             return BadRequest("An error occurred while sending push notification: " + pushDeliveryResult.FormattedErrorMessages);
         }

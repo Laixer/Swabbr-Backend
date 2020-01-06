@@ -109,6 +109,9 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 UserId = entity.UserId,
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
+
+                Email = entity.Email,
+
                 BirthDate = entity.BirthDate,
                 Country = entity.Country,
                 Gender = (Gender)entity.Gender,
@@ -130,6 +133,9 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 UserId = entity.UserId,
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
+
+                Email = entity.Email,
+
                 BirthDate = entity.BirthDate,
                 Country = entity.Country,
                 Gender = (int)entity.Gender,

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.NotificationHubs;
 using Microsoft.Azure.NotificationHubs.Messaging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
@@ -100,21 +101,15 @@ namespace Swabbr.Infrastructure.Services
             {
                 NotificationOutcome outcome = null;
 
+                string jsonContent = JsonConvert.SerializeObject(newNotification.Content);
+
                 switch (newNotification.Platform)
                 {
                     case PushNotificationPlatform.APNS:
-                        // TODO ???
-                        if (userId == Guid.Empty)
-                            outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content);
-                        else
-                            outcome = await _hubClient.SendAppleNativeNotificationAsync(newNotification.Content, userTag);
+                        outcome = await _hubClient.SendAppleNativeNotificationAsync(jsonContent, userTag);
                         break;
                     case PushNotificationPlatform.FCM:
-                        // TODO ???
-                        if (userId == Guid.Empty)
-                            outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content);
-                        else
-                            outcome = await _hubClient.SendFcmNativeNotificationAsync(newNotification.Content, userTag);
+                        outcome = await _hubClient.SendFcmNativeNotificationAsync(jsonContent, userTag);
                         break;
                 }
 
@@ -122,7 +117,9 @@ namespace Swabbr.Infrastructure.Services
                 {
                     if (!(outcome.State == NotificationOutcomeState.Abandoned ||
                           outcome.State == NotificationOutcomeState.Unknown))
+                    {
                         return new NotificationResponse<NotificationOutcome>();
+                    }
                 }
 
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Notification was not sent. Please try again.");

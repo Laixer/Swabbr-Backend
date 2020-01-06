@@ -20,22 +20,22 @@ namespace Swabbr.Api.Controllers
         }
 
         // TODO Remove
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateStream()
-        {
-            var output = await livestreamingService.CreateNewStreamAsync("testName");
-
-            return Ok(new StreamConnectionDetailsOutputModel
-            {
-                Id = output.Id,
-                AppName = output.AppName,
-                HostAddress = output.HostAddress,
-                Password = output.Password,
-                Port = output.Port,
-                StreamName = output.StreamName,
-                Username = output.Username
-            });
-        }
+        ////[HttpPost("create")]
+        ////public async Task<IActionResult> CreateStream()
+        ////{
+        ////    var output = await livestreamingService.CreateNewStreamAsync("testName");
+        ////
+        ////    return Ok(new StreamConnectionDetailsOutputModel
+        ////    {
+        ////        Id = output.Id,
+        ////        AppName = output.AppName,
+        ////        HostAddress = output.HostAddress,
+        ////        Password = output.Password,
+        ////        Port = output.Port,
+        ////        StreamName = output.StreamName,
+        ////        Username = output.Username
+        ////    });
+        ////}
 
         /// <summary>
         /// Start an available livestream
@@ -46,7 +46,8 @@ namespace Swabbr.Api.Controllers
         {
             await livestreamingService.StartStreamAsync(id);
 
-            // TODO Notify followers that this user went live...
+            // TODO Get followers of authenticated user
+            // TODO For each follower, send notification
 
             return Ok();
         }
@@ -58,6 +59,10 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> StopStream([FromQuery] string id)
         {
             await livestreamingService.StopStreamAsync(id);
+
+            // TODO Set livestream with id {id} availability to true
+            
+            // TODO Should also happen automatically
 
             return Ok();
         }
