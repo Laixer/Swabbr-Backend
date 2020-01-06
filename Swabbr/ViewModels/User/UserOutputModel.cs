@@ -68,6 +68,24 @@ namespace Swabbr.Api.ViewModels
         public string ProfileImageUrl { get; set; }
 
         /// <summary>
+        /// Total amount of followers the user has acquired.
+        /// </summary>
+        [JsonProperty("totalFollowers")]
+        public int TotalFollowers { get; set; }
+
+        /// <summary>
+        /// Total amount of users the subject is following.
+        /// </summary>
+        [JsonProperty("totalFollowing")]
+        public int TotalFollowing { get; set; }
+
+        /// <summary>
+        /// Total amount of vlogs posted by the user.
+        /// </summary>
+        [JsonProperty("totalVlogs")]
+        public int TotalVlogs { get; set; }
+
+        /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
         [JsonProperty("isPrivate")]

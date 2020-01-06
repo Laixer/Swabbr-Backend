@@ -56,6 +56,9 @@ namespace Swabbr.Api.Controllers
             {
                 User user = await _userRepository.GetByIdAsync(userId);
                 UserOutputModel output = user;
+                output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
+                output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
+                output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
                 return Ok(output);
             }
             catch (EntityNotFoundException)
@@ -76,9 +79,12 @@ namespace Swabbr.Api.Controllers
             var users = await _userRepository.SearchAsync(query, 0, 100);
 
             // Convert entities to output models
-            var usersOutput = users.Select(x =>
+            var usersOutput = users.Select(async x =>
             {
                 UserOutputModel o = x;
+                o.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(o.UserId);
+                o.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(o.UserId);
+                o.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(o.UserId);
                 return o;
             });
 
@@ -110,6 +116,12 @@ namespace Swabbr.Api.Controllers
             //return Ok(testb);
             var userId = Guid.Parse(User.FindFirst(SwabbrClaimTypes.UserId).Value);
             UserOutputModel output = await _userRepository.GetByIdAsync(userId);
+
+            // TODO Avoid repeating lines of code to fetch these (refactor)!
+            output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
+            output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
+            output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
+
             return Ok(output);
         }
 
@@ -180,19 +192,8 @@ namespace Swabbr.Api.Controllers
         [HttpGet("users/{userId}/statistics")]
         public async Task<IActionResult> GetStatistics([FromRoute] Guid userId)
         {
-            //TODO Not fully implemented
-            return Ok(new UserStatisticsOutputModel
-            {
-                TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(userId),
-                TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(userId),
-                TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(userId),
-
-                //TODO Counting methods for these are not yet implemented, temporarily set to -1 to indicate it is missing.
-                TotalLikes = -1,
-                TotalReactionsGiven = -1,
-                TotalReactionsReceived = -1,
-                TotalViews = -1
-            });
+            //TODO Not needed apparently?
+            return NotFound();
         }
     }
 }
