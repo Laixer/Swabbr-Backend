@@ -1,4 +1,6 @@
-﻿using Swabbr.Core.Entities;
+﻿using System;
+using System.Threading.Tasks;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 
@@ -11,6 +13,11 @@ namespace Swabbr.Infrastructure.Data.Repositories
         }
 
         public override string TableName { get; } = "VlogLike";
+
+        public async Task<VlogLike> GetByUserIdAsync(Guid vlogId, Guid userId)
+        {
+            return await RetrieveAsync(vlogId.ToString(), userId.ToString());
+        }
 
         public override VlogLikeTableEntity Map(VlogLike entity)
         {

@@ -95,15 +95,20 @@ namespace Swabbr.Infrastructure.Data
                 var client = _factory.GetClient<TDto>(TableName);
 
                 // Map model to dto
-                var e = Map(entity);
+                var deleteEntity = Map(entity);
+                
+                // Use wildcard ETag
+                deleteEntity.ETag = "*";
+
+                deleteEntity.PartitionKey = ResolvePartitionKey(deleteEntity);
+                deleteEntity.RowKey = ResolveRowKey(deleteEntity);
 
                 // Perform delete
-                await client.DeleteEntityAsync(e);
+                await client.DeleteEntityAsync(deleteEntity);
             }
-            catch (Exception)
+            catch(Exception e)
             {
-                throw new EntityNotFoundException();
-
+                var test = e;
                 throw;
             }
         }

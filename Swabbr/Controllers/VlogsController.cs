@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -17,11 +21,19 @@ namespace Swabbr.Api.Controllers
     [Route("api/v1/vlogs")]
     public class VlogsController : ControllerBase
     {
-        private readonly IVlogRepository _repository;
+        private readonly IVlogRepository _vlogRepository;
+        private readonly IVlogLikeRepository _vlogLikeRepository;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public VlogsController(IVlogRepository repository)
+        public VlogsController(
+            IVlogRepository vlogRepository, 
+            IVlogLikeRepository vlogLikeRepository, 
+            UserManager<SwabbrIdentityUser> userManager
+            )
         {
-            _repository = repository;
+            _vlogRepository = vlogRepository;
+            _vlogLikeRepository = vlogLikeRepository;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -63,12 +75,22 @@ namespace Swabbr.Api.Controllers
         /// Delete a vlog that is owned by the authenticated user.
         /// </summary>
         /// <returns></returns>
-        [Obsolete("Not implemented")]
         [HttpDelete("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Delete([FromRoute]Guid vlogId)
         {
-            //TODO Not implemented
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
+
+            // Ensure the authenticated user is the owner of this vlog
+            if (!vlogEntity.UserId.Equals(identityUser.UserId))
+            {
+                return BadRequest();
+            }
+
+            await _vlogRepository.DeleteAsync(vlogEntity);
+
             return NoContent();
         }
 
@@ -80,7 +102,19 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Like([FromRoute]Guid vlogId)
         {
-            //TODO Not implemented, create a new vloglike for the vlog
+            // TODO Check if the vlog exists first?
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            var entityToCreate = new VlogLike
+            {
+                VlogLikeId = Guid.NewGuid(),
+                UserId = identityUser.UserId,
+                VlogId = vlogId,
+                TimeCreated = DateTime.Now,
+            };
+
+            // Create a new like record
+            await _vlogLikeRepository.CreateAsync(entityToCreate);
 
             return Ok();
         }
@@ -88,12 +122,24 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Remove a like previously given to a single vlog.
         /// </summary>
-        [Obsolete("Not implemented")]
         [HttpDelete("like/{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Unlike([FromRoute]Guid vlogId)
         {
-            //TODO Not implemented
+            // TODO Check if the vlog exists first?
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            try
+            {
+                // Retrieve and delete the entity
+                var entityToDelete = await _vlogLikeRepository.GetByUserIdAsync(vlogId, identityUser.UserId);
+                await _vlogLikeRepository.DeleteAsync(entityToDelete);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+
             return NoContent();
         }
     }

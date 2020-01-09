@@ -113,6 +113,7 @@ namespace Swabbr
             services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
             services.AddScoped<IFollowRequestRepository, FollowRequestRepository>();
             services.AddScoped<IVlogRepository, VlogRepository>();
+            services.AddScoped<IVlogLikeRepository, VlogLikeRepository>();
             services.AddScoped<ILivestreamRepository, LivestreamRepository>();
 
             // Configure DI for services

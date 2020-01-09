@@ -9,6 +9,8 @@ namespace Swabbr.Core.Interfaces
     /// </summary>
     public interface IVlogRepository : IRepository<Vlog>
     {
+        Task<Vlog> GetByIdAsync(Guid vlogId);
+
         /// <summary>
         /// Returns the amount of vlogs that a user has created.
         /// </summary>
