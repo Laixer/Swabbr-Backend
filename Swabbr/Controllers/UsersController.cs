@@ -181,7 +181,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> ListFollowers([FromRoute] Guid userId)
         {
             var followRelationships = await _followRequestRepository.GetIncomingForUserAsync(userId);
-           
+
             var usersOutput = followRelationships
                 .Where(x => x.Status == FollowRequestStatus.Accepted)
                 .Select(async x =>

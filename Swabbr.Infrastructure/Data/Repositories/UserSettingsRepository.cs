@@ -1,10 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
+using System;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {
@@ -28,7 +28,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 var entity = await RetrieveAsync(userIdString, userIdString);
                 return entity;
             }
-            catch(EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
                 // TODO: Temporarily creating a new record with default settings if no record for this user exists yet.
                 return await CreateAsync(new UserSettings

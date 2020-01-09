@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;

@@ -92,7 +92,6 @@ namespace Swabbr.Infrastructure.Services
                 }
 
                 return null;
-
             };
         }
 
@@ -121,8 +120,7 @@ namespace Swabbr.Infrastructure.Services
             }
             catch (EntityNotFoundException)
             {
-                // Create a new livestream and return it.
-                // TODO How to determine stream name?
+                // Create a new livestream and return it. TODO How to determine stream name?
                 var newStream = await CreateNewStreamAsync("testName");
                 return newStream;
             }

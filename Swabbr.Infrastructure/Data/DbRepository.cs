@@ -70,7 +70,7 @@ namespace Swabbr.Infrastructure.Data
             {
                 var client = _factory.GetClient<TDto>(TableName);
                 var updateEntity = Map(entity);
-                
+
                 // Use wildcard ETag
                 updateEntity.ETag = "*";
 

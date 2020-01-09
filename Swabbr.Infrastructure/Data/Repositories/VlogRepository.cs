@@ -11,7 +11,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
     {
         public VlogRepository(IDbClientFactory factory) : base(factory)
         {
-
         }
 
         public override string TableName { get; } = "Vlogs";

@@ -1,9 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {
@@ -11,7 +8,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
     {
         public VlogLikeRepository(IDbClientFactory factory) : base(factory)
         {
-
         }
 
         public override string TableName { get; } = "VlogLike";

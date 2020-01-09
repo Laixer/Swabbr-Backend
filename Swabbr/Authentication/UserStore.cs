@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 namespace Swabbr.Api.Authentication
 {
     // TODO Not optimized
-    public class UserStore : 
-        IUserStore<SwabbrIdentityUser>, 
-        IUserEmailStore<SwabbrIdentityUser>, 
+    public class UserStore :
+        IUserStore<SwabbrIdentityUser>,
+        IUserEmailStore<SwabbrIdentityUser>,
         IUserPhoneNumberStore<SwabbrIdentityUser>,
-        IUserTwoFactorStore<SwabbrIdentityUser>, 
-        IUserPasswordStore<SwabbrIdentityUser>, 
+        IUserTwoFactorStore<SwabbrIdentityUser>,
+        IUserPasswordStore<SwabbrIdentityUser>,
         IUserClaimStore<SwabbrIdentityUser>,
         IUserRoleStore<SwabbrIdentityUser>
     {
@@ -151,6 +151,7 @@ namespace Swabbr.Api.Authentication
         }
 
         #region IUserEmailStore
+
         public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
             var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).CloudTableReference;
@@ -198,9 +199,11 @@ namespace Swabbr.Api.Authentication
         {
             user.NormalizedEmail = normalizedEmail;
         }
-        #endregion
+
+        #endregion IUserEmailStore
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -220,11 +223,8 @@ namespace Swabbr.Api.Authentication
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~UserStore()
-        // {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
+        // ~UserStore() { // Do not change this code. Put cleanup code in Dispose(bool disposing)
+        // above. Dispose(false); }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
@@ -234,12 +234,14 @@ namespace Swabbr.Api.Authentication
             // TODO: uncomment the following line if the finalizer is overridden above.
             GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
 
         #region IUserClaimStore
+
         public Task AddClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
-            foreach(Claim c in claims)
+            foreach (Claim c in claims)
             {
                 // TODO insert c for user
             }
@@ -272,9 +274,11 @@ namespace Swabbr.Api.Authentication
             // TODO Update c
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IUserClaimStore
 
         #region IUserRoleStore
+
         public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
             // TODO Implement
@@ -309,6 +313,7 @@ namespace Swabbr.Api.Authentication
             return Task.CompletedTask;
             throw new NotImplementedException();
         }
-        #endregion
+
+        #endregion IUserRoleStore
     }
 }

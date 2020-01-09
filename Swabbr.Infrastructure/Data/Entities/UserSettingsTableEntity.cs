@@ -1,5 +1,4 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Infrastructure.Data.Entities

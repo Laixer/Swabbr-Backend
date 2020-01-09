@@ -59,6 +59,7 @@ namespace Swabbr.Api.Authentication
         }
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -78,11 +79,8 @@ namespace Swabbr.Api.Authentication
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~RoleStore()
-        // {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
+        // ~RoleStore() { // Do not change this code. Put cleanup code in Dispose(bool disposing)
+        // above. Dispose(false); }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
@@ -92,6 +90,7 @@ namespace Swabbr.Api.Authentication
             // TODO: uncomment the following line if the finalizer is overridden above.
             GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
     }
 }

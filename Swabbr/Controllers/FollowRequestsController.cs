@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -102,7 +101,8 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns the status of a single follow relationship from the authenticated user to the user with the specified id.
+        /// Returns the status of a single follow relationship from the authenticated user to the
+        /// user with the specified id.
         /// </summary>
         [HttpGet("outgoing/{receiverId}/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
@@ -113,7 +113,8 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns a collection of users for which the authenticated user has previously rejected follow requests.
+        /// Returns a collection of users for which the authenticated user has previously rejected
+        /// follow requests.
         /// </summary>
         /// <returns></returns>
         [HttpGet("rejected")]
@@ -126,7 +127,7 @@ namespace Swabbr.Api.Controllers
             // Filter out non-declined requests and map the collection to output models.
             var requestsOutput = outgoingRequests
                 .Where(entity => entity.Status == FollowRequestStatus.Declined)
-                .Select(entity => (FollowRequestOutputModel) entity);
+                .Select(entity => (FollowRequestOutputModel)entity);
 
             return Ok(requestsOutput);
         }
@@ -144,7 +145,7 @@ namespace Swabbr.Api.Controllers
             {
                 return BadRequest("Users cannot follow themselves.");
             }
-            else if (! await _userRepository.UserExistsAsync(receiverId))
+            else if (!await _userRepository.UserExistsAsync(receiverId))
             {
                 return BadRequest("User does not exist.");
             }
@@ -156,9 +157,9 @@ namespace Swabbr.Api.Controllers
             var followMode = userSettings.FollowMode;
 
             // Assing the predetermined state of the follow request based on the follow mode setting.
-            var requestStatus = 
-                (followMode == FollowMode.AcceptAll) ? FollowRequestStatus.Accepted : 
-                (followMode == FollowMode.DenyAll)   ? FollowRequestStatus.Declined : 
+            var requestStatus =
+                (followMode == FollowMode.AcceptAll) ? FollowRequestStatus.Accepted :
+                (followMode == FollowMode.DenyAll) ? FollowRequestStatus.Declined :
                 FollowRequestStatus.Pending;
 
             var entityToCreate = new FollowRequest
