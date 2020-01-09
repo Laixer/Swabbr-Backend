@@ -1,7 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swabbr.Core.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
@@ -10,6 +11,25 @@ namespace Swabbr.Api.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
+        private readonly IUserRepository userRepository;
+
+        public AdminController(IUserRepository userRepository)
+        {
+            this.userRepository = userRepository;
+        }
+
+        //TODO: Remove, temporary
+        /// <summary>
+        /// Used to remove tables to prevent unnecessary throughput billing
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete("deletestoragetables")]
+        public async Task<IActionResult> TempDeleteTables()
+        {
+            await userRepository.TempDeleteTables();
+            return Ok();
+        }
+
         [HttpPost("notifications/send")]
         public async Task<IActionResult> SendNotification()
         {

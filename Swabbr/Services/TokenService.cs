@@ -2,13 +2,11 @@
 using Microsoft.IdentityModel.Tokens;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Options;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Swabbr.Api.Services
 {

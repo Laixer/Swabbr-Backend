@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Data.Livestreaming;
@@ -105,6 +106,25 @@ namespace Swabbr.Infrastructure.Services
                 requestMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
 
                 var result = await HttpClient.SendAsync(requestMessage);
+            }
+        }
+
+        public async Task<StreamConnectionDetails> GetAvailableStreamConnectionAsync()
+        {
+            try
+            {
+                var availableLivestream = await _livestreamRepository.GetAvailableLivestream();
+
+                // Retrieve live stream connection details
+                var connection = await GetStreamConnectionAsync(availableLivestream.Id);
+                return connection;
+            }
+            catch (EntityNotFoundException)
+            {
+                // Create a new livestream and return it.
+                // TODO How to determine stream name?
+                var newStream = await CreateNewStreamAsync("testName");
+                return newStream;
             }
         }
 

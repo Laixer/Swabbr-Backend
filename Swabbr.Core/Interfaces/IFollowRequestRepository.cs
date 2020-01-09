@@ -15,14 +15,20 @@ namespace Swabbr.Core.Interfaces
         Task<FollowRequest> GetByIdAsync(Guid followRequestId);
 
         /// <summary>
-        /// Returns the incoming (pending) follow requests for a specific user.
+        /// Returns a single follow request entity from the id of the requester to the id of the receiver.
+        /// </summary>
+        /// <returns></returns>
+        Task<FollowRequest> GetByUserId(Guid receiverId, Guid requesterId);
+
+        /// <summary>
+        /// Returns all incoming follow requests for a specific user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user that received the requests.</param>
         /// <returns></returns>
         Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId);
 
         /// <summary>
-        /// Returns the outgoing follow requests for a specific user.
+        /// Returns all outgoing follow requests for a specific user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user that sent out the requests.</param>
         /// <returns></returns>
@@ -38,7 +44,9 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Returns the amount of users that the specified user is following.
         /// </summary>
-        /// <param name="userId">Unique identifier of the user to check the amount of followers for.</param>
+        /// <param name="userId">
+        /// Unique identifier of the user to check the amount of followers for.
+        /// </param>
         /// <returns></returns>
         Task<int> GetFollowingCountAsync(Guid userId);
     }

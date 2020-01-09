@@ -29,6 +29,11 @@ namespace Swabbr.Core.Interfaces
         /// <returns>A collection of users matching the search query.</returns>
         Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
 
+        /// <summary>
+        /// Checks if a user with the given id exists.
+        /// </summary>
+        Task<bool> UserExistsAsync(Guid userId);
+
         //TODO: Remove
         Task TempDeleteTables();
     }

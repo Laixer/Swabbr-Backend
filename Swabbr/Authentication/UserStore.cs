@@ -27,11 +27,12 @@ namespace Swabbr.Api.Authentication
             _factory = factory;
         }
 
-        public static string UserTableName => "Users";
+        public static string UsersTableName => "Users";
+        public static string UserSettingsTableName => "UserSettings";
 
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
 
             // Ensure user does not exist
             var checkUser = await FindByEmailAsync(user.NormalizedEmail, new CancellationToken());
@@ -53,7 +54,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
             //! Important: Merging the entity because we do not want to discard the existing properties
             await client.MergeEntityAsync(user);
             return IdentityResult.Success;
@@ -61,14 +62,14 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
             await client.DeleteEntityAsync(user);
             return IdentityResult.Success;
         }
 
         public async Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UserTableName);
+            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
             return await client.RetrieveEntityAsync(userId, userId);
         }
 
@@ -152,7 +153,7 @@ namespace Swabbr.Api.Authentication
         #region IUserEmailStore
         public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var table = _factory.GetClient<SwabbrIdentityUser>(UserTableName).CloudTableReference;
+            var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).CloudTableReference;
 
             // Check if the normalized email already exists in the table.
             var tq = new TableQuery<SwabbrIdentityUser>().Where(

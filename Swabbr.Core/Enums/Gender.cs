@@ -1,7 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
     /// <summary>
     /// Enum for the gender of a <see cref="UserItem"/>.

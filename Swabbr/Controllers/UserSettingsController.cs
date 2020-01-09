@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
 using System.Net;
 using System.Threading.Tasks;
@@ -34,12 +35,13 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Get()
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            var uid = currentUser.UserId.ToString();
-            var settings = _userSettingsRepository.RetrieveAsync(uid, uid);
+            var identityUser = await _userManager.GetUserAsync(User);
+            var userId = identityUser.UserId;
+            var settingsEntity = await _userSettingsRepository.GetByUserId(userId);
 
-            //TODO Not implemented
-            return Ok(MockData.MockRepository.RandomUserSettingsOutput());
+            UserSettingsOutputModel output = settingsEntity;
+
+            return Ok(output);
         }
 
         /// <summary>
@@ -49,16 +51,22 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> Update([FromBody] UserSettingsInputModel input)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            //TODO Check if invalid userid has been given?
-            input.UserId = currentUser.UserId;
-            
-            await _userSettingsRepository.UpdateAsync(input);
+            var identityUser = await _userManager.GetUserAsync(User);
 
-            // TODO Return updated settings (input model that was updated)
+            // Ensure the user settings exist and belong to the authenticated user.
+            UserSettings settings = await _userSettingsRepository.GetByUserId(identityUser.UserId);
 
-            //TODO Not implemented
-            return Ok(MockData.MockRepository.RandomUserSettingsOutput());
+            settings.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
+            settings.FollowMode = (FollowMode)((int)input.FollowMode);
+
+            settings.IsPrivate = input.IsPrivate;
+
+            await _userSettingsRepository.UpdateAsync(settings);
+
+            // Return (updated) settings entity
+            UserSettingsOutputModel output = settings;
+
+            return Ok(output);
         }
     }
 }

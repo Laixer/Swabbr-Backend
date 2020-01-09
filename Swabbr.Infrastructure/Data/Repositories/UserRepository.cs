@@ -29,13 +29,13 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public Task<User> GetByIdAsync(Guid userId)
         {
-            // Partition key and row key are the same. 
+            // Partition key and row key are the same.
             //TODO Change partition key if there is a better alternative.
             var id = userId.ToString();
             return RetrieveAsync(id, id);
         }
 
-        public Task<User> GetByEmailAsync(string email)
+        public async Task<User> GetByEmailAsync(string email)
         {
             var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
@@ -46,19 +46,21 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
             if (queryResults.Any())
             {
-                return Task.FromResult(Map(queryResults.First()));
+                return Map(queryResults.First());
             }
 
             throw new EntityNotFoundException();
         }
 
         /// <summary>
-        /// Search for a user by checking if the given search query matches the beginning of their first name,
-        /// last name or nickname.
+        /// Search for a user by checking if the given search query matches the beginning of their
+        /// first name, last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
         public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
+            //TODO Use cognitive search
+            //TODO IMportant
             await Task.FromResult(0);
             throw new NotImplementedException();
             //TODO Use cognitive search
@@ -68,19 +70,21 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 return null;
 
             var qNormalized = q.ToUpper(System.Globalization.CultureInfo.InvariantCulture);
-            
+
             var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
 
             // The filter that is currently used is similar to a T-SQL 'LIKE' query with a wildcard at the end of the query.
             //! Important: Only the right side of the search query can be tested against the table. This has the same functionality as a 'StartsWith' function.
-            string constructColumnFilter(string column) {
+            string constructColumnFilter(string column)
+            {
                 var lastChar = q[q.Length - 1];
 
                 // Similar to 'SELECT WHERE <column> LIKE '<query>%'
                 return TableQuery.CombineFilters(
                     TableQuery.GenerateFilterCondition(column, QueryComparisons.GreaterThanOrEqual, q),
                     TableOperators.And,
-                    // Column must be less than or equal to (lte) the query + last character incremented by 1. 
+                    // Column must be less than or equal to (lte) the query + last character
+                    // incremented by 1.
                     TableQuery.GenerateFilterCondition(column, QueryComparisons.LessThanOrEqual, $"{q}{char.ToString((char)(lastChar + 1))}")
                 );
             }
@@ -153,5 +157,19 @@ namespace Swabbr.Infrastructure.Data.Repositories
         public override string ResolvePartitionKey(UserTableEntity entity) => entity.UserId.ToString();
 
         public override string ResolveRowKey(UserTableEntity entity) => entity.UserId.ToString();
+
+        public async Task<bool> UserExistsAsync(Guid userId)
+        {
+            try
+            {
+                // TODO Optimize, only need to retrieve partition key
+                var x = await GetByIdAsync(userId);
+                return true;
+            }
+            catch (EntityNotFoundException)
+            {
+                return false;
+            }
+        }
     }
 }

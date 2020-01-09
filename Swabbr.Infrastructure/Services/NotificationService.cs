@@ -40,10 +40,9 @@ namespace Swabbr.Infrastructure.Services
         }
 
         /// <summary>
-        /// Register device to receive push notifications. 
-        /// Registration ID obtained from Azure Notification Hub has to be provided
-        /// Then basing on the platform (Android or iOS) a specific
-        /// handle (token) obtained from Push Notification Service has to be provided
+        /// Register device to receive push notifications. Registration ID obtained from Azure
+        /// Notification Hub has to be provided Then basing on the platform (Android or iOS) a
+        /// specific handle (token) obtained from Push Notification Service has to be provided
         /// </summary>
         /// <param name="id"></param>
         /// <param name="deviceRegistration"></param>
@@ -57,9 +56,11 @@ namespace Swabbr.Infrastructure.Services
                 case PushNotificationPlatform.APNS:
                     registrationDescription = new AppleRegistrationDescription(deviceRegistration.Handle);
                     break;
+
                 case PushNotificationPlatform.FCM:
                     registrationDescription = new FcmRegistrationDescription(deviceRegistration.Handle);
                     break;
+
                 default:
                     return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service.");
             }
@@ -108,6 +109,7 @@ namespace Swabbr.Infrastructure.Services
                     case PushNotificationPlatform.APNS:
                         outcome = await _hubClient.SendAppleNativeNotificationAsync(jsonContent, userTag);
                         break;
+
                     case PushNotificationPlatform.FCM:
                         outcome = await _hubClient.SendFcmNativeNotificationAsync(jsonContent, userTag);
                         break;
@@ -124,12 +126,10 @@ namespace Swabbr.Infrastructure.Services
 
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Notification was not sent. Please try again.");
             }
-
             catch (MessagingException e)
             {
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
             }
-
             catch (ArgumentException e)
             {
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);

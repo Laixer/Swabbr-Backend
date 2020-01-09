@@ -1,6 +1,10 @@
-﻿using Swabbr.Core.Entities;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {
@@ -14,6 +18,23 @@ namespace Swabbr.Infrastructure.Data.Repositories
         }
 
         public override string TableName => "Livestreams";
+
+        public Task<Livestream> GetAvailableLivestream()
+        {
+            var table = _factory.GetClient<LivestreamTableEntity>(TableName).CloudTableReference;
+
+            var tq = new TableQuery<LivestreamTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForBool("Available", QueryComparisons.Equal, true));
+
+            var queryResults = table.ExecuteQuery(tq);
+
+            if (queryResults.Any())
+            {
+                return Task.FromResult(Map(queryResults.First()));
+            }
+
+            throw new EntityNotFoundException();
+        }
 
         public override LivestreamTableEntity Map(Livestream entity)
         {

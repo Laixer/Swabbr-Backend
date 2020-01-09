@@ -77,7 +77,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="newNotification"></param>
         /// <returns></returns>
         //TODO: IMPORTANT! Make sure this method requires admin authorization. Temporarily disabled for testing purposes
-        [AllowAnonymous]       
+        [AllowAnonymous]
         //[Authorize(Roles = "Admin")]
 
         [HttpPost("send")]

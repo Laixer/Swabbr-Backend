@@ -5,6 +5,7 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using System;
@@ -34,15 +35,6 @@ namespace Swabbr.Api.Controllers
             _followRequestRepository = followRequestRepository;
             _vlogRepository = vlogRepository;
             _userManager = userManager;
-        }
-
-        //TODO: Remove, temporary
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpGet("deletetables")]
-        public async Task<IActionResult> TempDeleteTables()
-        {
-            await _userRepository.TempDeleteTables();
-            return Ok();
         }
 
         /// <summary>
@@ -76,19 +68,10 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> Search([FromQuery]string query)
         {
-            var users = await _userRepository.SearchAsync(query, 0, 100);
-
-            // Convert entities to output models
-            var usersOutput = users.Select(async x =>
-            {
-                UserOutputModel o = x;
-                o.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(o.UserId);
-                o.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(o.UserId);
-                o.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(o.UserId);
-                return o;
-            });
-
-            return Ok(usersOutput);
+            // TODO Not implemented
+            return Ok(
+                Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 10)
+            );
         }
 
         /// <summary>
@@ -98,23 +81,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Self()
         {
-            // TODO Remove testing code
-            //var identity = User.Identity;
-            //var claims = User.Claims;
-            //
-            //string testb = "";
-            //
-            //testb += (identity.IsAuthenticated ? "YES./" : "NO./");
-            //testb += ($"TYPE:{identity.AuthenticationType}/");
-            //testb += ($"NAME:{identity.Name}/");
-            //
-            //foreach (var c in claims)
-            //{
-            //    testb += $"{c.Value}/";
-            //}
-            //
-            //return Ok(testb);
-            var userId = Guid.Parse(User.FindFirst(SwabbrClaimTypes.UserId).Value);
+            var identityUser = await _userManager.GetUserAsync(User);
+            var userId = identityUser.UserId;
             UserOutputModel output = await _userRepository.GetByIdAsync(userId);
 
             // TODO Avoid repeating lines of code to fetch these (refactor)!
@@ -132,9 +100,24 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> Update([FromBody] UserUpdateInputModel input)
         {
-            // TODO not implemented
-            //_userRepository.UpdateAsync(input);
-            return Ok(input);
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            var userEntity = await _userRepository.GetByIdAsync(identityUser.UserId);
+
+            //TODO Should Country/Gender/Birth Date etc. be allowed to be changed?
+            // Update properties
+            userEntity.FirstName = input.FirstName;
+            userEntity.LastName = input.LastName;
+            userEntity.Country = input.Country;
+            userEntity.Gender = input.Gender;
+            userEntity.Nickname = input.Nickname;
+            userEntity.ProfileImageUrl = input.ProfileImageUrl;
+            userEntity.Timezone = input.Timezone;
+            userEntity.BirthDate = input.BirthDate;
+
+            UserOutputModel output = await _userRepository.UpdateAsync(input);
+
+            return Ok(output);
         }
 
         /// <summary>
@@ -144,7 +127,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Delete()
         {
-            // TODO Not implemented
+            //TODO Delete all user data? Or flag user as inactive? Not yet implemented.
             return NoContent();
         }
 
@@ -153,12 +136,19 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("users/{userId}/following")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
-        public async Task<IActionResult> List([FromRoute] Guid userId)
+        public async Task<IActionResult> ListFollowing([FromRoute] Guid userId)
         {
-            // TODO Not implemented
-            return Ok(
-                Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 10)
-            );
+            var followRelationships = await _followRequestRepository.GetOutgoingForUserAsync(userId);
+            var usersOutput = followRelationships
+                .Where(x => x.Status == FollowRequestStatus.Accepted)
+                .Select(async x =>
+                {
+                    UserOutputModel o = await _userRepository.GetByIdAsync(x.RequesterId);
+                    return o;
+                })
+                .Select(t => t.Result);
+
+            return Ok(usersOutput);
         }
 
         /// <summary>
@@ -168,8 +158,19 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Unfollow([FromRoute] Guid userId)
         {
-            // TODO Not implemented
-            return NoContent();
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            try
+            {
+                var followRequest = await _followRequestRepository.GetByUserId(userId, identityUser.UserId);
+                // Delete the request
+                await _followRequestRepository.DeleteAsync(followRequest);
+                return NoContent();
+            }
+            catch (EntityNotFoundException)
+            {
+                return BadRequest("There is no follow relationship between these users.");
+            }
         }
 
         /// <summary>
@@ -179,21 +180,18 @@ namespace Swabbr.Api.Controllers
         [HttpGet("users/{userId}/followers")]
         public async Task<IActionResult> ListFollowers([FromRoute] Guid userId)
         {
-            //TODO Not implemented
-            return Ok(
-                Enumerable.Repeat(MockRepository.RandomUserOutputMock(userId), 20)
-            );
-        }
+            var followRelationships = await _followRequestRepository.GetIncomingForUserAsync(userId);
+           
+            var usersOutput = followRelationships
+                .Where(x => x.Status == FollowRequestStatus.Accepted)
+                .Select(async x =>
+                {
+                    UserOutputModel o = await _userRepository.GetByIdAsync(x.RequesterId);
+                    return o;
+                })
+                .Select(t => t.Result);
 
-        /// <summary>
-        /// Get statistics for a user
-        /// </summary>
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
-        [HttpGet("users/{userId}/statistics")]
-        public async Task<IActionResult> GetStatistics([FromRoute] Guid userId)
-        {
-            //TODO Not needed apparently?
-            return NotFound();
+            return Ok(usersOutput);
         }
     }
 }

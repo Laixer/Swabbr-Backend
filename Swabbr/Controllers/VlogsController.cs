@@ -76,12 +76,12 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Leave a like on a single vlog.
         /// </summary>
-        [Obsolete("Not implemented")]
         [HttpPost("like/{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Like([FromRoute]Guid vlogId)
         {
             //TODO Not implemented, create a new vloglike for the vlog
+
             return Ok();
         }
 

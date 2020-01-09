@@ -41,13 +41,12 @@ namespace Swabbr.Infrastructure.Data
             // Delete all tables from the database to avoid unnecessary billing.
             foreach (var table in _tables)
             {
+                // Do not ever delete the user table
+                if (table.Id.Equals("Users", StringComparison.OrdinalIgnoreCase))
+                    return;
+
                 await _client.GetTableReference(table.Id).DeleteIfExistsAsync();
             }
-        }
-
-        Task IDbClientFactory.DeleteAllTables()
-        {
-            throw new NotImplementedException();
         }
     }
 }

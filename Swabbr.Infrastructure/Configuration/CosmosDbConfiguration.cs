@@ -1,5 +1,4 @@
-﻿using Swabbr.Infrastructure.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Swabbr.Infrastructure.Configuration
 {

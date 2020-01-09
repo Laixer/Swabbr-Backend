@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Notifications;
 using System;
 using System.Threading.Tasks;
 
@@ -12,11 +13,18 @@ namespace Swabbr.Api.Controllers
     [Route("api/v1/livestreams")]
     public class LivestreamsController : ControllerBase
     {
-        private readonly ILivestreamingService livestreamingService;
+        private readonly ILivestreamingService _livestreamingService;
+        private readonly INotificationService _notificationService;
+        private readonly ILivestreamRepository _livestreamRepository;
 
-        public LivestreamsController(ILivestreamingService livestreamingService)
+        public LivestreamsController(
+            ILivestreamingService livestreamingService,
+            ILivestreamRepository livestreamRepository,
+            INotificationService notificationService)
         {
-            this.livestreamingService = livestreamingService;
+            _livestreamingService = livestreamingService;
+            _livestreamRepository = livestreamRepository;
+            _notificationService = notificationService;
         }
 
         // TODO Remove
@@ -40,14 +48,38 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Start an available livestream
         /// </summary>
+        [HttpGet("test/{userId}")]
+        public async Task<IActionResult> NotifyUserStream(Guid userId)
+        {
+            // TODO Obtain available livestream from pool
+            var connectionDetails = await _livestreamingService.GetAvailableStreamConnectionAsync();
+
+            var notification = new SwabbrNotification
+            {
+                Content = new SwabbrMessage
+                {
+                }
+            };
+
+            await _notificationService.SendNotificationToUserAsync(notification, userId);
+
+            // TODO Create notification with connection details as message content
+
+            // TODO Send notification to user
+
+            return NotFound("No");
+        }
+
+        /// <summary>
+        /// Start an available livestream
+        /// </summary>
         /// <param name="id">Id of the livestream</param>
-        [HttpGet("start/{id}")]
+        [HttpPut("start/{id}")]
         public async Task<IActionResult> StartStream([FromQuery] string id)
         {
-            await livestreamingService.StartStreamAsync(id);
+            await _livestreamingService.StartStreamAsync(id);
 
-            // TODO Get followers of authenticated user
-            // TODO For each follower, send notification
+            // TODO Get followers of authenticated user TODO For each follower, send notification
 
             return Ok();
         }
@@ -55,13 +87,13 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Stop a running livestream
         /// </summary>
-        [HttpGet("stop/{id}")]
+        [HttpPut("stop/{id}")]
         public async Task<IActionResult> StopStream([FromQuery] string id)
         {
-            await livestreamingService.StopStreamAsync(id);
+            await _livestreamingService.StopStreamAsync(id);
 
             // TODO Set livestream with id {id} availability to true
-            
+
             // TODO Should also happen automatically
 
             return Ok();
@@ -73,7 +105,7 @@ namespace Swabbr.Api.Controllers
         [HttpGet("playback/{id}")]
         public async Task<IActionResult> GetPlayback(string id)
         {
-            var details = await livestreamingService.GetStreamPlaybackAsync(id);
+            var details = await _livestreamingService.GetStreamPlaybackAsync(id);
 
             return Ok(new StreamPlaybackOutputModel
             {
@@ -87,7 +119,7 @@ namespace Swabbr.Api.Controllers
         [HttpGet("playback/user/{userId}")]
         public async Task<IActionResult> GetPlaybackForUser(Guid userId)
         {
-            // TODO
+            // TODO UserId has to be linked to AVAILABLE livestream id
             throw new NotImplementedException();
         }
 
@@ -98,7 +130,7 @@ namespace Swabbr.Api.Controllers
         [HttpGet("delete/{id}")]
         public async Task<IActionResult> DeleteStream(string id)
         {
-            await livestreamingService.DeleteStreamAsync(id);
+            await _livestreamingService.DeleteStreamAsync(id);
             return Ok();
         }
 
@@ -108,7 +140,7 @@ namespace Swabbr.Api.Controllers
         {
             //TODO Check if user has permission to request these details
 
-            var output = await livestreamingService.GetStreamConnectionAsync(id);
+            var output = await _livestreamingService.GetStreamConnectionAsync(id);
 
             return Ok(new StreamConnectionDetailsOutputModel
             {

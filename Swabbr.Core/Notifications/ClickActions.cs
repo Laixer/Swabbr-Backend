@@ -5,7 +5,7 @@
         /// <summary>
         /// A profile followed by the user has just gone live.
         /// </summary>
-        public const string FOLLOWED_PROFILE_LIVE  = "followed_profile_live";
+        public const string FOLLOWED_PROFILE_LIVE = "followed_profile_live";
 
         /// <summary>
         /// The user has been inactive on the app for a while.

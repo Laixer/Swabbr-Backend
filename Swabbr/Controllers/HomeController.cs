@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
 using System.Threading.Tasks;
 

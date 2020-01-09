@@ -39,26 +39,34 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return Task.FromResult(Map(queryResults.First()));
         }
 
-        //TODO Make async
-        public Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
+        public Task<FollowRequest> GetByUserId(Guid receiverId, Guid requesterId)
+        {
+            return this.RetrieveAsync(receiverId.ToString(), requesterId.ToString());
+        }
+
+        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
+            // The partition key is the receiver id
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
-                TableQuery.GenerateFilterCondition("ReceiverId", QueryComparisons.Equal, userId.ToString()));
+                        TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString())
+                    );
 
             var queryResults = table.ExecuteQuery(tq);
             var mappedResults = queryResults.Select(x => Map(x));
 
-            return Task.FromResult(mappedResults);
+            return mappedResults;
         }
 
         public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
+            // The row key is the requester id
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
-                TableQuery.GenerateFilterCondition("RequesterId", QueryComparisons.Equal, userId.ToString()));
+                        TableQuery.GenerateFilterCondition("RequesterId", QueryComparisons.Equal, userId.ToString())
+                );
 
             var queryResults = table.ExecuteQuery(tq);
             var mappedResults = queryResults.Select(x => Map(x));
@@ -119,5 +127,44 @@ namespace Swabbr.Infrastructure.Data.Repositories
         public override string ResolvePartitionKey(FollowRequestTableEntity entity) => entity.ReceiverId.ToString();
 
         public override string ResolveRowKey(FollowRequestTableEntity entity) => entity.RequesterId.ToString();
+
+        public async Task<IEnumerable<Guid>> GetFollowerIds(Guid userId)
+        {
+            TableQuery<DynamicTableEntity> tableQuery = new TableQuery<DynamicTableEntity>()
+            .Where(
+                TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString()),
+                    TableOperators.And,
+                    TableQuery.GenerateFilterConditionForInt("Status", QueryComparisons.Equal, (int)FollowRequestStatus.Accepted)
+                )
+            );
+
+            // Select only the partition key from the entity.
+            tableQuery = tableQuery.Select(new string[] { "RequesterId" });
+
+            CloudTable cloudTable = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
+
+            EntityResolver<Guid> resolver = (pk, rk, ts, props, etag) => props["RequesterId"].GuidValue.GetValueOrDefault();
+
+            List<Guid> ids = new List<Guid>();
+
+            // Fetch matching entities
+            TableContinuationToken continuationToken = null;
+            do
+            {
+                TableQuerySegment<Guid> tableQueryResult =
+                    await cloudTable.ExecuteQuerySegmentedAsync(tableQuery, resolver, continuationToken);
+                continuationToken = tableQueryResult.ContinuationToken;
+                ids.AddRange(tableQueryResult.Results);
+            }
+            while (continuationToken != null);
+
+            return ids;
+        }
+
+        public Task<IEnumerable<Guid>> GetFollowingIds(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

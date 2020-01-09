@@ -1,18 +1,11 @@
 ﻿using Newtonsoft.Json;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using System;
 
 namespace Swabbr.Api.ViewModels
 {
     public class UserSettingsInputModel
     {
-        /// <summary>
-        /// Id of the user these settings belong to.
-        /// </summary>
-        [JsonProperty("userId")]
-        public Guid UserId { get; set; }
-
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
@@ -35,7 +28,6 @@ namespace Swabbr.Api.ViewModels
         {
             return new UserSettings
             {
-                UserId = entity.UserId,
                 FollowMode = entity.FollowMode,
                 DailyVlogRequestLimit = entity.DailyVlogRequestLimit,
                 IsPrivate = entity.IsPrivate

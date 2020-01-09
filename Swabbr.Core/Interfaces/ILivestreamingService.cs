@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
 using Swabbr.Core.Entities;
+using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
@@ -11,6 +11,17 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <returns>JSON object representing the created livestream</returns>
         Task<StreamConnectionDetails> CreateNewStreamAsync(string name);
+
+        /// <summary>
+        /// Fetches the connection details for an existing stream
+        /// </summary>
+        Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
+
+        /// <summary>
+        /// Returns connection details for an available livestream, creates a new livestream if none
+        /// are available in the pool.
+        /// </summary>
+        Task<StreamConnectionDetails> GetAvailableStreamConnectionAsync();
 
         /// <summary>
         /// Delete a new livestream.
@@ -31,7 +42,7 @@ namespace Swabbr.Core.Interfaces
         /// <returns>JSON object representing the updated stream.</returns>
         Task<JObject> UpdateStreamAsync(string id);
 
-        // TODO Determine 
+        // TODO Determine
         /// <summary>
         /// Stop a livestream.
         /// </summary>
@@ -45,13 +56,6 @@ namespace Swabbr.Core.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         Task ResetStreamAsync(string id);
-
-        /// <summary>
-        /// Fetch the connection details of a livestream.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
 
         /// <summary>
         /// Fetch the playback of a livestream.
