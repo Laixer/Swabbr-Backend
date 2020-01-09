@@ -27,7 +27,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
 
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
-                TableQuery.GenerateFilterCondition("FollowRequestId", QueryComparisons.Equal, followRequestId.ToString()));
+                TableQuery.GenerateFilterConditionForGuid("FollowRequestId", QueryComparisons.Equal, followRequestId));
 
             var queryResults = table.ExecuteQuery(tq);
 
