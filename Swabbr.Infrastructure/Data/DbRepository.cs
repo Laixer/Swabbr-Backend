@@ -64,17 +64,27 @@ namespace Swabbr.Infrastructure.Data
             }
         }
 
-        //TODO For update and delete: Return updated ?
-        public async Task UpdateAsync(TModel entity)
+        public async Task<TModel> UpdateAsync(TModel entity)
         {
             try
             {
                 var client = _factory.GetClient<TDto>(TableName);
-                await client.ReplaceEntityAsync(Map(entity));
+                var updateEntity = Map(entity);
+                
+                // Use wildcard ETag
+                updateEntity.ETag = "*";
+
+                // Ensure partitionkey and rowkey are set
+                updateEntity.PartitionKey = ResolvePartitionKey(updateEntity);
+                updateEntity.RowKey = ResolveRowKey(updateEntity);
+
+                // Perform update
+                var item = await client.ReplaceEntityAsync(updateEntity);
+                return Map(item);
             }
             catch (Exception)
             {
-                throw new EntityNotFoundException();
+                throw;
             }
         }
 
@@ -114,6 +124,7 @@ namespace Swabbr.Infrastructure.Data
 
             List<string> entities = new List<string>();
 
+            // Fetch matching entities
             TableContinuationToken continuationToken = null;
             do
             {
