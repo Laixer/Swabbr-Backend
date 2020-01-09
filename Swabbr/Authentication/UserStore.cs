@@ -154,7 +154,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).CloudTableReference;
+            var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).TableReference;
 
             // Check if the normalized email already exists in the table.
             var tq = new TableQuery<SwabbrIdentityUser>().Where(

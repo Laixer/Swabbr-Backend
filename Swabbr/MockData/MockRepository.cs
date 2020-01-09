@@ -1,4 +1,5 @@
 ﻿using Swabbr.Api.ViewModels;
+using Swabbr.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Swabbr.Api.MockData
                 Nickname = RandomString(4),
                 BirthDate = DateTime.Now,
                 Country = RandomString(2),
-                Gender = RandomString(26).Contains("A", StringComparison.CurrentCultureIgnoreCase) ? Core.Enums.Gender.Female : Core.Enums.Gender.Male
+                Gender = RandomString(26).Contains("A", StringComparison.CurrentCultureIgnoreCase) ? Gender.Female : Gender.Male
             };
         }
 
@@ -44,7 +45,7 @@ namespace Swabbr.Api.MockData
                 Nickname = RandomString(4),
                 BirthDate = DateTime.Now,
                 Country = RandomString(2),
-                Gender = RandomString(26).Contains("A", StringComparison.CurrentCultureIgnoreCase) ? Core.Enums.Gender.Female : Core.Enums.Gender.Male
+                Gender = RandomString(26).Contains("A", StringComparison.CurrentCultureIgnoreCase) ? Core.Enums.Gender.Female : Gender.Male
             };
         }
 
@@ -55,7 +56,7 @@ namespace Swabbr.Api.MockData
                 FollowRequestId = Guid.NewGuid(),
                 ReceiverId = Guid.NewGuid(),
                 RequesterId = Guid.NewGuid(),
-                Status = Core.Enums.FollowRequestStatus.Pending,
+                Status = FollowRequestStatus.Pending,
                 TimeCreated = DateTime.Now
             };
         }
@@ -66,7 +67,7 @@ namespace Swabbr.Api.MockData
             {
                 UserId = Guid.NewGuid(),
                 DailyVlogRequestLimit = 2,
-                FollowMode = Core.Enums.FollowMode.AcceptAll,
+                FollowMode = FollowMode.AcceptAll,
                 IsPrivate = true
             };
         }
@@ -77,10 +78,11 @@ namespace Swabbr.Api.MockData
 
             return new VlogOutputModel
             {
-                UserId = id,
+                UserId = new Guid("1b3b52d5-5f0b-45fa-b90e-a298fb3dc70b"),
                 VlogId = vlogId,
                 IsLive = true,
                 IsPrivate = false,
+                DateStarted = DateTime.Now.Subtract(TimeSpan.FromHours(2)),
                 Likes = new List<Core.Entities.VlogLike>
                 {
                     new Core.Entities.VlogLike

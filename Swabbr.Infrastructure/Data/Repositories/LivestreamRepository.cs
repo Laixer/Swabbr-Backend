@@ -21,7 +21,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public Task<Livestream> GetAvailableLivestream()
         {
-            var table = _factory.GetClient<LivestreamTableEntity>(TableName).CloudTableReference;
+            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<LivestreamTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool("Available", QueryComparisons.Equal, true));

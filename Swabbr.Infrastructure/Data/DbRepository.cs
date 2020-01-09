@@ -123,7 +123,7 @@ namespace Swabbr.Infrastructure.Data
             // Select only the partition key from the entity.
             tableQuery = tableQuery.Select(new string[] { "PartitionKey" });
 
-            CloudTable cloudTable = _factory.GetClient<TDto>(TableName).CloudTableReference;
+            CloudTable cloudTable = _factory.GetClient<TDto>(TableName).TableReference;
 
             EntityResolver<string> resolver = (pk, rk, ts, props, etag) => props.ContainsKey("PartitionKey") ? props["PartitionKey"].StringValue : null;
 

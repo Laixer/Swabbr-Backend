@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
@@ -15,16 +17,19 @@ namespace Swabbr.Api.Controllers
     {
         private readonly ILivestreamingService _livestreamingService;
         private readonly INotificationService _notificationService;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILivestreamRepository _livestreamRepository;
 
         public LivestreamsController(
             ILivestreamingService livestreamingService,
             ILivestreamRepository livestreamRepository,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            UserManager<SwabbrIdentityUser> userManager)
         {
             _livestreamingService = livestreamingService;
             _livestreamRepository = livestreamRepository;
             _notificationService = notificationService;
+            _userManager = userManager;
         }
 
         // TODO Remove
@@ -77,9 +82,13 @@ namespace Swabbr.Api.Controllers
         [HttpPut("start/{id}")]
         public async Task<IActionResult> StartStream([FromQuery] string id)
         {
+            var identityUser = await _userManager.GetUserAsync(User);
+
             await _livestreamingService.StartStreamAsync(id);
 
             // TODO Get followers of authenticated user TODO For each follower, send notification
+
+            // TODO Get vlog
 
             return Ok();
         }

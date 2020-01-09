@@ -24,7 +24,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public Task<FollowRequest> GetByIdAsync(Guid followRequestId)
         {
-            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
+            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("FollowRequestId", QueryComparisons.Equal, followRequestId));
@@ -46,7 +46,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
+            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
             // The partition key is the receiver id
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
@@ -61,7 +61,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
+            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
             // The row key is the requester id
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
@@ -142,7 +142,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             // Select only the partition key from the entity.
             tableQuery = tableQuery.Select(new string[] { "RequesterId" });
 
-            CloudTable cloudTable = _factory.GetClient<FollowRequestTableEntity>(TableName).CloudTableReference;
+            CloudTable cloudTable = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
             EntityResolver<Guid> resolver = (pk, rk, ts, props, etag) => props["RequesterId"].GuidValue.GetValueOrDefault();
 

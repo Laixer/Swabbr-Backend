@@ -47,6 +47,6 @@ namespace Swabbr.Infrastructure.Data
         /// <summary>
         /// Used to get a reference to the type specific entity table of type <typeparamref name="T"/>
         /// </summary>
-        CloudTable CloudTableReference { get; }
+        CloudTable TableReference { get; }
     }
 }

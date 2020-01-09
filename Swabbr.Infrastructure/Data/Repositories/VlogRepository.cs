@@ -22,7 +22,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<Vlog> GetByIdAsync(Guid vlogId)
         {
-            var table = _factory.GetClient<VlogTableEntity>(TableName).CloudTableReference;
+            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<VlogTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("VlogId", QueryComparisons.Equal, vlogId));
