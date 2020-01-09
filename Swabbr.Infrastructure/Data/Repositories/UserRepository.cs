@@ -37,7 +37,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<User> GetByEmailAsync(string email)
         {
-            var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
+            var table = _factory.GetClient<UserTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<UserTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email));
@@ -60,46 +60,13 @@ namespace Swabbr.Infrastructure.Data.Repositories
         public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
             //TODO Use cognitive search
-            //TODO IMportant
-            await Task.FromResult(0);
-            throw new NotImplementedException();
-            //TODO Use cognitive search
-            //TODO IMportant
+            //TODO Important
 
-            if (q.Length <= 0)
-                return null;
-
-            var qNormalized = q.ToUpper(System.Globalization.CultureInfo.InvariantCulture);
-
-            var table = _factory.GetClient<UserTableEntity>(TableName).CloudTableReference;
-
-            // The filter that is currently used is similar to a T-SQL 'LIKE' query with a wildcard at the end of the query.
-            //! Important: Only the right side of the search query can be tested against the table. This has the same functionality as a 'StartsWith' function.
-            string constructColumnFilter(string column)
-            {
-                var lastChar = q[q.Length - 1];
-
-                // Similar to 'SELECT WHERE <column> LIKE '<query>%'
-                return TableQuery.CombineFilters(
-                    TableQuery.GenerateFilterCondition(column, QueryComparisons.GreaterThanOrEqual, q),
-                    TableOperators.And,
-                    // Column must be less than or equal to (lte) the query + last character
-                    // incremented by 1.
-                    TableQuery.GenerateFilterCondition(column, QueryComparisons.LessThanOrEqual, $"{q}{char.ToString((char)(lastChar + 1))}")
-                );
-            }
+            //TODO Currently returning all rows... not ideal
+            var table = _factory.GetClient<UserTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<UserTableEntity>().Where(
-                TableQuery.CombineFilters(
-                    TableQuery.CombineFilters(
-                        constructColumnFilter("FirstName"),
-                        TableOperators.Or,
-                        constructColumnFilter("LastName")
-                    ),
-                    TableOperators.Or,
-                    constructColumnFilter("Nickname")
-                )
-            );
+                TableQuery.GenerateFilterConditionForBool("PhoneNumberConfirmed", QueryComparisons.Equal, false));
 
             var queryResults = table.ExecuteQuery(tq);
 

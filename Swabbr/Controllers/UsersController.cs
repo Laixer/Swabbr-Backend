@@ -68,10 +68,22 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> Search([FromQuery]string query)
         {
+            //TODO Search not yet implemented, temporary solution
+            var results = await _userRepository.SearchAsync(query, 0, 0);
+
+            var filteredResults = results.Where(
+                x =>
+                x.FirstName.ToUpper().Contains(query.ToUpper()) ||
+                x.LastName.ToUpper().Contains(query.ToUpper()) ||
+                x.Nickname.ToUpper().Contains(query.ToUpper())
+                ).Select(x =>
+                {
+                    UserOutputModel o = x;
+                    return o;
+                });
+
             // TODO Not implemented
-            return Ok(
-                Enumerable.Repeat(MockRepository.RandomUserOutputMock(), 10)
-            );
+            return Ok(filteredResults);
         }
 
         /// <summary>
