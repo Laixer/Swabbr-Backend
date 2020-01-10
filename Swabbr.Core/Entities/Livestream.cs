@@ -25,9 +25,9 @@ namespace Swabbr.Core.Entities
         public string BroadcastLocation { get; set; }
 
         /// <summary>
-        /// Indicates if the livestream is currently being used.
+        /// Indicates whether the livestream is currently active or not.
         /// </summary>
-        public bool Available { get; set; }
+        public bool Active { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
 

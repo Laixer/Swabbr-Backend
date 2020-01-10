@@ -29,8 +29,9 @@ namespace Swabbr.Api.Services
             // Add claims
             var claims = new List<Claim>
             {
-                new Claim(SwabbrClaimTypes.UserId, user.UserId.ToString()),
-                new Claim(SwabbrClaimTypes.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.SecretKey));

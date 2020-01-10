@@ -13,7 +13,7 @@ namespace Swabbr.Core.Interfaces
         /// <param name="name">Name of the livestream.</param>
         /// <param name="userId">Id of the user this stream should belong to.</param>
         /// <returns>Connection details for broadcasting the stream.</returns>
-        Task<StreamConnectionDetails> CreateNewStreamAsync(string name, Guid userId);
+        Task<Livestream> CreateNewStreamAsync(string name);
 
         /// <summary>
         /// Fetches the connection details for an existing stream

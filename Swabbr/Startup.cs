@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +18,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Swabbr
 {
@@ -46,6 +44,7 @@ namespace Swabbr
 
             var jwtConfigSection = Configuration.GetSection("Jwt");
             var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
+            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
 
             var notificationHubConfigSection = Configuration.GetSection("NotificationHub");
             var wowzaStreamingCloudSection = Configuration.GetSection("WowzaStreamingCloud");
@@ -54,27 +53,6 @@ namespace Swabbr
             services.Configure<JwtConfiguration>(jwtConfigSection);
             services.Configure<NotificationHubConfiguration>(notificationHubConfigSection);
             services.Configure<WowzaStreamingCloudConfiguration>(wowzaStreamingCloudSection);
-
-            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
-
-            // Add authentication
-            services.AddAuthentication(x =>
-            {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(x =>
-            {
-                x.RequireHttpsMetadata = false;
-                x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(jwtKey),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
-            });
 
             // Add OpenAPI definition
             services.AddSwaggerGen(c =>
@@ -121,10 +99,11 @@ namespace Swabbr
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<ILivestreamingService, LivestreamingService>();
 
-            // DI for stores
+            // Configure DI for identity stores
             services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
             services.AddTransient<IRoleStore<SwabbrIdentityRole>, RoleStore>();
 
+            // Add identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
              {
                  // TODO Determine configuration for password strength
@@ -136,29 +115,22 @@ namespace Swabbr
              })
             .AddDefaultTokenProviders();
 
-            // TODO Keep this workaround for 'page redirect instead of status code'(?!)
-            services.ConfigureApplicationCookie(o =>
+            // Add authentication middleware
+            services.AddAuthentication(options =>
             {
-                o.Events = new CookieAuthenticationEvents()
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = false;
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    OnRedirectToLogin = (ctx) =>
-                    {
-                        if (ctx.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCultureIgnoreCase) && ctx.Response.StatusCode == 200)
-                        {
-                            ctx.Response.StatusCode = 401;
-                        }
-
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToAccessDenied = (ctx) =>
-                    {
-                        if (ctx.Request.Path.StartsWithSegments("/api", StringComparison.InvariantCultureIgnoreCase) && ctx.Response.StatusCode == 200)
-                        {
-                            ctx.Response.StatusCode = 403;
-                        }
-
-                        return Task.CompletedTask;
-                    }
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtConfig.Issuer,
+                    ValidAudience = jwtConfig.Issuer,
+                    IssuerSigningKey = new SymmetricSecurityKey(jwtKey)
                 };
             });
         }

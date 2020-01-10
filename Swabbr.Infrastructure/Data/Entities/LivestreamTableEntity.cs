@@ -29,10 +29,10 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string BroadcastLocation { get; set; }
 
         /// <summary>
-        /// Indicates availability of the stream.
-        /// If it is not available, it is being used for broadcasting by a user.
+        /// Indicates if the stream is currently active.
+        /// If it is active, it is being used as a broadcasting and streaming target and should be left alone.
         /// </summary>
-        public bool Available { get; set; }
+        public bool Active { get; set; }
 
         /// <summary>
         /// HLS playback URL of the stream.

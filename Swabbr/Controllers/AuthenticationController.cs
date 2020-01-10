@@ -86,7 +86,7 @@ namespace Swabbr.Api.Controllers
             if (identityResult.Succeeded)
             {
                 // Sign in the user that was just registered and return an access token
-                await _signInManager.SignInAsync(identityUser, true);
+                await _signInManager.SignInAsync(identityUser, isPersistent: true);
 
                 var token = _tokenService.GenerateToken(identityUser);
                 UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
@@ -126,7 +126,8 @@ namespace Swabbr.Api.Controllers
             }
 
             // Attempt a sign in using the user-provided password input
-            var result = await _signInManager.PasswordSignInAsync(identityUser, input.Password, input.RememberMe, false);
+            ////var result = await _signInManager.PasswordSignInAsync(identityUser, input.Password, input.RememberMe, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false);
 
             if (result.IsLockedOut)
             {

@@ -51,14 +51,17 @@ namespace Swabbr.Api.Controllers
         ////}
 
         /// <summary>
-        /// Start an available livestream
+        /// Open an available livestream for a user
         /// </summary>
-        [HttpGet("test/{userId}")]
+        [HttpGet("triggerForUser/{userId}")]
         public async Task<IActionResult> NotifyUserStream(Guid userId)
         {
             // TODO Obtain available livestream from pool
-            var connectionDetails = await _livestreamingService.OpenLiveStreamForUserAsync(userId);
+            var connection = await _livestreamingService.OpenLiveStreamForUserAsync(userId);
 
+            // TODO Create notification with connection details as message content
+
+            // TODO Send notification containing connection details to user?
             var notification = new SwabbrNotification
             {
                 Content = new SwabbrMessage
@@ -66,13 +69,16 @@ namespace Swabbr.Api.Controllers
                 }
             };
 
-            await _notificationService.SendNotificationToUserAsync(notification, userId);
-
-            // TODO Create notification with connection details as message content
-
-            // TODO Send notification to user
-
-            return NotFound("No");
+            return Ok(new StreamConnectionDetailsOutputModel
+            {
+                Id = connection.Id,
+                AppName = connection.AppName,
+                HostAddress = connection.HostAddress,
+                Password = connection.Password,
+                Port = connection.Port,
+                StreamName = connection.StreamName,
+                Username = connection.Username
+            });
         }
 
         /// <summary>
@@ -149,17 +155,17 @@ namespace Swabbr.Api.Controllers
         {
             //TODO Check if user has permission to request these details
 
-            var output = await _livestreamingService.GetStreamConnectionAsync(id);
+            var connection = await _livestreamingService.GetStreamConnectionAsync(id);
 
             return Ok(new StreamConnectionDetailsOutputModel
             {
-                Id = output.Id,
-                AppName = output.AppName,
-                HostAddress = output.HostAddress,
-                Password = output.Password,
-                Port = output.Port,
-                StreamName = output.StreamName,
-                Username = output.Username
+                Id = connection.Id,
+                AppName = connection.AppName,
+                HostAddress = connection.HostAddress,
+                Password = connection.Password,
+                Port = connection.Port,
+                StreamName = connection.StreamName,
+                Username = connection.Username
             });
         }
     }

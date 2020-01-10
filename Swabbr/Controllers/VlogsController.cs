@@ -59,6 +59,24 @@ namespace Swabbr.Api.Controllers
             return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 10));
         }
 
+        /// <summary>
+        /// Get a collection of featured vlogs with users.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("/api/v2/vlogs/featured")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogWithUserOutputModel>))]
+        public async Task<IActionResult> FeaturedWithUsers()
+        {
+            var vlogsWithUsers = Enumerable.Repeat(new VlogWithUserOutputModel()
+            {
+                User = MockRepository.RandomUserOutputMock(Guid.NewGuid()),
+                Vlog = MockRepository.RandomVlogOutput()
+            }, 10);
+
+            //TODO Not implemented
+            return Ok(vlogsWithUsers);
+        }
+
         // TODO Specify limit?
         /// <summary>
         /// Get vlogs from the specified user.

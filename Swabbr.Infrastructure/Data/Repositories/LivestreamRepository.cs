@@ -24,8 +24,9 @@ namespace Swabbr.Infrastructure.Data.Repositories
         {
             var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
 
+            // Check if there are any inactive streams that are available for usage.
             var tq = new TableQuery<LivestreamTableEntity>().Where(
-                TableQuery.GenerateFilterConditionForBool("Available", QueryComparisons.Equal, true));
+                TableQuery.GenerateFilterConditionForBool("Active", QueryComparisons.Equal, false));
 
             var queryResults = table.ExecuteQuery(tq);
 
@@ -37,8 +38,8 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 // Bind current user to the given user id
                 openStream.UserId = userId;
 
-                // Set stream to unavailable
-                openStream.Available = false;
+                // Set stream to active
+                openStream.Active = true;
 
                 // Update the stream to claim ownership for the given user
                 var reservedStream = await UpdateAsync(Map(openStream));
@@ -46,7 +47,8 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 return reservedStream;
             }
 
-            throw new EntityNotFoundException("There are no livestreams available.");
+            // If we get here there are no inactive livestreams available in storage.
+            throw new EntityNotFoundException("There are no livestreams available for usage.");
         }
 
         public override LivestreamTableEntity Map(Livestream entity)
@@ -55,7 +57,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             {
                 LivestreamId = entity.Id,
                 UserId = entity.UserId,
-                Available = entity.Available,
+                Active = entity.Active,
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
                 Name = entity.Name,
@@ -69,7 +71,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             {
                 Id = entity.LivestreamId,
                 UserId = entity.UserId,
-                Available = entity.Available,
+                Active = entity.Active,
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
                 Name = entity.Name,

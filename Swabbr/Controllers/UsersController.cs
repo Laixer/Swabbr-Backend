@@ -19,7 +19,8 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to users.
     /// </summary>
-    [Authorize]
+    //[Authorize]
+    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/v1/users")]
     public class UsersController : ControllerBase

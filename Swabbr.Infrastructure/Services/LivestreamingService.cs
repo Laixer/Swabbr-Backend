@@ -26,7 +26,7 @@ namespace Swabbr.Infrastructure.Services
             _livestreamRepository = livestreamRepository;
         }
 
-        public async Task<StreamConnectionDetails> CreateNewStreamAsync(string name, Guid userId)
+        public async Task<Livestream> CreateNewStreamAsync(string name)
         {
             var x = new WscCreateLivestreamRequest()
             {
@@ -69,27 +69,17 @@ namespace Swabbr.Infrastructure.Services
                     var response = JsonConvert.DeserializeObject<WscCreateLivestreamResponse>(resultString);
 
                     // Save the livestream in the database storage
-                    await _livestreamRepository.CreateAsync(new Livestream
+                    var createdStream = await _livestreamRepository.CreateAsync(new Livestream
                     {
                         Id = response.Livestream.Id,
-                        UserId = userId,
-                        Available = true,
+                        Active = false,
                         BroadcastLocation = response.Livestream.BroadcastLocation,
                         CreatedAt = response.Livestream.CreatedAt,
                         Name = response.Livestream.Name,
                         UpdatedAt = response.Livestream.UpdatedAt
                     });
 
-                    return new StreamConnectionDetails
-                    {
-                        Id = response.Livestream.Id,
-                        AppName = response.Livestream.SourceConnectionInformation.Application,
-                        HostAddress = response.Livestream.SourceConnectionInformation.PrimaryServer,
-                        Port = response.Livestream.SourceConnectionInformation.HostPort.ToString(),
-                        StreamName = response.Livestream.SourceConnectionInformation.StreamName,
-                        Username = response.Livestream.SourceConnectionInformation.Username,
-                        Password = response.Livestream.SourceConnectionInformation.Password,
-                    };
+                    return createdStream;
                 }
 
                 return null;
@@ -119,12 +109,21 @@ namespace Swabbr.Infrastructure.Services
                 var connection = await GetStreamConnectionAsync(availableLivestream.Id);
                 return connection;
             }
-            catch (EntityNotFoundException)
+            catch (EntityNotFoundException e)
             {
                 // Create a new livestream and return it.
                 // TODO How to determine the name of the newly created stream?
-                var newStream = await CreateNewStreamAsync("testName", userId);
-                return newStream;
+                var newStream = await CreateNewStreamAsync("testName");
+
+                if (newStream != null)
+                {
+                    // Try to reserve livestream again after creating the stream
+                    var availableLivestream = await _livestreamRepository.ReserveLivestreamForUserAsync(userId);
+                    var connection = await GetStreamConnectionAsync(availableLivestream.Id);
+                    return connection;
+                }
+
+                throw new Exception("No livestreams available and could not create livestream.");
             }
         }
 
@@ -144,6 +143,7 @@ namespace Swabbr.Infrastructure.Services
                 // Return the connection details extracted from the received object
                 return new StreamConnectionDetails
                 {
+                    Id = response.Livestream.Id,
                     AppName = response.Livestream.SourceConnectionInformation.Application,
                     HostAddress = response.Livestream.SourceConnectionInformation.PrimaryServer,
                     Port = response.Livestream.SourceConnectionInformation.HostPort.ToString(),
