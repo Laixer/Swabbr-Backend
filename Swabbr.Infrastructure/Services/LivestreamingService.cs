@@ -26,7 +26,7 @@ namespace Swabbr.Infrastructure.Services
             _livestreamRepository = livestreamRepository;
         }
 
-        public async Task<StreamConnectionDetails> CreateNewStreamAsync(string name)
+        public async Task<StreamConnectionDetails> CreateNewStreamAsync(string name, Guid userId)
         {
             var x = new WscCreateLivestreamRequest()
             {
@@ -72,6 +72,7 @@ namespace Swabbr.Infrastructure.Services
                     await _livestreamRepository.CreateAsync(new Livestream
                     {
                         Id = response.Livestream.Id,
+                        UserId = userId,
                         Available = true,
                         BroadcastLocation = response.Livestream.BroadcastLocation,
                         CreatedAt = response.Livestream.CreatedAt,
@@ -108,11 +109,11 @@ namespace Swabbr.Infrastructure.Services
             }
         }
 
-        public async Task<StreamConnectionDetails> GetAvailableStreamConnectionAsync()
+        public async Task<StreamConnectionDetails> OpenLiveStreamForUserAsync(Guid userId)
         {
             try
             {
-                var availableLivestream = await _livestreamRepository.GetAvailableLivestream();
+                var availableLivestream = await _livestreamRepository.ReserveLivestreamForUserAsync(userId);
 
                 // Retrieve live stream connection details
                 var connection = await GetStreamConnectionAsync(availableLivestream.Id);
@@ -120,8 +121,9 @@ namespace Swabbr.Infrastructure.Services
             }
             catch (EntityNotFoundException)
             {
-                // Create a new livestream and return it. TODO How to determine stream name?
-                var newStream = await CreateNewStreamAsync("testName");
+                // Create a new livestream and return it.
+                // TODO How to determine the name of the newly created stream?
+                var newStream = await CreateNewStreamAsync("testName", userId);
                 return newStream;
             }
         }

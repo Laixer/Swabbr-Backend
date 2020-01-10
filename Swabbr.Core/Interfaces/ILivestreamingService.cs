@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Swabbr.Core.Entities;
+using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
@@ -9,19 +10,23 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Create a new livestream.
         /// </summary>
-        /// <returns>JSON object representing the created livestream</returns>
-        Task<StreamConnectionDetails> CreateNewStreamAsync(string name);
+        /// <param name="name">Name of the livestream.</param>
+        /// <param name="userId">Id of the user this stream should belong to.</param>
+        /// <returns>Connection details for broadcasting the stream.</returns>
+        Task<StreamConnectionDetails> CreateNewStreamAsync(string name, Guid userId);
 
         /// <summary>
         /// Fetches the connection details for an existing stream
         /// </summary>
+        /// <returns>Connection details for broadcasting the stream.</returns>
         Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
 
         /// <summary>
-        /// Returns connection details for an available livestream, creates a new livestream if none
+        /// Returns connection details for an available livestream, creates a new livestream if none are available.
         /// are available in the pool.
         /// </summary>
-        Task<StreamConnectionDetails> GetAvailableStreamConnectionAsync();
+        /// <param name="userId">Id of the user to reserve the livestream for.</param>
+        Task<StreamConnectionDetails> OpenLiveStreamForUserAsync(Guid userId);
 
         /// <summary>
         /// Delete a new livestream.
@@ -32,36 +37,24 @@ namespace Swabbr.Core.Interfaces
         /// Start a livestream.
         /// </summary>
         /// <param name="id">Id of the livestream.</param>
-        /// <returns>JSON object representing the stream that was started</returns>
         Task StartStreamAsync(string id);
 
         /// <summary>
-        /// Update a livestream.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns>JSON object representing the updated stream.</returns>
-        Task<JObject> UpdateStreamAsync(string id);
-
-        // TODO Determine
-        /// <summary>
         /// Stop a livestream.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">Id of the livestream.</param>
         Task StopStreamAsync(string id);
 
         /// <summary>
         /// Resets a livestream.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">Id of the livestream.</param>
         Task ResetStreamAsync(string id);
 
         /// <summary>
         /// Fetch the playback of a livestream.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">Id of the livestream.</param>
         Task<StreamPlaybackDetails> GetStreamPlaybackAsync(string id);
     }
 }

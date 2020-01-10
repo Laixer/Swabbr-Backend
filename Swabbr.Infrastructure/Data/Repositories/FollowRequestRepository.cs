@@ -44,7 +44,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return this.RetrieveAsync(receiverId.ToString(), requesterId.ToString());
         }
 
-        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
+        public Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
@@ -56,7 +56,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var queryResults = table.ExecuteQuery(tq);
             var mappedResults = queryResults.Select(x => Map(x));
 
-            return mappedResults;
+            return Task.FromResult(mappedResults);
         }
 
         public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
@@ -160,11 +160,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
             while (continuationToken != null);
 
             return ids;
-        }
-
-        public Task<IEnumerable<Guid>> GetFollowingIds(Guid userId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

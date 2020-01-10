@@ -3,6 +3,9 @@ using System;
 
 namespace Swabbr.Infrastructure.Data.Entities
 {
+    /// <summary>
+    /// Represents the storage data for a single vlog.
+    /// </summary>
     public class VlogTableEntity : TableEntity
     {
         public VlogTableEntity()

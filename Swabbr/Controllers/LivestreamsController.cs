@@ -57,7 +57,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> NotifyUserStream(Guid userId)
         {
             // TODO Obtain available livestream from pool
-            var connectionDetails = await _livestreamingService.GetAvailableStreamConnectionAsync();
+            var connectionDetails = await _livestreamingService.OpenLiveStreamForUserAsync(userId);
 
             var notification = new SwabbrNotification
             {

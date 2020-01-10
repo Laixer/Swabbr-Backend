@@ -2,6 +2,6 @@
 {
     public abstract class EntityBase
     {
-        // TODO
+
     }
 }

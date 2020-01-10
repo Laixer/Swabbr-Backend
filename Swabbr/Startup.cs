@@ -48,12 +48,12 @@ namespace Swabbr
             var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
 
             var notificationHubConfigSection = Configuration.GetSection("NotificationHub");
-            var wowzaSection = Configuration.GetSection("WowzaStreamingCloud");
+            var wowzaStreamingCloudSection = Configuration.GetSection("WowzaStreamingCloud");
 
             // Add configurations
             services.Configure<JwtConfiguration>(jwtConfigSection);
             services.Configure<NotificationHubConfiguration>(notificationHubConfigSection);
-            services.Configure<WowzaStreamingCloudConfiguration>(wowzaSection);
+            services.Configure<WowzaStreamingCloudConfiguration>(wowzaStreamingCloudSection);
 
             var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
 
@@ -174,7 +174,7 @@ namespace Swabbr
 
             app.UseRouting();
 
-            // Add CORS middleware
+            // CORS policy
             app.UseCors(c => c
             .AllowAnyOrigin()
             .AllowAnyMethod()

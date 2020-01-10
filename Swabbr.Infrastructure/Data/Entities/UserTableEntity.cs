@@ -4,7 +4,7 @@ using System;
 namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
-    /// Represents a single user.
+    /// Represents the storage data for a single user.
     /// </summary>
     public class UserTableEntity : TableEntity
     {

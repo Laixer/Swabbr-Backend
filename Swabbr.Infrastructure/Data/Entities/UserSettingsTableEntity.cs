@@ -4,7 +4,7 @@ using System;
 namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
-    /// Personal settings and preferences for a user.
+    /// Represents the storage data for personal settings and preferences of a single user.
     /// </summary>
     public class UserSettingsTableEntity : TableEntity
     {

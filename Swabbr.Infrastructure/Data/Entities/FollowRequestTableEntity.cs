@@ -4,7 +4,7 @@ using System;
 namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
-    /// Represents the current status of a follow relationship between two users.
+    /// Represents the storage data of a follow relationship between two users including the current status.
     /// </summary>
     public class FollowRequestTableEntity : TableEntity
     {

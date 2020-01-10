@@ -4,7 +4,7 @@ using System;
 namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
-    /// Represents a like (love-it) given to a vlog.
+    /// Represents the storage data for a like (love-it) given to a vlog.
     /// </summary>
     public class VlogLikeTableEntity : TableEntity
     {
