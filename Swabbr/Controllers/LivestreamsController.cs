@@ -6,6 +6,7 @@ using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -53,15 +54,16 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Open an available livestream for a user
         /// </summary>
-        [HttpGet("triggerForUser/{userId}")]
+        [HttpGet("trigger/{userId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
         public async Task<IActionResult> NotifyUserStream(Guid userId)
         {
             // TODO Obtain available livestream from pool
-            var connection = await _livestreamingService.OpenLiveStreamForUserAsync(userId);
+            var connection = await _livestreamingService.ReserveLiveStreamForUserAsync(userId);
 
             // TODO Create notification with connection details as message content
 
-            // TODO Send notification containing connection details to user?
+            // TODO Send notification containing connection details to user? Yes...
             var notification = new SwabbrNotification
             {
                 Content = new SwabbrMessage
@@ -86,6 +88,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="id">Id of the livestream</param>
         [HttpPut("start/{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> StartStream([FromQuery] string id)
         {
             var identityUser = await _userManager.GetUserAsync(User);
@@ -103,6 +106,7 @@ namespace Swabbr.Api.Controllers
         /// Stop a running livestream
         /// </summary>
         [HttpPut("stop/{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> StopStream([FromQuery] string id)
         {
             await _livestreamingService.StopStreamAsync(id);
@@ -118,6 +122,7 @@ namespace Swabbr.Api.Controllers
         /// Returns playback details of a livestream.
         /// </summary>
         [HttpGet("playback/{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
         public async Task<IActionResult> GetPlayback(string id)
         {
             var details = await _livestreamingService.GetStreamPlaybackAsync(id);
@@ -132,6 +137,7 @@ namespace Swabbr.Api.Controllers
         /// Returns playback details of a livestream that is broadcasted by the specified user.
         /// </summary>
         [HttpGet("playback/user/{userId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
         public async Task<IActionResult> GetPlaybackForUser(Guid userId)
         {
             // TODO UserId has to be linked to AVAILABLE livestream id
@@ -151,10 +157,10 @@ namespace Swabbr.Api.Controllers
 
         // TODO Remove
         [HttpGet("stream/{id}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
         public async Task<IActionResult> GetConnectionDetails([FromQuery] string id)
         {
             //TODO Check if user has permission to request these details
-
             var connection = await _livestreamingService.GetStreamConnectionAsync(id);
 
             return Ok(new StreamConnectionDetailsOutputModel

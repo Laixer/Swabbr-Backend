@@ -23,11 +23,19 @@ namespace Swabbr.Infrastructure.Services
         }
 
         /// <summary>
-        /// Get registration ID from Azure Notification Hub
+        /// Create and return new registration ID from Azure Notification Hub
         /// </summary>
         public async Task<string> CreateRegistrationIdAsync()
         {
             return await _hubClient.CreateRegistrationIdAsync();
+        }
+
+        /// <summary>
+        /// Get registration from Azure Notification Hub
+        /// </summary>
+        public async Task<RegistrationDescription> GetRegistrationAsync(string registrationId)
+        {
+            return await _hubClient.GetRegistrationAsync<RegistrationDescription>(registrationId);
         }
 
         /// <summary>

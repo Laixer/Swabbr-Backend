@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -19,8 +18,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to users.
     /// </summary>
-    //[Authorize]
-    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize]
     [ApiController]
     [Route("api/v1/users")]
     public class UsersController : ControllerBase
@@ -38,20 +36,27 @@ namespace Swabbr.Api.Controllers
             _userManager = userManager;
         }
 
+        private async Task<UserOutputModel> GetUserOutput(User u)
+        {
+            UserOutputModel output = u;
+            output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
+            output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
+            output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
+            return output;
+        }
+
         /// <summary>
         /// Get information about a single user.
         /// </summary>
         [HttpGet("{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> Get([FromRoute]Guid userId)
         {
             try
             {
                 User user = await _userRepository.GetByIdAsync(userId);
-                UserOutputModel output = user;
-                output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
-                output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
-                output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
+                UserOutputModel output = await GetUserOutput(user);
                 return Ok(output);
             }
             catch (EntityNotFoundException)
@@ -77,11 +82,12 @@ namespace Swabbr.Api.Controllers
                 x.FirstName.ToUpper().Contains(query.ToUpper()) ||
                 x.LastName.ToUpper().Contains(query.ToUpper()) ||
                 x.Nickname.ToUpper().Contains(query.ToUpper())
-                ).Select(x =>
+                ).Select(async x =>
                 {
-                    UserOutputModel o = x;
+                    UserOutputModel o = await GetUserOutput(x);
                     return o;
-                });
+                })
+                .Select(t => t.Result);
 
             // TODO Not implemented
             return Ok(filteredResults);
@@ -96,12 +102,9 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
-            UserOutputModel output = await _userRepository.GetByIdAsync(userId);
-
-            // TODO Avoid repeating lines of code to fetch these (refactor)!
-            output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
-            output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
-            output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
+            var entity = await _userRepository.GetByIdAsync(userId);
+            
+            UserOutputModel output = await GetUserOutput(entity);
 
             return Ok(output);
         }
@@ -128,7 +131,9 @@ namespace Swabbr.Api.Controllers
             userEntity.Timezone = input.Timezone;
             userEntity.BirthDate = input.BirthDate;
 
-            UserOutputModel output = await _userRepository.UpdateAsync(input);
+            var updatedEntity = await _userRepository.UpdateAsync(input);
+
+            UserOutputModel output = await GetUserOutput(updatedEntity);
 
             return Ok(output);
         }
@@ -156,7 +161,8 @@ namespace Swabbr.Api.Controllers
                 .Where(x => x.Status == FollowRequestStatus.Accepted)
                 .Select(async x =>
                 {
-                    UserOutputModel o = await _userRepository.GetByIdAsync(x.RequesterId);
+                    var u = await _userRepository.GetByIdAsync(x.RequesterId);
+                    UserOutputModel o = await GetUserOutput(u);
                     return o;
                 })
                 .Select(t => t.Result);
@@ -189,8 +195,8 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Get the followers of a single user.
         /// </summary>
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         [HttpGet("users/{userId}/followers")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> ListFollowers([FromRoute] Guid userId)
         {
             var followRelationships = await _followRequestRepository.GetIncomingForUserAsync(userId);
@@ -199,7 +205,8 @@ namespace Swabbr.Api.Controllers
                 .Where(x => x.Status == FollowRequestStatus.Accepted)
                 .Select(async x =>
                 {
-                    UserOutputModel o = await _userRepository.GetByIdAsync(x.RequesterId);
+                    var u = await _userRepository.GetByIdAsync(x.RequesterId);
+                    UserOutputModel o = await GetUserOutput(u);
                     return o;
                 })
                 .Select(t => t.Result);

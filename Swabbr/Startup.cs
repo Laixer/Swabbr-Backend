@@ -87,21 +87,24 @@ namespace Swabbr
             services.AddCosmosDb(connectionString, tableProperties);
 
             // Configure DI for data repositories
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
-            services.AddScoped<IFollowRequestRepository, FollowRequestRepository>();
-            services.AddScoped<IVlogRepository, VlogRepository>();
-            services.AddScoped<IVlogLikeRepository, VlogLikeRepository>();
-            services.AddScoped<ILivestreamRepository, LivestreamRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IUserSettingsRepository, UserSettingsRepository>();
+            services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
+            services.AddTransient<IVlogRepository, VlogRepository>();
+            services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
+            services.AddTransient<ILivestreamRepository, LivestreamRepository>();
 
             // Configure DI for services
-            services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<ILivestreamingService, LivestreamingService>();
+            services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<ILivestreamingService, LivestreamingService>();
 
             // Configure DI for identity stores
             services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
             services.AddTransient<IRoleStore<SwabbrIdentityRole>, RoleStore>();
+
+            // Add background services
+            services.AddHostedService<VlogTriggerHostedService>();
 
             // Add identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
@@ -147,7 +150,7 @@ namespace Swabbr
             app.UseRouting();
 
             // CORS policy
-            app.UseCors(c => c
+            app.UseCors(cp => cp
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());

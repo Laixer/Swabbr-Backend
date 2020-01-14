@@ -37,7 +37,7 @@ namespace Swabbr.Infrastructure.Services
                     AspectRatioHeight = 1080,
 
                     // TODO Determine broadcast location based on user location
-                    BroadcastLocation = "eu_belgium",
+                    BroadcastLocation = wscConfig.BroadcastLocation,
 
                     BillingMode = "pay_as_you_go",
                     ClosedCaptionType = "none",
@@ -99,25 +99,28 @@ namespace Swabbr.Infrastructure.Services
             }
         }
 
-        public async Task<StreamConnectionDetails> OpenLiveStreamForUserAsync(Guid userId)
+        public async Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
             try
             {
+                // Check if there are available (unreserved) livestreams in storage.
                 var availableLivestream = await _livestreamRepository.ReserveLivestreamForUserAsync(userId);
 
-                // Retrieve live stream connection details
+                // Retrieve live stream connection details from the api.
                 var connection = await GetStreamConnectionAsync(availableLivestream.Id);
                 return connection;
             }
-            catch (EntityNotFoundException e)
+            catch (EntityNotFoundException)
             {
-                // Create a new livestream and return it.
+                // There were no available livestreams.
+
+                // Create a new livestream and add it to the pool and return its connection details.
                 // TODO How to determine the name of the newly created stream?
                 var newStream = await CreateNewStreamAsync("testName");
 
                 if (newStream != null)
                 {
-                    // Try to reserve livestream again after creating the stream
+                    // Try to reserve a livestream again after having created the new stream.
                     var availableLivestream = await _livestreamRepository.ReserveLivestreamForUserAsync(userId);
                     var connection = await GetStreamConnectionAsync(availableLivestream.Id);
                     return connection;

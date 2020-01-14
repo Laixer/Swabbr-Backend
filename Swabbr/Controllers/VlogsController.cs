@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -17,6 +17,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to vlogs.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/v1/vlogs")]
     public class VlogsController : ControllerBase
@@ -64,6 +65,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("/api/v2/vlogs/featured")]
+        // TODO Change route ^
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogWithUserOutputModel>))]
         public async Task<IActionResult> FeaturedWithUsers()
         {

@@ -7,7 +7,6 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to vlog reactions.
     /// </summary>
-    [Obsolete("Not yet supported/implemented")]
     [ApiController]
     [Route("api/v1/reactions")]
     public class ReactionsController : ControllerBase
@@ -36,7 +35,7 @@ namespace Swabbr.Api.Controllers
         /// Get a single reaction to a vlog.
         /// </summary>
         [HttpGet("{reactionId}")]
-        public async Task<IActionResult> GetReaction()
+        public async Task<IActionResult> Get()
         {
             //! TODO
             throw new NotImplementedException();

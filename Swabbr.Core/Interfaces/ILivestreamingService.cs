@@ -22,11 +22,10 @@ namespace Swabbr.Core.Interfaces
         Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
 
         /// <summary>
-        /// Returns connection details for an available livestream, creates a new livestream if none are available.
-        /// are available in the pool.
+        /// Returns connection details for an available livestream from the pool, creates a new livestream if none are available.
         /// </summary>
         /// <param name="userId">Id of the user to reserve the livestream for.</param>
-        Task<StreamConnectionDetails> OpenLiveStreamForUserAsync(Guid userId);
+        Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId);
 
         /// <summary>
         /// Delete a new livestream.

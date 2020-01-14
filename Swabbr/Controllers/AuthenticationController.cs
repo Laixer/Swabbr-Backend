@@ -71,9 +71,12 @@ namespace Swabbr.Api.Controllers
                 Country = input.Country,
                 Gender = (int)input.Gender,
                 IsPrivate = input.IsPrivate,
-                Nickname = input.Nickname,
-                ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = input.Timezone
+                Nickname = input.Nickname,                
+                Timezone = input.Timezone,
+
+                //TODO Get URL from input, see uncommented line. Using URL for test purposes
+                ////ProfileImageUrl = input.ProfileImageUrl,
+                ProfileImageUrl = $"https://api.adorable.io/avatars/256/{input.Email}.png",
             };
 
             // The partition key and row key are both the UserId for now
