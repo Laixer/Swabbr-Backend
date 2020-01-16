@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Core.Interfaces;
@@ -17,22 +18,12 @@ namespace Swabbr.Api.Controllers
     public class NotificationsController : Controller
     {
         private readonly INotificationService _notificationService;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public NotificationsController(INotificationService service)
+        public NotificationsController(INotificationService service, UserManager<SwabbrIdentityUser> userManager)
         {
             _notificationService = service;
-        }
-
-        /// <summary>
-        /// Register a device to the notification hub.
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(string))]
-        public async Task<IActionResult> CreatePushRegistrationId()
-        {
-            var registrationId = await _notificationService.CreateRegistrationIdAsync();
-            return Ok(registrationId);
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -40,10 +31,13 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <param name="registrationId"></param>
         /// <returns></returns>
-        [HttpDelete("unregister/{registrationId}")]
+        [HttpDelete("unregister")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> UnregisterFromNotifications(string registrationId)
+        public async Task<IActionResult> UnregisterFromNotifications()
         {
+            //TODO Get notification hub registration id for user
+
+            var registrationId = "???";
             await _notificationService.DeleteRegistrationAsync(registrationId);
             return Ok();
         }
@@ -52,23 +46,27 @@ namespace Swabbr.Api.Controllers
         /// Register to receive push notifications
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="deviceUpdate"></param>
+        /// <param name="deviceRegistration"></param>
         /// <returns></returns>
-        [HttpPut("enable/{id}")]
+        [HttpPost("register")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> RegisterForPushNotifications(string id, [FromBody] DeviceRegistration deviceUpdate)
+        public async Task<IActionResult> RegisterForPushNotifications([FromBody] DeviceRegistration deviceRegistration)
         {
-            //TODO Get user id and pass to method
-            var userId = Guid.Parse(User.FindFirst(SwabbrClaimTypes.UserId).Value);
+            // Create a new registration
+            var registrationId = await _notificationService.CreateRegistrationIdAsync();
+
+            // Obtain the user Id
+            var identityUser = await _userManager.GetUserAsync(User);
+            var userId = identityUser.UserId;
 
             // Create or update the given registration for push notifications
-            NotificationResponse registrationResult = await _notificationService.RegisterUserForPushNotificationsAsync(id, userId, deviceUpdate);
+            NotificationResponse registrationResult = await _notificationService.RegisterUserForPushNotificationsAsync(registrationId, userId, deviceRegistration);
 
             if (registrationResult.CompletedWithSuccess)
                 return Ok();
 
-            return BadRequest("An error occurred while sending push notification: " + registrationResult.FormattedErrorMessages);
+            return BadRequest("Could not register device. " + registrationResult.FormattedErrorMessages);
         }
 
         /// <summary>
@@ -86,7 +84,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification)
         {
             //TODO Pass user id in servic emethod
-            NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, new Guid("415adb6f-9573-49c1-83a5-ac72115a786f"));
+            NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"));
 
             if (pushDeliveryResult.CompletedWithSuccess)
             {

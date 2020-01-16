@@ -110,7 +110,8 @@ namespace Swabbr.Infrastructure.Services
             {
                 NotificationOutcome outcome = null;
 
-                string jsonContent = JsonConvert.SerializeObject(newNotification.Content);
+                //string jsonContent = JsonConvert.SerializeObject(newNotification.Content);
+                string jsonContent = "{\"aps\":{\"alert\":\"TEST\"}}";
 
                 switch (newNotification.Platform)
                 {

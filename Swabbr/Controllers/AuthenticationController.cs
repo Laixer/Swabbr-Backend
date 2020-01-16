@@ -118,7 +118,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("login")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
-        public async Task<IActionResult> Login([FromBody] UserAuthenticationInputModel input)
+        public async Task<IActionResult> LoginAsync([FromBody] UserAuthenticationInputModel input)
         {
             // Retrieve the identity user
             var identityUser = await _userManager.FindByEmailAsync(input.Email);
@@ -129,7 +129,6 @@ namespace Swabbr.Api.Controllers
             }
 
             // Attempt a sign in using the user-provided password input
-            ////var result = await _signInManager.PasswordSignInAsync(identityUser, input.Password, input.RememberMe, false);
             var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false);
 
             if (result.IsLockedOut)

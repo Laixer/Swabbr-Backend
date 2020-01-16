@@ -151,7 +151,8 @@ namespace Swabbr.Api.Controllers
             }
 
             // TODO Do not continue after this point if the follow request already exists? (Need a check)
-
+			
+			
             // Check follow mode setting of the receiving user.
             var userSettings = await _userSettingsRepository.GetByUserId(receiverId);
             var followMode = userSettings.FollowMode;

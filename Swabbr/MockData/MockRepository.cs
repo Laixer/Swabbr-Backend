@@ -78,7 +78,7 @@ namespace Swabbr.Api.MockData
 
             return new VlogOutputModel
             {
-                UserId = new Guid("1b3b52d5-5f0b-45fa-b90e-a298fb3dc70b"),
+                UserId = new Guid("88e04067-b486-41e3-83b0-0b5e5ca1e9a5"),
                 VlogId = vlogId,
                 IsLive = true,
                 IsPrivate = false,

@@ -152,7 +152,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Returns a collection of users that the specified user is following.
         /// </summary>
-        [HttpGet("users/{userId}/following")]
+        [HttpGet("{userId}/following")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> ListFollowing([FromRoute] Guid userId)
         {
@@ -173,7 +173,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Deletes the follow relationship from the authorized user to the specified user.
         /// </summary>
-        [HttpDelete("users/{userId}/unfollow")]
+        [HttpDelete("{userId}/unfollow")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> Unfollow([FromRoute] Guid userId)
         {
@@ -195,7 +195,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Get the followers of a single user.
         /// </summary>
-        [HttpGet("users/{userId}/followers")]
+        [HttpGet("{userId}/followers")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> ListFollowers([FromRoute] Guid userId)
         {
