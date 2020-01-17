@@ -5,7 +5,9 @@ namespace Swabbr.Core.Entities
 {
     public sealed class StreamPlaybackDetails
     {
-        [JsonProperty("playbackUrl")]
+        /// <summary>
+        /// Streaming playback URL
+        /// </summary>
         public Uri PlaybackUrl { get; set; }
     }
 }
