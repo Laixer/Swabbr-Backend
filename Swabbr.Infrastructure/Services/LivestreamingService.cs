@@ -72,7 +72,7 @@ namespace Swabbr.Infrastructure.Services
                     var createdStream = await _livestreamRepository.CreateAsync(new Livestream
                     {
                         Id = response.Livestream.Id,
-                        Active = false,
+                        IsActive = false,
                         BroadcastLocation = response.Livestream.BroadcastLocation,
                         CreatedAt = response.Livestream.CreatedAt,
                         Name = response.Livestream.Name,

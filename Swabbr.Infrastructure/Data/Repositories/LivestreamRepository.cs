@@ -26,7 +26,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
             // Check if there are any inactive streams that are available for usage.
             var tq = new TableQuery<LivestreamTableEntity>().Where(
-                TableQuery.GenerateFilterConditionForBool("Active", QueryComparisons.Equal, false));
+                TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, false));
 
             var queryResults = table.ExecuteQuery(tq);
 
@@ -39,9 +39,9 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 openStream.UserId = userId;
 
                 // Set stream to active
-                openStream.Active = true;
+                openStream.IsActive = true;
 
-                // Update the stream to claim ownership for the given user
+                // Update the stream to claim ownership for the given user and indicate it is being used.
                 var reservedStream = await UpdateAsync(Map(openStream));
 
                 return reservedStream;
@@ -57,7 +57,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             {
                 LivestreamId = entity.Id,
                 UserId = entity.UserId,
-                Active = entity.Active,
+                IsActive = entity.IsActive,
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
                 Name = entity.Name,
@@ -71,7 +71,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             {
                 Id = entity.LivestreamId,
                 UserId = entity.UserId,
-                Active = entity.Active,
+                IsActive = entity.IsActive,
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
                 Name = entity.Name,

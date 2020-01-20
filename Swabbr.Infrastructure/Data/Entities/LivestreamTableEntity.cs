@@ -32,7 +32,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// Indicates if the stream is currently active.
         /// If it is active, it is being used as a broadcasting and streaming target and should be left alone.
         /// </summary>
-        public bool Active { get; set; }
+        public bool IsActive { get; set; }
 
         /// <summary>
         /// HLS playback URL of the stream.

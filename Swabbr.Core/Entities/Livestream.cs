@@ -27,7 +27,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Indicates whether the livestream is currently active or not.
         /// </summary>
-        public bool Active { get; set; }
+        public bool IsActive { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
 
