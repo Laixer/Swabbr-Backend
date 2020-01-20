@@ -8,8 +8,15 @@ namespace Swabbr.Infrastructure.Data
     /// </summary>
     public interface IDbClientFactory
     {
+        /// <summary>
+        /// Used to retrieve the db client for a specific table
+        /// </summary>
+        /// <typeparam name="T">Type of the table entity</typeparam>
+        /// <param name="tableName">Id/name of the table</param>
+        /// <returns></returns>
         IDbClient<T> GetClient<T>(string tableName) where T : TableEntity;
 
+        //TODO Remove, used for testing purposes only. Tables should (never) have to be removed.
         Task DeleteAllTables();
     }
 }
