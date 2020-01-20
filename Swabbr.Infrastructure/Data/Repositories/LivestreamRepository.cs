@@ -42,13 +42,31 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 openStream.IsActive = true;
 
                 // Update the stream to claim ownership for the given user and indicate it is being used.
-                var reservedStream = await UpdateAsync(Map(openStream));
+                Livestream reservedStream = await UpdateAsync(Map(openStream));
 
                 return reservedStream;
             }
 
             // If we get here there are no inactive livestreams available in storage.
             throw new EntityNotFoundException("There are no livestreams available for usage.");
+        }
+
+        public async Task<Livestream> GetByIdAsync(string livestreamId)
+        {
+            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
+
+            var tq = new TableQuery<LivestreamTableEntity>().Where(
+    TableQuery.GenerateFilterCondition(nameof(LivestreamTableEntity.LivestreamId), QueryComparisons.Equal, livestreamId));
+
+            var queryResults = table.ExecuteQuery(tq);
+
+            if (queryResults.Any())
+            {
+                LivestreamTableEntity stream = queryResults.First();
+                return Map(stream);
+            }
+
+            throw new EntityNotFoundException();
         }
 
         public override LivestreamTableEntity Map(Livestream entity)

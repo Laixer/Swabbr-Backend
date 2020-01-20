@@ -2,6 +2,7 @@
 using Microsoft.Azure.NotificationHubs.Messaging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
@@ -16,10 +17,16 @@ namespace Swabbr.Infrastructure.Services
         private readonly NotificationHubConfiguration _hubConfiguration;
         private readonly NotificationHubClient _hubClient;
 
-        public NotificationService(IOptions<NotificationHubConfiguration> notificationHubConfigurationOptions)
+        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+
+        public NotificationService(
+            IOptions<NotificationHubConfiguration> notificationHubConfigurationOptions,
+            INotificationRegistrationRepository notificationRegistrationRepository
+            )
         {
             _hubConfiguration = notificationHubConfigurationOptions.Value;
             _hubClient = NotificationHubClient.CreateClientFromConnectionString(_hubConfiguration.ConnectionString, _hubConfiguration.HubName);
+            _notificationRegistrationRepository = notificationRegistrationRepository;
         }
 
         /// <summary>
@@ -62,15 +69,20 @@ namespace Swabbr.Infrastructure.Services
             switch (deviceRegistration.Platform)
             {
                 case PushNotificationPlatform.APNS:
-                    registrationDescription = new AppleRegistrationDescription(deviceRegistration.Handle);
-                    break;
+                    {
+                        registrationDescription = new AppleRegistrationDescription(deviceRegistration.Handle);
 
+                        break;
+                    }
                 case PushNotificationPlatform.FCM:
-                    registrationDescription = new FcmRegistrationDescription(deviceRegistration.Handle);
-                    break;
-
+                    {
+                        registrationDescription = new FcmRegistrationDescription(deviceRegistration.Handle);
+                        break;
+                    }
                 default:
-                    return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service.");
+                    {
+                        return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service.");
+                    }
             }
 
             registrationDescription.RegistrationId = id;
@@ -84,8 +96,18 @@ namespace Swabbr.Infrastructure.Services
 
             try
             {
-                //TODO TEST/CHECK RESPONSE
-                await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
+                // Create a new registration for this device
+                RegistrationDescription hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
+
+                // Store registration in storage
+                await _notificationRegistrationRepository.CreateAsync(new NotificationRegistration
+                {
+                    RegistrationId = hubRegistration.RegistrationId,
+                    Handle = hubRegistration.PnsHandle,
+                    Platform = deviceRegistration.Platform,
+                    UserId = userId
+                });
+
                 return new NotificationResponse();
             }
             catch (MessagingException)
@@ -97,9 +119,9 @@ namespace Swabbr.Infrastructure.Services
         /// <summary>
         /// Send push notification to specific platform (Android or iOS)
         /// </summary>
-        /// <param name="newNotification"></param>
+        /// <param name="notification"></param>
         /// <returns></returns>
-        public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification newNotification, Guid userId)
+        public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId)
         {
             List<string> userTag = new List<string>()
             {
@@ -110,18 +132,22 @@ namespace Swabbr.Infrastructure.Services
             {
                 NotificationOutcome outcome = null;
 
-                //string jsonContent = JsonConvert.SerializeObject(newNotification.Content);
-                string jsonContent = "{\"aps\":{\"alert\":\"TEST\"}}";
-
-                switch (newNotification.Platform)
+                switch (notification.Platform)
                 {
                     case PushNotificationPlatform.APNS:
-                        outcome = await _hubClient.SendAppleNativeNotificationAsync(jsonContent, userTag);
-                        break;
-
+                        {
+                            // Get JSON content string for Apple PNS
+                            string jsonContent = notification.MessageContent.GetAppleContentJSON().ToString();
+                            outcome = await _hubClient.SendAppleNativeNotificationAsync(jsonContent, userTag);
+                            break;
+                        }
                     case PushNotificationPlatform.FCM:
-                        outcome = await _hubClient.SendFcmNativeNotificationAsync(jsonContent, userTag);
-                        break;
+                        {
+                            // Get JSON content string for FCM
+                            string jsonContent = notification.MessageContent.GetFcmContentJSON().ToString();
+                            outcome = await _hubClient.SendFcmNativeNotificationAsync(jsonContent, userTag);
+                            break;
+                        }
                 }
 
                 if (outcome != null)

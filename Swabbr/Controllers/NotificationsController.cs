@@ -36,8 +36,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> UnregisterFromNotifications()
         {
             //TODO Get notification hub registration id for user
-
-            var registrationId = "???";
+            var registrationId = "TODO";
             await _notificationService.DeleteRegistrationAsync(registrationId);
             return Ok();
         }
@@ -73,22 +72,22 @@ namespace Swabbr.Api.Controllers
         /// Send push notification
         /// </summary>
         /// <param name="newNotification"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         //TODO: IMPORTANT! Make sure this method requires admin authorization. Temporarily disabled for testing purposes
         [AllowAnonymous]
-        //[Authorize(Roles = "Admin")]
+        ////[Authorize(Roles = "Admin")]
 
-        [HttpPost("send")]
+        [HttpPost("send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification)
+        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification, [FromQuery] Guid userId)
         {
-            //TODO Pass user id in servic emethod
-            NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"));
+            NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, userId);
 
             if (pushDeliveryResult.CompletedWithSuccess)
             {
-                return Ok("Notification was sent succesfully");
+                return Ok("Notification was sent succesfully.");
             }
 
             return BadRequest("An error occurred while sending push notification: " + pushDeliveryResult.FormattedErrorMessages);

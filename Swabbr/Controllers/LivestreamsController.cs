@@ -63,13 +63,7 @@ namespace Swabbr.Api.Controllers
 
             // TODO Create notification with connection details as message content
 
-            // TODO Send notification containing connection details to user? Yes...
-            var notification = new SwabbrNotification
-            {
-                Content = new SwabbrMessage
-                {
-                }
-            };
+            // TODO Send notification containing connection details to user
 
             return Ok(new StreamConnectionDetailsOutputModel
             {

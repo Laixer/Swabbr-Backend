@@ -11,7 +11,7 @@
         APNS,
 
         /// <summary>
-        /// Firebase Cloud Messaging
+        /// Firebase Cloud Messaging (Android)
         /// </summary>
         FCM
     }

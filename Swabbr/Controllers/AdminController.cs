@@ -9,6 +9,9 @@ namespace Swabbr.Api.Controllers
     [Authorize(Roles = "Admin")]
     [Route("v1/api/[controller]")]
     [ApiController]
+
+    //TODO Marked as obsolete because the methods are not yet implemented
+    [Obsolete]
     public class AdminController : ControllerBase
     {
         private readonly IUserRepository userRepository;

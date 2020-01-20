@@ -181,6 +181,7 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task ResetStreamAsync(string id)
         {
+            // TODO is this necessary?
             throw new System.NotImplementedException();
         }
 
@@ -206,12 +207,6 @@ namespace Swabbr.Infrastructure.Services
 
                 var result = await HttpClient.PutAsync($"{wscConfig.Host}/api/{wscConfig.Version}/live_streams/{id}/stop", stringContent);
             }
-        }
-
-        public async Task<JObject> UpdateStreamAsync(string id)
-        {
-            await Task.FromResult(0);
-            throw new NotImplementedException();
         }
     }
 }

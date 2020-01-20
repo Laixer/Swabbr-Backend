@@ -93,6 +93,7 @@ namespace Swabbr
             services.AddTransient<IVlogRepository, VlogRepository>();
             services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
             services.AddTransient<ILivestreamRepository, LivestreamRepository>();
+            services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
 
             // Configure DI for services
             services.AddTransient<ITokenService, TokenService>();
