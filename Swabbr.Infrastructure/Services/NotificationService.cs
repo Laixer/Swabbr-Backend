@@ -132,7 +132,13 @@ namespace Swabbr.Infrastructure.Services
             {
                 NotificationOutcome outcome = null;
 
-                switch (notification.Platform)
+                //TODO What to do if there is no registration? Can't send a notification
+                //TODO Overwrite registration when >=1 registration
+                //!IMPORTANT
+                // Obtain the notification registration for this user
+                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
+
+                switch (registration.Platform)
                 {
                     case PushNotificationPlatform.APNS:
                         {

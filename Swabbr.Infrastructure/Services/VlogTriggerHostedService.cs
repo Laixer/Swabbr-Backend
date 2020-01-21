@@ -15,12 +15,14 @@ namespace Swabbr.Infrastructure.Services
     public class VlogTriggerHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
+
         private readonly IVlogRepository _vlogRepository;
         private readonly IUserRepository _userRepository;
         private readonly ILivestreamRepository _livestreamRepository;
+        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+
         private readonly ILivestreamingService _livestreamingService;
         private readonly INotificationService _notificationService;
-        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
 
         public VlogTriggerHostedService(
             IVlogRepository vlogRepository, 
@@ -54,22 +56,19 @@ namespace Swabbr.Infrastructure.Services
 
             try
             {
-                var connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(exampleUserGuid);
-
-                // Get the notification hub registration details for this user
-                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(exampleUserGuid);
+                // Reserve a livestream
+                StreamConnectionDetails connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(exampleUserGuid);
 
                 // Send notification to this user with the livestream connection details
                 var notification = new SwabbrNotification
                 {
-                    Platform = registration.Platform,
                     MessageContent = new SwabbrMessage
                     {
                         Title = "Time to record a vlog!",
                         Body = "It's time to record a vlog!",
                         Data = JObject.FromObject(connectionDetails),
                         DataType = nameof(connectionDetails),
-                        TimeStamp = DateTime.Now
+                        ClickAction = ClickActions.VLOG_RECORD_REQUEST
                     }
                 };
 
@@ -135,7 +134,7 @@ namespace Swabbr.Infrastructure.Services
         {
             // TODO Determine whether the user is elligible for reserving a livestream (recording a vlog)
 
-            User user = await (_userRepository.GetByIdAsync(userId));
+            User user = await _userRepository.GetByIdAsync(userId);
 
             // TODO Currently determining this arbitrarily for testing purposes.
             return user.Email.Equals("user@example.com", StringComparison.OrdinalIgnoreCase);

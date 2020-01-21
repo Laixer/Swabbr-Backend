@@ -26,6 +26,11 @@ namespace Swabbr.Core.Notifications
         public string ProtocolVersion => "1.0";
 
         /// <summary>
+        /// The client sided action to perform upon clicking the notification alert
+        /// </summary>
+        public string ClickAction { get; set; }
+
+        /// <summary>
         /// The type of the included data
         /// </summary>
         public string DataType { get; set; }
@@ -48,7 +53,7 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         /// Timestamp of when the message was sent
         /// </summary>
-        public DateTime TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; } = DateTime.Now;
 
         /// <summary>
         /// Contains information about the senders’ operating system, device, etc.
@@ -62,9 +67,6 @@ namespace Swabbr.Core.Notifications
             var json = GetContentJSON();
 
             // Add APNS specific data object
-
-
-            //TODO Add title to payload?
             json.Add(new JProperty("aps", 
                 new JObject(
                     new JProperty("alert", 
@@ -99,6 +101,7 @@ namespace Swabbr.Core.Notifications
             return new JObject(
                 new JProperty("protocol", Protocol),
                 new JProperty("protocol_version", ProtocolVersion),
+                new JProperty("click_action", ClickAction),
                 new JProperty("data_type", DataType),
                 new JProperty("data_type_version", DataTypeVersion),
                 new JProperty("data", Data),

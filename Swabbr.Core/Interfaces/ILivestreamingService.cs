@@ -33,13 +33,13 @@ namespace Swabbr.Core.Interfaces
         Task DeleteStreamAsync(string id);
 
         /// <summary>
-        /// Start a livestream.
+        /// Start a stopped livestream.
         /// </summary>
         /// <param name="id">Id of the livestream.</param>
         Task StartStreamAsync(string id);
 
         /// <summary>
-        /// Stop a livestream.
+        /// Stop a started livestream.
         /// </summary>
         /// <param name="id">Id of the livestream.</param>
         Task StopStreamAsync(string id);

@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.ViewModels;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -20,16 +23,19 @@ namespace Swabbr.Api.Controllers
         private readonly INotificationService _notificationService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILivestreamRepository _livestreamRepository;
+        private readonly IFollowRequestRepository _followRequestRepository;
 
         public LivestreamsController(
             ILivestreamingService livestreamingService,
             ILivestreamRepository livestreamRepository,
             INotificationService notificationService,
+            IFollowRequestRepository followRequestRepository,
             UserManager<SwabbrIdentityUser> userManager)
         {
             _livestreamingService = livestreamingService;
             _livestreamRepository = livestreamRepository;
             _notificationService = notificationService;
+            _followRequestRepository = followRequestRepository;
             _userManager = userManager;
         }
 
@@ -78,7 +84,7 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Start an available livestream
+        /// Start broadcasting to an available livestream
         /// </summary>
         /// <param name="id">Id of the livestream</param>
         [HttpPut("start/{id}")]
@@ -89,9 +95,31 @@ namespace Swabbr.Api.Controllers
 
             await _livestreamingService.StartStreamAsync(id);
 
-            // TODO Get followers of authenticated user TODO For each follower, send notification
+            // Obtain the nickname to use for the notification alert
+            string nickname = identityUser.Nickname;
 
-            // TODO Get vlog
+            // Obtain the followers of the authenticated user
+            var followers = (await (_followRequestRepository.GetIncomingForUserAsync(identityUser.UserId)))
+                .Where(fr => fr.Status == FollowRequestStatus.Accepted);
+
+            foreach (FollowRequest fr in followers)
+            {
+                Guid followerId = fr.RequesterId;
+
+                var notification = new SwabbrNotification
+                {
+                    MessageContent = new SwabbrMessage
+                    {
+                        Title = $"{nickname} is livestreaming right now!",
+                        Body = $"{nickname} has just gone live.",
+                        ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE
+                    }
+                };
+            }
+
+            // TODO Create vlog for user.
+
+
 
             return Ok();
         }
@@ -105,9 +133,9 @@ namespace Swabbr.Api.Controllers
         {
             await _livestreamingService.StopStreamAsync(id);
 
-            // TODO Set livestream with id {id} availability to true
-
-            // TODO Should also happen automatically
+            var x = await _livestreamRepository.GetByIdAsync(id);
+            x.IsActive = false;
+            await _livestreamRepository.UpdateAsync(x);
 
             return Ok();
         }
