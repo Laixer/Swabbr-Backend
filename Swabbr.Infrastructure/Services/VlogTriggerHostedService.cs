@@ -77,8 +77,8 @@ namespace Swabbr.Infrastructure.Services
 
                 System.Diagnostics.Debug.WriteLine($"Started livestream for user {exampleUserGuid} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
 
-                // Wait 1 minute before sending the notification to ensure the stream has started.
-                await Task.Delay(TimeSpan.FromMinutes(1));
+                // Wait 2 minutes before sending the notification to ensure the stream has started.
+                await Task.Delay(TimeSpan.FromMinutes(2));
 
                 // Send the notification containing the stream connection details to the user.
                 await _notificationService.SendNotificationToUserAsync(notification, exampleUserGuid);
