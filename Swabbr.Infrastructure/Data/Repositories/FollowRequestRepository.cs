@@ -39,7 +39,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return Task.FromResult(Map(queryResults.First()));
         }
 
-        public Task<FollowRequest> GetByUserId(Guid receiverId, Guid requesterId)
+        public Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId)
         {
             return this.RetrieveAsync(receiverId.ToString(), requesterId.ToString());
         }
@@ -160,6 +160,20 @@ namespace Swabbr.Infrastructure.Data.Repositories
             while (continuationToken != null);
 
             return ids;
+        }
+
+        public async Task<bool> ExistsAsync(Guid receiverId, Guid requesterId)
+        {
+            try
+            {
+                // TODO Optimize, only need to retrieve partition key
+                var x = await GetByUserIdAsync(receiverId, requesterId);
+                return true;
+            }
+            catch (EntityNotFoundException)
+            {
+                return false;
+            }
         }
     }
 }

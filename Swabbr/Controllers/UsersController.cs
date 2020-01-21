@@ -181,7 +181,7 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                var followRequest = await _followRequestRepository.GetByUserId(userId, identityUser.UserId);
+                var followRequest = await _followRequestRepository.GetByUserIdAsync(userId, identityUser.UserId);
                 // Delete the request
                 await _followRequestRepository.DeleteAsync(followRequest);
                 return NoContent();

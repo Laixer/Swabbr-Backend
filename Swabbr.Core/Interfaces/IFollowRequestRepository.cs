@@ -18,7 +18,15 @@ namespace Swabbr.Core.Interfaces
         /// Returns a single follow request entity from the id of the requester to the id of the receiver.
         /// </summary>
         /// <returns></returns>
-        Task<FollowRequest> GetByUserId(Guid receiverId, Guid requesterId);
+        Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId);
+
+        /// <summary>
+        /// Returns whether a follow relationship from the receiver to the requester exists.
+        /// </summary>
+        /// <param name="receiverId">Unique identifier of the receiving user.</param>
+        /// <param name="requesterId"> Unique identifier of the requesting user.</param>
+        /// <returns></returns>
+        Task<bool> ExistsAsync(Guid receiverId, Guid requesterId);
 
         /// <summary>
         /// Returns all incoming follow requests for a specific user.
