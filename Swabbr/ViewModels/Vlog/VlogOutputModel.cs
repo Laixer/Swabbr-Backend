@@ -42,5 +42,18 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("likes")]
         public List<VlogLike> Likes { get; set; }
+
+        public static implicit operator VlogOutputModel(Vlog vlog)
+        {
+            return new VlogOutputModel
+            {
+                VlogId = vlog.VlogId,
+                UserId = vlog.UserId,
+                DateStarted = vlog.DateStarted,
+                IsLive = vlog.IsLive,
+                IsPrivate = vlog.IsPrivate,
+                Likes = vlog.Likes
+            };
+        }
     }
 }

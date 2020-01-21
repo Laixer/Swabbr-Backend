@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
@@ -9,6 +10,16 @@ namespace Swabbr.Core.Interfaces
     /// </summary>
     public interface IVlogRepository : IRepository<Vlog>
     {
+        /// <summary>
+        /// Returns a collection of vlogs that are owned by the specified user.
+        /// </summary>
+        /// <param name="userId">Unique identifier of the user and owner of the vlogs.</param>
+        Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId);
+
+        /// <summary>
+        /// Returns a single vlog with the specified Id.
+        /// </summary>
+        /// <param name="vlogId">Unique identifier of the vlog.</param>
         Task<Vlog> GetByIdAsync(Guid vlogId);
 
         /// <summary>

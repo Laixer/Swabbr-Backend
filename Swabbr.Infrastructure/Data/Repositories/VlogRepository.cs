@@ -4,6 +4,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var tq = new TableQuery<VlogTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("VlogId", QueryComparisons.Equal, vlogId));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
 
             if (!queryResults.Any())
             {
@@ -44,6 +45,25 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString())
             );
             return await GetEntityCount(tableQuery);
+        }
+
+        public async Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId)
+        {
+            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
+
+            // Retrieve records where the partition key matches the id of the user (owner)
+            var tq = new TableQuery<VlogTableEntity>().Where(
+                TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString()));
+
+            var queryResults = await table.ExecuteQueryAsync(tq);
+
+            if (!queryResults.Any())
+            {
+                throw new EntityNotFoundException();
+            }
+
+            // Return mapped entities
+            return queryResults.Select(v => Map(v));
         }
 
         public override Vlog Map(VlogTableEntity entity)

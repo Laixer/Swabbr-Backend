@@ -86,7 +86,7 @@ namespace Swabbr.Infrastructure.Services
                 // Set time-out
                 await WaitForTimeoutAsync(exampleUserGuid, connectionDetails.Id);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 //TODO Handle exception
 

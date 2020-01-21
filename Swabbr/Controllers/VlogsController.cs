@@ -5,6 +5,7 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -44,8 +45,15 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> Get([FromRoute]Guid vlogId)
         {
-            //TODO Not implemented
-            return Ok(MockRepository.RandomVlogOutput());
+            try
+            {
+                VlogOutputModel output = await _vlogRepository.GetByIdAsync(vlogId);
+                return Ok(output);
+            }
+            catch(EntityNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>
@@ -68,8 +76,17 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> ListForUser([FromRoute]Guid userId)
         {
-            //TODO Not implemented
-            return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 5));
+            var vlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
+
+            // Map the vlogs to their output model representations.
+            IEnumerable<VlogOutputModel> output = vlogs
+                .Select(v =>
+                {
+                    VlogOutputModel outputModel = v;
+                    return outputModel;
+                });
+
+            return Ok(output);
         }
 
         /// <summary>
