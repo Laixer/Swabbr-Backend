@@ -45,7 +45,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("incoming")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
-        public async Task<IActionResult> Incoming()
+        public async Task<IActionResult> IncomingAsync()
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -69,7 +69,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("outgoing")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
-        public async Task<IActionResult> Outgoing()
+        public async Task<IActionResult> OutgoingAsync()
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -92,7 +92,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("outgoing/{receiverId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
-        public async Task<IActionResult> GetSingleOutgoing([FromRoute]Guid receiverId)
+        public async Task<IActionResult> GetSingleOutgoingAsync([FromRoute]Guid receiverId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -112,7 +112,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("outgoing/{receiverId}/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
-        public async Task<IActionResult> Status([FromRoute]Guid receiverId)
+        public async Task<IActionResult> GetStatusAsync([FromRoute]Guid receiverId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -129,7 +129,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPost("send")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
-        public async Task<IActionResult> Send(Guid receiverId)
+        public async Task<IActionResult> SendAsync(Guid receiverId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -185,7 +185,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpDelete("{followRequestId}/cancel")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Destroy([FromRoute]Guid followRequestId)
+        public async Task<IActionResult> CancelAsync([FromRoute]Guid followRequestId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
             var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
@@ -206,7 +206,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("{followRequestId}/accept")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
-        public async Task<IActionResult> Accept([FromRoute]Guid followRequestId)
+        public async Task<IActionResult> AcceptAsync([FromRoute]Guid followRequestId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
             var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
@@ -228,7 +228,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("{followRequestId}/decline")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
-        public async Task<IActionResult> Decline([FromRoute]Guid followRequestId)
+        public async Task<IActionResult> DeclineAsync([FromRoute]Guid followRequestId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
             var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);

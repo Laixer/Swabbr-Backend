@@ -34,7 +34,7 @@ namespace Swabbr.Api.Controllers
         }
 
         [HttpPost("notifications/send")]
-        public async Task<IActionResult> SendNotification()
+        public async Task<IActionResult> SendNotificationAsync()
         {
             //TODO Not implemented
             throw new NotImplementedException();
@@ -44,7 +44,7 @@ namespace Swabbr.Api.Controllers
         /// Ban a specific user account.
         /// </summary>
         [HttpPut("users/{userId}/ban")]
-        public async Task<IActionResult> BanUser()
+        public async Task<IActionResult> BanUserAsync()
         {
             //TODO Not implemented
             throw new NotImplementedException();
@@ -54,7 +54,7 @@ namespace Swabbr.Api.Controllers
         /// Delete a specific user account.
         /// </summary>
         [HttpDelete("users/{userId}/delete")]
-        public async Task<IActionResult> DeleteUser()
+        public async Task<IActionResult> DeleteUserAsync()
         {
             //TODO Not implemented
             throw new NotImplementedException();
@@ -64,7 +64,7 @@ namespace Swabbr.Api.Controllers
         /// Send out a warning to a specific user.
         /// </summary>
         [HttpPost("users/{userId}/warning")]
-        public async Task<IActionResult> WarnUser(string warningMessage)
+        public async Task<IActionResult> WarnUserAsync(string warningMessage)
         {
             //TODO Not implemented
             throw new NotImplementedException();

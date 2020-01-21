@@ -33,7 +33,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpDelete("unregister")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> UnregisterFromNotifications()
+        public async Task<IActionResult> UnregisterFromNotificationsAsync()
         {
             //TODO Get notification hub registration id for user
             var registrationId = "TODO";
@@ -50,7 +50,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("register")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> RegisterForPushNotifications([FromBody] DeviceRegistration deviceRegistration)
+        public async Task<IActionResult> RegisterForPushNotificationsAsync([FromBody] DeviceRegistration deviceRegistration)
         {
             // Create a new registration
             var registrationId = await _notificationService.CreateRegistrationIdAsync();
@@ -81,7 +81,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification, Guid userId)
+        public async Task<IActionResult> SendNotificationAsync([FromBody] SwabbrNotification newNotification, Guid userId)
         {
             NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, userId);
 

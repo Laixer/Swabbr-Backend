@@ -20,17 +20,20 @@ namespace Swabbr.Api.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IUserSettingsRepository _userSettingsRepository;
         private readonly ITokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
 
         public AuthenticationController(
             IUserRepository userRepository,
+            IUserSettingsRepository userSettingsRepository,
             ITokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager)
         {
             _userRepository = userRepository;
+            _userSettingsRepository = userSettingsRepository;
             _tokenService = tokenService;
             _userManager = userManager;
             _signInManager = signInManager;
@@ -45,7 +48,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("register")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> Register([FromBody] UserRegisterInputModel input)
+        public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterInputModel input)
         {
             // Ensure the user does not already exist
             var userCheck = await _userManager.FindByEmailAsync(input.Email);
@@ -101,8 +104,7 @@ namespace Swabbr.Api.Controllers
                         Claims = await _userManager.GetClaimsAsync(identityUser),
                         Roles = await _userManager.GetRolesAsync(identityUser),
                         User = userOutput,
-                        // TODO UserSettings (Must be created and initialized to default during registration)
-                        UserSettings = MockData.MockRepository.RandomUserSettingsOutput()
+                        UserSettings = await _userSettingsRepository.GetByUserId(identityUser.UserId)
                     }
                 );
             }
@@ -152,8 +154,7 @@ namespace Swabbr.Api.Controllers
                     Claims = await _userManager.GetClaimsAsync(identityUser),
                     Roles = await _userManager.GetRolesAsync(identityUser),
                     User = userOutput,
-                    // TODO Actual userSettings in output model
-                    UserSettings = MockData.MockRepository.RandomUserSettingsOutput()
+                    UserSettings = await _userSettingsRepository.GetByUserId(identityUser.UserId)
                 });
             }
 
@@ -167,7 +168,7 @@ namespace Swabbr.Api.Controllers
         [Authorize]
         [HttpDelete("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> LogoutAsync()
         {
             await _signInManager.SignOutAsync();
             return NoContent();

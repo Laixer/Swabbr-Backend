@@ -56,7 +56,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("trigger/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> NotifyUserStream(Guid userId)
+        public async Task<IActionResult> NotifyUserStreamAsync(Guid userId)
         {
             // TODO Obtain available livestream from pool
             var connection = await _livestreamingService.ReserveLiveStreamForUserAsync(userId);
@@ -83,7 +83,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="id">Id of the livestream</param>
         [HttpPut("start/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StartStream(string id)
+        public async Task<IActionResult> StartStreamAsync(string id)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -101,7 +101,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("stop/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StopStream(string id)
+        public async Task<IActionResult> StopStreamAsync(string id)
         {
             await _livestreamingService.StopStreamAsync(id);
 
@@ -117,7 +117,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("test/stopall")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> TestStopAllStreams()
+        public async Task<IActionResult> TestStopAllStreamsAsync()
         {
             var active = await _livestreamRepository.GetActiveLivestreamsAsync();
 
@@ -142,7 +142,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("playback/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlayback(string id)
+        public async Task<IActionResult> GetPlaybackAsync(string id)
         {
             var details = await _livestreamingService.GetStreamPlaybackAsync(id);
 
@@ -157,7 +157,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("playback/user/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlaybackForUser(Guid userId)
+        public async Task<IActionResult> GetPlaybackForUserAsync(Guid userId)
         {
             // TODO UserId has to be linked to AVAILABLE livestream id
             throw new NotImplementedException();
@@ -168,7 +168,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpGet("delete/{id}")]
-        public async Task<IActionResult> DeleteStream(string id)
+        public async Task<IActionResult> DeleteStreamAsync(string id)
         {
             await _livestreamingService.DeleteStreamAsync(id);
             return Ok();
@@ -177,7 +177,7 @@ namespace Swabbr.Api.Controllers
         // TODO Remove
         [HttpGet("stream/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> GetConnectionDetails(string id)
+        public async Task<IActionResult> GetConnectionDetailsAsync(string id)
         {
             //TODO Check if user has permission to request these details
             var connection = await _livestreamingService.GetStreamConnectionAsync(id);

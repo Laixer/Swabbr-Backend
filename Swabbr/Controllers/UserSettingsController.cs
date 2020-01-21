@@ -33,7 +33,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("get")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAsync()
         {
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
@@ -49,7 +49,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
-        public async Task<IActionResult> Update([FromBody] UserSettingsInputModel input)
+        public async Task<IActionResult> UpdateAsync([FromBody] UserSettingsInputModel input)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 

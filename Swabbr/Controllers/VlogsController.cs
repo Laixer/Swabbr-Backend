@@ -43,7 +43,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
-        public async Task<IActionResult> Get([FromRoute]Guid vlogId)
+        public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("featured")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
-        public async Task<IActionResult> Featured()
+        public async Task<IActionResult> FeaturedAsync()
         {
             //TODO Not implemented
             return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 10));
@@ -74,7 +74,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("users/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
-        public async Task<IActionResult> ListForUser([FromRoute]Guid userId)
+        public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId)
         {
             var vlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
 
@@ -95,7 +95,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpDelete("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Delete([FromRoute]Guid vlogId)
+        public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -118,7 +118,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPost("like/{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Like([FromRoute]Guid vlogId)
+        public async Task<IActionResult> LikeAsync([FromRoute]Guid vlogId)
         {
             // TODO Check if the vlog exists first?
             var identityUser = await _userManager.GetUserAsync(User);
@@ -142,7 +142,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpDelete("like/{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> Unlike([FromRoute]Guid vlogId)
+        public async Task<IActionResult> UnlikeAsync([FromRoute]Guid vlogId)
         {
             // TODO Check if the vlog exists first?
             var identityUser = await _userManager.GetUserAsync(User);

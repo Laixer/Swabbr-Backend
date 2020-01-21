@@ -7,7 +7,7 @@ namespace Swabbr.Api.Controllers
     {
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("/")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> IndexAsync()
         {
             // Redirect the index page ("/") to the Swagger API definition.
             return Redirect("/swagger");
