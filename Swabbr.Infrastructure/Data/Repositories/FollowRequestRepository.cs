@@ -22,29 +22,29 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName => "FollowRequests";
 
-        public Task<FollowRequest> GetByIdAsync(Guid followRequestId)
+        public async Task<FollowRequest> GetByIdAsync(Guid followRequestId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<FollowRequestTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("FollowRequestId", QueryComparisons.Equal, followRequestId));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
 
             if (!queryResults.Any())
             {
                 throw new EntityNotFoundException();
             }
 
-            return Task.FromResult(Map(queryResults.First()));
+            return Map(queryResults.First());
         }
 
-        public Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId)
+        public async Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId)
         {
-            return this.RetrieveAsync(receiverId.ToString(), requesterId.ToString());
+            return await RetrieveAsync(receiverId.ToString(), requesterId.ToString());
         }
 
-        public Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
+        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
@@ -53,13 +53,13 @@ namespace Swabbr.Infrastructure.Data.Repositories
                         TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString())
                     );
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
             var mappedResults = queryResults.Select(x => Map(x));
 
-            return Task.FromResult(mappedResults);
+            return mappedResults;
         }
 
-        public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
+        public async Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
             var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
@@ -68,10 +68,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
                         TableQuery.GenerateFilterCondition("RequesterId", QueryComparisons.Equal, userId.ToString())
                 );
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
             var mappedResults = queryResults.Select(x => Map(x));
 
-            return Task.FromResult(mappedResults);
+            return mappedResults;
         }
 
         public async Task<int> GetFollowerCountAsync(Guid userId)
@@ -84,7 +84,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
                         TableQuery.GenerateFilterConditionForInt("Status", QueryComparisons.Equal, (int)FollowRequestStatus.Accepted)
                     )
                 );
-            return await GetEntityCount(tableQuery);
+            return await GetEntityCountAsync(tableQuery);
         }
 
         public async Task<int> GetFollowingCountAsync(Guid userId)
@@ -97,7 +97,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
                         TableQuery.GenerateFilterConditionForInt("Status", QueryComparisons.Equal, (int)FollowRequestStatus.Accepted)
                     )
                 );
-            return await GetEntityCount(tableQuery);
+            return await GetEntityCountAsync(tableQuery);
         }
 
         public override FollowRequestTableEntity Map(FollowRequest entity)
@@ -128,7 +128,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string ResolveRowKey(FollowRequestTableEntity entity) => entity.RequesterId.ToString();
 
-        public async Task<IEnumerable<Guid>> GetFollowerIds(Guid userId)
+        public async Task<IEnumerable<Guid>> GetFollowerIdsAsync(Guid userId)
         {
             TableQuery<DynamicTableEntity> tableQuery = new TableQuery<DynamicTableEntity>()
             .Where(

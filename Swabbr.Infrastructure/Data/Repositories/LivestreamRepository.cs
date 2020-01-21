@@ -60,7 +60,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var tq = new TableQuery<LivestreamTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, true));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
 
             return queryResults.Select(x => Map(x));
         }
@@ -72,7 +72,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var tq = new TableQuery<LivestreamTableEntity>().Where(
     TableQuery.GenerateFilterCondition(nameof(LivestreamTableEntity.LivestreamId), QueryComparisons.Equal, livestreamId));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
 
             if (queryResults.Any())
             {

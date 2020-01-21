@@ -118,7 +118,7 @@ namespace Swabbr.Infrastructure.Data
         /// </summary>
         /// <param name="tableQuery">The query to match entities on.</param>
         /// <returns>The amount of entities in the table matching the table query.</returns>
-        public async Task<int> GetEntityCount(TableQuery<DynamicTableEntity> tableQuery)
+        public async Task<int> GetEntityCountAsync(TableQuery<DynamicTableEntity> tableQuery)
         {
             // Select only the partition key from the entity.
             tableQuery = tableQuery.Select(new string[] { "PartitionKey" });

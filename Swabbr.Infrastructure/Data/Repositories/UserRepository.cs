@@ -42,7 +42,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var tq = new TableQuery<UserTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
 
             if (queryResults.Any())
             {
@@ -62,13 +62,15 @@ namespace Swabbr.Infrastructure.Data.Repositories
             //TODO Use cognitive search
             //TODO Important
 
+            //! IMPORTANT
+
             //TODO Currently returning all rows... not ideal
             var table = _factory.GetClient<UserTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<UserTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool("PhoneNumberConfirmed", QueryComparisons.Equal, false));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tq);
 
             return queryResults.Select(x => Map(x));
         }

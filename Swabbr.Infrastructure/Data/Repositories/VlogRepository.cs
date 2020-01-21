@@ -44,7 +44,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             .Where(
                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString())
             );
-            return await GetEntityCount(tableQuery);
+            return await GetEntityCountAsync(tableQuery);
         }
 
         public async Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId)
