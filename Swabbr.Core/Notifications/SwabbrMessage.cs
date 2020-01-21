@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 
 namespace Swabbr.Core.Notifications
@@ -39,7 +38,7 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         /// An object of type data_type
         /// </summary>
-        public object Data { get; set; }
+        public JObject Data { get; set; }
 
         /// <summary>
         /// Indicates the media type of the content
@@ -63,11 +62,19 @@ namespace Swabbr.Core.Notifications
             var json = GetContentJSON();
 
             // Add APNS specific data object
-            json.Add("aps", new JObject()
-            {
-               new JProperty("title", Title),
-               new JProperty("body", Body)
-            });
+
+
+            //TODO Add title to payload?
+            json.Add(new JProperty("aps", 
+                new JObject(
+                    new JProperty("alert", 
+                        new JObject(
+                            new JProperty("title", Title),
+                            new JProperty("body", Body)
+                        )
+                    )
+                )
+            ));
 
             return json;
         }

@@ -83,7 +83,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="id">Id of the livestream</param>
         [HttpPut("start/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StartStream([FromQuery] string id)
+        public async Task<IActionResult> StartStream(string id)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -101,9 +101,34 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("stop/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StopStream([FromQuery] string id)
+        public async Task<IActionResult> StopStream(string id)
         {
             await _livestreamingService.StopStreamAsync(id);
+
+            // TODO Set livestream with id {id} availability to true
+
+            // TODO Should also happen automatically
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Stop all running livestreams
+        /// </summary>
+        [HttpPut("test/stopall")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> TestStopAllStreams()
+        {
+            var active = await _livestreamRepository.GetActiveLivestreamsAsync();
+
+            foreach(var a in active)
+            {
+                // stop all active streams
+                _ = _livestreamingService.StopStreamAsync(a.Id);
+                a.IsActive = false;
+                a.UserId = Guid.Empty;
+                await _livestreamRepository.UpdateAsync(a);
+            }
 
             // TODO Set livestream with id {id} availability to true
 
@@ -152,7 +177,7 @@ namespace Swabbr.Api.Controllers
         // TODO Remove
         [HttpGet("stream/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> GetConnectionDetails([FromQuery] string id)
+        public async Task<IActionResult> GetConnectionDetails(string id)
         {
             //TODO Check if user has permission to request these details
             var connection = await _livestreamingService.GetStreamConnectionAsync(id);

@@ -95,7 +95,13 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> GetSingleOutgoing([FromRoute]Guid receiverId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
-            var entity = await _followRequestRepository.GetByUserId(receiverId, identityUser.UserId);
+
+            if (!(await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId)))
+            {
+                return BadRequest("Outgoing request does not exist.");
+            }
+
+            var entity = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
             FollowRequestOutputModel output = entity;
             return Ok(output);
         }
@@ -109,27 +115,13 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Status([FromRoute]Guid receiverId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
-            return Ok((await _followRequestRepository.GetByUserId(receiverId, identityUser.UserId)).Status);
-        }
 
-        /// <summary>
-        /// Returns a collection of users for which the authenticated user has previously rejected
-        /// follow requests.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("rejected")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
-        public async Task<IActionResult> Rejected()
-        {
-            var identityUser = await _userManager.GetUserAsync(User);
-            var outgoingRequests = await _followRequestRepository.GetOutgoingForUserAsync(identityUser.UserId);
+            if (!(await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId)))
+            {
+                return BadRequest("Outgoing request does not exist.");
+            }
 
-            // Filter out non-declined requests and map the collection to output models.
-            var requestsOutput = outgoingRequests
-                .Where(entity => entity.Status == FollowRequestStatus.Declined)
-                .Select(entity => (FollowRequestOutputModel)entity);
-
-            return Ok(requestsOutput);
+            return Ok((await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId)).Status);
         }
 
         /// <summary>
@@ -151,8 +143,19 @@ namespace Swabbr.Api.Controllers
             }
 
             // TODO Do not continue after this point if the follow request already exists? (Need a check)
-			
-			
+            if (await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId))
+            {
+                var existingRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
+                if (existingRequest.Status == FollowRequestStatus.Declined)
+                {
+                    // TODO Should we allow re-sending declined requests? Currently doing so by updating the status to pending.
+                    existingRequest.Status = FollowRequestStatus.Pending;
+                    FollowRequestOutputModel outputUpdated = await _followRequestRepository.UpdateAsync(existingRequest);
+                    return Ok(outputUpdated);
+                }
+                return BadRequest();
+            }
+
             // Check follow mode setting of the receiving user.
             var userSettings = await _userSettingsRepository.GetByUserId(receiverId);
             var followMode = userSettings.FollowMode;
@@ -173,8 +176,8 @@ namespace Swabbr.Api.Controllers
             };
 
             var createdEntity = await _followRequestRepository.CreateAsync(entityToCreate);
-            FollowRequestOutputModel output = createdEntity;
-            return Ok(output);
+            FollowRequestOutputModel outputCreated = createdEntity;
+            return Ok(outputCreated);
         }
 
         /// <summary>

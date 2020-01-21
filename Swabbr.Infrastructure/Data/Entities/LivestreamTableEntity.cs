@@ -35,11 +35,6 @@ namespace Swabbr.Infrastructure.Data.Entities
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// HLS playback URL of the stream.
-        /// </summary>
-        public Uri PlaybackUrl { get; set; }
-
-        /// <summary>
         /// Date and time this livestream was created externally through the livestreaming service.
         /// </summary>
         public DateTimeOffset CreatedAt { get; set; }

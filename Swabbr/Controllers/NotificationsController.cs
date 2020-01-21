@@ -81,7 +81,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification, [FromQuery] Guid userId)
+        public async Task<IActionResult> SendNotification([FromBody] SwabbrNotification newNotification, Guid userId)
         {
             NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, userId);
 

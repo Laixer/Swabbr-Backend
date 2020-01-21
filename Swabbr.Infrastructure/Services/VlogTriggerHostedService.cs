@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
@@ -25,12 +26,17 @@ namespace Swabbr.Infrastructure.Services
             IVlogRepository vlogRepository, 
             IUserRepository userRepository,
             ILivestreamRepository livestreamRepository,
-            ILivestreamingService livestreamingService)
+            ILivestreamingService livestreamingService,
+            INotificationService notificationService,
+            INotificationRegistrationRepository notificationRegistrationRepository
+            )
         {
             _vlogRepository = vlogRepository;
             _userRepository = userRepository;
             _livestreamRepository = livestreamRepository;
             _livestreamingService = livestreamingService;
+            _notificationService = notificationService;
+            _notificationRegistrationRepository = notificationRegistrationRepository;
         }
 
         /// <summary>
@@ -45,35 +51,57 @@ namespace Swabbr.Infrastructure.Services
 
             //TODO  Reserve a livestream for this user
             Guid exampleUserGuid = new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2");
-            var connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(exampleUserGuid);
 
-            // Get the notification hub registration details for this user
-            var registration = await _notificationRegistrationRepository.GetByUserIdAsync(exampleUserGuid);
-
-            // Send notification to this user with the livestream connection details
-            var notification = new SwabbrNotification
+            try
             {
-                Platform = registration.Platform,
-                MessageContent = new SwabbrMessage
+                var connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(exampleUserGuid);
+
+                // Get the notification hub registration details for this user
+                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(exampleUserGuid);
+
+                // Send notification to this user with the livestream connection details
+                var notification = new SwabbrNotification
                 {
-                    Title = "Time to record a vlog!",
-                    Body = "It's time to record a vlog!",
-                    Data = connectionDetails,
-                    DataType = nameof(connectionDetails),
-                    TimeStamp = DateTime.Now
-                }
-            };
+                    Platform = registration.Platform,
+                    MessageContent = new SwabbrMessage
+                    {
+                        Title = "Time to record a vlog!",
+                        Body = "It's time to record a vlog!",
+                        Data = JObject.FromObject(connectionDetails),
+                        DataType = nameof(connectionDetails),
+                        TimeStamp = DateTime.Now
+                    }
+                };
 
-            await _notificationService.SendNotificationToUserAsync(notification, exampleUserGuid);
+                await _livestreamingService.StartStreamAsync(connectionDetails.Id);
 
-            // Set time-out
-            _ = WaitForTimeoutAsync(exampleUserGuid, connectionDetails.Id);
+                System.Diagnostics.Debug.WriteLine($"Started livestream for user {exampleUserGuid} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
+
+                // Wait 1 minute before sending the notification to ensure the stream has started.
+                await Task.Delay(TimeSpan.FromMinutes(1));
+
+                // Send the notification containing the stream connection details to the user.
+                await _notificationService.SendNotificationToUserAsync(notification, exampleUserGuid);
+
+                // Set time-out
+                await WaitForTimeoutAsync(exampleUserGuid, connectionDetails.Id);
+            }
+            catch(Exception e)
+            {
+                //TODO Handle exception
+
+                // If we get here, either no stream could be reserved,
+                // something went wrong with receiving hub registrations (in which case we can not send any notifications)
+                // or something went wrong while sending out a notification (in which case we should possibly try to send it again)
+            }
         }
 
         public async Task WaitForTimeoutAsync(Guid userId, string livestreamId)
         {
             // Wait 10 minutes
-            await Task.Delay(TimeSpan.FromMinutes(10));
+            await Task.Delay(TimeSpan.FromMinutes(5));
+
+            System.Diagnostics.Debug.WriteLine($"Livestream {livestreamId} has timed out.");
 
             //TODO For later:
             /*
@@ -86,13 +114,20 @@ namespace Swabbr.Infrastructure.Services
             // Check if the stream is active (reserved by the user)
             if (livestream.IsActive)
             {
-                // If it is, we ensure the livestream is stopped
-                // and reset the availability of the stream.
-                await _livestreamingService.StopStreamAsync(livestreamId);
+                try
+                {
+                    // If it is, we ensure the livestream is stopped
+                    // and reset the availability of the stream.
+                    await _livestreamingService.StopStreamAsync(livestreamId);
 
-                livestream.IsActive = false;
-                livestream.UserId = Guid.Empty;
-                await _livestreamRepository.UpdateAsync(livestream);
+                    livestream.IsActive = false;
+                    livestream.UserId = Guid.Empty;
+                    await _livestreamRepository.UpdateAsync(livestream);
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Exception thrown in timeout. Message: {e.Message}");
+                }
             }
         }
 
@@ -108,7 +143,8 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+            //TODO Timer currently disabled to prevent spamming with notifications
+            //_timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
             await Task.CompletedTask;
         }
 

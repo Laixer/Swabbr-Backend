@@ -4,6 +4,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -49,6 +50,19 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
             // If we get here there are no inactive livestreams available in storage.
             throw new EntityNotFoundException("There are no livestreams available for usage.");
+        }
+
+        public async Task<IEnumerable<Livestream>> GetActiveLivestreamsAsync()
+        {
+            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
+
+            // Check if there are any inactive streams that are available for usage.
+            var tq = new TableQuery<LivestreamTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, true));
+
+            var queryResults = table.ExecuteQuery(tq);
+
+            return queryResults.Select(x => Map(x));
         }
 
         public async Task<Livestream> GetByIdAsync(string livestreamId)
