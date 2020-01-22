@@ -1,12 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Data.Entities;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {
@@ -14,7 +14,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
     {
         private IDbClientFactory _factory;
 
-        public NotificationRegistrationRepository(IDbClientFactory dbClientFactory) : base (dbClientFactory)
+        public NotificationRegistrationRepository(IDbClientFactory dbClientFactory) : base(dbClientFactory)
         {
             _factory = dbClientFactory;
         }

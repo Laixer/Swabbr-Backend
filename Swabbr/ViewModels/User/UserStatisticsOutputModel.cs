@@ -26,7 +26,7 @@
         /// The total amount of received reactions by this user.
         /// </summary>
         public int TotalReactionsReceived { get; set; }
-        
+
         /// <summary>
         /// The total amount of placed vlogs by this user.
         /// </summary>

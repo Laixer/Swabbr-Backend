@@ -1,12 +1,9 @@
 ﻿using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +22,7 @@ namespace Swabbr.Infrastructure.Services
         private readonly INotificationService _notificationService;
 
         public VlogTriggerHostedService(
-            IVlogRepository vlogRepository, 
+            IVlogRepository vlogRepository,
             IUserRepository userRepository,
             ILivestreamRepository livestreamRepository,
             ILivestreamingService livestreamingService,
@@ -52,6 +49,8 @@ namespace Swabbr.Infrastructure.Services
             //TODO  For each user that should be triggered:
 
             //TODO  Reserve a livestream for this user
+
+            // TODO Currently using the example user (user@example.com) for testing purposes
             Guid exampleUserGuid = new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2");
 
             try
@@ -89,9 +88,10 @@ namespace Swabbr.Infrastructure.Services
             {
                 //TODO Handle exception
 
-                // If we get here, either no stream could be reserved,
-                // something went wrong with receiving hub registrations (in which case we can not send any notifications)
-                // or something went wrong while sending out a notification (in which case we should possibly try to send it again)
+                // If we get here, either no stream could be reserved, something went wrong with
+                // receiving hub registrations (in which case we can not send any notifications) or
+                // something went wrong while sending out a notification (in which case we should
+                // possibly try to send it again)
             }
         }
 
@@ -115,8 +115,8 @@ namespace Swabbr.Infrastructure.Services
             {
                 try
                 {
-                    // If it is, we ensure the livestream is stopped
-                    // and reset the availability of the stream.
+                    // If it is, we ensure the livestream is stopped and reset the availability of
+                    // the stream.
                     await _livestreamingService.StopStreamAsync(livestreamId);
 
                     livestream.IsActive = false;
@@ -154,6 +154,7 @@ namespace Swabbr.Infrastructure.Services
         }
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -173,6 +174,7 @@ namespace Swabbr.Infrastructure.Services
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
     }
 }

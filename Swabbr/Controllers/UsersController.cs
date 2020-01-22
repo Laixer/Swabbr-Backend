@@ -79,9 +79,9 @@ namespace Swabbr.Api.Controllers
 
             var filteredResults = results.Where(
                 x =>
-                x.FirstName.ToUpper().Contains(query.ToUpper()) ||
-                x.LastName.ToUpper().Contains(query.ToUpper()) ||
-                x.Nickname.ToUpper().Contains(query.ToUpper())
+                x.FirstName.ToUpperInvariant().Contains(query.ToUpperInvariant()) ||
+                x.LastName.ToUpperInvariant().Contains(query.ToUpperInvariant()) ||
+                x.Nickname.ToUpperInvariant().Contains(query.ToUpperInvariant())
                 ).Select(async x =>
                 {
                     UserOutputModel o = await GetUserOutputAsync(x);
@@ -103,7 +103,7 @@ namespace Swabbr.Api.Controllers
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
             var entity = await _userRepository.GetByIdAsync(userId);
-            
+
             UserOutputModel output = await GetUserOutputAsync(entity);
 
             return Ok(output);

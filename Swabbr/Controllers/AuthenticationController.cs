@@ -74,7 +74,7 @@ namespace Swabbr.Api.Controllers
                 Country = input.Country,
                 Gender = (int)input.Gender,
                 IsPrivate = input.IsPrivate,
-                Nickname = input.Nickname,                
+                Nickname = input.Nickname,
                 Timezone = input.Timezone,
 
                 //TODO Get URL from input, see uncommented line. Using URL for test purposes

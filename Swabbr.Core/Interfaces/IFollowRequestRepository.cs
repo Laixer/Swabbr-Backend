@@ -24,7 +24,7 @@ namespace Swabbr.Core.Interfaces
         /// Returns whether a follow relationship from the receiver to the requester exists.
         /// </summary>
         /// <param name="receiverId">Unique identifier of the receiving user.</param>
-        /// <param name="requesterId"> Unique identifier of the requesting user.</param>
+        /// <param name="requesterId">Unique identifier of the requesting user.</param>
         /// <returns></returns>
         Task<bool> ExistsAsync(Guid receiverId, Guid requesterId);
 

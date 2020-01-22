@@ -1,8 +1,8 @@
 ﻿using Microsoft.Azure.NotificationHubs;
 using Microsoft.Azure.NotificationHubs.Messaging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
@@ -99,6 +99,8 @@ namespace Swabbr.Infrastructure.Services
                 // Create a new registration for this device
                 RegistrationDescription hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
 
+                //TODO Overwrite registration when >=1 registration
+                //!IMPORTANT
                 // Store registration in storage
                 await _notificationRegistrationRepository.CreateAsync(new NotificationRegistration
                 {
@@ -133,7 +135,6 @@ namespace Swabbr.Infrastructure.Services
                 NotificationOutcome outcome = null;
 
                 //TODO What to do if there is no registration? Can't send a notification
-                //TODO Overwrite registration when >=1 registration
                 //!IMPORTANT
                 // Obtain the notification registration for this user
                 var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
@@ -172,6 +173,10 @@ namespace Swabbr.Infrastructure.Services
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
             }
             catch (ArgumentException e)
+            {
+                return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
+            }
+            catch (EntityNotFoundException e)
             {
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
             }

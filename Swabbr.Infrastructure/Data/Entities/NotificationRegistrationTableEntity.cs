@@ -25,8 +25,8 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string Handle { get; set; }
 
         /// <summary>
-        /// The integer representation of the <see cref="PushNotificationPlatform"/> value for this registration.
-        /// Indicates which platform is being used for sending push notifications.
+        /// The integer representation of the <see cref="PushNotificationPlatform"/> value for this
+        /// registration. Indicates which platform is being used for sending push notifications.
         /// </summary>
         public int Platform { get; set; }
     }

@@ -96,7 +96,7 @@ namespace Swabbr.Infrastructure.Data
 
                 // Map model to dto
                 var deleteEntity = Map(entity);
-                
+
                 // Use wildcard ETag
                 deleteEntity.ETag = "*";
 
@@ -106,7 +106,7 @@ namespace Swabbr.Infrastructure.Data
                 // Perform delete
                 await client.DeleteEntityAsync(deleteEntity);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 var test = e;
                 throw;

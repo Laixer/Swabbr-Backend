@@ -208,5 +208,23 @@ namespace Swabbr.Infrastructure.Services
                 var result = await HttpClient.PutAsync($"{wscConfig.Host}/api/{wscConfig.Version}/live_streams/{id}/stop", stringContent);
             }
         }
+
+        public async Task<Uri> GetThumbnailUrlAsync(string id)
+        {
+            var requestUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/live_streams/{id}/thumbnail_url";
+
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl))
+            {
+                requestMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
+                requestMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
+
+                var result = await HttpClient.SendAsync(requestMessage);
+                var resultString = await result.Content.ReadAsStringAsync();
+                var response = JsonConvert.DeserializeObject<WscGetThumbnailResponse>(resultString);
+
+                // Return the thumbnail url extracted from the received object
+                return response.Livestream.ThumbnailUrl;
+            }
+        }
     }
 }

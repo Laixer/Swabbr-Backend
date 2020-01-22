@@ -19,43 +19,30 @@ namespace Swabbr.Api.Controllers
     [Route("api/v1/livestreams")]
     public class LivestreamsController : ControllerBase
     {
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
+
         private readonly ILivestreamingService _livestreamingService;
         private readonly INotificationService _notificationService;
-        private readonly UserManager<SwabbrIdentityUser> _userManager;
+
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IFollowRequestRepository _followRequestRepository;
+        private readonly IVlogRepository _vlogRepository;
 
         public LivestreamsController(
+            UserManager<SwabbrIdentityUser> userManager,
             ILivestreamingService livestreamingService,
-            ILivestreamRepository livestreamRepository,
             INotificationService notificationService,
+            ILivestreamRepository livestreamRepository,
             IFollowRequestRepository followRequestRepository,
-            UserManager<SwabbrIdentityUser> userManager)
+            IVlogRepository vlogRepository)
         {
-            _livestreamingService = livestreamingService;
-            _livestreamRepository = livestreamRepository;
-            _notificationService = notificationService;
-            _followRequestRepository = followRequestRepository;
             _userManager = userManager;
+            _livestreamingService = livestreamingService;
+            _notificationService = notificationService;
+            _livestreamRepository = livestreamRepository;
+            _followRequestRepository = followRequestRepository;
+            _vlogRepository = vlogRepository;
         }
-
-        // TODO Remove
-        ////[HttpPost("create")]
-        ////public async Task<IActionResult> CreateStream()
-        ////{
-        ////    var output = await livestreamingService.CreateNewStreamAsync("testName");
-        ////
-        ////    return Ok(new StreamConnectionDetailsOutputModel
-        ////    {
-        ////        Id = output.Id,
-        ////        AppName = output.AppName,
-        ////        HostAddress = output.HostAddress,
-        ////        Password = output.Password,
-        ////        Port = output.Port,
-        ////        StreamName = output.StreamName,
-        ////        Username = output.Username
-        ////    });
-        ////}
 
         /// <summary>
         /// Open an available livestream for a user
@@ -89,11 +76,26 @@ namespace Swabbr.Api.Controllers
         /// <param name="id">Id of the livestream</param>
         [HttpPut("start/{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StartStreamAsync(string id)
+        public async Task<IActionResult> StartBroadcastAsync(string id)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            await _livestreamingService.StartStreamAsync(id);
+            var livestream = await _livestreamRepository.GetByIdAsync(id);
+
+            // Ensure the requested user owns this livestream
+            if (!livestream.UserId.Equals(identityUser.UserId))
+            {
+                return BadRequest("User currently does not have access to this livestream.");
+            }
+
+            // TODO Create vlog for user.
+            var createdVlog = await _vlogRepository.CreateAsync(new Vlog
+            {
+                VlogId = Guid.NewGuid(),
+                UserId = identityUser.UserId,
+                DateStarted = DateTime.Now,
+            });
+
 
             // Obtain the nickname to use for the notification alert
             string nickname = identityUser.Nickname;
@@ -102,24 +104,23 @@ namespace Swabbr.Api.Controllers
             var followers = (await (_followRequestRepository.GetIncomingForUserAsync(identityUser.UserId)))
                 .Where(fr => fr.Status == FollowRequestStatus.Accepted);
 
+            // Construct notification
+            var notification = new SwabbrNotification
+            {
+                MessageContent = new SwabbrMessage
+                {
+                    Title = $"{nickname} is livestreaming right now!",
+                    Body = $"{nickname} has just gone live.",
+                    ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE
+                }
+            };
+
+            // Send a notification to each follower
             foreach (FollowRequest fr in followers)
             {
                 Guid followerId = fr.RequesterId;
-
-                var notification = new SwabbrNotification
-                {
-                    MessageContent = new SwabbrMessage
-                    {
-                        Title = $"{nickname} is livestreaming right now!",
-                        Body = $"{nickname} has just gone live.",
-                        ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE
-                    }
-                };
+                await _notificationService.SendNotificationToUserAsync(notification, followerId);
             }
-
-            // TODO Create vlog for user.
-
-
 
             return Ok();
         }
@@ -149,7 +150,7 @@ namespace Swabbr.Api.Controllers
         {
             var active = await _livestreamRepository.GetActiveLivestreamsAsync();
 
-            foreach(var a in active)
+            foreach (var a in active)
             {
                 // stop all active streams
                 _ = _livestreamingService.StopStreamAsync(a.Id);

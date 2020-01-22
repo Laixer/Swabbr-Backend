@@ -55,7 +55,7 @@ namespace Swabbr.Api.ViewModels
         /// Date of birth for the given user.
         /// </summary>
         [Required]
-        [JsonProperty("birthDate")]
+        [JsonProperty("birthDate", Required = Required.DisallowNull)]
         public DateTime BirthDate { get; set; }
 
         /// <summary>

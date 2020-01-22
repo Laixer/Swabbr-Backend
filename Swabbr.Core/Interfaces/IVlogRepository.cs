@@ -23,6 +23,12 @@ namespace Swabbr.Core.Interfaces
         Task<Vlog> GetByIdAsync(Guid vlogId);
 
         /// <summary>
+        /// Returns whether the vlog with the specified id exists.
+        /// </summary>
+        /// <param name="vlogId">Unique identifier of the vlog.</param>
+        Task<bool> ExistsAsync(Guid vlogId);
+
+        /// <summary>
         /// Returns the amount of vlogs that a user has created.
         /// </summary>
         /// <param name="userId">Unique identifier of the user to check the amount of vlogs for.</param>

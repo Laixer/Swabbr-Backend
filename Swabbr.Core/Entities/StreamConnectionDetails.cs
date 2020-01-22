@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Swabbr.Core.Entities
+﻿namespace Swabbr.Core.Entities
 {
     public class StreamConnectionDetails
     {

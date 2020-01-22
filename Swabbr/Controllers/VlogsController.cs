@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Errors;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
@@ -28,8 +30,8 @@ namespace Swabbr.Api.Controllers
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
         public VlogsController(
-            IVlogRepository vlogRepository, 
-            IVlogLikeRepository vlogLikeRepository, 
+            IVlogRepository vlogRepository,
+            IVlogLikeRepository vlogLikeRepository,
             UserManager<SwabbrIdentityUser> userManager
             )
         {
@@ -50,9 +52,11 @@ namespace Swabbr.Api.Controllers
                 VlogOutputModel output = await _vlogRepository.GetByIdAsync(vlogId);
                 return Ok(output);
             }
-            catch(EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
-                return NotFound();
+                return NotFound(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                    );
             }
         }
 
@@ -97,19 +101,31 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-
-            var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
-
-            // Ensure the authenticated user is the owner of this vlog
-            if (!vlogEntity.UserId.Equals(identityUser.UserId))
+            try
             {
-                return BadRequest();
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
+
+                // Ensure the authenticated user is the owner of this vlog
+                if (!vlogEntity.UserId.Equals(identityUser.UserId))
+                {
+                    return BadRequest(
+                        this.Error(ErrorCodes.ACCESS_DENIED, "Access to this vlog is not allowed.")
+                    );
+                }
+
+                // Delete the vlog
+                await _vlogRepository.DeleteAsync(vlogEntity);
+
+                return NoContent();
             }
-
-            await _vlogRepository.DeleteAsync(vlogEntity);
-
-            return NoContent();
+            catch(EntityNotFoundException)
+            {
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                );
+            }
         }
 
         // TODO What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog.
@@ -120,9 +136,18 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> LikeAsync([FromRoute]Guid vlogId)
         {
-            // TODO Check if the vlog exists first?
+            // Check if the vlog with the specified id exists
+            //TODO: Check if the user has sufficient rights to access this vlog (shared users only for private vlogs)
+            if (!(await _vlogRepository.ExistsAsync(vlogId)))
+            {
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                );
+            }
+
             var identityUser = await _userManager.GetUserAsync(User);
 
+            // Create a new like record
             var entityToCreate = new VlogLike
             {
                 VlogLikeId = Guid.NewGuid(),
@@ -131,7 +156,6 @@ namespace Swabbr.Api.Controllers
                 TimeCreated = DateTime.Now,
             };
 
-            // Create a new like record
             await _vlogLikeRepository.CreateAsync(entityToCreate);
 
             return Ok();
@@ -144,21 +168,22 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> UnlikeAsync([FromRoute]Guid vlogId)
         {
-            // TODO Check if the vlog exists first?
-            var identityUser = await _userManager.GetUserAsync(User);
-
             try
             {
+                var identityUser = await _userManager.GetUserAsync(User);
+
                 // Retrieve and delete the entity
                 var entityToDelete = await _vlogLikeRepository.GetByUserIdAsync(vlogId, identityUser.UserId);
                 await _vlogLikeRepository.DeleteAsync(entityToDelete);
+            
+                return NoContent();
             }
-            catch (Exception e)
+            catch (EntityNotFoundException)
             {
-                return BadRequest(e);
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Like could not be found.")
+                );
             }
-
-            return NoContent();
         }
     }
 }

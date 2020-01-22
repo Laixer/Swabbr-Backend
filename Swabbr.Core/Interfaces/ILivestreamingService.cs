@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using System;
 using System.Threading.Tasks;
 
@@ -22,7 +21,8 @@ namespace Swabbr.Core.Interfaces
         Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
 
         /// <summary>
-        /// Returns connection details for an available livestream from the pool, creates a new livestream if none are available.
+        /// Returns connection details for an available livestream from the pool, creates a new
+        /// livestream if none are available.
         /// </summary>
         /// <param name="userId">Id of the user to reserve the livestream for.</param>
         Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId);
@@ -55,5 +55,11 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="id">Id of the livestream.</param>
         Task<StreamPlaybackDetails> GetStreamPlaybackAsync(string id);
+
+        /// <summary>
+        /// Fetches the thumbnail URL of the given stream.
+        /// </summary>
+        /// <param name="id">Id of the livestream.</param>
+        Task<Uri> GetThumbnailUrlAsync(string id);
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
+using System;
+using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {

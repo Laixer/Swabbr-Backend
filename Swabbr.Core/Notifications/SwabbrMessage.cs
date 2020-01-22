@@ -60,16 +60,15 @@ namespace Swabbr.Core.Notifications
         /// </summary>
         public string UserAgent { get; set; }
 
-
         public JObject GetAppleContentJSON()
         {
             // Get base content
             var json = GetContentJSON();
 
             // Add APNS specific data object
-            json.Add(new JProperty("aps", 
+            json.Add(new JProperty("aps",
                 new JObject(
-                    new JProperty("alert", 
+                    new JProperty("alert",
                         new JObject(
                             new JProperty("title", Title),
                             new JProperty("body", Body)

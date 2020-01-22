@@ -21,6 +21,20 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName { get; } = "Vlogs";
 
+        public async Task<bool> ExistsAsync(Guid vlogId)
+        {
+            //TODO: Optimize, only need to retrieve partitionkey
+            try
+            {
+                await GetByIdAsync(vlogId);
+                return true;
+            }
+            catch(EntityNotFoundException)
+            {
+                return false;
+            }
+        }
+
         public async Task<Vlog> GetByIdAsync(Guid vlogId)
         {
             var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
