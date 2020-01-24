@@ -63,7 +63,6 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Register to receive push notifications
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="deviceRegistration"></param>
         /// <returns></returns>
         [HttpPost("register")]

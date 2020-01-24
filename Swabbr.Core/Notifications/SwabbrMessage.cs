@@ -44,7 +44,7 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         /// An object of type data_type
         /// </summary>
-        public object Data { get; set; }
+        public JObject Data { get; set; }
 
         /// <summary>
         /// Indicates the media type of the content
@@ -99,17 +99,15 @@ namespace Swabbr.Core.Notifications
 
         private JObject GetContentJSON()
         {
-            var data = JObject.FromObject(Data);
-
             // Add click action nested in data
-            data.Add("click_action", ClickAction);
+            Data.Add("click_action", ClickAction);
 
             return new JObject(
                 new JProperty("protocol", Protocol),
                 new JProperty("protocol_version", ProtocolVersion),
                 new JProperty("data_type", DataType),
                 new JProperty("data_type_version", DataTypeVersion),
-                new JProperty("data", data),
+                new JProperty("data", Data),
                 new JProperty("content_type", ContentType),
                 new JProperty("timestamp", TimeStamp),
                 new JProperty("user_agent", UserAgent)

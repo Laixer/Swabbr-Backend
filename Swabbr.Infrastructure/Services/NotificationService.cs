@@ -105,7 +105,7 @@ namespace Swabbr.Infrastructure.Services
                     //!IMPORTANT
                     //TODO: Decide whether to keep track of multiple notification registrations. 
                     //TODO: Currently removing any duplicates (previously created records) and creating a new record in its place
-                    // If it does already exist we delete it, to ensure one device is registered at a time.
+                    // If it does already exist we delete it, to ensure one device registration is stored at a time.
                     var existingRegistration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
                     ////await DeleteRegistrationAsync(existingRegistration.RegistrationId);
                     await _notificationRegistrationRepository.DeleteAsync(existingRegistration);
@@ -144,9 +144,8 @@ namespace Swabbr.Infrastructure.Services
             {
                 NotificationOutcome outcome = null;
 
-                //TODO What to do if there is no registration? Can't send a notification
-                //!IMPORTANT
-                // Obtain the notification registration for this user
+                // Obtain the stored notification registration for this user.
+                // This is needed to determine the platform for which the notification should be sent out.
                 var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
 
                 switch (registration.Platform)
@@ -186,9 +185,9 @@ namespace Swabbr.Infrastructure.Services
             {
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
             }
-            catch (EntityNotFoundException e)
+            catch (EntityNotFoundException)
             {
-                return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);
+                return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Could not find any stored Notification Hub Registrations.");
             }
         }
     }
