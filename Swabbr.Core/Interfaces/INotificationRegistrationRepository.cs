@@ -10,5 +10,10 @@ namespace Swabbr.Core.Interfaces
         /// Get a notification registration record by providing the user and registration id.
         /// </summary>
         Task<NotificationRegistration> GetByUserIdAsync(Guid userId);
+
+        /// <summary>
+        /// Checks if a registration exists for a specific user.
+        /// </summary>
+        Task<bool> ExistsForUser(Guid userId);
     }
 }

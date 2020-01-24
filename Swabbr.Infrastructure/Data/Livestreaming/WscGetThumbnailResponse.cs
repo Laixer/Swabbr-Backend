@@ -14,6 +14,6 @@ namespace Swabbr.Infrastructure.Data.Livestreaming
     public class WscThumbnailContainer
     {
         [JsonProperty("thumbnail_url")]
-        public Uri ThumbnailUrl { get; set; }
+        public string ThumbnailUrl { get; set; }
     }
 }

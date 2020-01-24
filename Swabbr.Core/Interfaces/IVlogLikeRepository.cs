@@ -12,6 +12,13 @@ namespace Swabbr.Core.Interfaces
         /// <param name="vlogId">Unique identifier of the vlog.</param>
         /// <param name="userId">Unique identifier of the user who submitted the like.</param>
         /// <returns></returns>
-        Task<VlogLike> GetByUserIdAsync(Guid vlogId, Guid userId);
+        Task<VlogLike> GetSingleForUserAsync(Guid vlogId, Guid userId);
+
+        /// <summary>
+        /// Returns the count of all given likes by a single user.
+        /// </summary>
+        /// <param name="userId">Unique identifier of the user who submitted the likes.</param>
+        /// <returns></returns>
+        Task<int> GetGivenCountForUserAsync(Guid userId);
     }
 }

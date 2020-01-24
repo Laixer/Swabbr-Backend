@@ -8,7 +8,7 @@ namespace Swabbr.Core.Interfaces
     public interface ILivestreamRepository : IRepository<Livestream>
     {
         /// <summary>
-        /// Stops all active livestreams and sets them to inactive.
+        /// Returns all active livestreams.
         /// </summary>
         Task<IEnumerable<Livestream>> GetActiveLivestreamsAsync();
 
@@ -19,7 +19,7 @@ namespace Swabbr.Core.Interfaces
         Task<Livestream> ReserveLivestreamForUserAsync(Guid userId);
 
         /// <summary>
-        /// Return a single entity by providing its unique identifier
+        /// Return a single entity by providing its unique identifier.
         /// </summary>
         /// <param name="livestreamId">Unique identifier of the livestream</param>
         Task<Livestream> GetByIdAsync(string livestreamId);

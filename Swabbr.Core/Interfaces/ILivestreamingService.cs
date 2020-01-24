@@ -60,6 +60,6 @@ namespace Swabbr.Core.Interfaces
         /// Fetches the thumbnail URL of the given stream.
         /// </summary>
         /// <param name="id">Id of the livestream.</param>
-        Task<Uri> GetThumbnailUrlAsync(string id);
+        Task<string> GetThumbnailUrlAsync(string id);
     }
 }

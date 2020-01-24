@@ -15,6 +15,11 @@
         /// <summary>
         /// Indicates that access to a specified resource is not allowed.
         /// </summary>
-        public const int ACCESS_DENIED = 700;
+        public const int INSUFFICIENT_ACCESS_RIGHTS = 700;
+
+        /// <summary>
+        /// Indicates that an external process or service has encountered an error.
+        /// </summary>
+        public const int EXTERNAL_ERROR = 800; 
     }
 }

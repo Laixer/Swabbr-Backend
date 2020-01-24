@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Data.Entities;
 using System;
@@ -14,7 +15,16 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName { get; } = "VlogLike";
 
-        public async Task<VlogLike> GetByUserIdAsync(Guid vlogId, Guid userId)
+        public async Task<int> GetGivenCountForUserAsync(Guid userId)
+        {
+            TableQuery<DynamicTableEntity> tableQuery = new TableQuery<DynamicTableEntity>()
+            .Where(
+                TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, userId.ToString())
+            );
+            return await GetEntityCountAsync(tableQuery);
+        }
+
+        public async Task<VlogLike> GetSingleForUserAsync(Guid vlogId, Guid userId)
         {
             return await RetrieveAsync(vlogId.ToString(), userId.ToString());
         }

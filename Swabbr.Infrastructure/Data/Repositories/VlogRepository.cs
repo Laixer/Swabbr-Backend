@@ -71,11 +71,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
             var queryResults = await table.ExecuteQueryAsync(tq);
 
-            if (!queryResults.Any())
-            {
-                throw new EntityNotFoundException();
-            }
-
             // Return mapped entities
             return queryResults.Select(v => Map(v));
         }

@@ -47,6 +47,9 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
+            //TODO Not implemented
+            return Ok(MockRepository.RandomVlogOutput(vlogId));
+
             try
             {
                 VlogOutputModel output = await _vlogRepository.GetByIdAsync(vlogId);
@@ -111,7 +114,7 @@ namespace Swabbr.Api.Controllers
                 if (!vlogEntity.UserId.Equals(identityUser.UserId))
                 {
                     return BadRequest(
-                        this.Error(ErrorCodes.ACCESS_DENIED, "Access to this vlog is not allowed.")
+                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "Access to this vlog is not allowed.")
                     );
                 }
 
@@ -173,7 +176,7 @@ namespace Swabbr.Api.Controllers
                 var identityUser = await _userManager.GetUserAsync(User);
 
                 // Retrieve and delete the entity
-                var entityToDelete = await _vlogLikeRepository.GetByUserIdAsync(vlogId, identityUser.UserId);
+                var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.UserId);
                 await _vlogLikeRepository.DeleteAsync(entityToDelete);
             
                 return NoContent();

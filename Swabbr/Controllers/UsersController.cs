@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Errors;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -26,13 +28,23 @@ namespace Swabbr.Api.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IFollowRequestRepository _followRequestRepository;
         private readonly IVlogRepository _vlogRepository;
+        private readonly IVlogLikeRepository _vlogLikeRepository;
+        private readonly IReactionRepository _reactionRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public UsersController(IUserRepository userRepository, IFollowRequestRepository followRequestRepository, IVlogRepository vlogRepository, UserManager<SwabbrIdentityUser> userManager)
+        public UsersController(
+            IUserRepository userRepository, 
+            IFollowRequestRepository followRequestRepository, 
+            IVlogRepository vlogRepository,
+            IVlogLikeRepository vlogLikeRepository,
+            IReactionRepository reactionRepository,
+            UserManager<SwabbrIdentityUser> userManager)
         {
             _userRepository = userRepository;
             _followRequestRepository = followRequestRepository;
             _vlogRepository = vlogRepository;
+            _vlogLikeRepository = vlogLikeRepository;
+            _reactionRepository = reactionRepository;
             _userManager = userManager;
         }
 
@@ -61,7 +73,9 @@ namespace Swabbr.Api.Controllers
             }
             catch (EntityNotFoundException)
             {
-                return NotFound(userId);
+                return NotFound(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "User could not be found.")
+                    );
             }
         }
 
@@ -146,7 +160,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> DeleteAsync()
         {
             //TODO Delete all user data? Or flag user as inactive? Not yet implemented.
-            return NoContent();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -171,6 +185,44 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
+        /// Returns statistics of the specified user.
+        /// </summary>
+        [HttpGet("{userId}/statistics")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        public async Task<IActionResult> GetStatistics([FromRoute] Guid userId)
+        {
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            var userVlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
+
+            int totalReactionsReceivedCount = 0;
+            int totalLikesReceivedCount = 0;
+
+            //TODO: Total views counter should be incremented in the for each loop for vlogs below
+            int totalViewsCount = -1;
+
+            foreach(Vlog v in userVlogs)
+            {
+                totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(v.VlogId);
+                totalLikesReceivedCount += v.Likes.Count;
+                
+                // TODO: Add up received views for each vlog here: v
+                //// totalViews += ?
+            }
+
+            return Ok(new UserStatisticsOutputModel
+            {
+                TotalFollowers         = await _followRequestRepository.GetFollowerCountAsync(userId),
+                TotalFollowing         = await _followRequestRepository.GetFollowingCountAsync(userId),
+                TotalLikes             = totalLikesReceivedCount,
+                TotalVlogs             = await _vlogRepository.GetVlogCountForUserAsync(userId),
+                TotalReactionsGiven    = await _reactionRepository.GetGivenReactionCountForUserAsync(userId),
+                TotalReactionsReceived = totalReactionsReceivedCount,
+                TotalViews             = totalViewsCount
+            });
+        }
+
+        /// <summary>
         /// Deletes the follow relationship from the authorized user to the specified user.
         /// </summary>
         [HttpDelete("{userId}/unfollow")]
@@ -188,7 +240,9 @@ namespace Swabbr.Api.Controllers
             }
             catch (EntityNotFoundException)
             {
-                return BadRequest("There is no follow relationship between these users.");
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Relationship could not be found.")
+                    );
             }
         }
 

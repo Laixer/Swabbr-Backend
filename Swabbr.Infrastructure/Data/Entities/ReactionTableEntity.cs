@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Microsoft.Azure.Cosmos.Table;
+using System;
 
 namespace Swabbr.Infrastructure.Data.Entities
 {
     /// <summary>
     /// A reaction to a vlog.
     /// </summary>
-    public class ReactionTableEntity
+    public class ReactionTableEntity : TableEntity
     {
         /// <summary>
-        /// Unique identifier.
+        /// Unique identifier of the reaction.
         /// </summary>
         public Guid ReactionId { get; set; }
 
@@ -23,7 +24,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         public Guid VlogId { get; set; }
 
         /// <summary>
-        /// The moment at which the reaction was posted.
+        /// The date and time at which the reaction was posted.
         /// </summary>
         public DateTime DatePosted { get; set; }
 
@@ -36,6 +37,6 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>
-        public object MediaServiceData { get; set; }
+        public string MediaServiceData { get; set; }
     }
 }

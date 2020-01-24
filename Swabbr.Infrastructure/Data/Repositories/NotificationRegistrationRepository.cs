@@ -21,6 +21,19 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName => "NotificationRegistrations";
 
+        public async Task<bool> ExistsForUser(Guid userId)
+        {
+            try
+            {
+                await GetByUserIdAsync(userId);
+                return true;
+            }
+            catch (EntityNotFoundException)
+            {
+                return false;
+            }
+        }
+
         public Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
         {
             //TODO Implement correctly. Must a registration be bound to a single user or should this return a collection?

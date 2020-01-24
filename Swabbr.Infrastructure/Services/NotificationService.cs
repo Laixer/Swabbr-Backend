@@ -99,8 +99,18 @@ namespace Swabbr.Infrastructure.Services
                 // Create a new registration for this device
                 RegistrationDescription hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
 
-                //TODO Overwrite registration when >=1 registration
-                //!IMPORTANT
+                // Check if a notification registration already exists for a specific user.
+                if (await _notificationRegistrationRepository.ExistsForUser(userId))
+                {
+                    //!IMPORTANT
+                    //TODO: Decide whether to keep track of multiple notification registrations. 
+                    //TODO: Currently removing any duplicates (previously created records) and creating a new record in its place
+                    // If it does already exist we delete it, to ensure one device is registered at a time.
+                    var existingRegistration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
+                    await DeleteRegistrationAsync(existingRegistration.RegistrationId);
+                    await _notificationRegistrationRepository.DeleteAsync(existingRegistration);
+                }
+
                 // Store registration in storage
                 await _notificationRegistrationRepository.CreateAsync(new NotificationRegistration
                 {

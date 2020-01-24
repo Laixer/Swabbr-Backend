@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Errors;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -74,7 +76,7 @@ namespace Swabbr.Api.Controllers
         /// Start broadcasting to an available livestream
         /// </summary>
         /// <param name="id">Id of the livestream</param>
-        [HttpPut("start/{id}")]
+        [HttpPut("{id}/start")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> StartBroadcastAsync(string id)
         {
@@ -115,7 +117,7 @@ namespace Swabbr.Api.Controllers
                 }
             };
 
-            // Send a notification to each follower
+            // Send the notification to each follower
             foreach (FollowRequest fr in followers)
             {
                 Guid followerId = fr.RequesterId;
@@ -128,12 +130,14 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Stop a running livestream
         /// </summary>
-        [HttpPut("stop/{id}")]
+        [HttpPut("{id}/stop")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> StopStreamAsync(string id)
         {
+            // Stop the livestream externally
             await _livestreamingService.StopStreamAsync(id);
 
+            // Set the state of the livestream in storage to inactive
             var x = await _livestreamRepository.GetByIdAsync(id);
             x.IsActive = false;
             await _livestreamRepository.UpdateAsync(x);
@@ -142,8 +146,31 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
+        /// Get thumbnail of livestream
+        /// </summary>
+        [HttpGet("{id}/thumbnail")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetThumbnailAsync(string id)
+        {
+            try
+            {
+                // Retrieve the live thumbnail of the livestream
+                var thumbnailUrl = await _livestreamingService.GetThumbnailUrlAsync(id);
+                return Ok(thumbnailUrl);
+            }
+            catch(Exception)
+            {
+                //TODO: Handle specific exception
+                return BadRequest(
+                    this.Error(ErrorCodes.EXTERNAL_ERROR, "Could not retrieve thumbnail.")
+                );
+            }
+        }
+
+        /// <summary>
         /// Stop all running livestreams
         /// </summary>
+        [Authorize(Roles = "Admin")]
         [HttpPut("test/stopall")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> TestStopAllStreamsAsync()
@@ -152,16 +179,12 @@ namespace Swabbr.Api.Controllers
 
             foreach (var a in active)
             {
-                // stop all active streams
+                // Stop all active streams
                 _ = _livestreamingService.StopStreamAsync(a.Id);
                 a.IsActive = false;
                 a.UserId = Guid.Empty;
                 await _livestreamRepository.UpdateAsync(a);
             }
-
-            // TODO Set livestream with id {id} availability to true
-
-            // TODO Should also happen automatically
 
             return Ok();
         }
@@ -169,7 +192,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Returns playback details of a livestream.
         /// </summary>
-        [HttpGet("playback/{id}")]
+        [HttpGet("{id}/playback")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
         public async Task<IActionResult> GetPlaybackAsync(string id)
         {
@@ -196,19 +219,31 @@ namespace Swabbr.Api.Controllers
         /// Delete an existing livestream
         /// </summary>
         [Authorize(Roles = "Admin")]
-        [HttpGet("delete/{id}")]
+        [HttpGet("{id}/delete")]
         public async Task<IActionResult> DeleteStreamAsync(string id)
         {
             await _livestreamingService.DeleteStreamAsync(id);
             return Ok();
         }
 
-        // TODO Remove
-        [HttpGet("stream/{id}")]
+        /// <summary>
+        /// Retrieve the connection details of a livestream.
+        /// </summary>
+        [HttpGet("{id}/connection")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
         public async Task<IActionResult> GetConnectionDetailsAsync(string id)
         {
-            //TODO Check if user has permission to request these details
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            var livestream = await _livestreamRepository.GetByIdAsync(id);
+            
+            if (!livestream.UserId.Equals(identityUser.UserId))
+            {
+                return Unauthorized(
+                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to access livestream details.")
+                    );
+            }
+
             var connection = await _livestreamingService.GetStreamConnectionAsync(id);
 
             return Ok(new StreamConnectionDetailsOutputModel

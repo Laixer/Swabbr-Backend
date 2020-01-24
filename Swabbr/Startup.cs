@@ -95,6 +95,7 @@ namespace Swabbr
             services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
             services.AddTransient<IVlogRepository, VlogRepository>();
             services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
+            services.AddTransient<IReactionRepository, ReactionRepository>();
             services.AddTransient<ILivestreamRepository, LivestreamRepository>();
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
 

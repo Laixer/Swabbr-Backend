@@ -209,7 +209,7 @@ namespace Swabbr.Infrastructure.Services
             }
         }
 
-        public async Task<Uri> GetThumbnailUrlAsync(string id)
+        public async Task<string> GetThumbnailUrlAsync(string id)
         {
             var requestUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/live_streams/{id}/thumbnail_url";
 
