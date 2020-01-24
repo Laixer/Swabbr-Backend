@@ -87,7 +87,9 @@ namespace Swabbr.Api.Controllers
             // Ensure the requested user owns this livestream
             if (!livestream.UserId.Equals(identityUser.UserId))
             {
-                return BadRequest("User currently does not have access to this livestream.");
+                return BadRequest(
+                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User currently does not have access to this livestream.")
+                    );
             }
 
             // TODO Create vlog for user.
