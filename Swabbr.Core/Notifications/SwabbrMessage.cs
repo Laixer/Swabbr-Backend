@@ -72,7 +72,8 @@ namespace Swabbr.Core.Notifications
                     new JProperty("alert",
                         new JObject(
                             new JProperty("title", Title),
-                            new JProperty("body", Body)
+                            new JProperty("body", Body),
+                            new JProperty("content-available", 1)
                         )
                     )
                 )

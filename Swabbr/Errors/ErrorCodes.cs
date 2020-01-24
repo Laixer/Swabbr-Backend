@@ -18,6 +18,16 @@
         public const int INSUFFICIENT_ACCESS_RIGHTS = 700;
 
         /// <summary>
+        /// Indicates that a registration has failed to complete succesfully.
+        /// </summary>
+        public const int REGISTRATION_FAILED = 701;
+
+        /// <summary>
+        /// Indicates that a login could not be completed succesfully.
+        /// </summary>
+        public const int LOGIN_FAILED = 702;
+
+        /// <summary>
         /// Indicates that an external process or service has encountered an error.
         /// </summary>
         public const int EXTERNAL_ERROR = 800; 

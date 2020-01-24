@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Core.Entities;
 using System;
 
 namespace Swabbr.Api.ViewModels
@@ -40,5 +41,18 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("mediaServiceData")]
         public object MediaServiceData { get; set; }
+
+        public static implicit operator ReactionOutputModel(Reaction entity)
+        {
+            return new ReactionOutputModel
+            {
+                ReactionId = entity.ReactionId,
+                UserId = entity.UserId,
+                VlogId = entity.VlogId,
+                DatePosted = entity.DatePosted,
+                IsPrivate = entity.IsPrivate,
+                MediaServiceData = entity.MediaServiceData
+            };
+        }
     }
 }

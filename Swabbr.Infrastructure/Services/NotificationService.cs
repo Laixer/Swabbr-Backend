@@ -107,7 +107,7 @@ namespace Swabbr.Infrastructure.Services
                     //TODO: Currently removing any duplicates (previously created records) and creating a new record in its place
                     // If it does already exist we delete it, to ensure one device is registered at a time.
                     var existingRegistration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
-                    await DeleteRegistrationAsync(existingRegistration.RegistrationId);
+                    ////await DeleteRegistrationAsync(existingRegistration.RegistrationId);
                     await _notificationRegistrationRepository.DeleteAsync(existingRegistration);
                 }
 

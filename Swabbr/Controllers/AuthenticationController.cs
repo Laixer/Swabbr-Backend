@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Errors;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
@@ -55,7 +57,9 @@ namespace Swabbr.Api.Controllers
 
             if (userCheck != null)
             {
-                return BadRequest("User already exists.");
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_ALREADY_EXISTS, "User already exists.")
+                    );
             }
 
             // TODO Password (strength?) check ...
@@ -110,7 +114,7 @@ namespace Swabbr.Api.Controllers
             }
 
             // Something went wrong.
-            return BadRequest(identityResult.Errors);
+            return BadRequest();
         }
 
         /// <summary>
@@ -127,7 +131,9 @@ namespace Swabbr.Api.Controllers
 
             if (identityUser == null)
             {
-                return Unauthorized("Invalid credentials.");
+                return Unauthorized(
+                    this.Error(ErrorCodes.LOGIN_FAILED, "Invalid credentials.")
+                    );
             }
 
             // Attempt a sign in using the user-provided password input
@@ -135,11 +141,15 @@ namespace Swabbr.Api.Controllers
 
             if (result.IsLockedOut)
             {
-                return Unauthorized("Too many attempts.");
+                return Unauthorized(
+                    this.Error(ErrorCodes.LOGIN_FAILED, "Too many attempts.")
+                    );
             }
             if (result.IsNotAllowed)
             {
-                return Unauthorized("Not allowed to log in.");
+                return Unauthorized(
+                    this.Error(ErrorCodes.LOGIN_FAILED, "Not allowed to log in.")
+                    );
             }
 
             if (result.Succeeded)
@@ -159,7 +169,9 @@ namespace Swabbr.Api.Controllers
             }
 
             // If we get here something definitely went wrong.
-            return Unauthorized();
+            return Unauthorized(
+                this.Error(ErrorCodes.LOGIN_FAILED, "Could not log in.")
+                );
         }
 
         /// <summary>

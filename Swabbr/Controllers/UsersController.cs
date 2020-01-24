@@ -188,7 +188,7 @@ namespace Swabbr.Api.Controllers
         /// Returns statistics of the specified user.
         /// </summary>
         [HttpGet("self/statistics")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserStatisticsOutputModel))]
         public async Task<IActionResult> GetStatisticsSelfAsync()
         {
             var userId = (await _userManager.GetUserAsync(User)).UserId;
@@ -199,11 +199,9 @@ namespace Swabbr.Api.Controllers
         /// Returns statistics of the specified user.
         /// </summary>
         [HttpGet("{userId}/statistics")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserStatisticsOutputModel))]
         public async Task<IActionResult> GetStatisticsAsync([FromRoute] Guid userId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-
             var userVlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
 
             int totalReactionsReceivedCount = 0;

@@ -93,7 +93,7 @@ namespace Swabbr.Api.Controllers
         [AllowAnonymous]
         ////[Authorize(Roles = "Admin")]
 
-        [HttpPost("send/{userId}")]
+        [HttpPost("notifications/send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> SendNotificationAsync([FromBody] SwabbrNotification newNotification, Guid userId)
