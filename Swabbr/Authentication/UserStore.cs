@@ -281,35 +281,35 @@ namespace Swabbr.Api.Authentication
 
         public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            // TODO Implement
+            // TODO Not implemented
             return Task.CompletedTask;
             throw new NotImplementedException();
         }
 
         public async Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            //TODO Implement
+            //TODO Not implemented
             return new List<string>();
             throw new NotImplementedException();
         }
 
         public async Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            //TODO Implement
+            //TODO Not implemented
             return new List<SwabbrIdentityUser>();
             throw new NotImplementedException();
         }
 
         public async Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            //TODO Implement
-            return false;
+            //TODO Not implemented
+            return (roleName == "user");
             throw new NotImplementedException();
         }
 
         public Task RemoveFromRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            // TODO Implement
+            // TODO Not implemented
             return Task.CompletedTask;
             throw new NotImplementedException();
         }

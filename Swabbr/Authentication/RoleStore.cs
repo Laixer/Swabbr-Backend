@@ -1,61 +1,72 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    // TODO Implement roles
+    //TODO Hardcoded for now, not yet able to create, update or delete roles.
     public class RoleStore : IRoleStore<SwabbrIdentityRole>
     {
-        public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        protected static readonly List<SwabbrIdentityRole> Roles = new List<SwabbrIdentityRole>
         {
-            throw new System.NotImplementedException();
+            new SwabbrIdentityRole{ RoleId = "0", Name = "User", NormalizedName = "USER" },
+            new SwabbrIdentityRole{ RoleId = "1", Name = "Admin", NormalizedName = "ADMIN" },
+        };
+
+        public async Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        {
+            //! Not implemented
+            return IdentityResult.Success;
         }
 
-        public Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            //! Not implemented
+            return IdentityResult.Success;
         }
 
-        public Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            //! Not implemented
+            return IdentityResult.Success;
         }
 
-        public Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        public async Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            return Roles.Where(r => r.RoleId == roleId).First();
         }
 
-        public Task<string> GetNormalizedRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public async Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            return Roles.Where(r => r.NormalizedName.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase)).First();
         }
 
-        public Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public async Task<string> GetNormalizedRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            return role.NormalizedName;
         }
 
-        public Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public async Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            return role.RoleId;
         }
 
-        public Task SetNormalizedRoleNameAsync(SwabbrIdentityRole role, string normalizedName, CancellationToken cancellationToken)
+        public async Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            return role.Name;
         }
 
-        public Task SetRoleNameAsync(SwabbrIdentityRole role, string roleName, CancellationToken cancellationToken)
+        public async Task SetNormalizedRoleNameAsync(SwabbrIdentityRole role, string normalizedName, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            role.NormalizedName = normalizedName;
         }
 
-        public Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public async Task SetRoleNameAsync(SwabbrIdentityRole role, string roleName, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            role.Name = roleName;
         }
 
         #region IDisposable Support
