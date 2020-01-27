@@ -65,6 +65,30 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return queryResults.Select(x => Map(x));
         }
 
+        public async Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId)
+        {
+            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
+
+            // Check if there are any inactive streams that are available for usage.
+            var tq = new TableQuery<LivestreamTableEntity>().Where(
+                TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, true),
+                    TableOperators.And,
+                    TableQuery.GenerateFilterConditionForGuid(nameof(LivestreamTableEntity.UserId), QueryComparisons.Equal, userId)
+                )
+            );
+
+            var queryResults = await table.ExecuteQueryAsync(tq);
+
+            if (queryResults.Any())
+            {
+                LivestreamTableEntity stream = queryResults.First();
+                return Map(stream);
+            }
+
+            throw new EntityNotFoundException();
+        }
+
         public async Task<Livestream> GetByIdAsync(string livestreamId)
         {
             var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;

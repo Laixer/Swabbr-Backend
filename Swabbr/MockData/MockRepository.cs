@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Swabbr.Api.MockData
 {
-    //TODO Remove
+    //TODO Fake repository, remove when no longer needed
     public static class MockRepository
     {
         private static readonly Random random = new Random();

@@ -142,14 +142,12 @@ namespace Swabbr.Api.Controllers
                 return BadRequest("User does not exist.");
             }
 
-            // TODO Do not continue after this point if the follow request already exists? (Need a check)
             if (await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId))
             {
                 var existingRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
                 if (existingRequest.Status == FollowRequestStatus.Declined)
                 {
-                    // TODO Should we allow re-sending declined requests? Currently doing so by
-                    // updating the status to pending.
+                    // TODO Should we allow re-sending declined requests? Currently doing so by updating the status to pending.
                     existingRequest.Status = FollowRequestStatus.Pending;
                     FollowRequestOutputModel outputUpdated = await _followRequestRepository.UpdateAsync(existingRequest);
                     return Ok(outputUpdated);

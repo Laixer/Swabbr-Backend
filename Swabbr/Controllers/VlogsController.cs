@@ -47,7 +47,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
-            //TODO Not implemented
+            //TODO Temporarily sending back mock data because there are no vlogs yet
             return Ok(MockRepository.RandomVlogOutput(vlogId));
 
             try
@@ -71,11 +71,11 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> FeaturedAsync()
         {
-            //TODO Not implemented
+            //TODO Not implemented, sending back fake data because there are no vlog records.
             return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 10));
         }
 
-        // TODO Specify limit?
+        // TODO Specify limit? pagination?
         /// <summary>
         /// Get vlogs from the specified user.
         /// </summary>

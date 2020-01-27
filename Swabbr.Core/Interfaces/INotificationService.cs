@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
-    // TODO Fix comments
+    /// <summary>
+    /// A service for notification related actions.
+    /// </summary>
     public interface INotificationService
     {
         /// <summary>

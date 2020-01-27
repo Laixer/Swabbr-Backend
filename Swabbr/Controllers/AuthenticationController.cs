@@ -62,7 +62,7 @@ namespace Swabbr.Api.Controllers
                     );
             }
 
-            // TODO Password (strength?) check ...
+            // TODO Add password strength check/constraints
 
             // Construct a new identity user for a new user based on the given input
             var identityUser = new SwabbrIdentityUser

@@ -45,12 +45,6 @@ namespace Swabbr.Core.Interfaces
         Task StopStreamAsync(string id);
 
         /// <summary>
-        /// Resets a livestream.
-        /// </summary>
-        /// <param name="id">Id of the livestream.</param>
-        Task ResetStreamAsync(string id);
-
-        /// <summary>
         /// Fetch the playback of a livestream.
         /// </summary>
         /// <param name="id">Id of the livestream.</param>

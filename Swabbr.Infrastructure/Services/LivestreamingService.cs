@@ -179,12 +179,6 @@ namespace Swabbr.Infrastructure.Services
             }
         }
 
-        public async Task ResetStreamAsync(string id)
-        {
-            // TODO is this necessary?
-            throw new System.NotImplementedException();
-        }
-
         public async Task StartStreamAsync(string id)
         {
             using (var stringContent = new StringContent(string.Empty, Encoding.UTF8, "application/json"))

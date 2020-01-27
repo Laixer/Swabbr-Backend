@@ -97,9 +97,7 @@ namespace Swabbr.Api.ViewModels
                 IsPrivate = user.IsPrivate,
                 Nickname = user.Nickname,
                 ProfileImageUrl = user.ProfileImageUrl,
-                Timezone = user.Timezone,
-                // TODO Where to assign TotalVlogs, TotalFollowers etc. ? Should probably be
-                // calculated within the controller?.... Not internally.... no
+                Timezone = user.Timezone
             };
         }
     }

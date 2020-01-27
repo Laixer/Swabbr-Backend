@@ -60,7 +60,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
         public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
             //TODO Use cognitive search
-            //TODO Important
 
             //! IMPORTANT
 
@@ -129,16 +128,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> UserExistsAsync(Guid userId)
         {
-            try
-            {
-                // TODO Optimize, only need to retrieve partition key
-                var x = await GetByIdAsync(userId);
-                return true;
-            }
-            catch (EntityNotFoundException)
-            {
-                return false;
-            }
+            var tq = new TableQuery<DynamicTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForGuid("PartitionKey", QueryComparisons.Equal, userId));
+
+            return await GetEntityCountAsync(tq) > 0;
         }
     }
 }

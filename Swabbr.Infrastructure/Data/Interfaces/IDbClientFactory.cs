@@ -16,7 +16,7 @@ namespace Swabbr.Infrastructure.Data
         /// <returns></returns>
         IDbClient<T> GetClient<T>(string tableName) where T : TableEntity;
 
-        //TODO Remove, used for testing purposes only. Tables should (never) have to be removed.
+        //TODO Remove, used for testing purposes only. Tables should not (never) have to be removed by the application itself.
         Task DeleteAllTables();
     }
 }

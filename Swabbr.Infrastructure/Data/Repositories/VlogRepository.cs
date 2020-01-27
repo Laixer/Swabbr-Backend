@@ -23,16 +23,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> ExistsAsync(Guid vlogId)
         {
-            //TODO: Optimize, only need to retrieve partitionkey
-            try
-            {
-                await GetByIdAsync(vlogId);
-                return true;
-            }
-            catch(EntityNotFoundException)
-            {
-                return false;
-            }
+            var tq = new TableQuery<DynamicTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForGuid("RowKey", QueryComparisons.Equal, vlogId));
+
+            return await GetEntityCountAsync(tq) > 0;
         }
 
         public async Task<Vlog> GetByIdAsync(Guid vlogId)

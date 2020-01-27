@@ -7,6 +7,7 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
@@ -53,12 +54,10 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
         public async Task<IActionResult> NotifyUserStreamAsync(Guid userId)
         {
-            // TODO Obtain available livestream from pool
+            // TODO This method is to be used for testing purposes only
             var connection = await _livestreamingService.ReserveLiveStreamForUserAsync(userId);
 
-            // TODO Create notification with connection details as message content
-
-            // TODO Send notification containing connection details to user
+            await _livestreamingService.StartStreamAsync(connection.Id);
 
             return Ok(new StreamConnectionDetailsOutputModel
             {
@@ -99,7 +98,6 @@ namespace Swabbr.Api.Controllers
                 UserId = identityUser.UserId,
                 DateStarted = DateTime.Now,
             });
-
 
             // Obtain the nickname to use for the notification alert
             string nickname = identityUser.Nickname;
@@ -148,7 +146,21 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Get thumbnail of livestream
+        /// Publish a livestream as a vlog.
+        /// </summary>
+        [HttpPut("{id}/publish")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> PublishAsync(string id)
+        {
+            // TODO Create vlog entity
+            // TODO Bound livestream recording (latest) to vlog
+            // TODO Store the vlog
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Get thumbnail of livestream.
         /// </summary>
         [HttpGet("{id}/thumbnail")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
@@ -160,7 +172,7 @@ namespace Swabbr.Api.Controllers
                 var thumbnailUrl = await _livestreamingService.GetThumbnailUrlAsync(id);
                 return Ok(thumbnailUrl);
             }
-            catch(Exception)
+            catch
             {
                 //TODO: Handle specific exception
                 return BadRequest(
@@ -170,7 +182,7 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Stop all running livestreams
+        /// Stop all running livestreams.
         /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpPut("test/stopall")]
@@ -213,8 +225,22 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
         public async Task<IActionResult> GetPlaybackForUserAsync(Guid userId)
         {
-            // TODO UserId has to be linked to AVAILABLE livestream id
-            throw new NotImplementedException();
+            try
+            {
+                var activeStream = await _livestreamRepository.GetActiveLivestreamForUserAsync(userId);
+
+                return Ok(new StreamPlaybackOutputModel
+                {
+                    PlaybackUrl = (await _livestreamingService.GetStreamPlaybackAsync(activeStream.Id)).PlaybackUrl
+                });
+
+            }
+            catch(EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Livestream was not found.")
+                    );
+            }
         }
 
         /// <summary>

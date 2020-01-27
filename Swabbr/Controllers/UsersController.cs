@@ -20,7 +20,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to users.
     /// </summary>
-    [Authorize]
+    [Authorize(Roles = "User")]
     [ApiController]
     [Route("api/v1/users")]
     public class UsersController : ControllerBase
@@ -103,7 +103,6 @@ namespace Swabbr.Api.Controllers
                 })
                 .Select(t => t.Result);
 
-            // TODO Not implemented
             return Ok(filteredResults);
         }
 
@@ -209,7 +208,8 @@ namespace Swabbr.Api.Controllers
 
             //TODO: Total views counter should be incremented in the for each loop for vlogs below
             int totalViewsCount = -1;
-
+            
+            // Add up statistical data for each of the users' vlogs.
             foreach(Vlog v in userVlogs)
             {
                 totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(v.VlogId);
@@ -223,9 +223,9 @@ namespace Swabbr.Api.Controllers
             {
                 TotalFollowers         = await _followRequestRepository.GetFollowerCountAsync(userId),
                 TotalFollowing         = await _followRequestRepository.GetFollowingCountAsync(userId),
-                TotalLikes             = totalLikesReceivedCount,
                 TotalVlogs             = await _vlogRepository.GetVlogCountForUserAsync(userId),
                 TotalReactionsGiven    = await _reactionRepository.GetGivenReactionCountForUserAsync(userId),
+                TotalLikes             = totalLikesReceivedCount,
                 TotalReactionsReceived = totalReactionsReceivedCount,
                 TotalViews             = totalViewsCount
             });
