@@ -250,7 +250,6 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IList<Claim>> GetClaimsAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            // TODO?
             return new List<Claim>();
         }
 
@@ -288,8 +287,12 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            //TODO Not implemented
-            return new List<string>();
+            //!IMPORTANT
+            // TODO Hardcoded. Roles are not being stored yet. For testing purposes only.
+            return new List<string>
+            {
+                "User"
+            };
             throw new NotImplementedException();
         }
 
