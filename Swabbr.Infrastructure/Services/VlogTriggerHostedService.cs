@@ -4,6 +4,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,53 +46,53 @@ namespace Swabbr.Infrastructure.Services
         public async void OnTriggerEventAsync(object state)
         {
             //TODO Determine which users to send a vlog request
+            var targetedUsers = new List<User>()
+            {
+                // TODO Currently using the example user (user@example.com) for testing purposes
+                await _userRepository.GetByIdAsync(new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"))
+            };
 
             //TODO  For each user that should be triggered:
-
-            //TODO  Reserve a livestream for this user
-
-            // TODO Currently using the example user (user@example.com) for testing purposes
-            Guid exampleUserGuid = new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2");
-
-            try
+            foreach (User user in targetedUsers)
             {
-                // Reserve a livestream
-                StreamConnectionDetails connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(exampleUserGuid);
-
-                // Send notification to this user with the livestream connection details
-                var notification = new SwabbrNotification
+                try
                 {
-                    MessageContent = new SwabbrMessage
+                    // Reserve a livestream
+                    StreamConnectionDetails connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(user.UserId);
+
+                    // Send notification to this user with the livestream connection details
+                    var notification = new SwabbrNotification
                     {
-                        Title = "Time to record a vlog!",
-                        Body = "It's time to record a vlog!",
-                        Data = JObject.FromObject(connectionDetails),
-                        DataType = nameof(connectionDetails),
-                        ClickAction = ClickActions.VLOG_RECORD_REQUEST
-                    }
-                };
+                        MessageContent = new SwabbrMessage
+                        {
+                            Title = "Time to record a vlog!",
+                            Body = "It's time to record a vlog!",
+                            Data = JObject.FromObject(connectionDetails),
+                            DataType = nameof(connectionDetails),
+                            ClickAction = ClickActions.VLOG_RECORD_REQUEST
+                        }
+                    };
 
-                await _livestreamingService.StartStreamAsync(connectionDetails.Id);
+                    await _livestreamingService.StartStreamAsync(connectionDetails.Id);
+                    System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
 
-                System.Diagnostics.Debug.WriteLine($"Started livestream for user {exampleUserGuid} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
+                    // Wait 2 minutes before sending the notification to ensure the stream has started.
+                    // TODO Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started'.
+                    await Task.Delay(TimeSpan.FromMinutes(2));
 
-                // Wait 2 minutes before sending the notification to ensure the stream has started.
-                await Task.Delay(TimeSpan.FromMinutes(2));
+                    // Send the notification containing the stream connection details to the user.
+                    await _notificationService.SendNotificationToUserAsync(notification, user.UserId);
 
-                // Send the notification containing the stream connection details to the user.
-                await _notificationService.SendNotificationToUserAsync(notification, exampleUserGuid);
+                    // Set time-out
+                    await WaitForTimeoutAsync(user.UserId, connectionDetails.Id);
+                }
+                catch (Exception e)
+                {
+                    //TODO Handle exception
 
-                // Set time-out
-                await WaitForTimeoutAsync(exampleUserGuid, connectionDetails.Id);
-            }
-            catch (Exception e)
-            {
-                //TODO Handle exception
-
-                // If we get here, either no stream could be reserved, something went wrong with
-                // receiving hub registrations (in which case we can not send any notifications) or
-                // something went wrong while sending out a notification (in which case we should
-                // possibly try to send it again)
+                    // If we get here, either no stream could be reserved, something went wrong with receiving hub registrations (in which case we can not send any notifications) or
+                    // something went wrong while sending out a notification (in which case we should possibly try to send it again)
+                }
             }
         }
 
