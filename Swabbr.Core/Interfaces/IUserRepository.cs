@@ -33,8 +33,5 @@ namespace Swabbr.Core.Interfaces
         /// Checks if a user with the given id exists.
         /// </summary>
         Task<bool> UserExistsAsync(Guid userId);
-
-        //TODO: Remove
-        Task TempDeleteTables();
     }
 }

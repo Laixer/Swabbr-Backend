@@ -32,19 +32,6 @@ namespace Swabbr.Api.Controllers
             _userManager = userManager;
         }
 
-        //TODO: Remove, temporary
-        /// <summary>
-        /// Used to remove tables to prevent unnecessary throughput billing
-        /// </summary>
-        /// <returns></returns>
-        [Obsolete]
-        [HttpDelete("deletestoragetables")]
-        public async Task<IActionResult> TempDeleteTables()
-        {
-            await _userRepository.TempDeleteTables();
-            return Ok();
-        }
-
         /// <summary>
         /// Ban a specific user account.
         /// </summary>

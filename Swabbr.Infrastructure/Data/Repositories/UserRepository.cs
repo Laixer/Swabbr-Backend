@@ -22,11 +22,6 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName { get; } = "Users";
 
-        public async Task TempDeleteTables()
-        {
-            await _factory.DeleteAllTables();
-        }
-
         public Task<User> GetByIdAsync(Guid userId)
         {
             // Partition key and row key are the same.
