@@ -123,7 +123,7 @@ namespace Swabbr.Api.Controllers
 
                 return NoContent();
             }
-            catch(EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
                 return BadRequest(
                     this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
@@ -178,7 +178,7 @@ namespace Swabbr.Api.Controllers
                 // Retrieve and delete the entity
                 var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.UserId);
                 await _vlogLikeRepository.DeleteAsync(entityToDelete);
-            
+
                 return NoContent();
             }
             catch (EntityNotFoundException)

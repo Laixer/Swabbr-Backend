@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Swabbr.Api.Authentication
+﻿namespace Swabbr.Api.Authentication
 {
     public class SwabbrIdentityRole
     {

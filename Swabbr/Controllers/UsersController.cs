@@ -33,8 +33,8 @@ namespace Swabbr.Api.Controllers
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
         public UsersController(
-            IUserRepository userRepository, 
-            IFollowRequestRepository followRequestRepository, 
+            IUserRepository userRepository,
+            IFollowRequestRepository followRequestRepository,
             IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
             IReactionRepository reactionRepository,
@@ -208,26 +208,26 @@ namespace Swabbr.Api.Controllers
 
             //TODO: Total views counter should be incremented in the for each loop for vlogs below
             int totalViewsCount = -1;
-            
+
             // Add up statistical data for each of the users' vlogs.
-            foreach(Vlog v in userVlogs)
+            foreach (Vlog v in userVlogs)
             {
                 totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(v.VlogId);
                 totalLikesReceivedCount += v.Likes.Count;
-                
+
                 // TODO: Add up received views for each vlog here: v
                 //// totalViews += ?
             }
 
             return Ok(new UserStatisticsOutputModel
             {
-                TotalFollowers         = await _followRequestRepository.GetFollowerCountAsync(userId),
-                TotalFollowing         = await _followRequestRepository.GetFollowingCountAsync(userId),
-                TotalVlogs             = await _vlogRepository.GetVlogCountForUserAsync(userId),
-                TotalReactionsGiven    = await _reactionRepository.GetGivenReactionCountForUserAsync(userId),
-                TotalLikes             = totalLikesReceivedCount,
+                TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(userId),
+                TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(userId),
+                TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(userId),
+                TotalReactionsGiven = await _reactionRepository.GetGivenReactionCountForUserAsync(userId),
+                TotalLikes = totalLikesReceivedCount,
                 TotalReactionsReceived = totalReactionsReceivedCount,
-                TotalViews             = totalViewsCount
+                TotalViews = totalViewsCount
             });
         }
 

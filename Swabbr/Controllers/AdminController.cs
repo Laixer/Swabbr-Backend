@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Swabbr.Core.Interfaces;
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
@@ -28,7 +23,7 @@ namespace Swabbr.Api.Controllers
 
         public AdminController(
             IUserRepository userRepository,
-            INotificationService notificationService, 
+            INotificationService notificationService,
             UserManager<SwabbrIdentityUser> userManager
             )
         {
@@ -90,9 +85,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="userId"></param>
         /// <returns></returns>
         //TODO: IMPORTANT! Make sure this method requires admin authorization. Temporarily disabled for testing purposes
-        [AllowAnonymous]
-        ////[Authorize(Roles = "Admin")]
-
+        [Authorize(Roles = "Admin")]
         [HttpPost("notifications/send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]

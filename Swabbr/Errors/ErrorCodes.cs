@@ -3,7 +3,8 @@
     public static class ErrorCodes
     {
         /// <summary>
-        /// Indicates that a specified entity could not be created since it already existed during the execution of the request.
+        /// Indicates that a specified entity could not be created since it already existed during
+        /// the execution of the request.
         /// </summary>
         public const int ENTITY_ALREADY_EXISTS = 601;
 
@@ -30,6 +31,6 @@
         /// <summary>
         /// Indicates that an external process or service has encountered an error.
         /// </summary>
-        public const int EXTERNAL_ERROR = 800; 
+        public const int EXTERNAL_ERROR = 800;
     }
 }

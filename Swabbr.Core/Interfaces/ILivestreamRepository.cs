@@ -13,8 +13,8 @@ namespace Swabbr.Core.Interfaces
         Task<IEnumerable<Livestream>> GetActiveLivestreamsAsync();
 
         /// <summary>
-        /// Returns a <see cref="Livestream"/> that is active and currently claimed by the specified user.
-        /// the specified user.
+        /// Returns a <see cref="Livestream"/> that is active and currently claimed by the specified
+        /// user. the specified user.
         /// </summary>
         Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId);
 

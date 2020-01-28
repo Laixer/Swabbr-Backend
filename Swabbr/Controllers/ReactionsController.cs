@@ -67,7 +67,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorMessage))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> Update([FromBody] ReactionUpdateInputModel inputModel)
         {
             var identityUser = await _userManager.GetUserAsync(User);
@@ -76,9 +76,10 @@ namespace Swabbr.Api.Controllers
 
             if (!reaction.UserId.Equals(identityUser.UserId))
             {
-                return Unauthorized(
-                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
-                    );
+                return StatusCode(
+                    (int)HttpStatusCode.Forbidden,
+                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
+                );
             }
 
             // Update the reaction entity
@@ -107,7 +108,7 @@ namespace Swabbr.Api.Controllers
 
             // Map the collection to output models.
             IEnumerable<ReactionOutputModel> output = reactions
-                .Select(entity => (ReactionOutputModel) entity);
+                .Select(entity => (ReactionOutputModel)entity);
 
             return Ok(output);
         }
@@ -125,7 +126,7 @@ namespace Swabbr.Api.Controllers
                 ReactionOutputModel output = await _reactionRepository.GetByIdAsync(reactionId);
                 return Ok(output);
             }
-            catch(EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
                 return NotFound(
                     this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Reaction could not be found.")
@@ -139,7 +140,7 @@ namespace Swabbr.Api.Controllers
         [HttpDelete("{reactionId}")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(ErrorMessage))]
+        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> Delete([FromRoute] Guid reactionId)
         {
             try
@@ -150,9 +151,10 @@ namespace Swabbr.Api.Controllers
 
                 if (!identityUser.UserId.Equals(reaction.UserId))
                 {
-                    return Unauthorized(
-                            this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
-                        );
+                    return StatusCode(
+                        (int) HttpStatusCode.Forbidden,
+                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
+                    );
                 }
 
                 await _reactionRepository.DeleteAsync(reaction);

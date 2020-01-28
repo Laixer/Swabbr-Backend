@@ -36,7 +36,6 @@ namespace Swabbr
             services.AddCors();
             services.AddControllers(c =>
             {
-
             }).AddNewtonsoftJson();
 
             // Add routing options

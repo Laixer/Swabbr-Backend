@@ -103,7 +103,7 @@ namespace Swabbr.Infrastructure.Services
                 if (await _notificationRegistrationRepository.ExistsForUser(userId))
                 {
                     //!IMPORTANT
-                    //TODO: Decide whether to keep track of multiple notification registrations. 
+                    //TODO: Decide whether to keep track of multiple notification registrations.
                     //TODO: Currently removing any duplicates (previously created records) and creating a new record in its place
                     // If it does already exist we delete it, to ensure one device registration is stored at a time.
                     var existingRegistration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
@@ -144,8 +144,8 @@ namespace Swabbr.Infrastructure.Services
             {
                 NotificationOutcome outcome = null;
 
-                // Obtain the stored notification registration for this user.
-                // This is needed to determine the platform for which the notification should be sent out.
+                // Obtain the stored notification registration for this user. This is needed to
+                // determine the platform for which the notification should be sent out.
                 var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
 
                 switch (registration.Platform)

@@ -7,7 +7,6 @@ using Swabbr.Api.Extensions;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
-using System;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -52,7 +51,7 @@ namespace Swabbr.Api.Controllers
                 await _notificationService.DeleteRegistrationAsync(registration.RegistrationId);
                 return Ok();
             }
-            catch(EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
                 return BadRequest(
                     this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Notification registration could not be found.")

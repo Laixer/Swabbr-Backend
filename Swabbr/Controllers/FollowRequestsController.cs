@@ -147,7 +147,8 @@ namespace Swabbr.Api.Controllers
                 var existingRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
                 if (existingRequest.Status == FollowRequestStatus.Declined)
                 {
-                    // TODO Should we allow re-sending declined requests? Currently doing so by updating the status to pending.
+                    // TODO Should we allow re-sending declined requests? Currently doing so by
+                    // updating the status to pending.
                     existingRequest.Status = FollowRequestStatus.Pending;
                     FollowRequestOutputModel outputUpdated = await _followRequestRepository.UpdateAsync(existingRequest);
                     return Ok(outputUpdated);

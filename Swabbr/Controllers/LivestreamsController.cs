@@ -152,9 +152,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> PublishAsync(string id)
         {
-            // TODO Create vlog entity
-            // TODO Bound livestream recording (latest) to vlog
-            // TODO Store the vlog
+            // TODO Create vlog entity TODO Bound livestream recording (latest) to vlog TODO Store
+            // the vlog
 
             throw new NotImplementedException();
         }
@@ -233,9 +232,8 @@ namespace Swabbr.Api.Controllers
                 {
                     PlaybackUrl = (await _livestreamingService.GetStreamPlaybackAsync(activeStream.Id)).PlaybackUrl
                 });
-
             }
-            catch(EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
                 return NotFound(
                     this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Livestream was not found.")
@@ -264,12 +262,13 @@ namespace Swabbr.Api.Controllers
             var identityUser = await _userManager.GetUserAsync(User);
 
             var livestream = await _livestreamRepository.GetByIdAsync(id);
-            
+
             if (!livestream.UserId.Equals(identityUser.UserId))
             {
-                return Unauthorized(
+                return StatusCode(
+                    (int) HttpStatusCode.Forbidden,
                     this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to access livestream details.")
-                    );
+                );
             }
 
             var connection = await _livestreamingService.GetStreamConnectionAsync(id);

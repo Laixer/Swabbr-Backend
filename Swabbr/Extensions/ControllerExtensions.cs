@@ -7,7 +7,7 @@ namespace Swabbr.Api.Extensions
     {
         public static ErrorMessage Error(this ControllerBase controller, int errorCode, string message)
         {
-            return new ErrorMessage (errorCode, message);
+            return new ErrorMessage(errorCode, message);
         }
     }
 }
