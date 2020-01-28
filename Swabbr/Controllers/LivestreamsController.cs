@@ -266,7 +266,7 @@ namespace Swabbr.Api.Controllers
             if (!livestream.UserId.Equals(identityUser.UserId))
             {
                 return StatusCode(
-                    (int) HttpStatusCode.Forbidden,
+                    (int)HttpStatusCode.Forbidden,
                     this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to access livestream details.")
                 );
             }

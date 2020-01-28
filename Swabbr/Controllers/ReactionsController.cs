@@ -152,7 +152,7 @@ namespace Swabbr.Api.Controllers
                 if (!identityUser.UserId.Equals(reaction.UserId))
                 {
                     return StatusCode(
-                        (int) HttpStatusCode.Forbidden,
+                        (int)HttpStatusCode.Forbidden,
                         this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
                     );
                 }

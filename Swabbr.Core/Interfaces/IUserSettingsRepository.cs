@@ -14,6 +14,13 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="userId">Unique identifier of the user to which the settings belong</param>
         /// <returns></returns>
-        Task<UserSettings> GetByUserId(Guid userId);
+        Task<UserSettings> GetForUserAsync(Guid userId);
+
+        /// <summary>
+        /// Returns whether a user settings entity for a given user exists
+        /// </summary>
+        /// <param name="userId">Unique identifier of the user to which the settings should belong</param>
+        /// <returns></returns>
+        Task<bool> ExistsForUserAsync(Guid userId);
     }
 }

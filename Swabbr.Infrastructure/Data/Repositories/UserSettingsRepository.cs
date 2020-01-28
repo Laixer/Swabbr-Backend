@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Microsoft.Azure.Cosmos.Table;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
@@ -19,7 +20,15 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName => "UserSettings";
 
-        public async Task<UserSettings> GetByUserId(Guid userId)
+        public async Task<bool> ExistsForUserAsync(Guid userId)
+        {
+            var tq = new TableQuery<DynamicTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForGuid("PartitionKey", QueryComparisons.Equal, userId));
+
+            return await GetEntityCountAsync(tq) != 0;
+        }
+
+        public async Task<UserSettings> GetForUserAsync(Guid userId)
         {
             var userIdString = userId.ToString();
 

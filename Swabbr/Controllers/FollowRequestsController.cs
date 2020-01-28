@@ -157,7 +157,7 @@ namespace Swabbr.Api.Controllers
             }
 
             // Check follow mode setting of the receiving user.
-            var userSettings = await _userSettingsRepository.GetByUserId(receiverId);
+            var userSettings = await _userSettingsRepository.GetForUserAsync(receiverId);
             var followMode = userSettings.FollowMode;
 
             // Assing the predetermined state of the follow request based on the follow mode setting.

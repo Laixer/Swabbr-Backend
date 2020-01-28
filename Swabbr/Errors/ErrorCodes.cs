@@ -14,6 +14,11 @@
         public const int ENTITY_NOT_FOUND = 602;
 
         /// <summary>
+        /// Indicates that the received input was invalid.
+        /// </summary>
+        public const int INVALID_INPUT = 603;
+
+        /// <summary>
         /// Indicates that access to a specified resource is not allowed.
         /// </summary>
         public const int INSUFFICIENT_ACCESS_RIGHTS = 700;

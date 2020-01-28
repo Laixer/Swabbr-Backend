@@ -108,7 +108,7 @@ namespace Swabbr.Api.Controllers
                         Claims = await _userManager.GetClaimsAsync(identityUser),
                         Roles = await _userManager.GetRolesAsync(identityUser),
                         User = userOutput,
-                        UserSettings = await _userSettingsRepository.GetByUserId(identityUser.UserId)
+                        UserSettings = await _userSettingsRepository.GetForUserAsync(identityUser.UserId)
                     }
                 );
             }
@@ -164,7 +164,7 @@ namespace Swabbr.Api.Controllers
                     Claims = await _userManager.GetClaimsAsync(identityUser),
                     Roles = await _userManager.GetRolesAsync(identityUser),
                     User = userOutput,
-                    UserSettings = await _userSettingsRepository.GetByUserId(identityUser.UserId)
+                    UserSettings = await _userSettingsRepository.GetForUserAsync(identityUser.UserId)
                 });
             }
 

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Errors;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -37,10 +39,18 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
-            var settingsEntity = await _userSettingsRepository.GetByUserId(userId);
 
-            UserSettingsOutputModel output = settingsEntity;
+            // If no user settings exist for this user, create a new settings entity for the user with default values.
+            if (!(await _userSettingsRepository.ExistsForUserAsync(userId)))
+            {
+                await _userSettingsRepository.CreateAsync(new UserSettings
+                {
+                    UserId = userId
+                });
+            }
 
+            // Obtain and return the users' settings.
+            UserSettingsOutputModel output = await _userSettingsRepository.GetForUserAsync(userId);
             return Ok(output);
         }
 
@@ -51,21 +61,35 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> UpdateAsync([FromBody] UserSettingsInputModel input)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
+            //TODO: Where to handle constraints like these? 
+            if (input.DailyVlogRequestLimit < 0 || input.DailyVlogRequestLimit > 3)
+            {
+                return BadRequest(
+                    this.Error(ErrorCodes.INVALID_INPUT, "Input is invalid.")
+                    );
+            }
 
-            // Ensure the user settings exist and belong to the authenticated user.
-            UserSettings settings = await _userSettingsRepository.GetByUserId(identityUser.UserId);
+            var identityUser = await _userManager.GetUserAsync(User);
+            var userId = identityUser.UserId;
+
+            // If no user settings exist for this user, create a new settings entity for the user with default values.
+            if (!(await _userSettingsRepository.ExistsForUserAsync(userId)))
+            {
+                await _userSettingsRepository.CreateAsync(new UserSettings
+                {
+                    UserId = userId
+                });
+            }
+
+            // Obtain settings and set updated properties.
+            UserSettings settings = await _userSettingsRepository.GetForUserAsync(userId);
 
             settings.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
-            settings.FollowMode = (FollowMode)((int)input.FollowMode);
-
+            settings.FollowMode = (FollowMode)input.FollowMode;
             settings.IsPrivate = input.IsPrivate;
 
-            await _userSettingsRepository.UpdateAsync(settings);
-
-            // Return (updated) settings entity
-            UserSettingsOutputModel output = settings;
-
+            // Update and return (updated) settings entity
+            UserSettingsOutputModel output = await _userSettingsRepository.UpdateAsync(settings);
             return Ok(output);
         }
     }

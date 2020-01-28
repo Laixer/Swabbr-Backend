@@ -21,7 +21,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// <summary>
         /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
-        public byte DailyVlogRequestLimit { get; set; }
+        public int DailyVlogRequestLimit { get; set; }
 
         /// <summary>
         /// Determines how follow requests are processed for the user.
