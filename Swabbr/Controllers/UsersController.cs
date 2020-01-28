@@ -20,7 +20,6 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to users.
     /// </summary>
-    [Authorize(Roles = "User")]
     [ApiController]
     [Route("api/v1/users")]
     public class UsersController : ControllerBase
