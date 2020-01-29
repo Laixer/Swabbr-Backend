@@ -126,7 +126,7 @@ namespace Swabbr.Infrastructure.Services
                     return connection;
                 }
 
-                throw new Exception("No livestreams available and could not create livestream.");
+                throw new EntityNotFoundException("No livestreams available and could not create livestream.");
             }
         }
 

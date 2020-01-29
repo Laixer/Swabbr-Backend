@@ -153,7 +153,10 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> PublishAsync(string id)
         {
             // TODO Create vlog entity TODO Bound livestream recording (latest) to vlog TODO Store
-            // the vlog
+            
+
+            // TODO The vlog should hold a reference to the RECORDING of the livestream.
+            // TODO What can I get from the WSC API?
 
             throw new NotImplementedException();
         }
@@ -188,10 +191,13 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> TestStopAllStreamsAsync()
         {
+            //TODO: This method has been added for testing purposes only.
             var active = await _livestreamRepository.GetActiveLivestreamsAsync();
 
             foreach (var a in active)
             {
+                // Currently not being awaited
+
                 // Stop all active streams
                 _ = _livestreamingService.StopStreamAsync(a.Id);
                 a.IsActive = false;

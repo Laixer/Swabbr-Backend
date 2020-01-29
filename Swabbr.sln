@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Api", "Swabbr\Swabbr.Api.csproj", "{99CD1556-BB54-42EA-8AF6-349E7F2A380A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Api", "Swabbr.Api\Swabbr.Api.csproj", "{99CD1556-BB54-42EA-8AF6-349E7F2A380A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Core", "Swabbr.Core\Swabbr.Core.csproj", "{0E21AAC9-0605-4E56-A350-00992BEFD1BD}"
 EndProject
