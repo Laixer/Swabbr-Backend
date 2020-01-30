@@ -73,16 +73,16 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Start broadcasting to an available livestream
+        /// Start the broadcasting to an available livestream.
         /// </summary>
-        /// <param name="id">Id of the livestream</param>
-        [HttpPut("{id}/start")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StartBroadcastAsync(string id)
+        /// <param name="livestreamId">Id of the livestream</param>
+        [HttpPut("{id}/startbroadcast")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
+        public async Task<IActionResult> StartBroadcastAsync(string livestreamId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var livestream = await _livestreamRepository.GetByIdAsync(id);
+            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
             // Ensure the requested user owns this livestream
             if (!livestream.UserId.Equals(identityUser.UserId))
@@ -96,7 +96,7 @@ namespace Swabbr.Api.Controllers
             var createdVlog = await _vlogRepository.CreateAsync(new Vlog
             {
                 VlogId = Guid.NewGuid(),
-                LivestreamId = id,
+                LivestreamId = livestreamId,
                 UserId = identityUser.UserId,
                 DateStarted = DateTime.Now,
                 IsLive = true
@@ -133,32 +133,21 @@ namespace Swabbr.Api.Controllers
                 await _notificationService.SendNotificationToUserAsync(notification, followerId);
             }
 
-            return Ok();
-        }
+            VlogOutputModel output = createdVlog;
 
-        /// <summary>
-        /// Stop a running livestream
-        /// </summary>
-        [HttpPut("{id}/stop")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StopStreamAsync(string id)
-        {
-            // Stop the livestream externally
-            await _livestreamingService.StopStreamAsync(id);
-
-            return Ok();
+            return Ok(output);
         }
 
         /// <summary>
         /// Publish a livestream as a vlog.
         /// </summary>
         [HttpPut("{id}/publish")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> PublishAsync(string id)
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
+        public async Task<IActionResult> PublishAsync([FromRoute]string livestreamId, [FromBody]VlogUpdateModel input)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var livestream = await _livestreamRepository.GetByIdAsync(id);
+            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
             if (!livestream.UserId.Equals(identityUser.UserId))
             {
@@ -168,28 +157,20 @@ namespace Swabbr.Api.Controllers
                 );
             }
 
-            // Obtain the vlog that is bound to this livestream
+            // Stop the external livestream asynchronously without awaiting
+            _ = _livestreamingService.StopStreamAsync(livestreamId);
+
+            // Synchronize the livestream recordings for the vlog
+            _ = _livestreamingService.SyncRecordingsForVlogAsync(livestreamId, livestream.VlogId);
+
+            // Update vlog
             var vlog = await _vlogRepository.GetByIdAsync(livestream.VlogId);
 
-            // Get the download url of the latest recording
-            vlog.DownloadUrl = (await _livestreamingService.GetLatestRecordingUrlForLivestreamAsync(id));
-            vlog.IsLive = false;
+            vlog.IsPrivate = input.IsPrivate;
 
-            // Update the vlog
-            await _vlogRepository.UpdateAsync(vlog);
+            VlogOutputModel output = await _vlogRepository.UpdateAsync(vlog);
 
-            // Deactivate the livestream
-            //!IMPORTANT
-            //TODO Create 'Deactivate' method?
-            //TODO Automatically set a time-out for deactivating a livestream
-            // Set the state of the livestream in storage to inactive again
-            var x = await _livestreamRepository.GetByIdAsync(id);
-            x.IsActive = false;
-            x.UserId = Guid.Empty;
-            x.VlogId = Guid.Empty;
-            await _livestreamRepository.UpdateAsync(x);
-
-            return Ok();
+            return Ok(output);
         }
 
         /// <summary>
@@ -197,12 +178,12 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("{id}/thumbnail")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetThumbnailAsync(string id)
+        public async Task<IActionResult> GetThumbnailAsync(string livestreamId)
         {
             try
             {
                 // Retrieve the live thumbnail of the livestream
-                var thumbnailUrl = await _livestreamingService.GetThumbnailUrlAsync(id);
+                var thumbnailUrl = await _livestreamingService.GetThumbnailUrlAsync(livestreamId);
                 return Ok(thumbnailUrl);
             }
             catch
@@ -244,9 +225,9 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("{id}/playback")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlaybackAsync(string id)
+        public async Task<IActionResult> GetPlaybackAsync(string livestreamId)
         {
-            var details = await _livestreamingService.GetStreamPlaybackAsync(id);
+            var details = await _livestreamingService.GetStreamPlaybackAsync(livestreamId);
 
             return Ok(new StreamPlaybackOutputModel
             {
@@ -273,19 +254,19 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Livestream was not found.")
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Livestream for the specified user was not found.")
                     );
             }
         }
 
         /// <summary>
-        /// Delete an existing livestream
+        /// Delete a Wowza Streaming Cloud livestream
         /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}/delete")]
-        public async Task<IActionResult> DeleteStreamAsync(string id)
+        public async Task<IActionResult> DeleteStreamAsync(string livestreamId)
         {
-            await _livestreamingService.DeleteStreamAsync(id);
+            await _livestreamingService.DeleteStreamAsync(livestreamId);
             return Ok();
         }
 
@@ -294,11 +275,11 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("{id}/connection")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> GetConnectionDetailsAsync(string id)
+        public async Task<IActionResult> GetConnectionDetailsAsync(string livestreamId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var livestream = await _livestreamRepository.GetByIdAsync(id);
+            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
             if (!livestream.UserId.Equals(identityUser.UserId))
             {
@@ -308,7 +289,7 @@ namespace Swabbr.Api.Controllers
                 );
             }
 
-            var connection = await _livestreamingService.GetStreamConnectionAsync(id);
+            var connection = await _livestreamingService.GetStreamConnectionAsync(livestreamId);
 
             return Ok(new StreamConnectionDetailsOutputModel
             {

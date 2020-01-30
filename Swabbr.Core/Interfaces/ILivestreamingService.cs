@@ -30,34 +30,34 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Delete a new livestream.
         /// </summary>
-        Task DeleteStreamAsync(string id);
+        Task DeleteStreamAsync(string livestreamId);
 
         /// <summary>
         /// Start a stopped livestream.
         /// </summary>
-        /// <param name="id">Id of the livestream.</param>
-        Task StartStreamAsync(string id);
+        /// <param name="livestreamId">Id of the livestream.</param>
+        Task StartStreamAsync(string livestreamId);
 
         /// <summary>
         /// Stop a started livestream.
         /// </summary>
-        /// <param name="id">Id of the livestream.</param>
-        Task StopStreamAsync(string id);
+        /// <param name="livestreamId">Id of the livestream.</param>
+        Task StopStreamAsync(string livestreamId);
 
         /// <summary>
         /// Fetch the playback of a livestream.
         /// </summary>
-        /// <param name="id">Id of the livestream.</param>
-        Task<StreamPlaybackDetails> GetStreamPlaybackAsync(string id);
+        /// <param name="livestreamId">Id of the livestream.</param>
+        Task<StreamPlaybackDetails> GetStreamPlaybackAsync(string livestreamId);
 
         /// <summary>
         /// Fetches the thumbnail URL of the given stream.
         /// </summary>
-        /// <param name="id">Id of the livestream.</param>
-        Task<string> GetThumbnailUrlAsync(string id);
+        /// <param name="livestreamId">Id of the livestream.</param>
+        Task<string> GetThumbnailUrlAsync(string livestreamId);
 
         //!IMPORTANT
         //TODO Comments
-        Task<string> GetLatestRecordingUrlForLivestreamAsync(string id);
+        Task SyncRecordingsForVlogAsync(string livestreamId, Guid vlogId);
     }
 }

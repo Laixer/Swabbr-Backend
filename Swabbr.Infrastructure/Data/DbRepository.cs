@@ -71,7 +71,7 @@ namespace Swabbr.Infrastructure.Data
                 var client = _factory.GetClient<TDto>(TableName);
                 var updateEntity = Map(entity);
 
-                // Use wildcard ETag
+                //TODO: Determine ETag, until then using wildcard
                 updateEntity.ETag = "*";
 
                 // Ensure partitionkey and rowkey are set
@@ -97,7 +97,7 @@ namespace Swabbr.Infrastructure.Data
                 // Map model to dto
                 var deleteEntity = Map(entity);
 
-                // Use wildcard ETag
+                //TODO: Determine ETag, until then using wildcard
                 deleteEntity.ETag = "*";
 
                 deleteEntity.PartitionKey = ResolvePartitionKey(deleteEntity);

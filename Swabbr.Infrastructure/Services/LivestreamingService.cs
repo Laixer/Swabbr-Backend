@@ -19,13 +19,15 @@ namespace Swabbr.Infrastructure.Services
     {
         private static readonly HttpClient HttpClient = new HttpClient();
         private readonly ILivestreamRepository _livestreamRepository;
+        private readonly IVlogRepository _vlogRepository;
 
         private readonly WowzaStreamingCloudConfiguration wscConfig;
 
-        public LivestreamingService(IOptions<WowzaStreamingCloudConfiguration> options, ILivestreamRepository livestreamRepository)
+        public LivestreamingService(IOptions<WowzaStreamingCloudConfiguration> options, ILivestreamRepository livestreamRepository, IVlogRepository vlogRepository)
         {
             wscConfig = options.Value;
             _livestreamRepository = livestreamRepository;
+            _vlogRepository = vlogRepository;
         }
 
         public async Task<Livestream> CreateNewStreamAsync(string name)
@@ -83,7 +85,7 @@ namespace Swabbr.Infrastructure.Services
                     return createdStream;
                 }
 
-                return null;
+                throw new ExternalErrorException("Could not create a new WSC livestream");
             };
         }
 
@@ -127,7 +129,7 @@ namespace Swabbr.Infrastructure.Services
                     return connection;
                 }
 
-                throw new EntityNotFoundException("No livestreams available and could not create livestream.");
+                throw new ExternalErrorException("No livestreams available and could not create livestream.");
             }
         }
 
@@ -222,40 +224,67 @@ namespace Swabbr.Infrastructure.Services
             }
         }
 
-        public async Task<string> GetLatestRecordingUrlForLivestreamAsync(string id)
+        public async Task SyncRecordingsForVlogAsync(string livestreamId, Guid vlogId)
         {
-            var requestRecordingsUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/transcoders/{id}/recordings";
+            var getAllRecordingsUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/transcoders/{livestreamId}/recordings";
 
-            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestRecordingsUrl))
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, getAllRecordingsUrl))
             {
                 requestMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
                 requestMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
 
-                var allResponse = await HttpClient.SendAsync(requestMessage);
-                var allResponseString = await allResponse.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<WscGetRecordingDetailsResponse>(allResponseString);
+                var result = await HttpClient.SendAsync(requestMessage);
+                var resultString = await result.Content.ReadAsStringAsync();
+                var response = JsonConvert.DeserializeObject<WscGetRecordingDetailsResponse>(resultString);
 
-                WscRecordingDetails lastRecording = result.Recordings.OrderByDescending(x => x.CreatedAt).First();
-
-                var requestSingleRecordingUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/recordings/{lastRecording.Id}";
-                
-                using (var requestRecordingMessage = new HttpRequestMessage(HttpMethod.Get, requestSingleRecordingUrl))
+                foreach(WscRecordingDetails recordingDetails in response.Recordings)
                 {
-                    requestRecordingMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
-                    requestRecordingMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
+                    await SyncRecordingForVlogAsync(recordingDetails, vlogId);
+                }
+            }
+        }
 
-                    var singleResponse = await HttpClient.SendAsync(requestRecordingMessage);
-                    var singleResponseString = await singleResponse.Content.ReadAsStringAsync();
-                    var recording = JsonConvert.DeserializeObject<WscGetSingleRecordingResponse>(singleResponseString);
+        private async Task SyncRecordingForVlogAsync(WscRecordingDetails recordingDetails, Guid vlogId)
+        {
+            var requestSingleRecordingUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/recordings/{recordingDetails.Id}";
 
-                    //!IMPORTANT
-                    //TODO Store the rest of this data as metadata.
-                    if (recording.Recording != null)
+            using (var requestRecordingMessage = new HttpRequestMessage(HttpMethod.Get, requestSingleRecordingUrl))
+            {
+                requestRecordingMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
+                requestRecordingMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
+                {
+                    WscRecording recording;
+
+                    int retryCount = 0;
+                    TimeSpan retryTimeSpan = TimeSpan.FromSeconds(30);
+
+                    do
                     {
-                        return recording.Recording.DownloadUrl.ToString();
-                    }
+                        // Fetch recording from media service
+                        var response = await HttpClient.SendAsync(requestRecordingMessage);
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        recording = JsonConvert.DeserializeObject<WscGetSingleRecordingResponse>(responseString).Recording;
 
-                    return null;
+                        // If the recording
+                        if (recording.State.Equals("completed", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            // Recording is complete, store the download url in the vlog
+                            var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+                            vlog.DownloadUrl = recording.DownloadUrl.ToString();
+                            await _vlogRepository.UpdateAsync(vlog);
+                            break;
+                        }
+                        else
+                        {
+                            await Task.Delay(retryTimeSpan);
+                            retryCount++;
+                        }
+                    }
+                    while (
+                        retryCount < 100
+                        &&
+                        !recording.State.Equals("completed", StringComparison.InvariantCultureIgnoreCase)
+                    );
                 }
             }
         }

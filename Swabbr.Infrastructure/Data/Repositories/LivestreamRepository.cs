@@ -107,6 +107,15 @@ namespace Swabbr.Infrastructure.Data.Repositories
             throw new EntityNotFoundException();
         }
 
+        public async Task<int> GetAvailableLivestreamCountAsync()
+        {
+            TableQuery<DynamicTableEntity> tableQuery = new TableQuery<DynamicTableEntity>()
+            .Where(
+                TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, false)
+            );
+            return await GetEntityCountAsync(tableQuery);
+        }
+
         public override LivestreamTableEntity Map(Livestream entity)
         {
             return new LivestreamTableEntity

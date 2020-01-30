@@ -5,6 +5,7 @@ using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +14,21 @@ namespace Swabbr.Infrastructure.Services
     public class VlogTriggerHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
+
+        /// <summary>
+        /// The amount of time before disposing a livestream
+        /// </summary>
+        public static readonly TimeSpan TIMESPAN_TIMEOUT = TimeSpan.FromMinutes(30);
+
+        /// <summary>
+        /// (TEMPORARY) The amount of time between executing vlog triggers (sending out notifications).
+        /// </summary>
+        public static readonly TimeSpan TIMESPAN_INTERVAL = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// The amount of time that is required for starting up a livestream.
+        /// </summary>
+        public static readonly TimeSpan TIMESPAN_START_STREAM = TimeSpan.FromMinutes(2);
 
         private readonly IVlogRepository _vlogRepository;
         private readonly IUserRepository _userRepository;
@@ -48,7 +64,7 @@ namespace Swabbr.Infrastructure.Services
             //TODO Determine which users to send a vlog request
             var targetedUsers = new List<User>()
             {
-                // TODO Currently using the example user (user@example.com) for testing purposes
+                // TODO Currently using only the example user (user@example.com) for testing purposes
                 await _userRepository.GetByIdAsync(new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"))
             };
 
@@ -77,14 +93,14 @@ namespace Swabbr.Infrastructure.Services
                     System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
 
                     // Wait before sending the notification to ensure the stream has started.
-                    // TODO Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started'.
-                    await Task.Delay(TimeSpan.FromMinutes(2));
+                    // TODO Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started' here.
+                    await Task.Delay(TIMESPAN_START_STREAM);
 
                     // Send the notification containing the stream connection details to the user.
                     await _notificationService.SendNotificationToUserAsync(notification, user.UserId);
 
-                    // Set time-out
-                    await WaitForTimeoutAsync(user.UserId, connectionDetails.Id);
+                    // Wait for time-out
+                    _ = WaitForTimeoutAsync(user.UserId, connectionDetails.Id);
                 }
                 catch (Exception e)
                 {
@@ -98,36 +114,29 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task WaitForTimeoutAsync(Guid userId, string livestreamId)
         {
-            // Wait 10 minutes
-            await Task.Delay(TimeSpan.FromMinutes(5));
+            // Wait 20 minutes
+            await Task.Delay(TIMESPAN_TIMEOUT);
 
             System.Diagnostics.Debug.WriteLine($"Livestream {livestreamId} has timed out.");
 
+            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
+
             //TODO For later:
             /*
-                             * If a user is currently streaming at this point (livestream has started),
+                             * If a user is currently streaming at this point (livestream has just started),
                              * extend the delay before deactivating the stream?
                              */
 
-            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
-
-            // Check if the stream is active (reserved by the user)
-            if (livestream.IsActive)
+            try
             {
-                try
-                {
-                    // If it is, we ensure the livestream is stopped and reset the availability of
-                    // the stream.
-                    await _livestreamingService.StopStreamAsync(livestreamId);
-
-                    livestream.IsActive = false;
-                    livestream.UserId = Guid.Empty;
-                    await _livestreamRepository.UpdateAsync(livestream);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Exception thrown in timeout. Message: {e.Message}");
-                }
+                // Ensure the livestream is stopped and deleted from the service.
+                await _livestreamingService.StopStreamAsync(livestreamId);
+                await _livestreamingService.DeleteStreamAsync(livestreamId);
+                await _livestreamRepository.DeleteAsync(livestream);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception thrown in timeout. Message: {e.Message}");
             }
         }
 
@@ -143,9 +152,8 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            //!IMPORTANT
-            //TODO Timer currently disabled to prevent spamming with notifications
-            //_timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+            // Start the interval
+            _timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TIMESPAN_INTERVAL);
             await Task.CompletedTask;
         }
 
