@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Errors;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -98,7 +100,9 @@ namespace Swabbr.Api.Controllers
 
             if (!(await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId)))
             {
-                return BadRequest("Outgoing request does not exist.");
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Outgoing request does not exist.")
+                    );
             }
 
             var entity = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
@@ -118,7 +122,9 @@ namespace Swabbr.Api.Controllers
 
             if (!(await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId)))
             {
-                return BadRequest("Outgoing request does not exist.");
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Outgoing request does not exist.")
+                    );
             }
 
             return Ok((await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId)).Status);
@@ -135,11 +141,15 @@ namespace Swabbr.Api.Controllers
 
             if (identityUser.UserId.Equals(receiverId))
             {
-                return BadRequest("Users cannot follow themselves.");
+                return BadRequest(
+                    this.Error(ErrorCodes.INVALID_INPUT, "Users cannot follow themselves.")
+                    );
             }
             else if (!await _userRepository.UserExistsAsync(receiverId))
             {
-                return BadRequest("User does not exist.");
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Specified user does not exist.")
+                    );
             }
 
             if (await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId))
@@ -147,13 +157,14 @@ namespace Swabbr.Api.Controllers
                 var existingRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
                 if (existingRequest.Status == FollowRequestStatus.Declined)
                 {
-                    // TODO Should we allow re-sending declined requests? Currently doing so by
-                    // updating the status to pending.
+                    // TODO Should we allow re-sending declined requests? Currently doing so by updating the status to pending.
                     existingRequest.Status = FollowRequestStatus.Pending;
                     FollowRequestOutputModel outputUpdated = await _followRequestRepository.UpdateAsync(existingRequest);
                     return Ok(outputUpdated);
                 }
-                return BadRequest();
+                return BadRequest(
+                    this.Error(ErrorCodes.ENTITY_ALREADY_EXISTS, "Request already exists.")
+                );
             }
 
             // Check follow mode setting of the receiving user.
@@ -181,7 +192,7 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Cancel a follow request from the authenticated user sent to the specified user.
+        /// Cancel a pending follow request from the authenticated user sent to the specified user.
         /// </summary>
         [HttpDelete("{followRequestId}/cancel")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -193,12 +204,20 @@ namespace Swabbr.Api.Controllers
             // Ensure the authenticated user is the requester of this follow request.
             if (identityUser.UserId.Equals(followRequest.RequesterId))
             {
-                // Delete the request
-                await _followRequestRepository.DeleteAsync(followRequest);
-                return NoContent();
+                if (followRequest.Status == FollowRequestStatus.Pending)
+                {
+                    // Delete the request
+                    await _followRequestRepository.DeleteAsync(followRequest);
+                    return NoContent();
+                }
+                return BadRequest(
+                    this.Error(ErrorCodes.INVALID_INPUT, "The specified request cannot be cancelled.")
+                );
             }
 
-            return BadRequest();
+            return BadRequest(
+                this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to modify request.")
+            );
         }
 
         /// <summary>
