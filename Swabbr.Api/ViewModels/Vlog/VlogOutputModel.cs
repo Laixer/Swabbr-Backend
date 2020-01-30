@@ -53,11 +53,11 @@ namespace Swabbr.Api.ViewModels
             {
                 VlogId = vlog.VlogId,
                 UserId = vlog.UserId,
+                DownloadUrl = vlog.DownloadUrl,
                 DateStarted = vlog.DateStarted,
                 IsLive = vlog.IsLive,
                 IsPrivate = vlog.IsPrivate,
                 Likes = vlog.Likes,
-                
             };
         }
     }
