@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Swabbr.Infrastructure.Data.Livestreaming
 {
-    public partial class WscGetRecordingsResponse
+    public partial class WscGetRecordingDetailsResponse
     {
         [JsonProperty("recordings")]
-        public List<WscRecording> Recordings { get; set; }
+        public List<WscRecordingDetails> Recordings { get; set; }
     }
 }

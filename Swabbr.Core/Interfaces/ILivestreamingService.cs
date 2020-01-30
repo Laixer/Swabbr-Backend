@@ -55,5 +55,9 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="id">Id of the livestream.</param>
         Task<string> GetThumbnailUrlAsync(string id);
+
+        //!IMPORTANT
+        //TODO Comments
+        Task<string> GetLatestRecordingUrlForLivestreamAsync(string id);
     }
 }

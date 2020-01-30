@@ -5,6 +5,6 @@
         /// <summary>
         /// The content of the notification as specified by the messaging protocol
         /// </summary>
-        public SwabbrMessage MessageContent { get; set; }
+        public SwabbrNotificationBody MessageContent { get; set; }
     }
 }

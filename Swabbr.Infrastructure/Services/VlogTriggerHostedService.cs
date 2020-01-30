@@ -63,12 +63,12 @@ namespace Swabbr.Infrastructure.Services
                     // Send notification to this user with the livestream connection details
                     var notification = new SwabbrNotification
                     {
-                        MessageContent = new SwabbrMessage
+                        MessageContent = new SwabbrNotificationBody
                         {
                             Title = "Time to record a vlog!",
                             Body = "It's time to record a vlog!",
-                            Data = JObject.FromObject(connectionDetails),
-                            DataType = nameof(connectionDetails),
+                            Object = JObject.FromObject(connectionDetails),
+                            ObjectType = typeof(StreamConnectionDetails).Name,
                             ClickAction = ClickActions.VLOG_RECORD_REQUEST
                         }
                     };
@@ -76,7 +76,7 @@ namespace Swabbr.Infrastructure.Services
                     await _livestreamingService.StartStreamAsync(connectionDetails.Id);
                     System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
 
-                    // Wait 2 minutes before sending the notification to ensure the stream has started.
+                    // Wait before sending the notification to ensure the stream has started.
                     // TODO Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started'.
                     await Task.Delay(TimeSpan.FromMinutes(2));
 
@@ -143,6 +143,7 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            //!IMPORTANT
             //TODO Timer currently disabled to prevent spamming with notifications
             //_timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
             await Task.CompletedTask;

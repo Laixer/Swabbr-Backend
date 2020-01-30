@@ -19,6 +19,10 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("userId")]
         public Guid UserId { get; set; }
 
+        //TODO Comment
+        [JsonProperty("downloadUrl")]
+        public string DownloadUrl { get; set; }
+
         /// <summary>
         /// Indicates if the vlog should be publicly available to other users.
         /// </summary>
@@ -52,7 +56,8 @@ namespace Swabbr.Api.ViewModels
                 DateStarted = vlog.DateStarted,
                 IsLive = vlog.IsLive,
                 IsPrivate = vlog.IsPrivate,
-                Likes = vlog.Likes
+                Likes = vlog.Likes,
+                
             };
         }
     }

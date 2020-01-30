@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
@@ -95,9 +96,15 @@ namespace Swabbr.Api.Controllers
             var createdVlog = await _vlogRepository.CreateAsync(new Vlog
             {
                 VlogId = Guid.NewGuid(),
+                LivestreamId = id,
                 UserId = identityUser.UserId,
                 DateStarted = DateTime.Now,
+                IsLive = true
             });
+
+            // Bind vlog to livestream
+            livestream.VlogId = createdVlog.VlogId;
+            await _livestreamRepository.UpdateAsync(livestream);
 
             // Obtain the nickname to use for the notification alert
             string nickname = identityUser.Nickname;
@@ -109,11 +116,13 @@ namespace Swabbr.Api.Controllers
             // Construct notification
             var notification = new SwabbrNotification
             {
-                MessageContent = new SwabbrMessage
+                MessageContent = new SwabbrNotificationBody
                 {
                     Title = $"{nickname} is livestreaming right now!",
                     Body = $"{nickname} has just gone live.",
-                    ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE
+                    ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE,
+                    Object = JObject.FromObject(createdVlog),
+                    ObjectType = typeof(Vlog).Name
                 }
             };
 
@@ -137,11 +146,6 @@ namespace Swabbr.Api.Controllers
             // Stop the livestream externally
             await _livestreamingService.StopStreamAsync(id);
 
-            // Set the state of the livestream in storage to inactive
-            var x = await _livestreamRepository.GetByIdAsync(id);
-            x.IsActive = false;
-            await _livestreamRepository.UpdateAsync(x);
-
             return Ok();
         }
 
@@ -152,13 +156,40 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> PublishAsync(string id)
         {
-            // TODO Create vlog entity TODO Bound livestream recording (latest) to vlog TODO Store
-            
+            var identityUser = await _userManager.GetUserAsync(User);
 
-            // TODO The vlog should hold a reference to the RECORDING of the livestream.
-            // TODO What can I get from the WSC API?
+            var livestream = await _livestreamRepository.GetByIdAsync(id);
 
-            throw new NotImplementedException();
+            if (!livestream.UserId.Equals(identityUser.UserId))
+            {
+                return StatusCode(
+                    (int)HttpStatusCode.Forbidden,
+                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
+                );
+            }
+
+            // Obtain the vlog that is bound to this livestream
+            var vlog = await _vlogRepository.GetByIdAsync(livestream.VlogId);
+
+            // Get the download url of the latest recording
+            vlog.DownloadUrl = (await _livestreamingService.GetLatestRecordingUrlForLivestreamAsync(id));
+            vlog.IsLive = false;
+
+            // Update the vlog
+            await _vlogRepository.UpdateAsync(vlog);
+
+            // Deactivate the livestream
+            //!IMPORTANT
+            //TODO Create 'Deactivate' method?
+            //TODO Automatically set a time-out for deactivating a livestream
+            // Set the state of the livestream in storage to inactive again
+            var x = await _livestreamRepository.GetByIdAsync(id);
+            x.IsActive = false;
+            x.UserId = Guid.Empty;
+            x.VlogId = Guid.Empty;
+            await _livestreamRepository.UpdateAsync(x);
+
+            return Ok();
         }
 
         /// <summary>

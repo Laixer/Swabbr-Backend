@@ -14,9 +14,14 @@ namespace Swabbr.Infrastructure.Data.Entities
         public string LivestreamId { get; set; }
 
         /// <summary>
-        /// Id of the user this stream belongs to when it is not available.
+        /// Id of the user this stream belongs to when it is available.
         /// </summary>
         public Guid UserId { get; set; }
+
+        /// <summary>
+        /// Id of the vlog this stream belongs to when it is available.
+        /// </summary>
+        public Guid VlogId { get; set; }
 
         /// <summary>
         /// Name of the stream.

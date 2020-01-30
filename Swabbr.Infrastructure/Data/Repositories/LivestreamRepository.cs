@@ -113,6 +113,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             {
                 LivestreamId = entity.Id,
                 UserId = entity.UserId,
+                VlogId = entity.VlogId,
                 IsActive = entity.IsActive,
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,
@@ -127,6 +128,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             {
                 Id = entity.LivestreamId,
                 UserId = entity.UserId,
+                VlogId = entity.VlogId,
                 IsActive = entity.IsActive,
                 BroadcastLocation = entity.BroadcastLocation,
                 CreatedAt = entity.CreatedAt,

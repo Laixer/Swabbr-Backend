@@ -7,6 +7,8 @@ using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Data.Livestreaming;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,11 +34,10 @@ namespace Swabbr.Infrastructure.Services
             {
                 Livestream = new WcsCreateLiveStreamRequestBody
                 {
-                    // TODO Always use 1080p as default frame resolution?
-                    AspectRatioWidth = 1920,
-                    AspectRatioHeight = 1080,
+                    AspectRatioWidth = wscConfig.AspectRatioWidth,
+                    AspectRatioHeight = wscConfig.AspectRatioHeight,
 
-                    // TODO Determine broadcast location based on user location
+                    // TODO Determine broadcast location based on user location?
                     BroadcastLocation = wscConfig.BroadcastLocation,
 
                     BillingMode = "pay_as_you_go",
@@ -220,5 +221,44 @@ namespace Swabbr.Infrastructure.Services
                 return response.Livestream.ThumbnailUrl;
             }
         }
+
+        public async Task<string> GetLatestRecordingUrlForLivestreamAsync(string id)
+        {
+            var requestRecordingsUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/transcoders/{id}/recordings";
+
+            using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestRecordingsUrl))
+            {
+                requestMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
+                requestMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
+
+                var allResponse = await HttpClient.SendAsync(requestMessage);
+                var allResponseString = await allResponse.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<WscGetRecordingDetailsResponse>(allResponseString);
+
+                WscRecordingDetails lastRecording = result.Recordings.OrderByDescending(x => x.CreatedAt).First();
+
+                var requestSingleRecordingUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/recordings/{lastRecording.Id}";
+                
+                using (var requestRecordingMessage = new HttpRequestMessage(HttpMethod.Get, requestSingleRecordingUrl))
+                {
+                    requestRecordingMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
+                    requestRecordingMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
+
+                    var singleResponse = await HttpClient.SendAsync(requestRecordingMessage);
+                    var singleResponseString = await singleResponse.Content.ReadAsStringAsync();
+                    var recording = JsonConvert.DeserializeObject<WscGetSingleRecordingResponse>(singleResponseString);
+
+                    //!IMPORTANT
+                    //TODO Store the rest of this data as metadata.
+                    if (recording.Recording != null)
+                    {
+                        return recording.Recording.DownloadUrl.ToString();
+                    }
+
+                    return null;
+                }
+            }
+        }
+
     }
 }

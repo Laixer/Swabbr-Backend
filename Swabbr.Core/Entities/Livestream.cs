@@ -15,6 +15,11 @@ namespace Swabbr.Core.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
+        /// Unique identifier of the vlog this livestream temporarily belongs to.
+        /// </summary>
+        public Guid VlogId { get; set; }
+
+        /// <summary>
         /// Name of the livestream.
         /// </summary>
         public string Name { get; set; }

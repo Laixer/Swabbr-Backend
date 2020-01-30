@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    ////[Authorize(Roles = "Admin")]
     [Route("v1/api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
@@ -72,7 +72,6 @@ namespace Swabbr.Api.Controllers
         /// <param name="userId"></param>
         /// <returns></returns>
         //TODO: IMPORTANT! Make sure this method requires admin authorization. Temporarily disabled for testing purposes
-        [Authorize(Roles = "Admin")]
         [HttpPost("notifications/send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]

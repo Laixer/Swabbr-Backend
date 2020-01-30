@@ -17,6 +17,11 @@ namespace Swabbr.Core.Interfaces
         Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId);
 
         /// <summary>
+        /// Returns a collection of featured vlogs.
+        /// </summary>
+        Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync();
+
+        /// <summary>
         /// Returns a single vlog with the specified Id.
         /// </summary>
         /// <param name="vlogId">Unique identifier of the vlog.</param>

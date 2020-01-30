@@ -26,5 +26,15 @@
         /// WSC specific broadcast location
         /// </summary>
         public string BroadcastLocation { get; set; }
+
+        /// <summary>
+        /// Stream resolution width
+        /// </summary>
+        public int AspectRatioWidth { get; set; }
+
+        /// <summary>
+        /// Stream resolution height
+        /// </summary>
+        public int AspectRatioHeight { get; set; }
     }
 }

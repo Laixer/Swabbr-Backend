@@ -24,12 +24,12 @@
         public const int INSUFFICIENT_ACCESS_RIGHTS = 700;
 
         /// <summary>
-        /// Indicates that a registration has failed to complete succesfully.
+        /// Indicates that a registration has failed to complete successfully.
         /// </summary>
         public const int REGISTRATION_FAILED = 701;
 
         /// <summary>
-        /// Indicates that a login could not be completed succesfully.
+        /// Indicates that a login could not be completed successfully.
         /// </summary>
         public const int LOGIN_FAILED = 702;
 

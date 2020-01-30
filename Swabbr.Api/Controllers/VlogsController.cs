@@ -47,9 +47,6 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
-            //TODO Temporarily sending back mock data because there are no vlogs yet
-            return Ok(MockRepository.RandomVlogOutput(vlogId));
-
             try
             {
                 VlogOutputModel output = await _vlogRepository.GetByIdAsync(vlogId);
@@ -59,7 +56,7 @@ namespace Swabbr.Api.Controllers
             {
                 return NotFound(
                     this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
-                    );
+                );
             }
         }
 
@@ -71,8 +68,16 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> FeaturedAsync()
         {
-            //TODO Not implemented, sending back fake data because there are no vlog records.
-            return Ok(Enumerable.Repeat(MockRepository.RandomVlogOutput(), 10));
+            var vlogs = await _vlogRepository.GetFeaturedVlogsAsync();
+
+            IEnumerable<VlogOutputModel> output = vlogs
+                .Select(v => (VlogOutputModel)v)
+                .OrderByDescending(v => v.DateStarted)
+                
+                // TODO: Remove take, using this to limit the amount sent to the client
+                .Take(10);
+
+            return Ok(output);
         }
 
         // TODO Specify limit? pagination?

@@ -3,7 +3,7 @@ using System;
 
 namespace Swabbr.Core.Notifications
 {
-    public class SwabbrMessage
+    public class SwabbrNotificationBody
     {
         /// <summary>
         /// Title of the notification
@@ -31,19 +31,19 @@ namespace Swabbr.Core.Notifications
         public string ClickAction { get; set; }
 
         /// <summary>
+        /// An object of type <see cref="SwabbrNotificationBody.ObjectType"/>
+        /// </summary>
+        public JObject Object { get; set; }
+
+        /// <summary>
         /// The type of the included data
         /// </summary>
-        public string DataType { get; set; }
+        public string ObjectType { get; set; }
 
         /// <summary>
         /// The version of the type of data
         /// </summary>
-        public string DataTypeVersion { get; set; }
-
-        /// <summary>
-        /// An object of type data_type
-        /// </summary>
-        public JObject Data { get; set; }
+        public string ObjectTypeVersion { get; set; }
 
         /// <summary>
         /// Indicates the media type of the content
@@ -98,15 +98,19 @@ namespace Swabbr.Core.Notifications
 
         private JObject GetContentJSON()
         {
-            // Add click action nested in data
-            Data.Add("click_action", ClickAction);
+            // Add nested values in data
+            var dataObj = new JObject();
+
+            dataObj.Add("click_action", ClickAction);
+
+            dataObj.Add("object", Object);
+            dataObj.Add("object_type", ObjectType);
+            dataObj.Add("object_type_version", ObjectTypeVersion);
 
             return new JObject(
                 new JProperty("protocol", Protocol),
                 new JProperty("protocol_version", ProtocolVersion),
-                new JProperty("data_type", DataType),
-                new JProperty("data_type_version", DataTypeVersion),
-                new JProperty("data", Data),
+                new JProperty("data", dataObj),
                 new JProperty("content_type", ContentType),
                 new JProperty("timestamp", TimeStamp),
                 new JProperty("user_agent", UserAgent)

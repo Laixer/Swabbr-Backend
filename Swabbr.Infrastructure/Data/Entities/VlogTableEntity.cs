@@ -8,14 +8,18 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// </summary>
     public class VlogTableEntity : TableEntity
     {
-        public VlogTableEntity()
-        {
-        }
-
         /// <summary>
         /// Unique identifier.
         /// </summary>
         public Guid VlogId { get; set; }
+
+        /// <summary>
+        /// Unique identifier of the livestream bound to this vlog.
+        /// </summary>
+        public string LivestreamId { get; set; }
+
+        //TODO: ?????
+        public string DownloadUrl { get; set; }
 
         /// <summary>
         /// Id of the user who created the vlog.

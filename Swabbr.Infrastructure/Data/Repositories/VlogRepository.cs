@@ -69,6 +69,23 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return queryResults.Select(v => Map(v));
         }
 
+        public async Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync()
+        {
+            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
+
+            // Retrieve records where the partition key matches the id of the user (owner)
+
+            //!IMPORTANT
+            // TODO: Determine which vlogs are featured (based on views, promotions etc). Currently returning ALL public vlogs.
+            var tq = new TableQuery<VlogTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForBool("IsPrivate", QueryComparisons.Equal, false));
+
+            var queryResults = await table.ExecuteQueryAsync(tq);
+
+            // Return mapped entities
+            return queryResults.Select(v => Map(v));
+        }
+
         public override Vlog Map(VlogTableEntity entity)
         {
             return new Vlog
@@ -78,7 +95,9 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 IsPrivate = entity.IsPrivate,
                 MediaServiceData = entity.MediaServiceData,
                 UserId = entity.UserId,
-                VlogId = entity.VlogId
+                VlogId = entity.VlogId,
+                DownloadUrl = entity.DownloadUrl,
+                LivestreamId = entity.LivestreamId
             };
         }
 
@@ -91,7 +110,9 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 IsPrivate = entity.IsPrivate,
                 MediaServiceData = entity.MediaServiceData,
                 UserId = entity.UserId,
-                VlogId = entity.VlogId
+                VlogId = entity.VlogId,
+                DownloadUrl = entity.DownloadUrl,
+                LivestreamId = entity.LivestreamId
             };
         }
 
