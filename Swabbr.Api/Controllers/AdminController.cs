@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
@@ -71,7 +70,8 @@ namespace Swabbr.Api.Controllers
         /// <param name="newNotification"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        //TODO: IMPORTANT! Make sure this method requires admin authorization. Temporarily disabled for testing purposes
+        //TODO: IMPORTANT! Make sure this method requires admin authorization. Authorization emporarily disabled for testing purposes
+        ////[Authorize("Admin")]
         [HttpPost("notifications/send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]

@@ -48,14 +48,16 @@ namespace Swabbr.Api.Controllers
             _vlogRepository = vlogRepository;
         }
 
+        // TODO The method below is limited and to be used TEMPORARILY for testing purposes only. It
+        // should be removed.
         /// <summary>
         /// Open an available livestream for a user
         /// </summary>
-        [HttpGet("trigger/{userId}")]
+        [Obsolete]
+        [HttpGet("test/trigger/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
         public async Task<IActionResult> NotifyUserStreamAsync(Guid userId)
         {
-            // TODO This method is to be used for testing purposes only
             var connection = await _livestreamingService.ReserveLiveStreamForUserAsync(userId);
 
             await _livestreamingService.StartStreamAsync(connection.Id);

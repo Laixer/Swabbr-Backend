@@ -37,7 +37,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
         public Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
         {
             //TODO Implement correctly. Must a registration be bound to a single user or should this return a collection?
-            //! Important: Currently returning the FIRST matched registration. Should we return everything or ensure only registration exists?
+            //! Important: Currently returning the FIRST matched registration. Should we return all registrations? Currently assuming only one registration exists.
             var table = _factory.GetClient<NotificationRegistrationTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<NotificationRegistrationTableEntity>().Where(

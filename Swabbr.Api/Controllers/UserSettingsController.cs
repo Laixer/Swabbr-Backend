@@ -40,7 +40,8 @@ namespace Swabbr.Api.Controllers
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
 
-            // If no user settings exist for this user, create a new settings entity for the user with default values.
+            // If no user settings exist for this user, create a new settings entity for the user
+            // with default values.
             if (!(await _userSettingsRepository.ExistsForUserAsync(userId)))
             {
                 await _userSettingsRepository.CreateAsync(new UserSettings
@@ -61,7 +62,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> UpdateAsync([FromBody] UserSettingsInputModel input)
         {
-            //TODO: Where to handle constraints like these? 
+            //TODO: Where to handle constraints like these?
             if (input.DailyVlogRequestLimit < 0 || input.DailyVlogRequestLimit > 3)
             {
                 return BadRequest(
@@ -72,7 +73,8 @@ namespace Swabbr.Api.Controllers
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
 
-            // If no user settings exist for this user, create a new settings entity for the user with default values.
+            // If no user settings exist for this user, create a new settings entity for the user
+            // with default values.
             if (!(await _userSettingsRepository.ExistsForUserAsync(userId)))
             {
                 await _userSettingsRepository.CreateAsync(new UserSettings

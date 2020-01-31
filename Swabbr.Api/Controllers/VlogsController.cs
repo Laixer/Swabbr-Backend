@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
-using Swabbr.Api.MockData;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
@@ -73,14 +72,14 @@ namespace Swabbr.Api.Controllers
             IEnumerable<VlogOutputModel> output = vlogs
                 .Select(v => (VlogOutputModel)v)
                 .OrderByDescending(v => v.DateStarted)
-                
-                // TODO: Remove take, using this to limit the amount sent to the client
+
+                // TODO: Remove take once GetFeaturedVlogs is implemented, using this temporarily to limit the amount sent to the client
                 .Take(10);
 
             return Ok(output);
         }
 
-        // TODO Specify limit? pagination?
+        // TODO: For later: Specify limit? pagination?
         /// <summary>
         /// Get vlogs from the specified user.
         /// </summary>
@@ -136,7 +135,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
-        // TODO What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog.
+        // TODO: What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog. Currently returning status code only.
         /// <summary>
         /// Leave a like on a single vlog.
         /// </summary>

@@ -18,7 +18,8 @@ namespace Swabbr.Core.Interfaces
         /// Fetches the connection details for an existing stream
         /// </summary>
         /// <returns>Connection details for broadcasting the stream.</returns>
-        Task<StreamConnectionDetails> GetStreamConnectionAsync(string id);
+        /// <param name="livestreamId">Id of the livestream.</param>
+        Task<StreamConnectionDetails> GetStreamConnectionAsync(string livestreamId);
 
         /// <summary>
         /// Returns connection details for an available livestream from the pool, creates a new
@@ -30,6 +31,7 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Delete a new livestream.
         /// </summary>
+        /// <param name="livestreamId">Id of the livestream.</param>
         Task DeleteStreamAsync(string livestreamId);
 
         /// <summary>
@@ -56,8 +58,12 @@ namespace Swabbr.Core.Interfaces
         /// <param name="livestreamId">Id of the livestream.</param>
         Task<string> GetThumbnailUrlAsync(string livestreamId);
 
-        //!IMPORTANT
-        //TODO Comments
+        /// <summary>
+        /// Synchronize the recordings from a livestream to a vlog.
+        /// </summary>
+        /// <param name="livestreamId">Id of the livestream.</param>
+        /// <param name="vlogId">Id of the vlog.</param>
+        /// <returns></returns>
         Task SyncRecordingsForVlogAsync(string livestreamId, Guid vlogId);
     }
 }

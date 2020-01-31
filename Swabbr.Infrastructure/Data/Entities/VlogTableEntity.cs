@@ -18,7 +18,9 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// </summary>
         public string LivestreamId { get; set; }
 
-        //TODO: ?????
+        /// <summary>
+        /// Download URL of the playback recording.
+        /// </summary>
         public string DownloadUrl { get; set; }
 
         /// <summary>

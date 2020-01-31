@@ -23,16 +23,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> ExistsAsync(Guid reactionId)
         {
-            //TODO: Optimize, only need to retrieve partitionkey
-            try
-            {
-                await GetByIdAsync(reactionId);
-                return true;
-            }
-            catch (EntityNotFoundException)
-            {
-                return false;
-            }
+            var tq = new TableQuery<DynamicTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForGuid(nameof(ReactionTableEntity.ReactionId), QueryComparisons.Equal, reactionId));
+
+            return await GetEntityCountAsync(tq) > 0;
         }
 
         public async Task<Reaction> GetByIdAsync(Guid reactionId)
@@ -40,7 +34,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
 
             var tq = new TableQuery<ReactionTableEntity>().Where(
-                TableQuery.GenerateFilterConditionForGuid("ReactionId", QueryComparisons.Equal, reactionId));
+                TableQuery.GenerateFilterConditionForGuid(nameof(ReactionTableEntity.ReactionId), QueryComparisons.Equal, reactionId));
 
             var queryResults = await table.ExecuteQueryAsync(tq);
 

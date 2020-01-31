@@ -117,7 +117,7 @@ namespace Swabbr.Infrastructure.Services
 
                 // Create a new livestream and add it to the pool and return its connection details.
                 // TODO How to determine the name of the newly created stream?
-                var newStream = await CreateNewStreamAsync("testName");
+                var newStream = await CreateNewStreamAsync("test");
 
                 if (newStream != null)
                 {

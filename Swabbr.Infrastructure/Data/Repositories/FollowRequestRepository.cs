@@ -140,11 +140,11 @@ namespace Swabbr.Infrastructure.Data.Repositories
             );
 
             // Select only the partition key from the entity.
-            tableQuery = tableQuery.Select(new string[] { "RequesterId" });
+            tableQuery = tableQuery.Select(new string[] { nameof(FollowRequestTableEntity.RequesterId) });
 
             CloudTable cloudTable = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
 
-            EntityResolver<Guid> resolver = (pk, rk, ts, props, etag) => props["RequesterId"].GuidValue.GetValueOrDefault();
+            EntityResolver<Guid> resolver = (pk, rk, ts, props, etag) => props[nameof(FollowRequestTableEntity.RequesterId)].GuidValue.GetValueOrDefault();
 
             List<Guid> ids = new List<Guid>();
 
@@ -164,16 +164,14 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> ExistsAsync(Guid receiverId, Guid requesterId)
         {
-            try
-            {
-                // TODO Optimize, only need to retrieve partition key
-                var x = await GetByUserIdAsync(receiverId, requesterId);
-                return true;
-            }
-            catch (EntityNotFoundException)
-            {
-                return false;
-            }
+            var tq = new TableQuery<DynamicTableEntity>().Where(
+                TableQuery.CombineFilters(
+                TableQuery.GenerateFilterConditionForGuid("PartitionKey", QueryComparisons.Equal, receiverId),
+                TableOperators.And,
+                TableQuery.GenerateFilterConditionForGuid("RowKey", QueryComparisons.Equal, requesterId)
+                ));
+
+            return await GetEntityCountAsync(tq) > 0;
         }
     }
 }

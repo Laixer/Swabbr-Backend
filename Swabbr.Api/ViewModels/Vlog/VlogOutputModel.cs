@@ -19,7 +19,9 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("userId")]
         public Guid UserId { get; set; }
 
-        //TODO Comment
+        /// <summary>
+        /// Download URL of the recording of the livestream.
+        /// </summary>
         [JsonProperty("downloadUrl")]
         public string DownloadUrl { get; set; }
 
