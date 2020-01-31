@@ -49,6 +49,8 @@ namespace Swabbr.Api.Controllers
 
                 // Delete the registration from the hub
                 await _notificationService.DeleteRegistrationAsync(registration.RegistrationId);
+                await _notificationRegistrationRepository.DeleteAsync(registration);
+
                 return Ok();
             }
             catch (EntityNotFoundException)
