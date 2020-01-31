@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Notifications;
 using System;
@@ -23,12 +24,22 @@ namespace Swabbr.Infrastructure.Services
         /// <summary>
         /// (TEMPORARY) The amount of time between executing vlog triggers (sending out notifications).
         /// </summary>
-        public static readonly TimeSpan TIMESPAN_INTERVAL = TimeSpan.FromMinutes(5);
+        public static readonly TimeSpan TIMESPAN_INTERVAL = TimeSpan.FromMinutes(30);
 
         /// <summary>
-        /// The amount of time that is required for starting up a livestream.
+        /// The amount of time that is required to wait while starting up a livestream.
         /// </summary>
         public static readonly TimeSpan TIMESPAN_START_STREAM = TimeSpan.FromMinutes(2);
+
+        /// <summary>
+        /// The maximum amount of livestreams to keep in storage
+        /// </summary>
+        const int MAX_STREAM_POOL_SIZE = 100;
+
+        /// <summary>
+        /// Livestream create request limit
+        /// </summary>
+        const int MAX_CREATE_REQUEST_LIMIT = 10;
 
         private readonly IVlogRepository _vlogRepository;
         private readonly IUserRepository _userRepository;
@@ -110,6 +121,26 @@ namespace Swabbr.Infrastructure.Services
                     // something went wrong while sending out a notification (in which case we should possibly try to send it again)
                 }
             }
+
+            // Make sure enough livestreams are available for usage
+            int availableStreamCount = await _livestreamRepository.GetAvailableLivestreamCountAsync();
+            int createdCount = 0;
+
+            // Replenish livestreams
+            try
+            {
+                while (createdCount < (MAX_STREAM_POOL_SIZE - availableStreamCount) &&
+                        createdCount <= MAX_CREATE_REQUEST_LIMIT)
+                {
+                    await _livestreamingService.CreateNewStreamAsync("test");
+                    createdCount++;
+                }
+            }
+            catch (ExternalErrorException e)
+            {
+                //TODO Handle exception. Livestream request limit reached or could not create livestream
+                System.Diagnostics.Debug.WriteLine($"Exception thrown during pool replenishment ({e.Message}).");
+            }
         }
 
         public async Task WaitForTimeoutAsync(Guid userId, string livestreamId)
@@ -131,8 +162,11 @@ namespace Swabbr.Infrastructure.Services
             {
                 // Ensure the livestream is stopped and deleted from the service.
                 await _livestreamingService.StopStreamAsync(livestreamId);
-                await _livestreamingService.DeleteStreamAsync(livestreamId);
-                await _livestreamRepository.DeleteAsync(livestream);
+
+
+                //TODO Dispose of livestream. Currently keeping it as active because recordings are not being stored internally.
+                ////await _livestreamingService.DeleteStreamAsync(livestreamId);
+                ////await _livestreamRepository.DeleteAsync(livestream);
             }
             catch (Exception e)
             {

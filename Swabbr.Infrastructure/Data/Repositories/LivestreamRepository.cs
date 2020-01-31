@@ -29,7 +29,8 @@ namespace Swabbr.Infrastructure.Data.Repositories
             var tq = new TableQuery<LivestreamTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, false));
 
-            var queryResults = table.ExecuteQuery(tq);
+            // Obtain results and order by created date so the earliest record will be used (last in first out)
+            var queryResults = (await table.ExecuteQueryAsync(tq)).OrderBy(x => x.CreatedAt);
 
             if (queryResults.Any())
             {

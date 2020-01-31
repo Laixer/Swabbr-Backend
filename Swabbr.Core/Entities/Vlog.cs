@@ -18,7 +18,9 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public string LivestreamId { get; set; }
 
-        //TODO XML DOCUMENTATION
+        /// <summary>
+        /// Download url of the recording.
+        /// </summary>
         public string DownloadUrl { get; set; }
 
         /// <summary>

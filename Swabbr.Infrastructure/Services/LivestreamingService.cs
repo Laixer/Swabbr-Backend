@@ -7,8 +7,6 @@ using Swabbr.Core.Interfaces;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Data.Livestreaming;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -226,6 +224,9 @@ namespace Swabbr.Infrastructure.Services
 
         public async Task SyncRecordingsForVlogAsync(string livestreamId, Guid vlogId)
         {
+            //TODO Determine how long the delay for waiting for recordings should be
+            await Task.Delay(TimeSpan.FromMinutes(1));
+
             var getAllRecordingsUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/transcoders/{livestreamId}/recordings";
 
             using (var requestMessage = new HttpRequestMessage(HttpMethod.Get, getAllRecordingsUrl))
@@ -237,7 +238,7 @@ namespace Swabbr.Infrastructure.Services
                 var resultString = await result.Content.ReadAsStringAsync();
                 var response = JsonConvert.DeserializeObject<WscGetRecordingDetailsResponse>(resultString);
 
-                foreach(WscRecordingDetails recordingDetails in response.Recordings)
+                foreach (WscRecordingDetails recordingDetails in response.Recordings)
                 {
                     await SyncRecordingForVlogAsync(recordingDetails, vlogId);
                 }
@@ -248,46 +249,45 @@ namespace Swabbr.Infrastructure.Services
         {
             var requestSingleRecordingUrl = $"{wscConfig.Host}/api/{wscConfig.Version}/recordings/{recordingDetails.Id}";
 
-            using (var requestRecordingMessage = new HttpRequestMessage(HttpMethod.Get, requestSingleRecordingUrl))
+            WscRecording recording;
+
+            int retryCount = 0;
+            TimeSpan retryTimeSpan = TimeSpan.FromSeconds(30);
+
+            do
             {
-                requestRecordingMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
-                requestRecordingMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
+                using (var requestRecordingMessage = new HttpRequestMessage(HttpMethod.Get, requestSingleRecordingUrl))
                 {
-                    WscRecording recording;
+                    requestRecordingMessage.Headers.Add("wsc-api-key", wscConfig.ApiKey);
+                    requestRecordingMessage.Headers.Add("wsc-access-key", wscConfig.AccessKey);
 
-                    int retryCount = 0;
-                    TimeSpan retryTimeSpan = TimeSpan.FromSeconds(30);
+                    // Fetch latest recording from media service
+                    var response = await HttpClient.SendAsync(requestRecordingMessage);
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    recording = JsonConvert.DeserializeObject<WscGetSingleRecordingResponse>(responseString).Recording;
 
-                    do
+                    // If the recording
+                    if (recording.State.Equals("completed", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        // Fetch recording from media service
-                        var response = await HttpClient.SendAsync(requestRecordingMessage);
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        recording = JsonConvert.DeserializeObject<WscGetSingleRecordingResponse>(responseString).Recording;
-
-                        // If the recording
-                        if (recording.State.Equals("completed", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            // Recording is complete, store the download url in the vlog
-                            var vlog = await _vlogRepository.GetByIdAsync(vlogId);
-                            vlog.DownloadUrl = recording.DownloadUrl.ToString();
-                            await _vlogRepository.UpdateAsync(vlog);
-                            break;
-                        }
-                        else
-                        {
-                            await Task.Delay(retryTimeSpan);
-                            retryCount++;
-                        }
+                        // Recording is complete, store the download url in the vlog
+                        //TODO Currently overwriting with the latest if there are MULTIPLE recordings. Either store seperately or merge together
+                        var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+                        vlog.DownloadUrl = recording.DownloadUrl.ToString();
+                        await _vlogRepository.UpdateAsync(vlog);
+                        break;
                     }
-                    while (
-                        retryCount < 100
-                        &&
-                        !recording.State.Equals("completed", StringComparison.InvariantCultureIgnoreCase)
-                    );
+                    else
+                    {
+                        await Task.Delay(retryTimeSpan);
+                        retryCount++;
+                    }
                 }
             }
+            while (
+                retryCount < 100
+                &&
+                !recording.State.Equals("completed", StringComparison.InvariantCultureIgnoreCase)
+            );
         }
-
     }
 }
