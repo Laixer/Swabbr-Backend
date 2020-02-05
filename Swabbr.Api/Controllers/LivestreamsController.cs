@@ -48,12 +48,11 @@ namespace Swabbr.Api.Controllers
             _vlogRepository = vlogRepository;
         }
 
-        // TODO The method below is limited and to be used TEMPORARILY for testing purposes only. It
-        // should be removed.
+        // TODO The method below is limited and to be used TEMPORARILY for testing purposes only. It should be removed.
         /// <summary>
         /// Open an available livestream for a user
         /// </summary>
-        [Obsolete]
+        [Obsolete("Temporary function to trigger a livestream for a user")]
         [HttpGet("test/trigger/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
         public async Task<IActionResult> NotifyUserStreamAsync(Guid userId)
@@ -186,7 +185,14 @@ namespace Swabbr.Api.Controllers
 
             // Update the livestream bound vlog
             var vlog = await _vlogRepository.GetByIdAsync(livestream.VlogId);
+
             vlog.IsPrivate = input.IsPrivate;
+
+            foreach(Guid userId in input.SharedUsers)
+            {
+                //TODO: Bind shared user id to this vlog
+            }
+
             VlogOutputModel output = await _vlogRepository.UpdateAsync(vlog);
 
             // Stop the external livestream asynchronously
@@ -227,7 +233,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> TestStopAllStreamsAsync()
         {
-            //TODO: This method has been added for testing purposes only.
+            //TODO: This method has been added for testing purposes only. It is being used to stop any started livestreams externally and deactivate them internally.
             var active = await _livestreamRepository.GetActiveLivestreamsAsync();
 
             foreach (var a in active)

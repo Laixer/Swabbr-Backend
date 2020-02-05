@@ -46,9 +46,55 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
+            var identityUser = await _userManager.GetUserAsync(User);
+
             try
             {
-                VlogOutputModel output = await _vlogRepository.GetByIdAsync(vlogId);
+                var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+
+                if (vlog.IsPrivate)
+                {
+                    //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
+                }
+
+                VlogOutputModel output = vlog;
+                return Ok(output);
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                );
+            }
+        }
+
+        /// <summary>
+        /// Update a single vlog.
+        /// </summary>
+        [HttpPut("{vlogId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
+        public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId, [FromBody]VlogUpdateModel input)
+        {
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            try
+            {
+                var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+
+                if (!vlog.UserId.Equals(identityUser.UserId))
+                {
+                    return StatusCode(
+                        (int)HttpStatusCode.Forbidden,
+                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User does not have access to this vlog.")
+                        );
+                }
+
+                if (vlog.IsPrivate)
+                {
+                    //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
+                }
+
+                VlogOutputModel output = vlog;
                 return Ok(output);
             }
             catch (EntityNotFoundException)
@@ -69,6 +115,7 @@ namespace Swabbr.Api.Controllers
         {
             var vlogs = await _vlogRepository.GetFeaturedVlogsAsync();
 
+            //TODO:  Temporarily returning the latest (last started) vlogs by started date
             IEnumerable<VlogOutputModel> output = vlogs
                 .Select(v => (VlogOutputModel)v)
                 .OrderByDescending(v => v.DateStarted)
