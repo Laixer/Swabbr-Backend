@@ -10,6 +10,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Swabbr.Api.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/v1/livestreams")]
+    [Route("livestreams")]
     public class LivestreamsController : ControllerBase
     {
         private readonly UserManager<SwabbrIdentityUser> _userManager;
@@ -48,7 +49,7 @@ namespace Swabbr.Api.Controllers
             _vlogRepository = vlogRepository;
         }
 
-        // TODO The method below is limited and to be used TEMPORARILY for testing purposes only. It should be removed.
+        //TODO:The method below is limited and to be used TEMPORARILY for testing purposes only. It should be removed.
         /// <summary>
         /// Open an available livestream for a user
         /// </summary>
@@ -89,14 +90,14 @@ namespace Swabbr.Api.Controllers
             if (!livestream.UserId.Equals(identityUser.UserId))
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User currently does not have access to this livestream.")
+                    this.Error(ErrorCodes.InsufficientAccessRights, "User currently does not have access to this livestream.")
                     );
             }
             if (await _vlogRepository.ExistsAsync(livestream.VlogId))
             {
                 // If a vlog exists the livestream has already been started.
                 return BadRequest(
-                    this.Error(ErrorCodes.INVALID_INPUT, "This livestream has already been started.")
+                    this.Error(ErrorCodes.InvalidInput, "This livestream has already been started.")
                     );
             }
 
@@ -126,6 +127,7 @@ namespace Swabbr.Api.Controllers
             {
                 MessageContent = new SwabbrNotificationBody
                 {
+                    //TODO: Use string constants
                     Title = $"{nickname} is livestreaming right now!",
                     Body = $"{nickname} has just gone live.",
                     ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE,
@@ -151,7 +153,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> PublishAsync([FromRoute]string livestreamId, [FromBody]VlogUpdateModel input)
         {
-            //TODO Check if vlog has already been published
+            //TODO: Check if vlog has already been published
 
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -161,12 +163,12 @@ namespace Swabbr.Api.Controllers
             {
                 return StatusCode(
                     (int)HttpStatusCode.Forbidden,
-                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
+                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
                 );
             }
             if (!(await _vlogRepository.ExistsAsync(livestream.VlogId)))
             {
-                //TODO Determine what to do at this point
+                //TODO: Determine what to do at this point
                 // Failsave for if a vlog has not been created (livestream is being published without having been started)
                 // Create a new vlog record
                 var newVlog = await _vlogRepository.CreateAsync(new Vlog
@@ -188,17 +190,20 @@ namespace Swabbr.Api.Controllers
 
             vlog.IsPrivate = input.IsPrivate;
 
-            foreach(Guid userId in input.SharedUsers)
+            // Bind the given shared users to this vlog
+            foreach (Guid userId in input.SharedUsers)
             {
-                //TODO: Bind shared user id to this vlog
+                // Bind the shared user with the vlog
+                await _vlogRepository.ShareWithUserAsync(vlog.VlogId, userId);
             }
 
-            VlogOutputModel output = await _vlogRepository.UpdateAsync(vlog);
+            VlogOutputModel output = VlogOutputModel.Parse(await _vlogRepository.UpdateAsync(vlog));
 
             // Stop the external livestream asynchronously
             await _livestreamingService.StopStreamAsync(livestreamId);
 
-            // Synchronize the livestream recordings for the vlog without awaiting result
+            // Synchronize the livestream recordings for the vlog asynchronously without awaiting
+            // the result
             _ = _livestreamingService.SyncRecordingsForVlogAsync(livestreamId, livestream.VlogId);
 
             return Ok(output);
@@ -221,7 +226,7 @@ namespace Swabbr.Api.Controllers
             {
                 //TODO: Handle specific exception
                 return BadRequest(
-                    this.Error(ErrorCodes.EXTERNAL_ERROR, "Could not retrieve thumbnail.")
+                    this.Error(ErrorCodes.ExternalError, "Could not retrieve thumbnail.")
                 );
             }
         }
@@ -284,8 +289,8 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Livestream for the specified user was not found.")
-                    );
+                    this.Error(ErrorCodes.EntityNotFound, "Livestream for the specified user was not found.")
+                );
             }
         }
 
@@ -315,7 +320,7 @@ namespace Swabbr.Api.Controllers
             {
                 return StatusCode(
                     (int)HttpStatusCode.Forbidden,
-                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to access livestream details.")
+                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to access livestream details.")
                 );
             }
 

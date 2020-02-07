@@ -7,7 +7,9 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,23 +23,24 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("api/v1/followrequests")]
-    public class FollowRequestsController : ControllerBase
+    [Route("followrequests")]
+    public class FollowRequestsController : ApiControllerBase
     {
-        private readonly IFollowRequestRepository _followRequestRepository;
         private readonly IUserRepository _userRepository;
         private readonly IUserSettingsRepository _userSettingsRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
+        private readonly IFollowRequestService _followRequestService;
+
         public FollowRequestsController(
-            IFollowRequestRepository followRequestRepository,
             IUserRepository userRepository,
             IUserSettingsRepository userSettingsRepository,
+            IFollowRequestService followRequestService,
             UserManager<SwabbrIdentityUser> userManager)
         {
-            _followRequestRepository = followRequestRepository;
             _userRepository = userRepository;
             _userSettingsRepository = userSettingsRepository;
+            _followRequestService = followRequestService;
             _userManager = userManager;
         }
 
@@ -51,18 +54,11 @@ namespace Swabbr.Api.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var incomingRequests = await _followRequestRepository.GetIncomingForUserAsync(user.UserId);
+            // Retrieve all pending incoming requests for the authenticated user.
+            var incomingRequests = (await _followRequestService.GetPendingIncomingForUserAsync(user.UserId))
+                .Select(request => FollowRequestOutputModel.Parse(request));
 
-            // Filter out non-pending requests and map the collection to output models.
-            IEnumerable<FollowRequestOutputModel> output = incomingRequests
-                .Where(entity => entity.Status == FollowRequestStatus.Pending)
-                .Select(entity =>
-                {
-                    FollowRequestOutputModel outputModel = entity;
-                    return outputModel;
-                });
-
-            return Ok(output);
+            return Ok(incomingRequests);
         }
 
         /// <summary>
@@ -75,18 +71,11 @@ namespace Swabbr.Api.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var outgoingRequests = await _followRequestRepository.GetOutgoingForUserAsync(user.UserId);
+            // Retrieve all pending outgoing requests for the authenticated user.
+            var outgoingRequests = (await _followRequestService.GetPendingOutgoingForUserAsync(user.UserId))
+                .Select(request => FollowRequestOutputModel.Parse(request));
 
-            // Filter out non-pending requests and map the collection to output models.
-            IEnumerable<FollowRequestOutputModel> output = outgoingRequests
-                .Where(entity => entity.Status == FollowRequestStatus.Pending)
-                .Select(entity =>
-                {
-                    FollowRequestOutputModel outputModel = entity;
-                    return outputModel;
-                });
-
-            return Ok(output);
+            return Ok(outgoingRequests);
         }
 
         /// <summary>
@@ -98,16 +87,17 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            if (!(await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId)))
+            try
             {
-                return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Outgoing request does not exist.")
+                var request = await _followRequestService.GetAsync(receiverId, identityUser.UserId);
+                return Ok(FollowRequestOutputModel.Parse(request));
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Outgoing request does not exist.")
                     );
             }
-
-            var entity = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
-            FollowRequestOutputModel output = entity;
-            return Ok(output);
         }
 
         /// <summary>
@@ -116,18 +106,23 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpGet("outgoing/{receiverId}/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
+        //TODO: Add ProducesResponseType for all possible status codes
+        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> GetStatusAsync([FromRoute]Guid receiverId)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            if (!(await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId)))
+            try
             {
-                return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Outgoing request does not exist.")
-                    );
+                var followRequest = await _followRequestService.GetAsync(receiverId, identityUser.UserId);
+                return Ok(followRequest.Status);
             }
-
-            return Ok((await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId)).Status);
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Outgoing request does not exist.")
+                );
+            }
         }
 
         /// <summary>
@@ -139,56 +134,34 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            if (identityUser.UserId.Equals(receiverId))
+            var requesterId = identityUser.UserId;
+
+            if (requesterId == receiverId)
             {
-                return BadRequest(
-                    this.Error(ErrorCodes.INVALID_INPUT, "Users cannot follow themselves.")
-                    );
-            }
-            else if (!await _userRepository.UserExistsAsync(receiverId))
-            {
-                return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Specified user does not exist.")
+                return Forbidden(
+                    this.Error(ErrorCodes.InvalidOperation, "Users cannot follow themselves.")
                     );
             }
 
-            if (await _followRequestRepository.ExistsAsync(receiverId, identityUser.UserId))
+            //!!!
+            if (!await _userRepository.UserExistsAsync(receiverId))
             {
-                var existingRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, identityUser.UserId);
-                if (existingRequest.Status == FollowRequestStatus.Declined)
-                {
-                    // TODO Should we allow re-sending declined requests? Currently doing so by updating the status to pending.
-                    existingRequest.Status = FollowRequestStatus.Pending;
-                    FollowRequestOutputModel outputUpdated = await _followRequestRepository.UpdateAsync(existingRequest);
-                    return Ok(outputUpdated);
-                }
-                return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_ALREADY_EXISTS, "Request already exists.")
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Specified user does not exist.")
+                    );
+            }
+
+            try
+            {
+                var followRequest = await _followRequestService.SendAsync(receiverId, requesterId);
+                return Ok(FollowRequestOutputModel.Parse(followRequest));
+            }
+            catch (EntityAlreadyExistsException)
+            {
+                return Conflict(
+                    this.Error(ErrorCodes.EntityAlreadyExists, "Request already exists.")
                 );
             }
-
-            // Check follow mode setting of the receiving user.
-            var userSettings = await _userSettingsRepository.GetForUserAsync(receiverId);
-            var followMode = userSettings.FollowMode;
-
-            // Assing the predetermined state of the follow request based on the follow mode setting.
-            var requestStatus =
-                (followMode == FollowMode.AcceptAll) ? FollowRequestStatus.Accepted :
-                (followMode == FollowMode.DenyAll) ? FollowRequestStatus.Declined :
-                FollowRequestStatus.Pending;
-
-            var entityToCreate = new FollowRequest
-            {
-                FollowRequestId = Guid.NewGuid(),
-                ReceiverId = receiverId,
-                RequesterId = identityUser.UserId,
-                Status = requestStatus,
-                TimeCreated = DateTime.Now
-            };
-
-            var createdEntity = await _followRequestRepository.CreateAsync(entityToCreate);
-            FollowRequestOutputModel outputCreated = createdEntity;
-            return Ok(outputCreated);
         }
 
         /// <summary>
@@ -198,26 +171,56 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> CancelAsync([FromRoute]Guid followRequestId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-
-            // Ensure the authenticated user is the requester of this follow request.
-            if (identityUser.UserId.Equals(followRequest.RequesterId))
+            try
             {
-                if (followRequest.Status == FollowRequestStatus.Pending)
+                var identityUser = await _userManager.GetUserAsync(User);
+
+                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.UserId))
                 {
-                    // Delete the request
-                    await _followRequestRepository.DeleteAsync(followRequest);
+                    await _followRequestService.CancelAsync(followRequestId);
                     return NoContent();
                 }
-                return BadRequest(
-                    this.Error(ErrorCodes.INVALID_INPUT, "The specified request cannot be cancelled.")
+
+                return Forbidden(
+                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to modify request.")
                 );
             }
+            catch (InvalidOperationException)
+            {
+                return Conflict(
+                    this.Error(ErrorCodes.InvalidOperation, "The request cannot be cancelled.")
+                );
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Follow request was not found.")
+                );
+            }
+        }
 
-            return BadRequest(
-                this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to modify request.")
-            );
+        /// <summary>
+        /// Deletes the follow relationship from the authorized user to the specified user.
+        /// </summary>
+        [HttpDelete("unfollow/{receiverId}")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> UnfollowAsync([FromRoute] Guid receiverId)
+        {
+            var identityUser = await _userManager.GetUserAsync(User);
+
+            try
+            {
+                var followRequest = await _followRequestService.GetAsync(receiverId, identityUser.UserId);
+                // Delete the request
+                await _followRequestService.UnfollowAsync(receiverId, identityUser.UserId);
+                return NoContent();
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Relationship could not be found.")
+                    );
+            }
         }
 
         /// <summary>
@@ -227,19 +230,28 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> AcceptAsync([FromRoute]Guid followRequestId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-
-            // Ensure the authenticated user is the receiver of this follow request.
-            if (identityUser.UserId.Equals(followRequest.ReceiverId))
+            try
             {
-                followRequest.Status = FollowRequestStatus.Accepted;
-                await _followRequestRepository.UpdateAsync(followRequest);
-                FollowRequestOutputModel output = followRequest;
-                return Ok(output);
-            }
+                var identityUser = await _userManager.GetUserAsync(User);
 
-            return BadRequest();
+                // Ensure the authenticated user is the receiver of this follow request.
+                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.UserId))
+                {
+                    // Accept the request.
+                    var acceptedRequest = await _followRequestService.AcceptAsync(followRequestId);
+                    FollowRequestOutputModel output = FollowRequestOutputModel.Parse(acceptedRequest);
+                    return Ok(output);
+                }
+
+                // Deny access if the user is not the receiver of the request.
+                return Forbidden();
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Follow request was not found.")
+                    );
+            }
         }
 
         /// <summary>
@@ -249,19 +261,28 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> DeclineAsync([FromRoute]Guid followRequestId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-
-            // Ensure the authenticated user is the receiver of this follow request.
-            if (identityUser.UserId.Equals(followRequest.ReceiverId))
+            try
             {
-                followRequest.Status = FollowRequestStatus.Declined;
-                await _followRequestRepository.UpdateAsync(followRequest);
-                FollowRequestOutputModel output = followRequest;
-                return Ok(output);
-            }
+                var identityUser = await _userManager.GetUserAsync(User);
 
-            return BadRequest();
+                // Ensure the authenticated user is the receiver of this follow request.
+                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.UserId))
+                {
+                    // Decline the request.
+                    var declinedRequest = await _followRequestService.DeclineAsync(followRequestId);
+                    FollowRequestOutputModel output = FollowRequestOutputModel.Parse(declinedRequest);
+                    return Ok(output);
+                }
+
+                // Deny access if the user is not the receiver of the request.
+                return Forbidden();
+            }
+            catch (EntityNotFoundException)
+            {
+                return NotFound(
+                    this.Error(ErrorCodes.EntityNotFound, "Follow request was not found.")
+                    );
+            }
         }
     }
 }

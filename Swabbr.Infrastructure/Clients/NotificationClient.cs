@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
 using System;
@@ -12,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Services
 {
-    public class NotificationService : INotificationService
+    public class NotificationClient : INotificationClient
     {
         private readonly NotificationHubConfiguration _hubConfiguration;
         private readonly NotificationHubClient _hubClient;
 
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
 
-        public NotificationService(
+        public NotificationClient(
             IOptions<NotificationHubConfiguration> notificationHubConfigurationOptions,
             INotificationRegistrationRepository notificationRegistrationRepository
             )
@@ -27,14 +28,6 @@ namespace Swabbr.Infrastructure.Services
             _hubConfiguration = notificationHubConfigurationOptions.Value;
             _hubClient = NotificationHubClient.CreateClientFromConnectionString(_hubConfiguration.ConnectionString, _hubConfiguration.HubName);
             _notificationRegistrationRepository = notificationRegistrationRepository;
-        }
-
-        /// <summary>
-        /// Create and return new registration ID from Azure Notification Hub
-        /// </summary>
-        public async Task<string> CreateRegistrationIdAsync()
-        {
-            return await _hubClient.CreateRegistrationIdAsync();
         }
 
         /// <summary>
@@ -54,15 +47,7 @@ namespace Swabbr.Infrastructure.Services
             await _hubClient.DeleteRegistrationAsync(registrationId);
         }
 
-        /// <summary>
-        /// Register device to receive push notifications. Registration ID obtained from Azure
-        /// Notification Hub has to be provided Then basing on the platform (Android or iOS) a
-        /// specific handle (token) obtained from Push Notification Service has to be provided
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="deviceRegistration"></param>
-        /// <returns></returns>
-        public async Task<NotificationResponse> RegisterUserForPushNotificationsAsync(string id, Guid userId, DeviceRegistration deviceRegistration)
+        public async Task<NotificationRegistration> RegisterAsync(DeviceRegistration deviceRegistration, IList<string> tags)
         {
             RegistrationDescription registrationDescription;
 
@@ -71,7 +56,6 @@ namespace Swabbr.Infrastructure.Services
                 case PushNotificationPlatform.APNS:
                     {
                         registrationDescription = new AppleRegistrationDescription(deviceRegistration.Handle);
-
                         break;
                     }
                 case PushNotificationPlatform.FCM:
@@ -81,17 +65,12 @@ namespace Swabbr.Infrastructure.Services
                     }
                 default:
                     {
-                        return new NotificationResponse().AddErrorMessage("Please provide a correct platform notification service.");
+                        throw new Exception("No platform notification service was provided.");
                     }
             }
 
-            registrationDescription.RegistrationId = id;
-
-            List<string> tags = new List<string>
-            {
-                userId.ToString()
-            };
-
+            // Create and use a new registration id from Azure Notification Hubs.
+            registrationDescription.RegistrationId = await _hubClient.CreateRegistrationIdAsync(); ;
             registrationDescription.Tags = new HashSet<string>(tags);
 
             try
@@ -99,69 +78,41 @@ namespace Swabbr.Infrastructure.Services
                 // Create a new registration for this device
                 RegistrationDescription hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
 
-                // Check if a notification registration already exists for a specific user.
-                if (await _notificationRegistrationRepository.ExistsForUser(userId))
-                {
-                    //!IMPORTANT
-                    //TODO: Decide whether to keep track of multiple notification registrations.
-                    //TODO: Currently removing any duplicates (previously created records) and creating a new record in its place
-                    // If it does already exist we delete it, to ensure one device registration is stored at a time.
-                    var existingRegistration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
-                    ////await DeleteRegistrationAsync(existingRegistration.RegistrationId);
-                    await _notificationRegistrationRepository.DeleteAsync(existingRegistration);
-                }
-
-                // Store registration in storage
-                await _notificationRegistrationRepository.CreateAsync(new NotificationRegistration
+                return new NotificationRegistration
                 {
                     RegistrationId = hubRegistration.RegistrationId,
                     Handle = hubRegistration.PnsHandle,
-                    Platform = deviceRegistration.Platform,
-                    UserId = userId
-                });
-
-                return new NotificationResponse();
+                    Platform = deviceRegistration.Platform
+                };
             }
             catch (MessagingException)
             {
-                return new NotificationResponse().AddErrorMessage("Registration failed. Please register again.");
+                throw;
             }
         }
 
-        /// <summary>
-        /// Send push notification to specific platform (Android or iOS)
-        /// </summary>
-        /// <param name="notification"></param>
-        /// <returns></returns>
-        public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId)
+        public async Task<NotificationResponse> SendNotification(SwabbrNotification notification, PushNotificationPlatform platform, IList<string> tags)
         {
-            List<string> userTag = new List<string>()
-            {
-                userId.ToString()
-            };
-
             try
             {
+                var tag = new HashSet<string>(tags);
+
                 NotificationOutcome outcome = null;
 
-                // Obtain the stored notification registration for this user. This is needed to
-                // determine the platform for which the notification should be sent out.
-                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
-
-                switch (registration.Platform)
+                switch (platform)
                 {
                     case PushNotificationPlatform.APNS:
                         {
                             // Get JSON content string for Apple PNS
                             string jsonContent = notification.MessageContent.GetAppleContentJSON().ToString();
-                            outcome = await _hubClient.SendAppleNativeNotificationAsync(jsonContent, userTag);
+                            outcome = await _hubClient.SendAppleNativeNotificationAsync(jsonContent, tag);
                             break;
                         }
                     case PushNotificationPlatform.FCM:
                         {
                             // Get JSON content string for FCM
                             string jsonContent = notification.MessageContent.GetFcmContentJSON().ToString();
-                            outcome = await _hubClient.SendFcmNativeNotificationAsync(jsonContent, userTag);
+                            outcome = await _hubClient.SendFcmNativeNotificationAsync(jsonContent, tag);
                             break;
                         }
                 }

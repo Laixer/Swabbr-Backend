@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Swabbr.Core\Swabbr.Core.csproj" />
+    <ProjectReference Include="..\WowzaStreamingCloud\WowzaStreamingCloud.csproj" />
   </ItemGroup>
 
 </Project>

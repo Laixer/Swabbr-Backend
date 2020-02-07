@@ -17,7 +17,7 @@ namespace Swabbr.Api.ViewModels
         public string StreamName { get; set; }
 
         [JsonProperty("port")]
-        public string Port { get; set; }
+        public ushort Port { get; set; }
 
         [JsonProperty("username")]
         public string Username { get; set; }

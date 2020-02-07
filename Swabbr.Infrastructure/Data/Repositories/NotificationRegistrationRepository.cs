@@ -34,23 +34,23 @@ namespace Swabbr.Infrastructure.Data.Repositories
             }
         }
 
-        public Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
+        public async Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
         {
-            //TODO Implement correctly. Must a registration be bound to a single user or should this return a collection?
+            //TODO: Implement correctly. Must a registration be bound to a single user or should this return a collection?
             //! Important: Currently returning the FIRST matched registration. Should we return all registrations? Currently assuming only one registration exists.
             var table = _factory.GetClient<NotificationRegistrationTableEntity>(TableName).TableReference;
 
-            var tq = new TableQuery<NotificationRegistrationTableEntity>().Where(
+            var tableQuery = new TableQuery<NotificationRegistrationTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("UserId", QueryComparisons.Equal, userId));
 
-            var queryResults = table.ExecuteQuery(tq);
+            var queryResults = await table.ExecuteQueryAsync(tableQuery);
 
             if (!queryResults.Any())
             {
                 throw new EntityNotFoundException();
             }
 
-            return Task.FromResult(Map(queryResults.First()));
+            return Map(queryResults.First());
         }
 
         public override NotificationRegistrationTableEntity Map(NotificationRegistration entity)

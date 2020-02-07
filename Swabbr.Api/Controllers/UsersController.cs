@@ -8,6 +8,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,35 +21,43 @@ namespace Swabbr.Api.Controllers
     /// Controller for handling requests related to users.
     /// </summary>
     [ApiController]
-    [Route("api/v1/users")]
+    [Route("users")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
+        // Repositories
         private readonly IFollowRequestRepository _followRequestRepository;
+
         private readonly IVlogRepository _vlogRepository;
         private readonly IVlogLikeRepository _vlogLikeRepository;
         private readonly IReactionRepository _reactionRepository;
+
+        // Services
+        private readonly IUserService _userService;
+
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
         public UsersController(
-            IUserRepository userRepository,
             IFollowRequestRepository followRequestRepository,
             IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
             IReactionRepository reactionRepository,
+            IUserService userService,
             UserManager<SwabbrIdentityUser> userManager)
         {
-            _userRepository = userRepository;
             _followRequestRepository = followRequestRepository;
             _vlogRepository = vlogRepository;
             _vlogLikeRepository = vlogLikeRepository;
             _reactionRepository = reactionRepository;
+
+            _userService = userService;
+
             _userManager = userManager;
         }
 
-        private async Task<UserOutputModel> GetUserOutputAsync(User u)
+        // TODO: Move to separate (ViewModel) service that parses the entity and retrieves statistics.
+        private async Task<UserOutputModel> GetUserOutputAsync(User entity)
         {
-            UserOutputModel output = u;
+            UserOutputModel output = UserOutputModel.Parse(entity);
             output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
             output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
             output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
@@ -65,19 +74,20 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                User user = await _userRepository.GetByIdAsync(userId);
+                //TODO: Use Services
+                User user = await _userService.GetAsync(userId);
                 UserOutputModel output = await GetUserOutputAsync(user);
                 return Ok(output);
             }
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "User could not be found.")
-                    );
+                    this.Error(ErrorCodes.EntityNotFound, "User could not be found.")
+                );
             }
         }
 
-        // TODO remove unused parameters
+        //TODO remove unused parameters
         /// <summary>
         /// Search for users.
         /// </summary>
@@ -86,14 +96,14 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> SearchAsync([FromQuery]string query)
         {
-            //TODO Search not yet implemented, temporary solution
-            var results = await _userRepository.SearchAsync(query, 0, 0);
+            //TODO: Search not yet implemented, temporary solution, full scan
+            var results = await _userService.SearchAsync(query, 0, 0);
 
             var filteredResults = results.Where(
                 x =>
-                x.FirstName.ToUpperInvariant().Contains(query.ToUpperInvariant()) ||
-                x.LastName.ToUpperInvariant().Contains(query.ToUpperInvariant()) ||
-                x.Nickname.ToUpperInvariant().Contains(query.ToUpperInvariant())
+                x.FirstName.ToUpperInvariant().Contains(query.ToUpperInvariant(), StringComparison.InvariantCultureIgnoreCase) ||
+                x.LastName.ToUpperInvariant().Contains(query.ToUpperInvariant(), StringComparison.InvariantCultureIgnoreCase) ||
+                x.Nickname.ToUpperInvariant().Contains(query.ToUpperInvariant(), StringComparison.InvariantCultureIgnoreCase)
                 ).Select(async x =>
                 {
                     UserOutputModel o = await GetUserOutputAsync(x);
@@ -112,8 +122,8 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> SelfAsync()
         {
             var identityUser = await _userManager.GetUserAsync(User);
-            var userId = identityUser.UserId;
-            var entity = await _userRepository.GetByIdAsync(userId);
+
+            var entity = await _userService.GetAsync(identityUser.UserId);
 
             UserOutputModel output = await GetUserOutputAsync(entity);
 
@@ -129,9 +139,9 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var userEntity = await _userRepository.GetByIdAsync(identityUser.UserId);
+            var userEntity = await _userService.GetAsync(identityUser.UserId);
 
-            //TODO Should Country/Gender/Birth Date etc. be allowed to be changed?
+            //TODO: Should Country/Gender/Birth Date etc. be allowed to be changed?
             // Update properties
             userEntity.FirstName = input.FirstName;
             userEntity.LastName = input.LastName;
@@ -142,7 +152,7 @@ namespace Swabbr.Api.Controllers
             userEntity.Timezone = input.Timezone;
             userEntity.BirthDate = input.BirthDate;
 
-            var updatedEntity = await _userRepository.UpdateAsync(input);
+            var updatedEntity = await _userService.UpdateAsync(userEntity);
 
             UserOutputModel output = await GetUserOutputAsync(updatedEntity);
 
@@ -156,7 +166,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> DeleteAsync()
         {
-            //TODO Delete all user data? Or flag user as inactive? Not yet implemented.
+            //TODO: Delete all user data? Or flag user as inactive? Not yet implemented.
             throw new NotImplementedException();
         }
 
@@ -167,14 +177,14 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> ListFollowingAsync([FromRoute] Guid userId)
         {
-            var followRelationships = await _followRequestRepository.GetOutgoingForUserAsync(userId);
-            var usersOutput = followRelationships
-                .Where(x => x.Status == FollowRequestStatus.Accepted)
-                .Select(async x =>
+            var usersOutput =
+                (await _followRequestRepository.GetOutgoingForUserAsync(userId))
+                .Where(request => request.Status == FollowRequestStatus.Accepted)
+                .Select(async request =>
                 {
-                    var u = await _userRepository.GetByIdAsync(x.RequesterId);
-                    UserOutputModel o = await GetUserOutputAsync(u);
-                    return o;
+                    var user = await _userService.GetAsync(request.RequesterId);
+                    UserOutputModel output = await GetUserOutputAsync(user);
+                    return output;
                 })
                 .Select(t => t.Result);
 
@@ -205,15 +215,15 @@ namespace Swabbr.Api.Controllers
             int totalLikesReceivedCount = 0;
 
             //TODO: Total views counter should be incremented in the for each loop for vlogs below
-            int totalViewsCount = -1;
+            int totalViewsCount = int.MinValue;
 
             // Add up statistical data for each of the users' vlogs.
-            foreach (Vlog v in userVlogs)
+            foreach (Vlog vlog in userVlogs)
             {
-                totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(v.VlogId);
-                totalLikesReceivedCount += v.Likes.Count;
+                totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(vlog.VlogId);
+                totalLikesReceivedCount += vlog.Likes.Count;
 
-                // TODO: Add up received views for each vlog here: v
+                //TODO: Add up received views for each vlog here: v
                 //// totalViews += ?
             }
 
@@ -230,30 +240,6 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Deletes the follow relationship from the authorized user to the specified user.
-        /// </summary>
-        [HttpDelete("{userId}/unfollow")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> UnfollowAsync([FromRoute] Guid userId)
-        {
-            var identityUser = await _userManager.GetUserAsync(User);
-
-            try
-            {
-                var followRequest = await _followRequestRepository.GetByUserIdAsync(userId, identityUser.UserId);
-                // Delete the request
-                await _followRequestRepository.DeleteAsync(followRequest);
-                return NoContent();
-            }
-            catch (EntityNotFoundException)
-            {
-                return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Relationship could not be found.")
-                    );
-            }
-        }
-
-        /// <summary>
         /// Get the followers of a single user.
         /// </summary>
         [HttpGet("{userId}/followers")]
@@ -266,7 +252,7 @@ namespace Swabbr.Api.Controllers
                 .Where(x => x.Status == FollowRequestStatus.Accepted)
                 .Select(async x =>
                 {
-                    var u = await _userRepository.GetByIdAsync(x.RequesterId);
+                    var u = await _userService.GetAsync(x.RequesterId);
                     UserOutputModel o = await GetUserOutputAsync(u);
                     return o;
                 })

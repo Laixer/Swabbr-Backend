@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Swabbr.Infrastructure.Data.Livestreaming
+namespace WowzaStreamingCloud.Data
 {
     public partial class WscGetRecordingDetailsResponse
     {

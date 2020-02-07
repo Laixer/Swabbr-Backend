@@ -37,7 +37,7 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("timeCreated")]
         public DateTime TimeCreated { get; set; }
 
-        public static implicit operator FollowRequestOutputModel(FollowRequest followRequest)
+        public static FollowRequestOutputModel Parse(FollowRequest followRequest)
         {
             return new FollowRequestOutputModel
             {

@@ -10,7 +10,7 @@ namespace Swabbr.Infrastructure.Data
 {
     public abstract class DbRepository<TModel, TDto> : IRepository<TModel>, ITableContext
         where TModel : EntityBase
-        where TDto : TableEntity
+        where TDto : TableEntity, new()
     {
         private readonly IDbClientFactory _factory;
 
@@ -141,6 +141,12 @@ namespace Swabbr.Infrastructure.Data
             while (continuationToken != null);
 
             return entities.Count;
+        }
+
+        protected async Task<IList<TDto>> QueryAsync(TableQuery<TDto> tableQuery)
+        {
+            CloudTable cloudTable = _factory.GetClient<TDto>(TableName).TableReference;
+            return await cloudTable.ExecuteQueryAsync(tableQuery);
         }
 
         /// <summary>

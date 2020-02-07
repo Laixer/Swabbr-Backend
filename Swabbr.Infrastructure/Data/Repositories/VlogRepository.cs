@@ -21,22 +21,22 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName { get; } = "Vlogs";
 
+        public string VlogUserTableName => "VlogUser";
+
         public async Task<bool> ExistsAsync(Guid vlogId)
         {
-            var tq = new TableQuery<DynamicTableEntity>().Where(
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("RowKey", QueryComparisons.Equal, vlogId));
 
-            return await GetEntityCountAsync(tq) > 0;
+            return await GetEntityCountAsync(tableQuery) > 0;
         }
 
         public async Task<Vlog> GetByIdAsync(Guid vlogId)
         {
-            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
-
-            var tq = new TableQuery<VlogTableEntity>().Where(
+            var tableQuery = new TableQuery<VlogTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("VlogId", QueryComparisons.Equal, vlogId));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (!queryResults.Any())
             {
@@ -44,6 +44,31 @@ namespace Swabbr.Infrastructure.Data.Repositories
             }
 
             return Map(queryResults.First());
+        }
+
+        public async Task ShareWithUserAsync(Guid vlogId, Guid userId)
+        {
+            var table = _factory.GetClient<VlogUserTableEntity>(VlogUserTableName).TableReference;
+
+            var operation = TableOperation.Insert(new VlogUserTableEntity
+            {
+                VlogId = vlogId,
+                UserId = userId
+            });
+
+            await table.ExecuteAsync(operation);
+        }
+
+        public async Task<IEnumerable<Guid>> GetSharedUserIdsAsync(Guid vlogId)
+        {
+            var table = _factory.GetClient<VlogUserTableEntity>(VlogUserTableName).TableReference;
+
+            var tableQuery = new TableQuery<VlogUserTableEntity>().Where(
+                TableQuery.GenerateFilterConditionForGuid("VlogId", QueryComparisons.Equal, vlogId));
+
+            var queryResults = await table.ExecuteQueryAsync(tableQuery);
+
+            return queryResults.Select(x => x.UserId);
         }
 
         public async Task<int> GetVlogCountForUserAsync(Guid userId)
@@ -57,13 +82,11 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
-
             // Retrieve records where the partition key matches the id of the user (owner)
-            var tq = new TableQuery<VlogTableEntity>().Where(
+            var tableQuery = new TableQuery<VlogTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString()));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             // Return mapped entities
             return queryResults.Select(v => Map(v));
@@ -71,16 +94,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync()
         {
-            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
-
-            // Retrieve records where the partition key matches the id of the user (owner)
-
             //!IMPORTANT
-            // TODO: Determine which vlogs are featured (based on views, promotions etc). Currently returning ALL public vlogs.
-            var tq = new TableQuery<VlogTableEntity>().Where(
+            //TODO: Determine which vlogs are featured (based on views, promotions etc). Currently returning ALL public vlogs.
+            var tableQuery = new TableQuery<VlogTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool("IsPrivate", QueryComparisons.Equal, false));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             // Return mapped entities
             return queryResults.Select(v => Map(v));

@@ -12,6 +12,13 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("token")]
         public string Token { get; set; }
 
+        //TODO ...
+        /// <summary>
+        /// The amount of seconds the token is valid.
+        /// </summary>
+        [JsonProperty("tokenValid")]
+        public int TokenValid { get; set; }
+
         /// <summary>
         /// Claims of the authenticated user.
         /// </summary>

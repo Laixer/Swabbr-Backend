@@ -6,6 +6,7 @@ using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System.Net;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Swabbr.Api.Controllers
     /// Controller for registering devices for notifications and sending out push notifications.
     /// </summary>
     [Authorize]
-    [Route("api/v1/notifications")]
+    [Route("notifications")]
     public class NotificationsController : Controller
     {
         private readonly INotificationService _notificationService;
@@ -56,7 +57,7 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Notification registration could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Notification registration could not be found.")
                     );
             }
         }
@@ -71,21 +72,18 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> RegisterForPushNotificationsAsync([FromBody] DeviceRegistration deviceRegistration)
         {
-            // Create a new registration
-            var registrationId = await _notificationService.CreateRegistrationIdAsync();
-
             // Obtain the user Id
             var identityUser = await _userManager.GetUserAsync(User);
             var userId = identityUser.UserId;
 
             // Create or update the given registration for push notifications
-            NotificationResponse registrationResult = await _notificationService.RegisterUserForPushNotificationsAsync(registrationId, userId, deviceRegistration);
+            NotificationResponse registrationResult = await _notificationService.RegisterUserForPushNotificationsAsync(userId, deviceRegistration);
 
             if (registrationResult.CompletedWithSuccess)
                 return Ok();
 
             return BadRequest(
-                this.Error(ErrorCodes.EXTERNAL_ERROR, "Could not register device. " + registrationResult.FormattedErrorMessages)
+                this.Error(ErrorCodes.ExternalError, "Could not register device. " + registrationResult.FormattedErrorMessages)
                 );
         }
     }

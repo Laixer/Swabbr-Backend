@@ -43,7 +43,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// </summary>
         public DateTime DateStarted { get; set; }
 
-        // TODO: Add Metadata from Media Service to model?
+        //TODO: Add Metadata from Media Service to model?
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>

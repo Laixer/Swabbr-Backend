@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Swabbr.Infrastructure.Data.Livestreaming
+namespace WowzaStreamingCloud.Data
 {
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Livestream object

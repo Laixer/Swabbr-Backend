@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Infrastructure.Configuration
+﻿namespace WowzaStreamingCloud.Configuration
 {
     public class WowzaStreamingCloudConfiguration
     {

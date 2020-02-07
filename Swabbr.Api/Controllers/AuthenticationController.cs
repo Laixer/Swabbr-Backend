@@ -18,7 +18,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("api/v1/authentication")]
+    [Route("authentication")]
     public class AuthenticationController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
@@ -58,11 +58,11 @@ namespace Swabbr.Api.Controllers
             if (userCheck != null)
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_ALREADY_EXISTS, "User already exists.")
+                    this.Error(ErrorCodes.EntityAlreadyExists, "User already exists.")
                     );
             }
 
-            // TODO Add password strength check/constraints
+            //TODO: Add password strength check/constraints
 
             // Construct a new identity user for a new user based on the given input
             var identityUser = new SwabbrIdentityUser
@@ -81,7 +81,7 @@ namespace Swabbr.Api.Controllers
                 Nickname = input.Nickname,
                 Timezone = input.Timezone,
 
-                //TODO Get URL from input, see uncommented line. Using URL for test purposes
+                //TODO: Get URL from input, see uncommented line. Using URL for test purposes
                 ////ProfileImageUrl = input.ProfileImageUrl,
                 ProfileImageUrl = $"https://api.adorable.io/avatars/256/{input.Email}.png",
             };
@@ -99,7 +99,7 @@ namespace Swabbr.Api.Controllers
                 await _signInManager.SignInAsync(identityUser, isPersistent: true);
 
                 var token = _tokenService.GenerateToken(identityUser);
-                UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
+                UserOutputModel userOutput = UserOutputModel.Parse(await _userRepository.GetAsync(identityUser.UserId));
 
                 return Ok(
                     new UserAuthenticationOutputModel
@@ -132,7 +132,7 @@ namespace Swabbr.Api.Controllers
             if (identityUser == null)
             {
                 return Unauthorized(
-                    this.Error(ErrorCodes.LOGIN_FAILED, "Invalid credentials.")
+                    this.Error(ErrorCodes.LoginFailed, "Invalid credentials.")
                     );
             }
 
@@ -142,13 +142,13 @@ namespace Swabbr.Api.Controllers
             if (result.IsLockedOut)
             {
                 return Unauthorized(
-                    this.Error(ErrorCodes.LOGIN_FAILED, "Too many attempts.")
+                    this.Error(ErrorCodes.LoginFailed, "Too many attempts.")
                     );
             }
             if (result.IsNotAllowed)
             {
                 return Unauthorized(
-                    this.Error(ErrorCodes.LOGIN_FAILED, "Not allowed to log in.")
+                    this.Error(ErrorCodes.LoginFailed, "Not allowed to log in.")
                     );
             }
 
@@ -156,7 +156,7 @@ namespace Swabbr.Api.Controllers
             {
                 // Login succeeded, generate and return access token
                 var token = _tokenService.GenerateToken(identityUser);
-                UserOutputModel userOutput = await _userRepository.GetByIdAsync(identityUser.UserId);
+                UserOutputModel userOutput = UserOutputModel.Parse(await _userRepository.GetAsync(identityUser.UserId));
 
                 return Ok(new UserAuthenticationOutputModel
                 {
@@ -170,9 +170,11 @@ namespace Swabbr.Api.Controllers
 
             // If we get here something definitely went wrong.
             return Unauthorized(
-                this.Error(ErrorCodes.LOGIN_FAILED, "Could not log in.")
+                this.Error(ErrorCodes.LoginFailed, "Could not log in.")
                 );
         }
+
+        //TODO: Refresh method
 
         /// <summary>
         /// Deauthorizes the authenticated user.

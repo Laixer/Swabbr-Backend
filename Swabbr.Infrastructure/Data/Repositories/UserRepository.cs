@@ -22,22 +22,20 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName { get; } = "Users";
 
-        public Task<User> GetByIdAsync(Guid userId)
+        public Task<User> GetAsync(Guid userId)
         {
             // Partition key and row key are the same.
-            //TODO Change partition key if there is a better alternative.
+            //TODO: Change partition key if there is a better alternative.
             var id = userId.ToString();
             return RetrieveAsync(id, id);
         }
 
         public async Task<User> GetByEmailAsync(string email)
         {
-            var table = _factory.GetClient<UserTableEntity>(TableName).TableReference;
-
-            var tq = new TableQuery<UserTableEntity>().Where(
+            var tableQuery = new TableQuery<UserTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (queryResults.Any())
             {
@@ -54,17 +52,15 @@ namespace Swabbr.Infrastructure.Data.Repositories
         /// <param name="q">The search query that is supplied by the client.</param>
         public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
         {
-            //TODO Use cognitive search
+            //TODO: Use cognitive search
 
             //! IMPORTANT
 
-            //TODO Currently returning all rows... not ideal
-            var table = _factory.GetClient<UserTableEntity>(TableName).TableReference;
-
-            var tq = new TableQuery<UserTableEntity>().Where(
+            //TODO: Currently returning all rows... not ideal
+            var tableQuery = new TableQuery<UserTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool("PhoneNumberConfirmed", QueryComparisons.Equal, false));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             return queryResults.Select(x => Map(x));
         }
@@ -123,10 +119,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> UserExistsAsync(Guid userId)
         {
-            var tq = new TableQuery<DynamicTableEntity>().Where(
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("PartitionKey", QueryComparisons.Equal, userId));
 
-            return await GetEntityCountAsync(tq) > 0;
+            return await GetEntityCountAsync(tableQuery) > 0;
         }
     }
 }

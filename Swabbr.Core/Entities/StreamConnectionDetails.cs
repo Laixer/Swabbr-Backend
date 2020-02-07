@@ -25,7 +25,7 @@
         /// <summary>
         /// Port number
         /// </summary>
-        public string Port { get; set; }
+        public ushort Port { get; set; }
 
         /// <summary>
         /// Username to be used for authenticating the connection

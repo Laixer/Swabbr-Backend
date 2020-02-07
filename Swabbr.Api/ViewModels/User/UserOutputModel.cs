@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class UserOutputModel
+    public partial class UserOutputModel
     {
         /// <summary>
         /// Unique identifier.
@@ -90,23 +89,5 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("isPrivate")]
         public bool IsPrivate { get; set; }
-
-        public static implicit operator UserOutputModel(User user)
-        {
-            return new UserOutputModel
-            {
-                UserId = user.UserId,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                BirthDate = user.BirthDate,
-                Country = user.Country,
-                Gender = user.Gender,
-                IsPrivate = user.IsPrivate,
-                Nickname = user.Nickname,
-                ProfileImageUrl = user.ProfileImageUrl,
-                Timezone = user.Timezone
-            };
-        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Swabbr.Infrastructure.Data.Livestreaming
+namespace WowzaStreamingCloud.Data
 {
     public class WscGetSingleRecordingResponse
     {

@@ -33,7 +33,7 @@ namespace Swabbr.Infrastructure.Data.Entities
         /// </summary>
         public bool IsPrivate { get; set; }
 
-        // TODO: Add metadata from media service? To reactions
+        //TODO: Add metadata from media service? To reactions
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>

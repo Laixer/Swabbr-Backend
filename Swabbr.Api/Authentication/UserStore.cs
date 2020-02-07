@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    // TODO Not optimized
+    //TODO: Not optimized
     public class UserStore :
         IUserStore<SwabbrIdentityUser>,
         IUserEmailStore<SwabbrIdentityUser>,
@@ -212,17 +212,17 @@ namespace Swabbr.Api.Authentication
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    //TODO: dispose managed state (managed objects).
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
+                //TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                //TODO: set large fields to null.
 
                 disposedValue = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        //TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
         // ~UserStore() { // Do not change this code. Put cleanup code in Dispose(bool disposing)
         // above. Dispose(false); }
 
@@ -231,7 +231,7 @@ namespace Swabbr.Api.Authentication
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
+            //TODO: uncomment the following line if the finalizer is overridden above.
             GC.SuppressFinalize(this);
         }
 
@@ -243,7 +243,7 @@ namespace Swabbr.Api.Authentication
         {
             foreach (Claim c in claims)
             {
-                // TODO insert c for user
+                //TODO: Store claim for user
             }
             return Task.CompletedTask;
         }
@@ -255,7 +255,7 @@ namespace Swabbr.Api.Authentication
 
         public Task<IList<SwabbrIdentityUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
         {
-            // TODO?
+            //TODO: ?
             throw new NotImplementedException();
         }
 
@@ -263,14 +263,14 @@ namespace Swabbr.Api.Authentication
         {
             foreach (Claim c in claims)
             {
-                // TODO remove c for user
+                //TODO: Remove claim for user
             }
             return Task.CompletedTask;
         }
 
         public Task ReplaceClaimAsync(SwabbrIdentityUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
         {
-            // TODO Update c
+            //TODO: Update claim
             throw new NotImplementedException();
         }
 
@@ -280,7 +280,7 @@ namespace Swabbr.Api.Authentication
 
         public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            // TODO Not implemented
+            //TODO:Not implemented
             return Task.CompletedTask;
             throw new NotImplementedException();
         }
@@ -288,7 +288,7 @@ namespace Swabbr.Api.Authentication
         public async Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
             //!IMPORTANT
-            // TODO Hardcoded. Roles are not being stored yet. For testing purposes only.
+            //TODO: Hardcoded. Roles are not being stored yet. For testing purposes only.
             return new List<string>
             {
                 "User"
@@ -298,21 +298,21 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            //TODO Not implemented
+            //TODO: Not implemented
             return new List<SwabbrIdentityUser>();
             throw new NotImplementedException();
         }
 
         public async Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            //TODO Not implemented
+            //TODO: Not implemented
             return (roleName == "user");
             throw new NotImplementedException();
         }
 
         public Task RemoveFromRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
         {
-            // TODO Not implemented
+            //TODO: Not implemented
             return Task.CompletedTask;
             throw new NotImplementedException();
         }

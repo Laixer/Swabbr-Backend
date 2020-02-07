@@ -29,14 +29,14 @@ namespace Swabbr.Core.Interfaces
         Task<bool> ExistsAsync(Guid receiverId, Guid requesterId);
 
         /// <summary>
-        /// Returns all incoming follow requests for a specific user.
+        /// Returns all follow requests targeted to a specific user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user that received the requests.</param>
         /// <returns></returns>
         Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId);
 
         /// <summary>
-        /// Returns all outgoing follow requests for a specific user.
+        /// Returns all outgoing follow requests from a specific user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user that sent out the requests.</param>
         /// <returns></returns>

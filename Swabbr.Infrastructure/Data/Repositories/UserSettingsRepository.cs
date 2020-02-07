@@ -22,10 +22,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> ExistsForUserAsync(Guid userId)
         {
-            var tq = new TableQuery<DynamicTableEntity>().Where(
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("PartitionKey", QueryComparisons.Equal, userId));
 
-            return await GetEntityCountAsync(tq) != 0;
+            return await GetEntityCountAsync(tableQuery) != 0;
         }
 
         public async Task<UserSettings> GetForUserAsync(Guid userId)
@@ -39,7 +39,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             }
             catch (EntityNotFoundException)
             {
-                // TODO: Temporarily creating a new record with default settings if no record for this user exists yet.
+                //TODO: Temporarily creating a new record with default settings if no record for this user exists yet.
                 return await CreateAsync(new UserSettings
                 {
                     UserId = userId

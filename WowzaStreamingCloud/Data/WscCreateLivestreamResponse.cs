@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Swabbr.Infrastructure.Data.Livestreaming
+namespace WowzaStreamingCloud.Data
 {
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Livestream Create Response

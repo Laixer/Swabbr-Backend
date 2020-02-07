@@ -21,7 +21,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("api/v1/vlogs")]
+    [Route("vlogs")]
     public class VlogsController : ControllerBase
     {
         private readonly IVlogRepository _vlogRepository;
@@ -54,16 +54,17 @@ namespace Swabbr.Api.Controllers
 
                 if (vlog.IsPrivate)
                 {
+                    ////var b = (await _vlogRepository.GetSharedUserIdsAsync(vlogId)).Contains(identityUser.UserId);
                     //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
                 }
 
-                VlogOutputModel output = vlog;
+                VlogOutputModel output = VlogOutputModel.Parse(vlog);
                 return Ok(output);
             }
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
                 );
             }
         }
@@ -73,7 +74,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPut("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
-        public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId, [FromBody]VlogUpdateModel input)
+        public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogUpdateModel input)
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
@@ -81,11 +82,11 @@ namespace Swabbr.Api.Controllers
             {
                 var vlog = await _vlogRepository.GetByIdAsync(vlogId);
 
-                if (!vlog.UserId.Equals(identityUser.UserId))
+                if (vlog.UserId != identityUser.UserId)
                 {
                     return StatusCode(
                         (int)HttpStatusCode.Forbidden,
-                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User does not have access to this vlog.")
+                        this.Error(ErrorCodes.InsufficientAccessRights, "User does not have access to this vlog.")
                         );
                 }
 
@@ -94,13 +95,13 @@ namespace Swabbr.Api.Controllers
                     //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
                 }
 
-                VlogOutputModel output = vlog;
+                VlogOutputModel output = VlogOutputModel.Parse(vlog);
                 return Ok(output);
             }
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
                 );
             }
         }
@@ -115,18 +116,19 @@ namespace Swabbr.Api.Controllers
         {
             var vlogs = await _vlogRepository.GetFeaturedVlogsAsync();
 
-            //TODO:  Temporarily returning the latest (last started) vlogs by started date
+            //TODO: Temporarily returning the latest (last started) vlogs by started date
             IEnumerable<VlogOutputModel> output = vlogs
-                .Select(v => (VlogOutputModel)v)
+                //.Select(v => (VlogOutputModel)v)
+                .Select(v => VlogOutputModel.Parse(v))
                 .OrderByDescending(v => v.DateStarted)
 
-                // TODO: Remove take once GetFeaturedVlogs is implemented, using this temporarily to limit the amount sent to the client
+                //TODO: Remove take once GetFeaturedVlogs is implemented, using this temporarily to limit the amount sent to the client
                 .Take(10);
 
             return Ok(output);
         }
 
-        // TODO: For later: Specify limit? pagination?
+        //TODO: For later: Specify limit? pagination?
         /// <summary>
         /// Get vlogs from the specified user.
         /// </summary>
@@ -138,9 +140,9 @@ namespace Swabbr.Api.Controllers
 
             // Map the vlogs to their output model representations.
             IEnumerable<VlogOutputModel> output = vlogs
-                .Select(v =>
+                .Select(vlog =>
                 {
-                    VlogOutputModel outputModel = v;
+                    VlogOutputModel outputModel = VlogOutputModel.Parse(vlog);
                     return outputModel;
                 });
 
@@ -165,7 +167,7 @@ namespace Swabbr.Api.Controllers
                 if (!vlogEntity.UserId.Equals(identityUser.UserId))
                 {
                     return BadRequest(
-                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "Access to this vlog is not allowed.")
+                        this.Error(ErrorCodes.InsufficientAccessRights, "Access to this vlog is not allowed.")
                     );
                 }
 
@@ -177,12 +179,12 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
                 );
             }
         }
 
-        // TODO: What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog. Currently returning status code only.
+        //TODO: What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog. Currently returning status code only.
         /// <summary>
         /// Leave a like on a single vlog.
         /// </summary>
@@ -195,7 +197,7 @@ namespace Swabbr.Api.Controllers
             if (!(await _vlogRepository.ExistsAsync(vlogId)))
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
                 );
             }
 
@@ -235,7 +237,7 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Like could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Like could not be found.")
                 );
             }
         }

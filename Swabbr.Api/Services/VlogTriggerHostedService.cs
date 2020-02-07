@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System;
 using System.Collections.Generic;
@@ -11,24 +12,24 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Services
 {
-    public class VlogTriggerHostedService : IHostedService, IDisposable
+    internal class VlogTriggerHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
 
         /// <summary>
         /// The amount of time before disposing a livestream
         /// </summary>
-        public static readonly TimeSpan TIMESPAN_TIMEOUT = TimeSpan.FromMinutes(30);
+        public static readonly TimeSpan TimeSpanTimeout = TimeSpan.FromMinutes(30);
 
         /// <summary>
         /// (TEMPORARY) The amount of time between executing vlog triggers (sending out notifications).
         /// </summary>
-        public static readonly TimeSpan TIMESPAN_INTERVAL = TimeSpan.FromMinutes(30);
+        public static readonly TimeSpan TimeSpanInterval = TimeSpan.FromMinutes(30);
 
         /// <summary>
         /// The amount of time that is required to wait while starting up a livestream.
         /// </summary>
-        public static readonly TimeSpan TIMESPAN_START_STREAM = TimeSpan.FromMinutes(2);
+        public static readonly TimeSpan TimeSpanStartStream = TimeSpan.FromMinutes(2);
 
         /// <summary>
         /// The maximum amount of livestreams to keep in storage
@@ -71,16 +72,17 @@ namespace Swabbr.Infrastructure.Services
         /// <param name="state"></param>
         public async void OnTriggerEventAsync(object state)
         {
-            //TODO Obtain and determine users to send a vlog request
+            //TODO: Obtain and determine users to send a vlog request
             var targetedUsers = new List<User>()
             {
-                // TODO Currently using only the example user (user@example.com) for testing purposes
-                await _userRepository.GetByIdAsync(new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"))
+                //TODO:Currently using only the example user (user@example.com) for testing purposes
+                await _userRepository.GetAsync(new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"))
             };
 
-            //TODO  For each user that should be triggered:
             foreach (User user in targetedUsers)
             {
+                // Send each targeted user a livestreaming request notification
+
                 try
                 {
                     // Reserve a livestream
@@ -102,10 +104,9 @@ namespace Swabbr.Infrastructure.Services
                     await _livestreamingService.StartStreamAsync(connectionDetails.Id);
                     System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
 
-                    // Wait before sending the notification to ensure the stream has started. TODO
-                    // Instead of waiting x minutes, we could also poll the state of the livestream
-                    // until it is 'started' here.
-                    await Task.Delay(TIMESPAN_START_STREAM);
+                    //TODO: Wait before sending the notification to ensure the stream has started.
+                    // Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started' here.
+                    await Task.Delay(TimeSpanStartStream);
 
                     // Send the notification containing the stream connection details to the user.
                     await _notificationService.SendNotificationToUserAsync(notification, user.UserId);
@@ -115,7 +116,7 @@ namespace Swabbr.Infrastructure.Services
                 }
                 catch (Exception e)
                 {
-                    //TODO Handle exception
+                    //TODO: Handle exception
 
                     // If we get here, either no stream could be reserved, something went wrong with
                     // receiving hub registrations (in which case we can not send any notifications)
@@ -141,7 +142,7 @@ namespace Swabbr.Infrastructure.Services
             }
             catch (ExternalErrorException e)
             {
-                //TODO Handle exception. Livestream request limit reached or could not create livestream
+                //TODO: Handle exception. Livestream request limit reached or could not create livestream
                 System.Diagnostics.Debug.WriteLine($"Exception thrown during pool replenishment ({e.Message}).");
             }
         }
@@ -149,13 +150,13 @@ namespace Swabbr.Infrastructure.Services
         public async Task WaitForTimeoutAsync(Guid userId, string livestreamId)
         {
             // Wait 20 minutes
-            await Task.Delay(TIMESPAN_TIMEOUT);
+            await Task.Delay(TimeSpanTimeout);
 
             System.Diagnostics.Debug.WriteLine($"Livestream {livestreamId} has timed out.");
 
             var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
-            //TODO For later:
+            //TODO: For later:
             /*
                              * If a user is currently streaming at this point (livestream has just started),
                              * extend the delay before deactivating the stream?
@@ -166,7 +167,7 @@ namespace Swabbr.Infrastructure.Services
                 // Ensure the livestream is stopped and deleted from the service.
                 await _livestreamingService.StopStreamAsync(livestreamId);
 
-                //TODO Dispose of livestream externally as well as internally. Currently keeping it as active because recordings are not being stored internally.
+                //TODO: Dispose of livestream externally as well as internally. Currently keeping it as active because recordings are not being stored internally.
                 ////await _livestreamingService.DeleteStreamAsync(livestreamId);
                 ////await _livestreamRepository.DeleteAsync(livestream);
             }
@@ -178,18 +179,18 @@ namespace Swabbr.Infrastructure.Services
 
         private async Task<bool> ShouldUserRecordVlog(Guid userId)
         {
-            // TODO Determine whether the user is elligible for reserving a livestream (recording a vlog)
+            //TODO: Determine whether the user is elligible for reserving a livestream (recording a vlog)
 
-            User user = await _userRepository.GetByIdAsync(userId);
+            User user = await _userRepository.GetAsync(userId);
 
-            // TODO Currently determining this arbitrarily for testing purposes.
+            //TODO: Currently determining this arbitrarily for testing purposes.
             return user.Email.Equals("user@example.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             // Start the interval
-            _timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TIMESPAN_INTERVAL);
+            _timer = new Timer(OnTriggerEventAsync, null, TimeSpan.Zero, TimeSpanInterval);
             await Task.CompletedTask;
         }
 

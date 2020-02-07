@@ -4,6 +4,7 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System;
 using System.Net;
@@ -38,7 +39,7 @@ namespace Swabbr.Api.Controllers
         [HttpPut("users/{userId}/ban")]
         public async Task<IActionResult> BanUserAsync()
         {
-            //TODO Not implemented
+            //TODO: Not implemented
             throw new NotImplementedException();
         }
 
@@ -49,7 +50,7 @@ namespace Swabbr.Api.Controllers
         [HttpDelete("users/{userId}/delete")]
         public async Task<IActionResult> DeleteUserAsync()
         {
-            //TODO Not implemented
+            //TODO: Not implemented
             throw new NotImplementedException();
         }
 
@@ -60,7 +61,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("users/{userId}/warning")]
         public async Task<IActionResult> WarnUserAsync(string warningMessage)
         {
-            //TODO Not implemented
+            //TODO: Not implemented
             throw new NotImplementedException();
         }
 
@@ -85,7 +86,7 @@ namespace Swabbr.Api.Controllers
             }
 
             return BadRequest(
-                this.Error(ErrorCodes.EXTERNAL_ERROR, "An error occurred while sending push notification: " + pushDeliveryResult.FormattedErrorMessages)
+                this.Error(ErrorCodes.ExternalError, "An error occurred while sending push notification: " + pushDeliveryResult.FormattedErrorMessages)
                 );
         }
     }

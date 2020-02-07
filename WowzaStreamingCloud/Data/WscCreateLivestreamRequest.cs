@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Swabbr.Infrastructure.Data.Livestreaming
+namespace WowzaStreamingCloud.Data
 {
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Creating live stream object
@@ -8,10 +8,10 @@ namespace Swabbr.Infrastructure.Data.Livestreaming
     public partial class WscCreateLivestreamRequest
     {
         [JsonProperty("live_stream")]
-        public WcsCreateLiveStreamRequestBody Livestream { get; set; }
+        public WscCreateLiveStreamRequestBody Livestream { get; set; }
     }
 
-    public partial class WcsCreateLiveStreamRequestBody
+    public partial class WscCreateLiveStreamRequestBody
     {
         [JsonProperty("aspect_ratio_height")]
         public long AspectRatioHeight { get; set; }

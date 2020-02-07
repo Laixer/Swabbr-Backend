@@ -23,20 +23,18 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> ExistsAsync(Guid reactionId)
         {
-            var tq = new TableQuery<DynamicTableEntity>().Where(
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid(nameof(ReactionTableEntity.ReactionId), QueryComparisons.Equal, reactionId));
 
-            return await GetEntityCountAsync(tq) > 0;
+            return await GetEntityCountAsync(tableQuery) > 0;
         }
 
         public async Task<Reaction> GetByIdAsync(Guid reactionId)
         {
-            var table = _factory.GetClient<VlogTableEntity>(TableName).TableReference;
-
-            var tq = new TableQuery<ReactionTableEntity>().Where(
+            var tableQuery = new TableQuery<ReactionTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid(nameof(ReactionTableEntity.ReactionId), QueryComparisons.Equal, reactionId));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (!queryResults.Any())
             {
@@ -66,13 +64,11 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Reaction>> GetReactionsByUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<ReactionTableEntity>(TableName).TableReference;
-
             // Retrieve records where the partition key matches the id of the user (owner)
-            var tq = new TableQuery<ReactionTableEntity>().Where(
+            var tableQuery = new TableQuery<ReactionTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("UserId", QueryComparisons.Equal, userId.ToString()));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (!queryResults.Any())
             {
@@ -85,13 +81,11 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId)
         {
-            var table = _factory.GetClient<ReactionTableEntity>(TableName).TableReference;
-
             // Retrieve records where the partition key matches the id of the user (owner)
-            var tq = new TableQuery<ReactionTableEntity>().Where(
+            var tableQuery = new TableQuery<ReactionTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, vlogId.ToString()));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (!queryResults.Any())
             {

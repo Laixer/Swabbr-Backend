@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Configuration;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,16 +19,22 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("api/v1/users/self/settings")]
+    [Route("users/self/settings")]
     public class UserSettingsController : ControllerBase
     {
         private readonly IUserSettingsRepository _userSettingsRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly UserSettingsConfiguration _userSettingsOptions;
 
-        public UserSettingsController(IUserSettingsRepository userSettingsRepository, UserManager<SwabbrIdentityUser> userManager)
+        public UserSettingsController(
+            IUserSettingsRepository userSettingsRepository,
+            UserManager<SwabbrIdentityUser> userManager,
+            IOptions<UserSettingsConfiguration> userSettingsOptions
+            )
         {
             _userSettingsRepository = userSettingsRepository;
             _userManager = userManager;
+            _userSettingsOptions = userSettingsOptions.Value;
         }
 
         /// <summary>
@@ -50,6 +57,8 @@ namespace Swabbr.Api.Controllers
                 });
             }
 
+            //TODO: Custom key-value store property
+
             // Obtain and return the users' settings.
             UserSettingsOutputModel output = await _userSettingsRepository.GetForUserAsync(userId);
             return Ok(output);
@@ -63,10 +72,11 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> UpdateAsync([FromBody] UserSettingsInputModel input)
         {
             //TODO: Where to handle constraints like these?
-            if (input.DailyVlogRequestLimit < 0 || input.DailyVlogRequestLimit > 3)
+            //TODO: Configuration values
+            if (input.DailyVlogRequestLimit > _userSettingsOptions.DailyVlogRequestLimit)
             {
                 return BadRequest(
-                    this.Error(ErrorCodes.INVALID_INPUT, "Input is invalid.")
+                    this.Error(ErrorCodes.InvalidInput, "Input is invalid.")
                     );
             }
 
@@ -87,7 +97,7 @@ namespace Swabbr.Api.Controllers
             UserSettings settings = await _userSettingsRepository.GetForUserAsync(userId);
 
             settings.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
-            settings.FollowMode = (FollowMode)input.FollowMode;
+            settings.FollowMode = input.FollowMode;
             settings.IsPrivate = input.IsPrivate;
 
             // Update and return (updated) settings entity

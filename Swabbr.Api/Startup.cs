@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,9 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Data.Repositories;
 using Swabbr.Infrastructure.Services;
@@ -18,6 +22,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using WowzaStreamingCloud.Configuration;
 
 namespace Swabbr
 {
@@ -99,9 +104,17 @@ namespace Swabbr
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
 
             // Configure DI for services
-            services.AddTransient<ITokenService, TokenService>();
-            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IVlogService, VlogService>();
+            services.AddTransient<IReactionService, ReactionService>();
+            services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<ILivestreamingService, LivestreamingService>();
+            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<ITokenService, TokenService>();
+
+            // Configure DI for client services
+            services.AddTransient<INotificationClient, NotificationClient>();
+            services.AddTransient<ILivestreamingClient, LivestreamingClient>();
 
             // Configure DI for identity stores
             services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
@@ -113,7 +126,7 @@ namespace Swabbr
             // Add identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
              {
-                 // TODO Determine configuration for password strength
+                 //TODO: Determine configuration for password strength
                  setup.Password.RequireDigit = false;
                  setup.Password.RequireUppercase = false;
                  setup.Password.RequireLowercase = false;
@@ -162,6 +175,8 @@ namespace Swabbr
             // Add authentication and authorization middleware
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UsePathBase(new PathString("/api/v1/"));
 
             app.UseEndpoints(endpoints =>
             {

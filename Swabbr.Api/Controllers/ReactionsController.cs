@@ -21,7 +21,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("api/v1/reactions")]
+    [Route("reactions")]
     public class ReactionsController : ControllerBase
     {
         private readonly UserManager<SwabbrIdentityUser> _userManager;
@@ -48,6 +48,8 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
+            //TODO: Check if user has access to post a reaction to the given vlog
+
             var newReaction = new Reaction
             {
                 ReactionId = Guid.NewGuid(),
@@ -63,7 +65,7 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Create a new reaction to a vlog.
+        /// Update an existing reaction to a vlog.
         /// </summary>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
@@ -78,7 +80,7 @@ namespace Swabbr.Api.Controllers
             {
                 return StatusCode(
                     (int)HttpStatusCode.Forbidden,
-                    this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
+                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
                 );
             }
 
@@ -100,7 +102,7 @@ namespace Swabbr.Api.Controllers
             if (!(await _vlogRepository.ExistsAsync(vlogId)))
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Vlog does not exist.")
+                    this.Error(ErrorCodes.EntityNotFound, "Vlog does not exist.")
                     );
             }
 
@@ -129,7 +131,7 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Reaction could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
                     );
             }
         }
@@ -153,7 +155,7 @@ namespace Swabbr.Api.Controllers
                 {
                     return StatusCode(
                         (int)HttpStatusCode.Forbidden,
-                        this.Error(ErrorCodes.INSUFFICIENT_ACCESS_RIGHTS, "User is not allowed to perform this action.")
+                        this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
                     );
                 }
 
@@ -163,7 +165,7 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException)
             {
                 return NotFound(
-                    this.Error(ErrorCodes.ENTITY_NOT_FOUND, "Reaction could not be found.")
+                    this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
                     );
             }
         }

@@ -24,12 +24,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<FollowRequest> GetByIdAsync(Guid followRequestId)
         {
-            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
-
-            var tq = new TableQuery<FollowRequestTableEntity>().Where(
+            var tableQuery = new TableQuery<FollowRequestTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForGuid("FollowRequestId", QueryComparisons.Equal, followRequestId));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (!queryResults.Any())
             {
@@ -46,14 +44,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
-
             // The partition key is the receiver id
-            var tq = new TableQuery<FollowRequestTableEntity>().Where(
+            var tableQuery = new TableQuery<FollowRequestTableEntity>().Where(
                         TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, userId.ToString())
                     );
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
             var mappedResults = queryResults.Select(x => Map(x));
 
             return mappedResults;
@@ -61,14 +57,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<FollowRequestTableEntity>(TableName).TableReference;
-
             // The row key is the requester id
-            var tq = new TableQuery<FollowRequestTableEntity>().Where(
+            var tableQuery = new TableQuery<FollowRequestTableEntity>().Where(
                         TableQuery.GenerateFilterCondition("RequesterId", QueryComparisons.Equal, userId.ToString())
                 );
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
             var mappedResults = queryResults.Select(x => Map(x));
 
             return mappedResults;
@@ -164,14 +158,14 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<bool> ExistsAsync(Guid receiverId, Guid requesterId)
         {
-            var tq = new TableQuery<DynamicTableEntity>().Where(
+            var tableQuery = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.CombineFilters(
                 TableQuery.GenerateFilterConditionForGuid("PartitionKey", QueryComparisons.Equal, receiverId),
                 TableOperators.And,
                 TableQuery.GenerateFilterConditionForGuid("RowKey", QueryComparisons.Equal, requesterId)
                 ));
 
-            return await GetEntityCountAsync(tq) > 0;
+            return await GetEntityCountAsync(tableQuery) > 0;
         }
     }
 }

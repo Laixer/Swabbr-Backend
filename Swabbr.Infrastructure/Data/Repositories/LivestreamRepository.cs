@@ -23,15 +23,13 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<Livestream> ReserveLivestreamForUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
-
             // Check if there are any inactive streams that are available for usage.
-            var tq = new TableQuery<LivestreamTableEntity>().Where(
+            var tableQuery = new TableQuery<LivestreamTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, false));
 
             // Obtain results and order by created date so the earliest record will be used (last in
             // first out)
-            var queryResults = (await table.ExecuteQueryAsync(tq)).OrderBy(x => x.CreatedAt);
+            var queryResults = (await QueryAsync(tableQuery)).OrderBy(x => x.CreatedAt);
 
             if (queryResults.Any())
             {
@@ -56,23 +54,19 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Livestream>> GetActiveLivestreamsAsync()
         {
-            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
-
             // Check if there are any inactive streams that are available for usage.
-            var tq = new TableQuery<LivestreamTableEntity>().Where(
+            var tableQuery = new TableQuery<LivestreamTableEntity>().Where(
                 TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, true));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             return queryResults.Select(x => Map(x));
         }
 
         public async Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId)
         {
-            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
-
             // Check if there are any inactive streams that are available for usage.
-            var tq = new TableQuery<LivestreamTableEntity>().Where(
+            var tableQuery = new TableQuery<LivestreamTableEntity>().Where(
                 TableQuery.CombineFilters(
                     TableQuery.GenerateFilterConditionForBool(nameof(LivestreamTableEntity.IsActive), QueryComparisons.Equal, true),
                     TableOperators.And,
@@ -80,7 +74,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
                 )
             );
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (queryResults.Any())
             {
@@ -93,12 +87,10 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public async Task<Livestream> GetByIdAsync(string livestreamId)
         {
-            var table = _factory.GetClient<LivestreamTableEntity>(TableName).TableReference;
-
-            var tq = new TableQuery<LivestreamTableEntity>().Where(
+            var tableQuery = new TableQuery<LivestreamTableEntity>().Where(
     TableQuery.GenerateFilterCondition(nameof(LivestreamTableEntity.LivestreamId), QueryComparisons.Equal, livestreamId));
 
-            var queryResults = await table.ExecuteQueryAsync(tq);
+            var queryResults = await QueryAsync(tableQuery);
 
             if (queryResults.Any())
             {
