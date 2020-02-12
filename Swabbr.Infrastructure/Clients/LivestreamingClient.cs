@@ -136,12 +136,12 @@ namespace Swabbr.Infrastructure.Services
             };
         }
 
-        public async Task<StreamPlaybackDetails> GetStreamPlaybackAsync(string id)
+        public async Task<LivestreamPlaybackDetails> GetStreamPlaybackAsync(string id)
         {
             var response = await _wowzaClient.GetStreamAsync(id);
 
             // Return the playback details extracted from the received object
-            return new StreamPlaybackDetails
+            return new LivestreamPlaybackDetails
             {
                 PlaybackUrl = response.Livestream.PlayerHlsPlaybackUrl
             };

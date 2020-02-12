@@ -45,7 +45,7 @@ namespace Swabbr.Core.Services
             await _livestreamClient.DeleteStreamAsync(id);
         }
 
-        public async Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
+        public async Task<LivestreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
             // TODO THOMAS Transactional, this entire function is a giant race condition.
             // TODO THOMAS Niet in de database opslaan
@@ -66,7 +66,7 @@ namespace Swabbr.Core.Services
             return connection;
         }
 
-        public Task<StreamConnectionDetails> GetStreamConnectionAsync(string id)
+        public Task<LivestreamConnectionDetails> GetStreamConnectionAsync(string id)
         {
             return _livestreamClient.GetStreamConnectionAsync(id);
         }
