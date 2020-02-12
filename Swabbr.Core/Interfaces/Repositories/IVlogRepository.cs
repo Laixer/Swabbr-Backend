@@ -19,6 +19,7 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Returns a collection of featured vlogs.
         /// </summary>
+        /// TODO THOMAS This is very vague, not a version 1 feature? 
         Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync();
 
         /// <summary>

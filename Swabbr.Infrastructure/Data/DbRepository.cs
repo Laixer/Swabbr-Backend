@@ -153,6 +153,7 @@ namespace Swabbr.Infrastructure.Data
         /// Method for converting an entity of type <typeparamref name="TModel"/> (Domain Entity) to
         /// a <typeparamref name="TDto"/> (Table Entity).
         /// </summary>
+        /// TODO THOMAS Create separate mapping objects
         public abstract TDto Map(TModel entity);
 
         /// <summary>

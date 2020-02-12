@@ -10,6 +10,8 @@ using System.Text;
 
 namespace Swabbr.Api.Services
 {
+
+    // TODO THOMAS Separate file
     public interface ITokenService
     {
         string GenerateToken(SwabbrIdentityUser user);
@@ -24,6 +26,7 @@ namespace Swabbr.Api.Services
             _jwtConfig = jwtConfigOptions.Value;
         }
 
+        // TODO THOMAS I don't know if this is correct (could be), worth checking --> yorick heeft gecheckt, technisch klopt het (moet eigenlijk met identity server)
         public string GenerateToken(SwabbrIdentityUser user)
         {
             // Add claims

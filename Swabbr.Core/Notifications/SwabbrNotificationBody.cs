@@ -18,11 +18,13 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         /// The name of the protocol
         /// </summary>
+        /// Const
         public string Protocol => "swabbr";
 
         /// <summary>
         /// The version of the protocol
         /// </summary>
+        /// Const
         public string ProtocolVersion => "1.0";
 
         /// <summary>
@@ -38,16 +40,19 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         /// The type of the included data
         /// </summary>
+        /// TODO THOMAS Very bug sensitive, make enum
         public string ObjectType { get; set; }
 
         /// <summary>
         /// The version of the type of data
         /// </summary>
+        /// TODO THOMAS Very bug sensitive, make enum
         public string ObjectTypeVersion { get; set; }
 
         /// <summary>
         /// Indicates the media type of the content
         /// </summary>
+        /// TODO THOMAS Very bug sensitive, make enum
         public string ContentType { get; set; }
 
         /// <summary>
@@ -58,7 +63,12 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         /// Contains information about the senders’ operating system, device, etc.
         /// </summary>
+        /// TODO THOMAS Very bug sensitive, specify
         public string UserAgent { get; set; }
+
+
+        /* TODO THOMAS These json object formatters seem VERY bug sensitive. */
+        /* TODO THOMAS They shouldn't be placed in this class either */
 
         public JObject GetAppleContentJSON()
         {

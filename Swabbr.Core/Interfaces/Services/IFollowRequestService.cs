@@ -49,6 +49,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="followRequestId"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
+        /// TODO THOMAS This metadata should just be stored in the retreived object, we should never need a function to check this separately!
         Task<bool> IsOwnedByUserAsync(Guid followRequestId, Guid userId);
 
         /// <summary>
@@ -77,6 +78,8 @@ namespace Swabbr.Core.Interfaces.Services
         /// </summary>
         /// <param name="userId">Unique identifier of the user that received the requests.</param>
         /// <returns></returns>
+        /// TODO THOMAS This seems to tackle the race condition as well, making the processing 
+        /// pipeline for follow requests transactional should remove this issue --> postgresql
         Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId);
 
         /// <summary>

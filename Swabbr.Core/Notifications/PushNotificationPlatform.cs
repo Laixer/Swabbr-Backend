@@ -3,6 +3,7 @@
     /// <summary>
     /// Represents the supported mobile platform services for push notifications
     /// </summary>
+    /// TODO THOMAS Move to Swabbr.Core.Enums
     public enum PushNotificationPlatform
     {
         /// <summary>

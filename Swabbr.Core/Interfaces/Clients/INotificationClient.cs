@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Clients
 {
+
+    /// TODO THOMAS This and <see cref="INotificationService"/> contain the same functionality.
     public interface INotificationClient
     {
         /// <summary>
@@ -21,6 +23,8 @@ namespace Swabbr.Core.Interfaces.Clients
         /// <param name="id">Id of the device</param>
         /// <param name="deviceUpdate">Registration information</param>
         /// <param name="tags">Notification tags</param>
+        /// TODO THOMAS IList -> IEnumerable
+        /// TODO THOMAS What are these tags?
         Task<NotificationRegistration> RegisterAsync(DeviceRegistration deviceRegistration, IList<string> tags);
 
         /// <summary>
@@ -29,6 +33,7 @@ namespace Swabbr.Core.Interfaces.Clients
         /// <typeparam name="T">The notification outcome type</typeparam>
         /// <param name="notification">The notification to send</param>
         /// <param name="tags">Notification tags</param>
+        /// TODO THOMAS IList -> IEnumerable
         Task<NotificationResponse> SendNotification(SwabbrNotification notification, PushNotificationPlatform platform, IList<string> tags);
     }
 }

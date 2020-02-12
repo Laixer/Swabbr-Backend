@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 namespace Swabbr.Api.Authentication
 {
     //TODO: Not optimized
+    // TODO THOMAS This is a lot of code, might be worth revisiting.
+    // TODO THOMAS Rename to SwabbrUserStore oid! (yorick)
     public class UserStore :
         IUserStore<SwabbrIdentityUser>,
         IUserEmailStore<SwabbrIdentityUser>,
@@ -20,6 +22,8 @@ namespace Swabbr.Api.Authentication
         IUserClaimStore<SwabbrIdentityUser>,
         IUserRoleStore<SwabbrIdentityUser>
     {
+
+        // TODO THOMAS This belongs to the Infrastructure project! yorick: mag wel
         private readonly IDbClientFactory _factory;
 
         public UserStore(IDbClientFactory factory)
@@ -35,6 +39,7 @@ namespace Swabbr.Api.Authentication
             var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
 
             // Ensure user does not exist
+            // TODO THOMAS This should be success or throw
             var checkUser = await FindByEmailAsync(user.NormalizedEmail, new CancellationToken());
             if (checkUser != null)
             {
@@ -42,6 +47,7 @@ namespace Swabbr.Api.Authentication
             }
 
             // Insert the user
+            // TODO THOMAS This should be success or throw
             var insertedUser = await client.InsertEntityAsync(user);
 
             if (insertedUser != null)

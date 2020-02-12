@@ -27,6 +27,7 @@ namespace Swabbr.Core.Interfaces
         /// <param name="offset">Result record offset.</param>
         /// <param name="limit">Result limit.</param>
         /// <returns>A collection of users matching the search query.</returns>
+        /// Is this the optimal pagination method? Maybe make this a bit more explicit
         Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
 
         /// <summary>

@@ -5,6 +5,7 @@ namespace WowzaStreamingCloud.Data
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Creating live stream object
     /// </summary>
+    /// TODO THOMAS Why is this wrapped? I suspect because of the json format we get back?
     public partial class WscCreateLivestreamRequest
     {
         [JsonProperty("live_stream")]

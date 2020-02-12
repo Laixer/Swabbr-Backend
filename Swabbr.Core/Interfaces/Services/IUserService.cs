@@ -10,6 +10,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <summary>
         /// Checks if a user with the given id exists.
         /// </summary>
+        /// TODO THOMAS This should never be required (getasync will just return null --> throw exception)
         Task<bool> ExistsAsync(Guid userId);
 
         /// <summary>

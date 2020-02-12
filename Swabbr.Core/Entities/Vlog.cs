@@ -46,6 +46,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Likes given to this vlog by users.
         /// </summary>
+        /// IEnumerable
         public List<VlogLike> Likes { get; set; }
 
         /// <summary>

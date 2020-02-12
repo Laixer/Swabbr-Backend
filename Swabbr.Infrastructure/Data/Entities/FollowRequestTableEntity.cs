@@ -6,6 +6,7 @@ namespace Swabbr.Infrastructure.Data.Entities
     /// <summary>
     /// Represents the storage data of a follow relationship between two users including the current status.
     /// </summary>
+    /// TODO THOMAS Do we need these DTO's?
     public class FollowRequestTableEntity : TableEntity
     {
         /// <summary>

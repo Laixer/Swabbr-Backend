@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Services
 {
+
+    // TODO THOMAS This entire class should be refactored. It uses non-transactional operations, a lot of
+    // error hiding and inconsistent logging. The pooling functionality also seems a bit weird.
     internal class VlogTriggerHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
@@ -101,11 +104,14 @@ namespace Swabbr.Infrastructure.Services
                         }
                     };
 
+                    // TODO THOMAS Shouldn't this be called when we actually start streaming? Could be my misunderstanding
                     await _livestreamingService.StartStreamAsync(connectionDetails.Id);
+                    // TODO THOMAS Proper logging
                     System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
 
                     //TODO: Wait before sending the notification to ensure the stream has started.
                     // Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started' here.
+                    // TODO THOMAS This is 100% unreliable
                     await Task.Delay(TimeSpanStartStream);
 
                     // Send the notification containing the stream connection details to the user.
@@ -122,6 +128,8 @@ namespace Swabbr.Infrastructure.Services
                     // receiving hub registrations (in which case we can not send any notifications)
                     // or something went wrong while sending out a notification (in which case we
                     // should possibly try to send it again)
+
+                    // TODO THOMAS Never keep this empty! Just throw something, don't hide your e ever
                 }
             }
 
@@ -152,6 +160,7 @@ namespace Swabbr.Infrastructure.Services
             // Wait 20 minutes
             await Task.Delay(TimeSpanTimeout);
 
+            // TODO THOMAS This is never cancelled if we close our livestream --> confusing logs
             System.Diagnostics.Debug.WriteLine($"Livestream {livestreamId} has timed out.");
 
             var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);

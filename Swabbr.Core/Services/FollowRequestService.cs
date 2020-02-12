@@ -15,6 +15,7 @@ namespace Swabbr.Core.Services
         private readonly IFollowRequestRepository _followRequestRepository;
         private readonly IUserSettingsRepository _userSettingsRepository;
 
+        // TODO THOMAS OOF this formatting and line spacing 
         public FollowRequestService(
             IFollowRequestRepository followRequestRepository,
             IUserSettingsRepository userSettingsRepository
@@ -24,6 +25,8 @@ namespace Swabbr.Core.Services
             _userSettingsRepository = userSettingsRepository;
         }
 
+        // TODO THOMAS This seems very beun-like. If a request exists we should just stop attempting to fix anything.
+        // Don't try to battle the race conditions, just stop the process immediately.
         public async Task<FollowRequest> SendAsync(Guid receiverId, Guid requesterId)
         {
             // In case a request between these users already exists...
@@ -44,9 +47,10 @@ namespace Swabbr.Core.Services
 
             // Obtain the follow mode setting of the receiving user.
             var userSettings = await _userSettingsRepository.GetForUserAsync(receiverId);
-            var followMode = userSettings.FollowMode;
+            var followMode = userSettings.FollowMode; // TODO THOMAS Don't do this, don't need to assign separately
 
             // Based on the the follow mode setting we assign the predetermined state of the follow request.
+            // TODO THOMAS Separate function, prevent the undefined state
             FollowRequestStatus requestStatus;
             switch (followMode)
             {
@@ -64,6 +68,9 @@ namespace Swabbr.Core.Services
                     break;
             }
 
+            // TODO THOMAS No need for separate assignment
+            // TODO THOMAS The database should handle the ID assignment, not this class
+            // TODO THOMAS DateTime.Now --> be careful with timezones! Maybe let the database handle this as well?
             var entityToCreate = new FollowRequest
             {
                 FollowRequestId = Guid.NewGuid(),
@@ -90,6 +97,8 @@ namespace Swabbr.Core.Services
             return await _followRequestRepository.UpdateAsync(followRequest);
         }
 
+        /* TODO THOMAS These just became wrapper functions, doesn't seem right. */
+
         public Task<bool> ExistsAsync(Guid receiverId, Guid requesterId)
         {
             return _followRequestRepository.ExistsAsync(receiverId, requesterId);
@@ -115,6 +124,7 @@ namespace Swabbr.Core.Services
             return _followRequestRepository.GetFollowingCountAsync(userId);
         }
 
+        // TODO THOMAS This should be SQL
         public async Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId)
         {
             return (await _followRequestRepository.GetIncomingForUserAsync(userId))

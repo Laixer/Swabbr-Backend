@@ -32,6 +32,9 @@ namespace Swabbr.Core.Services
             var newStream = await _livestreamClient.CreateNewStreamAsync(name);
 
             // Store the new stream in the livestream repository
+            // TODO THOMAS This is dangerous! We can now create a livestream without storing it in our database.
+            // It might be a good idea to let the live stream client handle this functionality, and prevent the
+            // very plausible case of losing livestreams because we "forget" to store after creation.
             var createdStream = await _livestreamRepository.CreateAsync(newStream);
 
             return createdStream;
@@ -44,13 +47,15 @@ namespace Swabbr.Core.Services
 
         public async Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
+            // TODO THOMAS Transactional, this entire function is a giant race condition.
+            // TODO THOMAS Niet in de database opslaan
             int availableStreamCount = await _livestreamRepository.GetAvailableLivestreamCountAsync();
 
             // If no streams are available, create a new stream. 
             //TODO: Minimum amount/lower boundary needed instead of 0?
             if (availableStreamCount < 1)
             {
-                await this.CreateNewStreamAsync("test");
+                await CreateNewStreamAsync("test");
             }
 
             // Check if there are available (unreserved) livestreams in storage.

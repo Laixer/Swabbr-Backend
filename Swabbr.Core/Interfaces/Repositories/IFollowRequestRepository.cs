@@ -26,6 +26,8 @@ namespace Swabbr.Core.Interfaces
         /// <param name="receiverId">Unique identifier of the receiving user.</param>
         /// <param name="requesterId">Unique identifier of the requesting user.</param>
         /// <returns></returns>
+        /// TODO THOMAS I suspect that this exists to battle the double-follow-request race conditions. These should
+        /// never be a problem as long as the follow request processsing pipeline is transactional. --> postgresql
         Task<bool> ExistsAsync(Guid receiverId, Guid requesterId);
 
         /// <summary>

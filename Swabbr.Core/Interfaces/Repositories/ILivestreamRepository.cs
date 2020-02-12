@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
+
     public interface ILivestreamRepository : IRepository<Livestream>
     {
         /// <summary>
@@ -15,6 +16,7 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Returns the amount of inactive livestreams.
         /// </summary>
+        /// TODO THOMAS Why would we ever need this? (pool probably?)
         Task<int> GetAvailableLivestreamCountAsync();
 
         /// <summary>

@@ -8,8 +8,12 @@ using WowzaStreamingCloud.Data;
 
 namespace WowzaStreamingCloud
 {
+
+    // TODO THOMAS There is no error checking anywhere in this file
     public sealed class WowzaClient : IDisposable
     {
+
+        // TODO THOMAS The http client is static but gets disposed. This will 100% not work
         private static readonly HttpClient HttpClient = new HttpClient();
         private readonly WowzaStreamingCloudConfiguration WscOptions;
         public Uri ApiBase { get;}
@@ -26,6 +30,8 @@ namespace WowzaStreamingCloud
 
         }
 
+        // TODO THOMAS We don't need this wrapper if we always want JSON anyways.
+        // TODO THOMAS This should be in a separate class, since it is 100% network functionality
         private async Task<TReturn> SendHttpRequestAsync<TReturn>(HttpMethod method, Uri requestUrl, object data = null, string mediaType = "application/json")
             where TReturn : new()
         {
@@ -35,9 +41,10 @@ namespace WowzaStreamingCloud
 
         private async Task<string> SendHttpRequestAsync(HttpMethod method, Uri requestUrl, object data = null, string mediaType = "application/json")
         {
+            // TODO THOMAS Mediatype can be anything, this is dangerous --> use enum
             string ConvertData(object obj)
             {
-                return obj == null ? string.Empty : Serialize(obj);
+                return obj == null ? string.Empty : Serialize(obj); // TODO THOMAS Using an empty string seems wrong here --> doc wants this, +check this! (yorick)
             }
 
             using (var requestMessage = new HttpRequestMessage(method, requestUrl))
@@ -45,11 +52,13 @@ namespace WowzaStreamingCloud
                 requestMessage.Headers.Add("wsc-api-key", WscOptions.ApiKey);
                 requestMessage.Headers.Add("wsc-access-key", WscOptions.AccessKey);
 
+                // TODO THOMAS I'm not sure if this is the correct method (could be), worth checking --> yorick: misschien de stream teruggeven, even uitzoeken
                 using (var stringContent = new StringContent(ConvertData(data), Encoding.UTF8, mediaType))
                 {
                     requestMessage.Content = stringContent;
                     var result = await HttpClient.SendAsync(requestMessage);
                     result.EnsureSuccessStatusCode();
+                    
                     var resultString = await result.Content.ReadAsStringAsync();
                     return resultString;
                 }

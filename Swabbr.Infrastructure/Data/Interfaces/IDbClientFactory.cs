@@ -14,6 +14,7 @@ namespace Swabbr.Infrastructure.Data
         /// <typeparam name="T">Type of the table entity</typeparam>
         /// <param name="tableName">Id/name of the table</param>
         /// <returns></returns>
+        /// TODO THOMAS If we use something like this, maybe make the tablename an enum
         IDbClient<T> GetClient<T>(string tableName) where T : TableEntity;
 
         //TODO: Remove, used for testing purposes only. Tables should not (never) have to be removed by the application itself.

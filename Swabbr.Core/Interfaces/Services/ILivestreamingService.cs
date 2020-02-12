@@ -12,6 +12,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="name">Name of the livestream.</param>
         /// <param name="userId">Id of the user this stream should belong to.</param>
         /// <returns>Connection details for broadcasting the stream.</returns>
+        /// TODO THOMAS Stream --> LiveStream (consistency)
         Task<Livestream> CreateNewStreamAsync(string name);
 
         /// <summary>

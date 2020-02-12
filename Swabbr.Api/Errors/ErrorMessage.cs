@@ -2,6 +2,7 @@
 
 namespace Swabbr.Api.Errors
 {
+
     public class ErrorMessage
     {
         public ErrorMessage(int code, string message)

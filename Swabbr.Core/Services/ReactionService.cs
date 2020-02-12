@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
+
+    // TODO THOMAS This is just a wrapper for the repo...
     public class ReactionService : IReactionService
     {
         private readonly IReactionRepository _reactionRepository;

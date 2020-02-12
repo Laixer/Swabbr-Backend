@@ -1,5 +1,7 @@
 ﻿namespace Swabbr.Core.Notifications
 {
+
+    // TODO THOMAS Static
     public class ClickActions
     {
         /// <summary>

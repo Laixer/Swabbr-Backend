@@ -11,6 +11,8 @@ namespace Swabbr.Core.Interfaces
         /// Returns whether a reaction with the given id exists.
         /// </summary>
         /// <param name="reactionId">Unique identifier of a reaction</param>
+        /// TODO THOMAS When will we ever use this? The system should be designed in such a way that we 
+        /// can NEVER even reach the state where we have an id without its corresponding reaction existing
         Task<bool> ExistsAsync(Guid reactionId);
 
         /// <summary>
@@ -30,6 +32,7 @@ namespace Swabbr.Core.Interfaces
         /// Returns a collection of reactions that were placed by a specific user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user who placed the reactions</param>
+        /// TODO THOMAS Stuff like this should have some kind of limit, we don't want to retreive 47367476 reactions every time
         Task<IEnumerable<Reaction>> GetReactionsByUserAsync(Guid userId);
 
         /// <summary>

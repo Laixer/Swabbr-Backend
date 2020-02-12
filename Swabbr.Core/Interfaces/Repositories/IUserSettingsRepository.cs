@@ -21,6 +21,8 @@ namespace Swabbr.Core.Interfaces
         /// </summary>
         /// <param name="userId">Unique identifier of the user to which the settings should belong</param>
         /// <returns></returns>
+        /// TODO THOMAS Why can there even be users without user settings? This should never be possible.
+        /// TODO THOMAS It might be better to just have the user settings as a view, where all their values are in the users table as well.
         Task<bool> ExistsForUserAsync(Guid userId);
     }
 }

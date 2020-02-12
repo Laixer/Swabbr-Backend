@@ -29,6 +29,10 @@ namespace Swabbr.Core.Services
             throw new NotImplementedException();
         }
 
+        // TODO THOMAS This should be transactional. 
+        // TODO THOMAS The way user tags are used is very bad smelling
+        // TODO THOMAS Why return a new notification response? 
+        // TODO THOMAs The notification client should probably also commit to the database. It's a full process, and should be treated as a transaction.
         public async Task<NotificationResponse> RegisterUserForPushNotificationsAsync(Guid userId, DeviceRegistration deviceRegistration)
         {
             List<string> userTag = new List<string>()

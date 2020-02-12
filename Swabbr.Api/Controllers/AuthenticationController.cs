@@ -63,11 +63,13 @@ namespace Swabbr.Api.Controllers
             }
 
             //TODO: Add password strength check/constraints
+            // TODO THOMAS The input should be 100% validated, never trust user input
 
             // Construct a new identity user for a new user based on the given input
             var identityUser = new SwabbrIdentityUser
             {
                 // Generate new id for user to create
+                // TODO THOMAS The database should handle this
                 UserId = Guid.NewGuid(),
 
                 // Use the input to set the properties
@@ -76,7 +78,7 @@ namespace Swabbr.Api.Controllers
                 LastName = input.LastName,
                 BirthDate = input.BirthDate,
                 Country = input.Country,
-                Gender = (int)input.Gender,
+                Gender = (int)input.Gender, // TODO THOMAS Is this the way to go? Let's store in postgresql, which can handle enums. This is bug sensitive
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
                 Timezone = input.Timezone,
@@ -112,7 +114,7 @@ namespace Swabbr.Api.Controllers
                     }
                 );
             }
-
+            
             // Something went wrong.
             return BadRequest();
         }
@@ -126,6 +128,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
         public async Task<IActionResult> LoginAsync([FromBody] UserAuthenticationInputModel input)
         {
+            // TODO THOMAS Validate user input! Null checks, format checks, etc
+
             // Retrieve the identity user
             var identityUser = await _userManager.FindByEmailAsync(input.Email);
 

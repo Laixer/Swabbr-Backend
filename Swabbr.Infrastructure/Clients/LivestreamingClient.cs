@@ -13,12 +13,14 @@ namespace Swabbr.Infrastructure.Services
 {
     public class LivestreamingClient : ILivestreamingClient
     {
+        // TODO THOMAS Why static? Just use singleton then
         private static WowzaClient _wowzaClient;
 
         private readonly ILivestreamRepository _livestreamRepository;
 
         private readonly WowzaStreamingCloudConfiguration _wscOptions;
 
+        // TODO THOMAS These should be stored in some configuration file
         private const string BillingMode = "pay_as_you_go",
                              ClosedCaptionType = "none",
                              DeliveryMethod = "push",
@@ -74,7 +76,7 @@ namespace Swabbr.Infrastructure.Services
                 // Save the livestream in the database storage
                 var createdStream = await _livestreamRepository.CreateAsync(new Livestream
                 {
-                    Id = response.Livestream.Id,
+                    Id = response.Livestream.Id, // TODO THOMAS Bad idea to use the external id as the internal id
                     IsActive = false,
                     BroadcastLocation = response.Livestream.BroadcastLocation,
                     CreatedAt = response.Livestream.CreatedAt,
@@ -95,6 +97,8 @@ namespace Swabbr.Infrastructure.Services
             await _wowzaClient.DeleteStreamAsync(id);
         }
 
+        // TODO THOMAS This is very bug sensitive, should be transactional, should be completely revisited
+        // TODO THOMAS This is a duplicate
         public async Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
             int availableStreamCount = await _livestreamRepository.GetAvailableLivestreamCountAsync();
@@ -159,10 +163,12 @@ namespace Swabbr.Infrastructure.Services
             return response.Livestream.ThumbnailUrl;
         }
 
+        // TODO THOMAS This doesn't return anything
         public async Task GetRecordingsAsync(string livestreamId)
         {
             //TODO: Poll the recording state and when completed, store the livestream recordings for the specified vlog
             var recordings = await _wowzaClient.GetRecordingsAsync(livestreamId);
+            throw new NotImplementedException();
         }
 
     }

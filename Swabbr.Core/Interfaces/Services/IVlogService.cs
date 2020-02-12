@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
+    /// TODO THOMAS This has 100% exactly the same functionality as <see cref="IVlogRepository"/>. WHY
     public interface IVlogService
     {
         /// <summary>

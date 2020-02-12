@@ -51,6 +51,8 @@ namespace Swabbr.Infrastructure.Services
         {
             RegistrationDescription registrationDescription;
 
+            // TODO THOMAS Make this a separate function to prevent the undefined state
+            // TODO THOMAS Also, this can probably be generic? Inheritance for the win?
             switch (deviceRegistration.Platform)
             {
                 case PushNotificationPlatform.APNS:
@@ -76,6 +78,7 @@ namespace Swabbr.Infrastructure.Services
             try
             {
                 // Create a new registration for this device
+                // TODO THOMAS Create a RD from an RD? What - this might seem like a good case for separation of concerns?
                 RegistrationDescription hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
 
                 return new NotificationRegistration
@@ -87,6 +90,7 @@ namespace Swabbr.Infrastructure.Services
             }
             catch (MessagingException)
             {
+                // TODO THOMAS Hmmmmmmm
                 throw;
             }
         }
@@ -99,6 +103,7 @@ namespace Swabbr.Infrastructure.Services
 
                 NotificationOutcome outcome = null;
 
+                // TODO THOMAS json content string is dangerous
                 switch (platform)
                 {
                     case PushNotificationPlatform.APNS:
@@ -117,6 +122,7 @@ namespace Swabbr.Infrastructure.Services
                         }
                 }
 
+                // TODO THOMAS Might just want to make the previous bit throw on error?
                 if (outcome != null)
                 {
                     if (!(outcome.State == NotificationOutcomeState.Abandoned ||
@@ -128,6 +134,7 @@ namespace Swabbr.Infrastructure.Services
 
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Notification was not sent. Please try again.");
             }
+            // TODO THOMAS This doesn't seem right, revisit 
             catch (MessagingException e)
             {
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);

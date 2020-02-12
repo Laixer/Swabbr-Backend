@@ -3,6 +3,7 @@
     /// <summary>
     /// Configuration for user settings
     /// </summary>
+    /// TODO THOMAS Why is this not in the core?
     public class UserSettingsConfiguration
     {
         /// <summary>

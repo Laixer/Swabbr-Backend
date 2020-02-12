@@ -1,5 +1,6 @@
 ﻿namespace WowzaStreamingCloud.Configuration
 {
+
     public class WowzaStreamingCloudConfiguration
     {
         /// <summary>

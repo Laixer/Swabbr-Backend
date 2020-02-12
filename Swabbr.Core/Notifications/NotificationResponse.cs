@@ -25,6 +25,7 @@ namespace Swabbr.Core.Notifications
         }
     }
 
+    // TODO THOMAS Do we really need this inheritance? I don't think so
     public class NotificationResponse
     {
         private bool _forcedFailedResponse;

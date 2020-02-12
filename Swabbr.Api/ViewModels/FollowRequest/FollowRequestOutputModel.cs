@@ -37,6 +37,7 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("timeCreated")]
         public DateTime TimeCreated { get; set; }
 
+        // TODO THOMAS This is mapping in the wrong location, make separate object for this
         public static FollowRequestOutputModel Parse(FollowRequest followRequest)
         {
             return new FollowRequestOutputModel

@@ -7,6 +7,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Unique identifier of the livestream.
         /// </summary>
+        /// TODO THOMAS Don't use strings as id --> at the moment the database even uses Guid, which then are converted back to string!
         public string Id { get; set; }
 
         /// <summary>

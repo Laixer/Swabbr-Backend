@@ -1,5 +1,6 @@
 ﻿namespace Swabbr.Api.Errors
 {
+
     public static class ErrorCodes
     {
         /// <summary>

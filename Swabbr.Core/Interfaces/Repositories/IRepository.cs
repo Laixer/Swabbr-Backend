@@ -8,6 +8,8 @@ namespace Swabbr.Core.Interfaces
     /// </summary>
     public interface IRepository<TEntity> where TEntity : EntityBase
     {
+        // This is Table API specific
+        // This should just be GetAsync(Guid id)
         Task<TEntity> RetrieveAsync(string partitionKey, string rowKey);
 
         Task<TEntity> CreateAsync(TEntity entity);

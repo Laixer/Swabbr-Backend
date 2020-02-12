@@ -12,6 +12,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// Returns whether a reaction with the given id exists.
         /// </summary>
         /// <param name="reactionId">Unique identifier of a reaction</param>
+        /// TODO THOMAS This should never be required
         Task<bool> ExistsAsync(Guid reactionId);
 
         /// <summary>

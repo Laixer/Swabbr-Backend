@@ -38,6 +38,7 @@ namespace Swabbr.Core.Interfaces.Clients
         /// Start a stopped livestream.
         /// </summary>
         /// <param name="livestreamId">Id of the livestream.</param>
+        /// TODO THOMAS Stream -> LiveStream (consistency)
         Task StartStreamAsync(string livestreamId);
 
         /// <summary>
