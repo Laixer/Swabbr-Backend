@@ -2,13 +2,17 @@
 
 namespace Swabbr.Core.Entities
 {
+
+    /// <summary>
+    /// Represents a livestream entity.
+    /// </summary>
     public class Livestream : EntityBase
     {
+
         /// <summary>
-        /// Unique identifier of the livestream.
+        /// External unique identifier for the service on which this livestream is hosted.
         /// </summary>
-        /// TODO THOMAS Don't use strings as id --> at the moment the database even uses Guid, which then are converted back to string!
-        public string Id { get; set; }
+        public string ExternalId { get; set; }
 
         /// <summary>
         /// Unique identifier of the user this livestream temporarily belongs to.
@@ -35,8 +39,16 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public bool IsActive { get; set; }
 
+        /// <summary>
+        /// Creation date.
+        /// </summary>
         public DateTimeOffset CreatedAt { get; set; }
 
+        /// <summary>
+        /// Update date.
+        /// </summary>
         public DateTimeOffset UpdatedAt { get; set; }
+
     }
+
 }

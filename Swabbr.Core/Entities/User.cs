@@ -3,15 +3,12 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Represents a single user.
     /// </summary>
     public class User : EntityBase
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid UserId { get; set; }
 
         /// <summary>
         /// First name of the user.
@@ -35,6 +32,7 @@ namespace Swabbr.Core.Entities
 
         /// <summary>
         /// Selected country.
+        /// TODO Enum or something?
         /// </summary>
         public string Country { get; set; }
 
@@ -56,7 +54,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// URL containing the uploaded profile image of the user.
         /// </summary>
-        public string ProfileImageUrl { get; set; }
+        public Uri ProfileImageUrl { get; set; }
 
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
@@ -77,5 +75,7 @@ namespace Swabbr.Core.Entities
         /// Personal settings and preferences.
         /// </summary>
         public UserSettings Settings { get; set; }
+
     }
+
 }

@@ -3,15 +3,12 @@ using System.Collections.Generic;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// A vlog created by a user.
     /// </summary>
     public class Vlog : EntityBase
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid VlogId { get; set; }
 
         /// <summary>
         /// Unique identifier of the livestream bound to this vlog.
@@ -21,7 +18,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Download url of the recording.
         /// </summary>
-        public string DownloadUrl { get; set; }
+        public Uri DownloadUrl { get; set; }
 
         /// <summary>
         /// Id of the user who created the vlog.
@@ -41,17 +38,18 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// The date at which the recording of the vlog started.
         /// </summary>
-        public DateTime DateStarted { get; set; }
+        public DateTimeOffset DateStarted { get; set; }
 
         /// <summary>
         /// Likes given to this vlog by users.
         /// </summary>
-        /// IEnumerable
-        public List<VlogLike> Likes { get; set; }
+        public IEnumerable<VlogLike> Likes { get; set; }
 
         /// <summary>
         /// Metadata from the Media Service.
         /// </summary>
         public string MediaServiceData { get; set; }
+
     }
+
 }

@@ -2,15 +2,12 @@
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Represents a like (love-it) given to a vlog.
     /// </summary>
     public class VlogLike : EntityBase
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid VlogLikeId { get; set; }
 
         /// <summary>
         /// Id of the vlog that was given a like.
@@ -25,6 +22,8 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// The time at which the user liked the vlog.
         /// </summary>
-        public DateTime TimeCreated { get; set; }
+        public DateTimeOffset TimeCreated { get; set; }
+
     }
+
 }

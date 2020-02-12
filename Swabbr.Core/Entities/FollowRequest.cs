@@ -3,15 +3,12 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Represents an active follow request between two users.
     /// </summary>
     public class FollowRequest : EntityBase
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid FollowRequestId { get; set; }
 
         /// <summary>
         /// Id of the user that initiated the follow request.
@@ -31,6 +28,8 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Timestamp of when the request was initiated.
         /// </summary>
-        public DateTime TimeCreated { get; set; }
+        public DateTimeOffset TimeCreated { get; set; }
+
     }
+
 }

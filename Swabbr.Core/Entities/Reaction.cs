@@ -2,15 +2,12 @@
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
-    /// A video reaction to a vlog.
+    /// Represents a video reaction to a vlog.
     /// </summary>
     public class Reaction : EntityBase
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid ReactionId { get; set; }
 
         /// <summary>
         /// Id of the user by whom this reaction was created.
@@ -42,5 +39,7 @@ namespace Swabbr.Core.Entities
         /// Metadata from the Media Service.
         /// </summary>
         public string MediaServiceData { get; set; }
+
     }
+
 }

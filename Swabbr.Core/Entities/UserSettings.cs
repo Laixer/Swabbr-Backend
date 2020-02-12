@@ -3,11 +3,13 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Personal settings and preferences for a user.
     /// </summary>
     public class UserSettings : EntityBase
     {
+
         /// <summary>
         /// Id of the user these settings belong to.
         /// </summary>
@@ -27,5 +29,7 @@ namespace Swabbr.Core.Entities
         /// Setting that determines if the user account is private.
         /// </summary>
         public bool IsPrivate { get; set; }
+
     }
+
 }

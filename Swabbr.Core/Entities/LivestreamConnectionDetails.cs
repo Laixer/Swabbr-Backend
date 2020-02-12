@@ -1,5 +1,10 @@
 ﻿namespace Swabbr.Core.Entities
 {
+
+    /// <summary>
+    /// TODO Double check what this does
+    /// Contains all details for a given livestream connection.
+    /// </summary>
     public class StreamConnectionDetails
     {
         /// <summary>
