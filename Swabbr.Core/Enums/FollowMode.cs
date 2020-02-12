@@ -8,16 +8,16 @@
         /// <summary>
         /// Manually accept or deny incoming follow requests.
         /// </summary>
-        Manual = 0,
+        Manual,
 
         /// <summary>
         /// Automatically accept all incoming follow requests.
         /// </summary>
-        AcceptAll = 1,
+        AcceptAll,
 
         /// <summary>
         /// Automatically deny all incoming follow requests.
         /// </summary>
-        DenyAll = 2
+        DenyAll
     }
 }

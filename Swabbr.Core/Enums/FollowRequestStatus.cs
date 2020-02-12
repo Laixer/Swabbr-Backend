@@ -8,16 +8,16 @@
         /// <summary>
         /// The follow request is waiting for approval.
         /// </summary>
-        Pending = 0,
+        Pending,
 
         /// <summary>
         /// The follow request has been accepted.
         /// </summary>
-        Accepted = 1,
+        Accepted,
 
         /// <summary>
         /// The follow request has been declined.
         /// </summary>
-        Declined = 2
+        Declined
     }
 }

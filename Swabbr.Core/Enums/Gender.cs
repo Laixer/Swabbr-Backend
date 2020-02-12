@@ -8,16 +8,16 @@
         /// <summary>
         /// Female gender.
         /// </summary>
-        Female = 0,
+        Female,
 
         /// <summary>
         /// Male gender.
         /// </summary>
-        Male = 1,
+        Male,
 
         /// <summary>
         /// Other or unknown gender.
         /// </summary>
-        Unspecified = 2
+        Unspecified
     }
 }
