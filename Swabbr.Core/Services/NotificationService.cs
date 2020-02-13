@@ -24,7 +24,7 @@ namespace Swabbr.Core.Services
             _notificationClient = notificationClient;
         }
 
-        public Task DeleteRegistrationAsync(string registrationId)
+        public Task DeleteRegistrationAsync(Guid registrationId)
         {
             throw new NotImplementedException();
         }

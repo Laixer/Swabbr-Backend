@@ -10,7 +10,7 @@ namespace Swabbr.Api.ViewModels
         /// Id of the reaction.
         /// </summary>
         [JsonProperty("reactionId")]
-        public Guid ReactionId { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Id of the user by whom this reaction was created.
@@ -46,7 +46,7 @@ namespace Swabbr.Api.ViewModels
         {
             return new ReactionOutputModel
             {
-                ReactionId = entity.ReactionId,
+                Id = entity.Id,
                 UserId = entity.UserId,
                 VlogId = entity.VlogId,
                 DatePosted = entity.DatePosted,

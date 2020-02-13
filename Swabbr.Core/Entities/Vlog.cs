@@ -13,7 +13,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Unique identifier of the livestream bound to this vlog.
         /// </summary>
-        public string LivestreamId { get; set; }
+        public Guid LivestreamId { get; set; }
 
         /// <summary>
         /// Download url of the recording.

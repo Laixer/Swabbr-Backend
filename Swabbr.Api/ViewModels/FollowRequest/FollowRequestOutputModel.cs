@@ -11,7 +11,7 @@ namespace Swabbr.Api.ViewModels
         /// Unique identifier.
         /// </summary>
         [JsonProperty("followRequestId")]
-        public Guid FollowRequestId { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Id of the user that initiated the follow request.
@@ -35,14 +35,14 @@ namespace Swabbr.Api.ViewModels
         /// Timestamp of when the request was initiated.
         /// </summary>
         [JsonProperty("timeCreated")]
-        public DateTime TimeCreated { get; set; }
+        public DateTimeOffset TimeCreated { get; set; }
 
         // TODO THOMAS This is mapping in the wrong location, make separate object for this
         public static FollowRequestOutputModel Parse(FollowRequest followRequest)
         {
             return new FollowRequestOutputModel
             {
-                FollowRequestId = followRequest.FollowRequestId,
+                Id = followRequest.Id,
                 ReceiverId = followRequest.ReceiverId,
                 RequesterId = followRequest.RequesterId,
                 Status = followRequest.Status,

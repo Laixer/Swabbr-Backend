@@ -3,7 +3,7 @@ using System;
 
 namespace Swabbr.Api.ViewModels
 {
-    public class StreamPlaybackOutputModel
+    public class LivestreamPlaybackOutputModel
     {
         /// <summary>
         /// Playback URL for streaming video

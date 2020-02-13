@@ -6,7 +6,7 @@ namespace Swabbr.Api.ViewModels
     {
         public static UserOutputModel Parse(User user) => new UserOutputModel
         {
-            UserId = user.UserId,
+            Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
@@ -15,7 +15,7 @@ namespace Swabbr.Api.ViewModels
             Gender = user.Gender,
             IsPrivate = user.IsPrivate,
             Nickname = user.Nickname,
-            ProfileImageUrl = user.ProfileImageUrl,
+            ProfileImageUrl = user.ProfileImageUrl.ToString(), // TODO THOMAS Check this
             Timezone = user.Timezone
         };
     }

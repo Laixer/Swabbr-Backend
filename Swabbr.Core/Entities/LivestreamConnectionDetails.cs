@@ -2,43 +2,43 @@
 {
 
     /// <summary>
-    /// TODO Double check what this does
+    /// TODO THOMAS Double check what this does
     /// Contains all details for a given livestream connection.
     /// </summary>
-    public class StreamConnectionDetails
+    public class LivestreamConnectionDetails
     {
         /// <summary>
-        /// Id of the livestream
+        /// External id of the livestream.
         /// </summary>
-        public string Id { get; set; }
+        public string ExternalId { get; set; }
 
         /// <summary>
-        /// Address of the host
+        /// Address of the host.
         /// </summary>
         public string HostAddress { get; set; }
 
         /// <summary>
-        /// Streaming application name
+        /// Streaming application name.
         /// </summary>
         public string AppName { get; set; }
 
         /// <summary>
-        /// Name of the stream
+        /// Name of the stream.
         /// </summary>
         public string StreamName { get; set; }
 
         /// <summary>
-        /// Port number
+        /// Port number.
         /// </summary>
         public ushort Port { get; set; }
 
         /// <summary>
-        /// Username to be used for authenticating the connection
+        /// Username to be used for authenticating the connection.
         /// </summary>
         public string Username { get; set; }
 
         /// <summary>
-        /// Password to be used for authenticating the connection
+        /// Password to be used for authenticating the connection.
         /// </summary>
         public string Password { get; set; }
     }

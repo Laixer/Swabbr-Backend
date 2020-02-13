@@ -2,8 +2,9 @@
 
 namespace WowzaStreamingCloud.Data
 {
+
     /// <summary>
-    /// Wowza Streaming Cloud API Version 1.3 Creating live stream object
+    /// Wowza Streaming Cloud API Version 1.3 Creating live stream object.
     /// </summary>
     public partial class WscCreateLivestreamRequest
     {
@@ -11,6 +12,9 @@ namespace WowzaStreamingCloud.Data
         public WscCreateLiveStreamRequestBody Livestream { get; set; }
     }
 
+    /// <summary>
+    /// Wowza Streaming Cloud API Version 1.3 Creating live stream object.
+    /// </summary>
     public partial class WscCreateLiveStreamRequestBody
     {
         [JsonProperty("aspect_ratio_height")]
@@ -57,5 +61,7 @@ namespace WowzaStreamingCloud.Data
 
         [JsonProperty("transcoder_type")]
         public string TranscoderType { get; set; }
+
     }
+
 }

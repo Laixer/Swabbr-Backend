@@ -58,9 +58,9 @@ namespace Swabbr.Api.Controllers
         private async Task<UserOutputModel> GetUserOutputAsync(User entity)
         {
             UserOutputModel output = UserOutputModel.Parse(entity);
-            output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.UserId);
-            output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.UserId);
-            output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.UserId);
+            output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.Id);
+            output.TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(output.Id);
+            output.TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(output.Id);
             return output;
         }
 
@@ -218,9 +218,9 @@ namespace Swabbr.Api.Controllers
             int totalViewsCount = int.MinValue;
 
             // Add up statistical data for each of the users' vlogs.
-            foreach (Vlog vlog in userVlogs)
+            foreach (var vlog in userVlogs)
             {
-                totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(vlog.VlogId);
+                totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(vlog.Id);
                 totalLikesReceivedCount += vlog.Likes.Count();
 
                 //TODO: Add up received views for each vlog here: v

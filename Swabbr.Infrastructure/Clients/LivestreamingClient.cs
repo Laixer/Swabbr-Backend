@@ -75,7 +75,7 @@ namespace Swabbr.Infrastructure.Services
                 // Save the livestream in the database storage
                 var createdStream = await _livestreamRepository.CreateAsync(new Livestream
                 {
-                    Id = response.Livestream.Id, // TODO THOMAS Bad idea to use the external id as the internal id
+                    ExternalId = response.Livestream.Id,
                     IsActive = false,
                     BroadcastLocation = response.Livestream.BroadcastLocation,
                     CreatedAt = response.Livestream.CreatedAt,
@@ -91,14 +91,14 @@ namespace Swabbr.Infrastructure.Services
             }
         }
 
-        public async Task DeleteStreamAsync(string id)
+        public async Task DeleteLivestreamAsync(string id)
         {
             await _wowzaClient.DeleteStreamAsync(id);
         }
 
         // TODO THOMAS This is very bug sensitive, should be transactional, should be completely revisited
         // TODO THOMAS This is a duplicate
-        public async Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
+        public async Task<LivestreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
             throw new NotImplementedException();
             int availableStreamCount = 0;
@@ -114,18 +114,18 @@ namespace Swabbr.Infrastructure.Services
             var availableLivestream = await _livestreamRepository.ReserveLivestreamForUserAsync(userId);
 
             // Retrieve live stream connection details from the api.
-            var connection = await GetStreamConnectionAsync(availableLivestream.Id);
+            var connection = await GetStreamConnectionAsync(availableLivestream.ExternalId);
             return connection;
         }
 
-        public async Task<StreamConnectionDetails> GetStreamConnectionAsync(string id)
+        public async Task<LivestreamConnectionDetails> GetStreamConnectionAsync(string id)
         {
             var response = await _wowzaClient.GetStreamAsync(id);
 
             // Return the connection details extracted from the received object
-            return new StreamConnectionDetails
+            return new LivestreamConnectionDetails
             {
-                Id = response.Livestream.Id,
+                ExternalId = response.Livestream.Id,
                 AppName = response.Livestream.SourceConnectionInformation.Application,
                 HostAddress = response.Livestream.SourceConnectionInformation.PrimaryServer,
                 Port = (ushort)response.Livestream.SourceConnectionInformation.HostPort,
@@ -147,12 +147,12 @@ namespace Swabbr.Infrastructure.Services
             };
         }
 
-        public async Task StartStreamAsync(string id)
+        public async Task StartLivestreamAsync(string id)
         {
             await _wowzaClient.StartStreamAsync(id);
         }
 
-        public async Task StopStreamAsync(string id)
+        public async Task StopLivestreamAsync(string id)
         {
             await _wowzaClient.StopStreamAsync(id);
         }

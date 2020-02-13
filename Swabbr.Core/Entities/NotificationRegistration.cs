@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Notifications;
+﻿using Swabbr.Core.Enums;
+using Swabbr.Core.Notifications;
 using System;
 
 namespace Swabbr.Core.Entities

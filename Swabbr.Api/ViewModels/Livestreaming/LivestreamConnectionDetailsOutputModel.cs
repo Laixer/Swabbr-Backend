@@ -2,10 +2,10 @@
 
 namespace Swabbr.Api.ViewModels
 {
-    public class StreamConnectionDetailsOutputModel
+    public class LivestreamConnectionDetailsOutputModel
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string ExternalId { get; set; }
 
         [JsonProperty("host_address")]
         public string HostAddress { get; set; }

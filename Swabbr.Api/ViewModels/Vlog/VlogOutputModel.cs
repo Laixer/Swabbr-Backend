@@ -11,7 +11,7 @@ namespace Swabbr.Api.ViewModels
         /// Id of the vlog.
         /// </summary>
         [JsonProperty("vlogId")]
-        public Guid VlogId { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Id of the user who created the vlog.
@@ -23,7 +23,7 @@ namespace Swabbr.Api.ViewModels
         /// Download URL of the recording of the livestream.
         /// </summary>
         [JsonProperty("downloadUrl")]
-        public string DownloadUrl { get; set; }
+        public Uri DownloadUrl { get; set; }
 
         /// <summary>
         /// Indicates if the vlog should be publicly available to other users.
@@ -41,19 +41,19 @@ namespace Swabbr.Api.ViewModels
         /// The date at which the recording of the vlog started.
         /// </summary>
         [JsonProperty("dateStarted")]
-        public DateTime DateStarted { get; set; }
+        public DateTimeOffset DateStarted { get; set; }
 
         /// <summary>
         /// Likes given to this vlog by users.
         /// </summary>
         [JsonProperty("likes")]
-        public List<VlogLike> Likes { get; set; }
+        public IEnumerable<VlogLike> Likes { get; set; }
 
-        public static VlogOutputModel Parse(Vlog vlog)
+        public static VlogOutputModel Parse(Core.Entities.Vlog vlog)
         {
             return new VlogOutputModel
             {
-                VlogId = vlog.VlogId,
+                Id = vlog.Id,
                 UserId = vlog.UserId,
                 DownloadUrl = vlog.DownloadUrl,
                 DateStarted = vlog.DateStarted,

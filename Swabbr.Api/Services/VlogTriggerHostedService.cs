@@ -89,7 +89,7 @@ namespace Swabbr.Infrastructure.Services
                 try
                 {
                     // Reserve a livestream
-                    StreamConnectionDetails connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(user.UserId);
+                    var connectionDetails = await _livestreamingService.ReserveLiveStreamForUserAsync(user.Id);
 
                     // Send notification to this user with the livestream connection details
                     var notification = new SwabbrNotification
@@ -99,15 +99,15 @@ namespace Swabbr.Infrastructure.Services
                             Title = "Time to record a vlog!",
                             Body = "It's time to record a vlog!",
                             Object = JObject.FromObject(connectionDetails),
-                            ObjectType = typeof(StreamConnectionDetails).Name,
+                            ObjectType = typeof(LivestreamConnectionDetails).Name,
                             ClickAction = ClickActions.VLOG_RECORD_REQUEST
                         }
                     };
 
                     // TODO THOMAS Shouldn't this be called when we actually start streaming? Could be my misunderstanding
-                    await _livestreamingService.StartStreamAsync(connectionDetails.Id);
+                    await _livestreamingService.StartStreamAsync(connectionDetails.ExternalId);
                     // TODO THOMAS Proper logging
-                    System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.Id}. Sending notification in 1 minute.");
+                    System.Diagnostics.Debug.WriteLine($"Started livestream for user {user.FirstName} livestream id: {connectionDetails.ExternalId}. Sending notification in 1 minute.");
 
                     //TODO: Wait before sending the notification to ensure the stream has started.
                     // Instead of waiting x minutes, we could also poll the state of the livestream until it is 'started' here.
@@ -115,10 +115,10 @@ namespace Swabbr.Infrastructure.Services
                     await Task.Delay(TimeSpanStartStream);
 
                     // Send the notification containing the stream connection details to the user.
-                    await _notificationService.SendNotificationToUserAsync(notification, user.UserId);
+                    await _notificationService.SendNotificationToUserAsync(notification, user.Id);
 
                     // Wait for time-out
-                    _ = WaitForTimeoutAsync(user.UserId, connectionDetails.Id);
+                    _ = WaitForTimeoutAsync(user.Id, connectionDetails.ExternalId);
                 }
                 catch (Exception e)
                 {
@@ -134,7 +134,8 @@ namespace Swabbr.Infrastructure.Services
             }
 
             // Make sure enough livestreams are available for usage
-            int availableStreamCount = await _livestreamRepository.GetAvailableLivestreamCountAsync();
+            throw new NotImplementedException();
+            int availableStreamCount = 0;// await _livestreamRepository.GetAvailableLivestreamCountAsync();
             int createdCount = 0;
 
             // Replenish livestreams
@@ -144,7 +145,7 @@ namespace Swabbr.Infrastructure.Services
                 while (createdCount < (MAX_STREAM_POOL_SIZE - availableStreamCount) &&
                         createdCount <= MAX_CREATE_REQUEST_LIMIT)
                 {
-                    await _livestreamingService.CreateNewStreamAsync("test");
+                    await _livestreamingService.CreateLivestreamAsync("test");
                     createdCount++;
                 }
             }

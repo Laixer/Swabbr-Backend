@@ -2,6 +2,7 @@
 using Microsoft.Azure.NotificationHubs.Messaging;
 using Microsoft.Extensions.Options;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Clients;

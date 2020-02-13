@@ -49,7 +49,7 @@ namespace Swabbr.Api.Controllers
                 var registration = await _notificationRegistrationRepository.GetByUserIdAsync(identityUser.UserId);
 
                 // Delete the registration from the hub
-                await _notificationService.DeleteRegistrationAsync(registration.RegistrationId);
+                await _notificationService.DeleteRegistrationAsync(registration.Id);
                 await _notificationRegistrationRepository.DeleteAsync(registration);
 
                 return Ok();

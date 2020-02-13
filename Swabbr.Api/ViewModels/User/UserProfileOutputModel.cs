@@ -59,7 +59,7 @@ namespace Swabbr.Api.ViewModels
         /// URL containing the uploaded profile image of the user.
         /// </summary>
         [JsonProperty("profileImageUrl")]
-        public string ProfileImageUrl { get; set; }
+        public Uri ProfileImageUrl { get; set; }
 
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.

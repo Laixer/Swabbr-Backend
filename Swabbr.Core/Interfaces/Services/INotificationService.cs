@@ -13,7 +13,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// Delete the registration for an already registered device
         /// </summary>
         /// <param name="registrationId">Id of the registered device</param>
-        Task DeleteRegistrationAsync(string registrationId);
+        Task DeleteRegistrationAsync(Guid registrationId);
 
         /// <summary>
         /// Enable push notifications for a device

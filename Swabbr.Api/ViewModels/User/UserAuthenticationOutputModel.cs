@@ -23,13 +23,13 @@ namespace Swabbr.Api.ViewModels
         /// Claims of the authenticated user.
         /// </summary>
         [JsonProperty("claims")]
-        public IList<Claim> Claims { get; set; }
+        public IEnumerable<Claim> Claims { get; set; }
 
         /// <summary>
         /// Application roles of the user.
         /// </summary>
         [JsonProperty("roles")]
-        public IList<string> Roles { get; set; }
+        public IEnumerable<string> Roles { get; set; }
 
         /// <summary>
         /// Information about the authenticated user.

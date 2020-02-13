@@ -19,33 +19,32 @@ namespace Swabbr.Core.Interfaces.Clients
         /// </summary>
         /// <returns>Connection details for broadcasting the stream.</returns>
         /// <param name="livestreamId">Id of the livestream.</param>
-        Task<StreamConnectionDetails> GetStreamConnectionAsync(string livestreamId);
+        Task<LivestreamConnectionDetails> GetStreamConnectionAsync(string livestreamId);
 
         /// <summary>
         /// Returns connection details for an available livestream from the pool, creates a new
         /// livestream if none are available.
         /// </summary>
         /// <param name="userId">Id of the user to reserve the livestream for.</param>
-        Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId);
+        Task<LivestreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId);
 
         /// <summary>
         /// Delete a new livestream.
         /// </summary>
         /// <param name="livestreamId">Id of the livestream.</param>
-        Task DeleteStreamAsync(string livestreamId);
+        Task DeleteLivestreamAsync(string livestreamId);
 
         /// <summary>
         /// Start a stopped livestream.
         /// </summary>
         /// <param name="livestreamId">Id of the livestream.</param>
-        /// TODO THOMAS Stream -> LiveStream (consistency)
-        Task StartStreamAsync(string livestreamId);
+        Task StartLivestreamAsync(string livestreamId);
 
         /// <summary>
         /// Stop a started livestream.
         /// </summary>
         /// <param name="livestreamId">Id of the livestream.</param>
-        Task StopStreamAsync(string livestreamId);
+        Task StopLivestreamAsync(string livestreamId);
 
         /// <summary>
         /// Fetch the playback of a livestream.

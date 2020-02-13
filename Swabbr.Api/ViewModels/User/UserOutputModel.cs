@@ -10,7 +10,7 @@ namespace Swabbr.Api.ViewModels
         /// Unique identifier.
         /// </summary>
         [JsonProperty("userId")]
-        public Guid UserId { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// First name of the user.
