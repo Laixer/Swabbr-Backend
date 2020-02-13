@@ -5,14 +5,12 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces
 {
+
+    /// <summary>
+    /// Contract for the <see cref="FollowRequest"/> repository.
+    /// </summary>
     public interface IFollowRequestRepository : IRepository<FollowRequest>
     {
-        /// <summary>
-        /// Returns a single follow request entity by id.
-        /// </summary>
-        /// <param name="followRequestId">Unique identifier of the follow request.</param>
-        /// <returns></returns>
-        Task<FollowRequest> GetByIdAsync(Guid followRequestId);
 
         /// <summary>
         /// Returns a single follow request entity from the id of the requester to the id of the receiver.
@@ -59,5 +57,7 @@ namespace Swabbr.Core.Interfaces
         /// </param>
         /// <returns></returns>
         Task<int> GetFollowingCountAsync(Guid userId);
+
     }
+
 }

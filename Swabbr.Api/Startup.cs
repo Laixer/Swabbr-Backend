@@ -16,7 +16,7 @@ using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
-using Swabbr.Infrastructure.Data.Repositories;
+using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Services;
 using System;
 using System.IO;
@@ -95,7 +95,6 @@ namespace Swabbr
 
             // Configure DI for data repositories
             services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IUserSettingsRepository, UserSettingsRepository>();
             services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
             services.AddTransient<IVlogRepository, VlogRepository>();
             services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();

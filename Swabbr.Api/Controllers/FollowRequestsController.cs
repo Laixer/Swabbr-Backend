@@ -27,19 +27,16 @@ namespace Swabbr.Api.Controllers
     public class FollowRequestsController : ApiControllerBase
     {
         private readonly IUserRepository _userRepository;
-        private readonly IUserSettingsRepository _userSettingsRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
         private readonly IFollowRequestService _followRequestService;
 
         public FollowRequestsController(
             IUserRepository userRepository,
-            IUserSettingsRepository userSettingsRepository,
             IFollowRequestService followRequestService,
             UserManager<SwabbrIdentityUser> userManager)
         {
             _userRepository = userRepository;
-            _userSettingsRepository = userSettingsRepository;
             _followRequestService = followRequestService;
             _userManager = userManager;
         }
