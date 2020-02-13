@@ -112,32 +112,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override LivestreamTableEntity Map(Livestream entity)
         {
-            return new LivestreamTableEntity
-            {
-                LivestreamId = entity.Id,
-                UserId = entity.UserId,
-                VlogId = entity.VlogId,
-                IsActive = entity.IsActive,
-                BroadcastLocation = entity.BroadcastLocation,
-                CreatedAt = entity.CreatedAt,
-                Name = entity.Name,
-                UpdatedAt = entity.UpdatedAt,
-            };
+            throw new NotImplementedException();
         }
 
         public override Livestream Map(LivestreamTableEntity entity)
         {
-            return new Livestream
-            {
-                Id = entity.LivestreamId,
-                UserId = entity.UserId,
-                VlogId = entity.VlogId,
-                IsActive = entity.IsActive,
-                BroadcastLocation = entity.BroadcastLocation,
-                CreatedAt = entity.CreatedAt,
-                Name = entity.Name,
-                UpdatedAt = entity.UpdatedAt,
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(LivestreamTableEntity entity) => entity.BroadcastLocation;

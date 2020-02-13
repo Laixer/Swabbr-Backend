@@ -107,32 +107,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override Vlog Map(VlogTableEntity entity)
         {
-            return new Vlog
-            {
-                DateStarted = entity.DateStarted,
-                IsLive = entity.IsLive,
-                IsPrivate = entity.IsPrivate,
-                MediaServiceData = entity.MediaServiceData,
-                UserId = entity.UserId,
-                VlogId = entity.VlogId,
-                DownloadUrl = entity.DownloadUrl,
-                LivestreamId = entity.LivestreamId
-            };
+            throw new NotImplementedException();
         }
 
         public override VlogTableEntity Map(Vlog entity)
         {
-            return new VlogTableEntity
-            {
-                DateStarted = entity.DateStarted,
-                IsLive = entity.IsLive,
-                IsPrivate = entity.IsPrivate,
-                MediaServiceData = entity.MediaServiceData,
-                UserId = entity.UserId,
-                VlogId = entity.VlogId,
-                DownloadUrl = entity.DownloadUrl,
-                LivestreamId = entity.LivestreamId
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(VlogTableEntity entity) => entity.UserId.ToString();

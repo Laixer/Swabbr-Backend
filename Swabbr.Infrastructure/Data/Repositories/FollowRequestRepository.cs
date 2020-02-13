@@ -96,26 +96,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override FollowRequestTableEntity Map(FollowRequest entity)
         {
-            return new FollowRequestTableEntity
-            {
-                FollowRequestId = entity.FollowRequestId,
-                ReceiverId = entity.ReceiverId,
-                RequesterId = entity.RequesterId,
-                Status = (int)entity.Status,
-                TimeCreated = entity.TimeCreated
-            };
+            throw new NotImplementedException();
         }
 
         public override FollowRequest Map(FollowRequestTableEntity entity)
         {
-            return new FollowRequest
-            {
-                FollowRequestId = entity.FollowRequestId,
-                ReceiverId = entity.ReceiverId,
-                RequesterId = entity.RequesterId,
-                Status = (FollowRequestStatus)entity.Status,
-                TimeCreated = entity.TimeCreated
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(FollowRequestTableEntity entity) => entity.ReceiverId.ToString();

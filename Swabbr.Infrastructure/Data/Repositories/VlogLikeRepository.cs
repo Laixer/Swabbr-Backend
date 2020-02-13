@@ -31,24 +31,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override VlogLikeTableEntity Map(VlogLike entity)
         {
-            return new VlogLikeTableEntity
-            {
-                VlogLikeId = entity.VlogLikeId,
-                VlogId = entity.VlogId,
-                UserId = entity.UserId,
-                TimeCreated = entity.TimeCreated
-            };
+            throw new NotImplementedException();
         }
 
         public override VlogLike Map(VlogLikeTableEntity entity)
         {
-            return new VlogLike
-            {
-                VlogLikeId = entity.VlogLikeId,
-                VlogId = entity.VlogId,
-                UserId = entity.UserId,
-                TimeCreated = entity.TimeCreated
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(VlogLikeTableEntity entity) => entity.VlogId.ToString();

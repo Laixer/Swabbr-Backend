@@ -67,50 +67,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override User Map(UserTableEntity entity)
         {
-            return new User
-            {
-                UserId = entity.UserId,
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-
-                Email = entity.Email,
-
-                BirthDate = entity.BirthDate,
-                Country = entity.Country,
-                Gender = (Gender)entity.Gender,
-                IsPrivate = entity.IsPrivate,
-
-                Latitude = entity.Latitude,
-                Longitude = entity.Longitude,
-
-                Nickname = entity.Nickname,
-                ProfileImageUrl = entity.ProfileImageUrl,
-                Timezone = entity.Timezone
-            };
+            throw new NotImplementedException();
         }
 
         public override UserTableEntity Map(User entity)
         {
-            return new UserTableEntity
-            {
-                UserId = entity.UserId,
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-
-                Email = entity.Email,
-
-                BirthDate = entity.BirthDate,
-                Country = entity.Country,
-                Gender = (int)entity.Gender,
-                IsPrivate = entity.IsPrivate,
-
-                Latitude = entity.Latitude,
-                Longitude = entity.Longitude,
-
-                Nickname = entity.Nickname,
-                ProfileImageUrl = entity.ProfileImageUrl,
-                Timezone = entity.Timezone
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(UserTableEntity entity) => entity.UserId.ToString();

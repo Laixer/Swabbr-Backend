@@ -56,24 +56,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override NotificationRegistrationTableEntity Map(NotificationRegistration entity)
         {
-            return new NotificationRegistrationTableEntity
-            {
-                RegistrationId = entity.RegistrationId,
-                Platform = (int)entity.Platform,
-                UserId = entity.UserId,
-                Handle = entity.Handle
-            };
+            throw new NotImplementedException();
         }
 
         public override NotificationRegistration Map(NotificationRegistrationTableEntity entity)
         {
-            return new NotificationRegistration
-            {
-                RegistrationId = entity.RegistrationId,
-                Platform = (PushNotificationPlatform)entity.Platform,
-                UserId = entity.UserId,
-                Handle = entity.Handle
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(NotificationRegistrationTableEntity entity) => entity.UserId.ToString();

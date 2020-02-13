@@ -63,19 +63,5 @@ namespace Swabbr.Api.ViewModels
             };
         }
 
-        [Obsolete]
-        public static implicit operator VlogOutputModel(Vlog vlog)
-        {
-            return new VlogOutputModel
-            {
-                VlogId = vlog.VlogId,
-                UserId = vlog.UserId,
-                DownloadUrl = vlog.DownloadUrl,
-                DateStarted = vlog.DateStarted,
-                IsLive = vlog.IsLive,
-                IsPrivate = vlog.IsPrivate,
-                Likes = vlog.Likes,
-            };
-        }
     }
 }

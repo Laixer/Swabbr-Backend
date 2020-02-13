@@ -98,28 +98,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override Reaction Map(ReactionTableEntity entity)
         {
-            return new Reaction
-            {
-                ReactionId = entity.ReactionId,
-                VlogId = entity.VlogId,
-                UserId = entity.UserId,
-                DatePosted = entity.DatePosted,
-                IsPrivate = entity.IsPrivate,
-                MediaServiceData = entity.MediaServiceData
-            };
+            throw new NotImplementedException();
         }
 
         public override ReactionTableEntity Map(Reaction entity)
         {
-            return new ReactionTableEntity
-            {
-                ReactionId = entity.ReactionId,
-                VlogId = entity.VlogId,
-                UserId = entity.UserId,
-                DatePosted = entity.DatePosted,
-                IsPrivate = entity.IsPrivate,
-                MediaServiceData = entity.MediaServiceData
-            };
+            throw new NotImplementedException();
         }
 
         public override string ResolvePartitionKey(ReactionTableEntity entity) => entity.VlogId.ToString();
