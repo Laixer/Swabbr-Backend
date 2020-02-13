@@ -52,7 +52,6 @@ namespace Swabbr.Api.Controllers
 
             var newReaction = new Reaction
             {
-                ReactionId = Guid.NewGuid(),
                 VlogId = inputModel.VlogId,
                 UserId = identityUser.UserId,
                 IsPrivate = inputModel.IsPrivate,

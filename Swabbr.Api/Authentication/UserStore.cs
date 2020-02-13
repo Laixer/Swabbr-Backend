@@ -23,7 +23,6 @@ namespace Swabbr.Api.Authentication
         IUserRoleStore<SwabbrIdentityUser>
     {
 
-        // TODO THOMAS This belongs to the Infrastructure project! yorick: mag wel
         private readonly IDbClientFactory _factory;
 
         public UserStore(IDbClientFactory factory)

@@ -15,17 +15,14 @@ namespace Swabbr.Core.Services
         private readonly IFollowRequestRepository _followRequestRepository;
         private readonly IUserSettingsRepository _userSettingsRepository;
 
-        // TODO THOMAS OOF this formatting and line spacing 
-        public FollowRequestService(
-            IFollowRequestRepository followRequestRepository,
-            IUserSettingsRepository userSettingsRepository
-            )
+        public FollowRequestService(IFollowRequestRepository followRequestRepository,
+            IUserSettingsRepository userSettingsRepository)
         {
             _followRequestRepository = followRequestRepository;
             _userSettingsRepository = userSettingsRepository;
         }
 
-        // TODO THOMAS This seems very beun-like. If a request exists we should just stop attempting to fix anything.
+        // TODO THOMAS Q What do we want to do when we have a follow request that was already declined in the past?
         // Don't try to battle the race conditions, just stop the process immediately.
         public async Task<FollowRequest> SendAsync(Guid receiverId, Guid requesterId)
         {
@@ -46,41 +43,31 @@ namespace Swabbr.Core.Services
             }
 
             // Obtain the follow mode setting of the receiving user.
-            var userSettings = await _userSettingsRepository.GetForUserAsync(receiverId);
-            var followMode = userSettings.FollowMode; // TODO THOMAS Don't do this, don't need to assign separately
+            var userSettings = await _userSettingsRepository.GetForUserAsync(receiverId).ConfigureAwait(false);
 
-            // Based on the the follow mode setting we assign the predetermined state of the follow request.
-            // TODO THOMAS Separate function, prevent the undefined state
-            FollowRequestStatus requestStatus;
-            switch (followMode)
+            // Function to extract the correct request status.
+            FollowRequestStatus getRequestStatus(FollowMode followMode)
             {
-                // Automatically accept the request.
-                case FollowMode.AcceptAll:
-                    requestStatus = FollowRequestStatus.Accepted;
-                    break;
-                // Automatically decline the accept.
-                case FollowMode.DenyAll:
-                    requestStatus = FollowRequestStatus.Declined;
-                    break;
-                // If the receiving users' follow mode is set to manual or unspecified, the state will be set to pending. 
-                default:
-                    requestStatus = FollowRequestStatus.Pending;
-                    break;
+                switch (followMode)
+                {
+                    case FollowMode.AcceptAll:
+                        return FollowRequestStatus.Accepted;
+                    case FollowMode.DenyAll:
+                        return FollowRequestStatus.Declined;
+                    case FollowMode.Manual:
+                        return FollowRequestStatus.Pending;
+                }
+
+                throw new InvalidOperationException(nameof(followMode));
             }
 
-            // TODO THOMAS No need for separate assignment
-            // TODO THOMAS The database should handle the ID assignment, not this class
-            // TODO THOMAS DateTime.Now --> be careful with timezones! Maybe let the database handle this as well?
-            var entityToCreate = new FollowRequest
+            return await _followRequestRepository.CreateAsync(new FollowRequest
             {
-                FollowRequestId = Guid.NewGuid(),
                 ReceiverId = receiverId,
                 RequesterId = requesterId,
-                Status = requestStatus,
+                Status = getRequestStatus(userSettings.FollowMode),
                 TimeCreated = DateTime.Now
-            };
-
-            return await _followRequestRepository.CreateAsync(entityToCreate);
+            }).ConfigureAwait(false);
         }
 
         public async Task<FollowRequest> AcceptAsync(Guid followRequestId)
@@ -96,8 +83,6 @@ namespace Swabbr.Core.Services
             followRequest.Status = FollowRequestStatus.Declined;
             return await _followRequestRepository.UpdateAsync(followRequest);
         }
-
-        /* TODO THOMAS These just became wrapper functions, doesn't seem right. */
 
         public Task<bool> ExistsAsync(Guid receiverId, Guid requesterId)
         {
@@ -124,7 +109,6 @@ namespace Swabbr.Core.Services
             return _followRequestRepository.GetFollowingCountAsync(userId);
         }
 
-        // TODO THOMAS This should be SQL
         public async Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId)
         {
             return (await _followRequestRepository.GetIncomingForUserAsync(userId))

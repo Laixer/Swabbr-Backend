@@ -129,7 +129,7 @@ namespace Swabbr.Infrastructure.Services
                     // or something went wrong while sending out a notification (in which case we
                     // should possibly try to send it again)
 
-                    // TODO THOMAS Never keep this empty! Just throw something, don't hide your e ever
+                    throw new NotImplementedException();
                 }
             }
 

@@ -13,8 +13,7 @@ namespace Swabbr.Infrastructure.Services
 {
     public class LivestreamingClient : ILivestreamingClient
     {
-        // TODO THOMAS Why static? Just use singleton then
-        private static WowzaClient _wowzaClient;
+        private readonly WowzaClient _wowzaClient;
 
         private readonly ILivestreamRepository _livestreamRepository;
 
@@ -101,7 +100,8 @@ namespace Swabbr.Infrastructure.Services
         // TODO THOMAS This is a duplicate
         public async Task<StreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
-            int availableStreamCount = await _livestreamRepository.GetAvailableLivestreamCountAsync();
+            throw new NotImplementedException();
+            int availableStreamCount = 0;
             
             // If no streams are available, create a new stream. 
             //TODO: Minimum amount/lower boundary needed instead of 0?

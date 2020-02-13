@@ -206,7 +206,6 @@ namespace Swabbr.Api.Controllers
             // Create a new like record
             var entityToCreate = new VlogLike
             {
-                VlogLikeId = Guid.NewGuid(),
                 UserId = identityUser.UserId,
                 VlogId = vlogId,
                 TimeCreated = DateTime.Now,

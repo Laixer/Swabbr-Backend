@@ -68,10 +68,6 @@ namespace Swabbr.Api.Controllers
             // Construct a new identity user for a new user based on the given input
             var identityUser = new SwabbrIdentityUser
             {
-                // Generate new id for user to create
-                // TODO THOMAS The database should handle this
-                UserId = Guid.NewGuid(),
-
                 // Use the input to set the properties
                 Email = input.Email,
                 FirstName = input.FirstName,

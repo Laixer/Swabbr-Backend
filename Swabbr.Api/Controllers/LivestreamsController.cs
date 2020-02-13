@@ -104,7 +104,6 @@ namespace Swabbr.Api.Controllers
             // Create a new vlog for the livestream
             var newVlog = await _vlogRepository.CreateAsync(new Vlog
             {
-                VlogId = Guid.NewGuid(),
                 LivestreamId = livestream.Id,
                 UserId = identityUser.UserId,
                 DateStarted = DateTime.Now,
@@ -173,7 +172,6 @@ namespace Swabbr.Api.Controllers
                 // Create a new vlog record
                 var newVlog = await _vlogRepository.CreateAsync(new Vlog
                 {
-                    VlogId = Guid.NewGuid(),
                     LivestreamId = livestream.Id,
                     UserId = identityUser.UserId,
                     DateStarted = DateTime.Now

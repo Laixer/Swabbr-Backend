@@ -221,7 +221,7 @@ namespace Swabbr.Api.Controllers
             foreach (Vlog vlog in userVlogs)
             {
                 totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(vlog.VlogId);
-                totalLikesReceivedCount += vlog.Likes.Count;
+                totalLikesReceivedCount += vlog.Likes.Count();
 
                 //TODO: Add up received views for each vlog here: v
                 //// totalViews += ?

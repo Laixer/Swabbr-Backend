@@ -47,9 +47,8 @@ namespace Swabbr.Core.Services
 
         public async Task<LivestreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId)
         {
-            // TODO THOMAS Transactional, this entire function is a giant race condition.
-            // TODO THOMAS Niet in de database opslaan
-            int availableStreamCount = await _livestreamRepository.GetAvailableLivestreamCountAsync();
+            throw new NotImplementedException();
+            int availableStreamCount = 1;
 
             // If no streams are available, create a new stream. 
             //TODO: Minimum amount/lower boundary needed instead of 0?

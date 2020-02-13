@@ -47,55 +47,40 @@ namespace Swabbr.Infrastructure.Services
             await _hubClient.DeleteRegistrationAsync(registrationId);
         }
 
-        public async Task<NotificationRegistration> RegisterAsync(DeviceRegistration deviceRegistration, IList<string> tags)
+        public async Task<NotificationRegistration> RegisterAsync(DeviceRegistration deviceRegistration, IEnumerable<string> tags)
         {
-            RegistrationDescription registrationDescription;
+            var registrationDescription = getRegistrationDescription(deviceRegistration.Platform);
 
-            // TODO THOMAS Make this a separate function to prevent the undefined state
-            // TODO THOMAS Also, this can probably be generic? Inheritance for the win?
-            switch (deviceRegistration.Platform)
-            {
-                case PushNotificationPlatform.APNS:
-                    {
-                        registrationDescription = new AppleRegistrationDescription(deviceRegistration.Handle);
-                        break;
-                    }
-                case PushNotificationPlatform.FCM:
-                    {
-                        registrationDescription = new FcmRegistrationDescription(deviceRegistration.Handle);
-                        break;
-                    }
-                default:
-                    {
-                        throw new Exception("No platform notification service was provided.");
-                    }
+            // Separate function to determine the registration description.
+            RegistrationDescription getRegistrationDescription(PushNotificationPlatform platform) {
+                switch (platform)
+                {
+                    case PushNotificationPlatform.APNS:
+                        return new AppleRegistrationDescription(deviceRegistration.Handle);
+                    case PushNotificationPlatform.FCM:
+                        return new FcmRegistrationDescription(deviceRegistration.Handle);
+                }
+
+                throw new InvalidOperationException(nameof(platform));
             }
 
             // Create and use a new registration id from Azure Notification Hubs.
             registrationDescription.RegistrationId = await _hubClient.CreateRegistrationIdAsync(); ;
             registrationDescription.Tags = new HashSet<string>(tags);
 
-            try
-            {
-                // Create a new registration for this device
-                // TODO THOMAS Create a RD from an RD? What - this might seem like a good case for separation of concerns?
-                RegistrationDescription hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
+            // Create a new registration for this device
+            // TODO THOMAS Create a RD from an RD? What - this might seem like a good case for separation of concerns?
+            var hubRegistration = await _hubClient.CreateOrUpdateRegistrationAsync(registrationDescription);
 
-                return new NotificationRegistration
-                {
-                    RegistrationId = hubRegistration.RegistrationId,
-                    Handle = hubRegistration.PnsHandle,
-                    Platform = deviceRegistration.Platform
-                };
-            }
-            catch (MessagingException)
+            return new NotificationRegistration
             {
-                // TODO THOMAS Hmmmmmmm
-                throw;
-            }
+                Id = new Guid(hubRegistration.RegistrationId), // TODO THOMAS Kan dit wel????
+                Handle = hubRegistration.PnsHandle,
+                Platform = deviceRegistration.Platform
+            };
         }
 
-        public async Task<NotificationResponse> SendNotification(SwabbrNotification notification, PushNotificationPlatform platform, IList<string> tags)
+        public async Task<NotificationResponse> SendNotification(SwabbrNotification notification, PushNotificationPlatform platform, IEnumerable<string> tags)
         {
             try
             {
@@ -103,7 +88,7 @@ namespace Swabbr.Infrastructure.Services
 
                 NotificationOutcome outcome = null;
 
-                // TODO THOMAS json content string is dangerous
+                // TODO THOMAS Create JSON Interface 
                 switch (platform)
                 {
                     case PushNotificationPlatform.APNS:
@@ -134,7 +119,6 @@ namespace Swabbr.Infrastructure.Services
 
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Notification was not sent. Please try again.");
             }
-            // TODO THOMAS This doesn't seem right, revisit 
             catch (MessagingException e)
             {
                 return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage(e.Message);

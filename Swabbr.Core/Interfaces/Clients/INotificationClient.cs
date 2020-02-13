@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Notifications;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,8 @@ namespace Swabbr.Core.Interfaces.Clients
         /// <param name="id">Id of the device</param>
         /// <param name="deviceUpdate">Registration information</param>
         /// <param name="tags">Notification tags</param>
-        /// TODO THOMAS IList -> IEnumerable
         /// TODO THOMAS What are these tags?
-        Task<NotificationRegistration> RegisterAsync(DeviceRegistration deviceRegistration, IList<string> tags);
+        Task<NotificationRegistration> RegisterAsync(DeviceRegistration deviceRegistration, IEnumerable<string> tags);
 
         /// <summary>
         /// Send out a notification
@@ -33,7 +33,6 @@ namespace Swabbr.Core.Interfaces.Clients
         /// <typeparam name="T">The notification outcome type</typeparam>
         /// <param name="notification">The notification to send</param>
         /// <param name="tags">Notification tags</param>
-        /// TODO THOMAS IList -> IEnumerable
-        Task<NotificationResponse> SendNotification(SwabbrNotification notification, PushNotificationPlatform platform, IList<string> tags);
+        Task<NotificationResponse> SendNotification(SwabbrNotification notification, PushNotificationPlatform platform, IEnumerable<string> tags);
     }
 }

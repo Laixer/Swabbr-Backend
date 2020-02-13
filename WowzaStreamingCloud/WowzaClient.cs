@@ -13,8 +13,7 @@ namespace WowzaStreamingCloud
     public sealed class WowzaClient : IDisposable
     {
 
-        // TODO THOMAS The http client is static but gets disposed. This will 100% not work
-        private static readonly HttpClient HttpClient = new HttpClient();
+        private readonly HttpClient HttpClient = new HttpClient();
         private readonly WowzaStreamingCloudConfiguration WscOptions;
         public Uri ApiBase { get;}
 

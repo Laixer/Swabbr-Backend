@@ -9,6 +9,7 @@ namespace Swabbr.Core.Services
 {
 
     // TODO THOMAS This is just a wrapper for the repo...
+    // TODO THOMAS This is never used
     public class ReactionService : IReactionService
     {
         private readonly IReactionRepository _reactionRepository;
