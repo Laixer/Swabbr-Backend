@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Data.Repositories
 {
-    public class UserRepository : DbRepository<User, UserTableEntity>, IUserRepository
+    public class UserRepository : DbRepository<SwabbrUser, UserTableEntity>, IUserRepository
     {
         private readonly IDbClientFactory _factory;
 
@@ -22,7 +22,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
 
         public override string TableName { get; } = "Users";
 
-        public Task<User> GetAsync(Guid userId)
+        public Task<SwabbrUser> GetAsync(Guid userId)
         {
             // Partition key and row key are the same.
             //TODO: Change partition key if there is a better alternative.
@@ -30,7 +30,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return RetrieveAsync(id, id);
         }
 
-        public async Task<User> GetByEmailAsync(string email)
+        public async Task<SwabbrUser> GetByEmailAsync(string email)
         {
             var tableQuery = new TableQuery<UserTableEntity>().Where(
                 TableQuery.GenerateFilterCondition("Email", QueryComparisons.Equal, email));
@@ -50,7 +50,7 @@ namespace Swabbr.Infrastructure.Data.Repositories
         /// first name, last name or nickname.
         /// </summary>
         /// <param name="q">The search query that is supplied by the client.</param>
-        public async Task<IEnumerable<User>> SearchAsync(string q, uint offset, uint limit)
+        public async Task<IEnumerable<SwabbrUser>> SearchAsync(string q, uint offset, uint limit)
         {
             //TODO: Use cognitive search
 
@@ -65,12 +65,12 @@ namespace Swabbr.Infrastructure.Data.Repositories
             return queryResults.Select(x => Map(x));
         }
 
-        public override User Map(UserTableEntity entity)
+        public override SwabbrUser Map(UserTableEntity entity)
         {
             throw new NotImplementedException();
         }
 
-        public override UserTableEntity Map(User entity)
+        public override UserTableEntity Map(SwabbrUser entity)
         {
             throw new NotImplementedException();
         }

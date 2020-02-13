@@ -85,7 +85,7 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("totalFollowing")]
         public int TotalFollowing { get; set; }
 
-        public static implicit operator UserProfileOutputModel(User user)
+        public static implicit operator UserProfileOutputModel(SwabbrUser user)
         {
             return new UserProfileOutputModel
             {

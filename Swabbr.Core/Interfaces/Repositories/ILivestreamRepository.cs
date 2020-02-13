@@ -20,14 +20,14 @@ namespace Swabbr.Core.Interfaces
         /// <summary>
         /// Returns a <see cref="Livestream"/> that is active and currently claimed by the specified user.
         /// </summary>
-        /// <param name="userId">The internal <see cref="User"/> id</param>
+        /// <param name="userId">The internal <see cref="SwabbrUser"/> id</param>
         Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId);
 
         /// <summary>
         /// Returns a <see cref="Livestream"/> that is available for usage and claims ownership for
         /// the specified user.
         /// </summary>
-        /// <param name="userId">The internal <see cref="User"/> id</param>
+        /// <param name="userId">The internal <see cref="SwabbrUser"/> id</param>
         Task<Livestream> ReserveLivestreamForUserAsync(Guid userId);
 
         /// <summary>

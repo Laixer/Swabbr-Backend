@@ -90,9 +90,9 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("phoneNumber", Required = Required.DisallowNull)]
         public string PhoneNumber { get; set; }
 
-        public static implicit operator User(UserRegisterInputModel user)
+        public static implicit operator SwabbrUser(UserRegisterInputModel user)
         {
-            return new User
+            return new SwabbrUser
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,

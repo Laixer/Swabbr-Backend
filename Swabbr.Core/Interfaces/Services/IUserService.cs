@@ -16,23 +16,23 @@ namespace Swabbr.Core.Interfaces.Services
         /// <summary>
         /// Get a single user entity by id.
         /// </summary>
-        Task<User> GetAsync(Guid userId);
+        Task<SwabbrUser> GetAsync(Guid userId);
 
         /// <summary>
         /// Update a user entity.
         /// </summary>
-        Task<User> UpdateAsync(User user);
+        Task<SwabbrUser> UpdateAsync(SwabbrUser user);
 
         /// <summary>
         /// Get a single user entity by its email address.
         /// </summary>
-        Task<User> GetByEmailAsync(string email);
+        Task<SwabbrUser> GetByEmailAsync(string email);
 
         /// <summary>
         /// Create a new user.
         /// </summary>
         /// <param name="user">User to create.</param>
-        Task<User> CreateAsync(User user);
+        Task<SwabbrUser> CreateAsync(SwabbrUser user);
 
         /// <summary>
         /// Search for application users based on a given search query.
@@ -41,6 +41,6 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="offset">Result record offset.</param>
         /// <param name="limit">Result limit.</param>
         /// <returns>A collection of users matching the search query.</returns>
-        Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
+        Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit);
     }
 }

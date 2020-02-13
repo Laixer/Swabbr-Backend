@@ -55,7 +55,7 @@ namespace Swabbr.Api.Controllers
         }
 
         // TODO: Move to separate (ViewModel) service that parses the entity and retrieves statistics.
-        private async Task<UserOutputModel> GetUserOutputAsync(User entity)
+        private async Task<UserOutputModel> GetUserOutputAsync(SwabbrUser entity)
         {
             UserOutputModel output = UserOutputModel.Parse(entity);
             output.TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(output.Id);
@@ -75,7 +75,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 //TODO: Use Services
-                User user = await _userService.GetAsync(userId);
+                SwabbrUser user = await _userService.GetAsync(userId);
                 UserOutputModel output = await GetUserOutputAsync(user);
                 return Ok(output);
             }

@@ -75,9 +75,9 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("phoneNumber")]
         public string PhoneNumber { get; set; }
 
-        public static implicit operator User(UserUpdateInputModel user)
+        public static implicit operator SwabbrUser(UserUpdateInputModel user)
         {
-            return new User
+            return new SwabbrUser
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,

@@ -4,7 +4,7 @@ namespace Swabbr.Api.ViewModels
 {
     public partial class UserOutputModel
     {
-        public static UserOutputModel Parse(User user) => new UserOutputModel
+        public static UserOutputModel Parse(SwabbrUser user) => new UserOutputModel
         {
             Id = user.Id,
             FirstName = user.FirstName,

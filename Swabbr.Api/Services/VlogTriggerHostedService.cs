@@ -76,13 +76,13 @@ namespace Swabbr.Infrastructure.Services
         public async void OnTriggerEventAsync(object state)
         {
             //TODO: Obtain and determine users to send a vlog request
-            var targetedUsers = new List<User>()
+            var targetedUsers = new List<SwabbrUser>()
             {
                 //TODO:Currently using only the example user (user@example.com) for testing purposes
                 await _userRepository.GetAsync(new Guid("d206ad6c-0bdc-4f17-903a-3b5c260de8c2"))
             };
 
-            foreach (User user in targetedUsers)
+            foreach (SwabbrUser user in targetedUsers)
             {
                 // Send each targeted user a livestreaming request notification
 
@@ -191,7 +191,7 @@ namespace Swabbr.Infrastructure.Services
         {
             //TODO: Determine whether the user is elligible for reserving a livestream (recording a vlog)
 
-            User user = await _userRepository.GetAsync(userId);
+            SwabbrUser user = await _userRepository.GetAsync(userId);
 
             //TODO: Currently determining this arbitrarily for testing purposes.
             return user.Email.Equals("user@example.com", StringComparison.OrdinalIgnoreCase);

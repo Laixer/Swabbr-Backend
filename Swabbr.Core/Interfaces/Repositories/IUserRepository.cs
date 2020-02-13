@@ -8,17 +8,17 @@ namespace Swabbr.Core.Interfaces
     /// <summary>
     /// Repository for User entities.
     /// </summary>
-    public interface IUserRepository : IRepository<User>
+    public interface IUserRepository : IRepository<SwabbrUser>
     {
         /// <summary>
         /// Get a single user entity by id.
         /// </summary>
-        Task<User> GetAsync(Guid userId);
+        Task<SwabbrUser> GetAsync(Guid userId);
 
         /// <summary>
         /// Get a single user entity by its email address.
         /// </summary>
-        Task<User> GetByEmailAsync(string email);
+        Task<SwabbrUser> GetByEmailAsync(string email);
 
         /// <summary>
         /// Searching for users.
@@ -28,7 +28,7 @@ namespace Swabbr.Core.Interfaces
         /// <param name="limit">Result limit.</param>
         /// <returns>A collection of users matching the search query.</returns>
         /// Is this the optimal pagination method? Maybe make this a bit more explicit
-        Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
+        Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit);
 
         /// <summary>
         /// Checks if a user with the given id exists.

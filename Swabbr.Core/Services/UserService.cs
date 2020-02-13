@@ -18,7 +18,7 @@ namespace Swabbr.Core.Services
             _userRepository = userRepository;
         }
 
-        public async Task<User> CreateAsync(User user)
+        public async Task<SwabbrUser> CreateAsync(SwabbrUser user)
         {
             return await _userRepository.CreateAsync(user);
         }
@@ -28,22 +28,22 @@ namespace Swabbr.Core.Services
             return await _userRepository.UserExistsAsync(userId);
         }
 
-        public async Task<User> GetAsync(Guid userId)
+        public async Task<SwabbrUser> GetAsync(Guid userId)
         {
             return await _userRepository.GetAsync(userId);
         }
 
-        public async Task<User> GetByEmailAsync(string email)
+        public async Task<SwabbrUser> GetByEmailAsync(string email)
         {
             return await _userRepository.GetByEmailAsync(email);
         }
 
-        public async Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit)
+        public async Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit)
         {
             return await _userRepository.SearchAsync(query, offset, limit);
         }
 
-        public async Task<User> UpdateAsync(User user)
+        public async Task<SwabbrUser> UpdateAsync(SwabbrUser user)
         {
             return await _userRepository.UpdateAsync(user);
         }
