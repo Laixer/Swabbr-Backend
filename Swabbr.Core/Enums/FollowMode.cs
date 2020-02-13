@@ -18,6 +18,6 @@
         /// <summary>
         /// Automatically deny all incoming follow requests.
         /// </summary>
-        DenyAll
+        DeclineAll
     }
 }

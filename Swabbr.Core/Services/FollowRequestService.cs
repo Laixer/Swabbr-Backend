@@ -52,7 +52,7 @@ namespace Swabbr.Core.Services
                 {
                     case FollowMode.AcceptAll:
                         return FollowRequestStatus.Accepted;
-                    case FollowMode.DenyAll:
+                    case FollowMode.DeclineAll:
                         return FollowRequestStatus.Declined;
                     case FollowMode.Manual:
                         return FollowRequestStatus.Pending;
