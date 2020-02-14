@@ -3,15 +3,10 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-trigger:
-- master
-- development
-
 pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
   project: '**/Swabbr.Api.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
