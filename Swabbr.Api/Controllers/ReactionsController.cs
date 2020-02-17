@@ -53,7 +53,7 @@ namespace Swabbr.Api.Controllers
             var newReaction = new Reaction
             {
                 VlogId = inputModel.VlogId,
-                UserId = identityUser.UserId,
+                UserId = identityUser.Id,
                 IsPrivate = inputModel.IsPrivate,
                 DatePosted = DateTime.Now,
             };
@@ -75,7 +75,7 @@ namespace Swabbr.Api.Controllers
 
             var reaction = await _reactionRepository.GetByIdAsync(inputModel.ReactionId);
 
-            if (!reaction.UserId.Equals(identityUser.UserId))
+            if (!reaction.UserId.Equals(identityUser.Id))
             {
                 return StatusCode(
                     (int)HttpStatusCode.Forbidden,
@@ -150,7 +150,7 @@ namespace Swabbr.Api.Controllers
 
                 var reaction = await _reactionRepository.GetByIdAsync(reactionId);
 
-                if (!identityUser.UserId.Equals(reaction.UserId))
+                if (!identityUser.Id.Equals(reaction.UserId))
                 {
                     return StatusCode(
                         (int)HttpStatusCode.Forbidden,

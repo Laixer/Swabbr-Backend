@@ -82,7 +82,7 @@ namespace Swabbr.Api.Controllers
             {
                 var vlog = await _vlogRepository.GetByIdAsync(vlogId);
 
-                if (vlog.UserId != identityUser.UserId)
+                if (vlog.UserId != identityUser.Id)
                 {
                     return StatusCode(
                         (int)HttpStatusCode.Forbidden,
@@ -164,7 +164,7 @@ namespace Swabbr.Api.Controllers
                 var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
 
                 // Ensure the authenticated user is the owner of this vlog
-                if (!vlogEntity.UserId.Equals(identityUser.UserId))
+                if (!vlogEntity.UserId.Equals(identityUser.Id))
                 {
                     return BadRequest(
                         this.Error(ErrorCodes.InsufficientAccessRights, "Access to this vlog is not allowed.")
@@ -206,7 +206,7 @@ namespace Swabbr.Api.Controllers
             // Create a new like record
             var entityToCreate = new VlogLike
             {
-                UserId = identityUser.UserId,
+                UserId = identityUser.Id,
                 VlogId = vlogId,
                 TimeCreated = DateTime.Now,
             };
@@ -228,7 +228,7 @@ namespace Swabbr.Api.Controllers
                 var identityUser = await _userManager.GetUserAsync(User);
 
                 // Retrieve and delete the entity
-                var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.UserId);
+                var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.Id);
                 await _vlogLikeRepository.DeleteAsync(entityToDelete);
 
                 return NoContent();

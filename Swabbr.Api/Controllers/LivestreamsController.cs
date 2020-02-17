@@ -87,7 +87,7 @@ namespace Swabbr.Api.Controllers
             var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
             // Ensure the requested user owns this livestream
-            if (!livestream.UserId.Equals(identityUser.UserId))
+            if (!livestream.UserId.Equals(identityUser.Id))
             {
                 return BadRequest(
                     this.Error(ErrorCodes.InsufficientAccessRights, "User currently does not have access to this livestream.")
@@ -105,7 +105,7 @@ namespace Swabbr.Api.Controllers
             var newVlog = await _vlogRepository.CreateAsync(new Vlog
             {
                 LivestreamId = livestream.Id,
-                UserId = identityUser.UserId,
+                UserId = identityUser.Id,
                 DateStarted = DateTime.Now,
                 IsLive = true
             });
@@ -118,7 +118,7 @@ namespace Swabbr.Api.Controllers
             string nickname = identityUser.Nickname;
 
             // Obtain the followers of the authenticated user
-            var followers = (await (_followRequestRepository.GetIncomingForUserAsync(identityUser.UserId)))
+            var followers = (await (_followRequestRepository.GetIncomingForUserAsync(identityUser.Id)))
                 .Where(fr => fr.Status == FollowRequestStatus.Accepted);
 
             // Construct notification
@@ -158,7 +158,7 @@ namespace Swabbr.Api.Controllers
 
             var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
-            if (!livestream.UserId.Equals(identityUser.UserId))
+            if (!livestream.UserId.Equals(identityUser.Id))
             {
                 return StatusCode(
                     (int)HttpStatusCode.Forbidden,
@@ -173,7 +173,7 @@ namespace Swabbr.Api.Controllers
                 var newVlog = await _vlogRepository.CreateAsync(new Vlog
                 {
                     LivestreamId = livestream.Id,
-                    UserId = identityUser.UserId,
+                    UserId = identityUser.Id,
                     DateStarted = DateTime.Now
                 });
 
@@ -314,7 +314,7 @@ namespace Swabbr.Api.Controllers
 
             var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
 
-            if (!livestream.UserId.Equals(identityUser.UserId))
+            if (!livestream.UserId.Equals(identityUser.Id))
             {
                 return StatusCode(
                     (int)HttpStatusCode.Forbidden,

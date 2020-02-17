@@ -52,7 +52,7 @@ namespace Swabbr.Api.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             // Retrieve all pending incoming requests for the authenticated user.
-            var incomingRequests = (await _followRequestService.GetPendingIncomingForUserAsync(user.UserId))
+            var incomingRequests = (await _followRequestService.GetPendingIncomingForUserAsync(user.Id))
                 .Select(request => FollowRequestOutputModel.Parse(request));
 
             return Ok(incomingRequests);
@@ -69,7 +69,7 @@ namespace Swabbr.Api.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             // Retrieve all pending outgoing requests for the authenticated user.
-            var outgoingRequests = (await _followRequestService.GetPendingOutgoingForUserAsync(user.UserId))
+            var outgoingRequests = (await _followRequestService.GetPendingOutgoingForUserAsync(user.Id))
                 .Select(request => FollowRequestOutputModel.Parse(request));
 
             return Ok(outgoingRequests);
@@ -86,7 +86,7 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                var request = await _followRequestService.GetAsync(receiverId, identityUser.UserId);
+                var request = await _followRequestService.GetAsync(receiverId, identityUser.Id);
                 return Ok(FollowRequestOutputModel.Parse(request));
             }
             catch (EntityNotFoundException)
@@ -111,7 +111,7 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                var followRequest = await _followRequestService.GetAsync(receiverId, identityUser.UserId);
+                var followRequest = await _followRequestService.GetAsync(receiverId, identityUser.Id);
                 return Ok(followRequest.Status);
             }
             catch (EntityNotFoundException)
@@ -131,7 +131,7 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var requesterId = identityUser.UserId;
+            var requesterId = identityUser.Id;
 
             if (requesterId == receiverId)
             {
@@ -172,7 +172,7 @@ namespace Swabbr.Api.Controllers
             {
                 var identityUser = await _userManager.GetUserAsync(User);
 
-                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.UserId))
+                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.Id))
                 {
                     await _followRequestService.CancelAsync(followRequestId);
                     return NoContent();
@@ -207,9 +207,9 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                var followRequest = await _followRequestService.GetAsync(receiverId, identityUser.UserId);
+                var followRequest = await _followRequestService.GetAsync(receiverId, identityUser.Id);
                 // Delete the request
-                await _followRequestService.UnfollowAsync(receiverId, identityUser.UserId);
+                await _followRequestService.UnfollowAsync(receiverId, identityUser.Id);
                 return NoContent();
             }
             catch (EntityNotFoundException)
@@ -232,7 +232,7 @@ namespace Swabbr.Api.Controllers
                 var identityUser = await _userManager.GetUserAsync(User);
 
                 // Ensure the authenticated user is the receiver of this follow request.
-                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.UserId))
+                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.Id))
                 {
                     // Accept the request.
                     var acceptedRequest = await _followRequestService.AcceptAsync(followRequestId);
@@ -263,7 +263,7 @@ namespace Swabbr.Api.Controllers
                 var identityUser = await _userManager.GetUserAsync(User);
 
                 // Ensure the authenticated user is the receiver of this follow request.
-                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.UserId))
+                if (await _followRequestService.IsOwnedByUserAsync(followRequestId, identityUser.Id))
                 {
                     // Decline the request.
                     var declinedRequest = await _followRequestService.DeclineAsync(followRequestId);

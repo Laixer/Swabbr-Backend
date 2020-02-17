@@ -46,7 +46,7 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(identityUser.UserId);
+                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(identityUser.Id);
 
                 // Delete the registration from the hub
                 await _notificationService.DeleteRegistrationAsync(registration.Id);
@@ -74,7 +74,7 @@ namespace Swabbr.Api.Controllers
         {
             // Obtain the user Id
             var identityUser = await _userManager.GetUserAsync(User);
-            var userId = identityUser.UserId;
+            var userId = identityUser.Id;
 
             // Create or update the given registration for push notifications
             NotificationResponse registrationResult = await _notificationService.RegisterUserForPushNotificationsAsync(userId, deviceRegistration);

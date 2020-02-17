@@ -123,7 +123,7 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var entity = await _userService.GetAsync(identityUser.UserId);
+            var entity = await _userService.GetAsync(identityUser.Id);
 
             UserOutputModel output = await GetUserOutputAsync(entity);
 
@@ -139,7 +139,7 @@ namespace Swabbr.Api.Controllers
         {
             var identityUser = await _userManager.GetUserAsync(User);
 
-            var userEntity = await _userService.GetAsync(identityUser.UserId);
+            var userEntity = await _userService.GetAsync(identityUser.Id);
 
             //TODO: Should Country/Gender/Birth Date etc. be allowed to be changed?
             // Update properties
@@ -198,7 +198,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserStatisticsOutputModel))]
         public async Task<IActionResult> GetStatisticsSelfAsync()
         {
-            var userId = (await _userManager.GetUserAsync(User)).UserId;
+            var userId = (await _userManager.GetUserAsync(User)).Id;
             return await GetStatisticsAsync(userId);
         }
 
