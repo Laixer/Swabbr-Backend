@@ -19,7 +19,7 @@
 
         internal static string TableVlog => "public.vlog";
 
-        internal static string TableVlogLikke => "public.vlog_like";
+        internal static string TableVlogLike => "public.vlog_like";
 
         internal static string ViewUserSettings => "public.user_settings";
 

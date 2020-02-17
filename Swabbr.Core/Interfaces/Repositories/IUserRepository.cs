@@ -20,6 +20,13 @@ namespace Swabbr.Core.Interfaces
         Task<UserSettings> GetUserSettingsAsync(Guid userId);
 
         /// <summary>
+        /// Updates our <see cref="UserSettings"/>.
+        /// </summary>
+        /// <param name="userSettings"><see cref="UserSettings"/></param>
+        /// <returns><see cref="UserSettings"/></returns>
+        Task<UserSettings> UpdateUserSettingsAsync(UserSettings userSettings);
+
+        /// <summary>
         /// Get a single <see cref="SwabbrUser"/> entity by its email address.
         /// </summary>
         /// <param name="email">Stored email address</param>

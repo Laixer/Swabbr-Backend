@@ -25,6 +25,16 @@ namespace Swabbr.Infrastructure.Repositories
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
         }
 
+        public Task<VlogLike> CreateAsync(VlogLike entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(VlogLike entity)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<VlogLike> GetAsync(Guid id)
         {
             throw new NotImplementedException();
@@ -36,6 +46,11 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         public Task<VlogLike> GetSingleForUserAsync(Guid vlogId, Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<VlogLike> UpdateAsync(VlogLike entity)
         {
             throw new NotImplementedException();
         }

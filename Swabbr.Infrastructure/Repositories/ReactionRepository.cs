@@ -25,6 +25,16 @@ namespace Swabbr.Infrastructure.Repositories
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
         }
 
+        public Task<Reaction> CreateAsync(Reaction entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(Reaction entity)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> ExistsAsync(Guid reactionId)
         {
             throw new NotImplementedException();
@@ -56,6 +66,11 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         public Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Reaction> UpdateAsync(Reaction entity)
         {
             throw new NotImplementedException();
         }

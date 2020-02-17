@@ -10,6 +10,7 @@ using System.Linq;
 using Swabbr.Core.Exceptions;
 
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
+using Swabbr.Core.Enums;
 
 namespace Swabbr.Infrastructure.Repositories
 {
@@ -71,7 +72,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-        public Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId)
+        public Task<FollowRequest> GetByUserIdsAsync(Guid receiverId, Guid requesterId)
         {
             throw new NotImplementedException();
         }
@@ -94,6 +95,44 @@ namespace Swabbr.Infrastructure.Repositories
         public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<FollowRequest> CreateAsync(FollowRequest entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<FollowRequest> UpdateAsync(FollowRequest entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(FollowRequest entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Updates the status for a <see cref="FollowRequest"/> to the 
+        /// specified <see cref="FollowRequestStatus"/>. This will throw an
+        /// <see cref="EntityNotFoundException"/> if we can't find the object.
+        /// </summary>
+        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="status"><see cref="FollowRequestStatus"/></param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task<FollowRequest> UpdateStatusAsync(Guid id, FollowRequestStatus status)
+        {
+            id.ThrowIfNullOrEmpty();
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"UPDATE {TableFollowRequest}" +
+                    $" SET follow_request_status = '{status.ToString()}'" + // TODO THOMAS To string might be dangerous? Mapping?!
+                    $" WHERE id = {id};";
+                var rowsAffected = await connection.ExecuteAsync(sql);
+                if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
+                else if (rowsAffected > 1) { throw new InvalidOperationException($"Affected {rowsAffected} while updating a single follow request, this should never happen"); }
+                else return await GetAsync(id);
+            }
         }
     }
 

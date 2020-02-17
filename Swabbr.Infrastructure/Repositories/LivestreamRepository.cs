@@ -24,6 +24,16 @@ namespace Swabbr.Infrastructure.Repositories
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
         }
 
+        public Task<Livestream> CreateAsync(Livestream entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(Livestream entity)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId)
         {
             throw new NotImplementedException();
@@ -45,6 +55,11 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         public Task<Livestream> ReserveLivestreamForUserAsync(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Livestream> UpdateAsync(Livestream entity)
         {
             throw new NotImplementedException();
         }

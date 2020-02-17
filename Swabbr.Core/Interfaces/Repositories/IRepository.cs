@@ -13,11 +13,11 @@ namespace Swabbr.Core.Interfaces
 
         Task<TEntity> GetAsync(Guid id);
 
-        //Task<TEntity> CreateAsync(TEntity entity);
+        Task<TEntity> CreateAsync(TEntity entity);
 
-        //Task<TEntity> UpdateAsync(TEntity entity);
+        Task<TEntity> UpdateAsync(TEntity entity);
 
-        //Task DeleteAsync(TEntity entity);
+        Task DeleteAsync(TEntity entity);
 
     }
 

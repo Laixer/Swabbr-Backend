@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace Swabbr.Core.Interfaces
         /// Returns a single follow request entity from the id of the requester to the id of the receiver.
         /// </summary>
         /// <returns></returns>
-        Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId);
+        Task<FollowRequest> GetByUserIdsAsync(Guid receiverId, Guid requesterId);
 
         /// <summary>
         /// Returns whether a follow relationship from the receiver to the requester exists.
@@ -57,6 +58,15 @@ namespace Swabbr.Core.Interfaces
         /// </param>
         /// <returns></returns>
         Task<int> GetFollowingCountAsync(Guid userId);
+
+        /// <summary>
+        /// Updates the status for a single <see cref="FollowRequest"/> to the 
+        /// specified <paramref name="status"/>.
+        /// </summary>
+        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="status"><see cref="FollowRequestStatus"/></param>
+        /// <returns><see cref="Task"/></returns>
+        Task<FollowRequest> UpdateStatusAsync(Guid id, FollowRequestStatus status);
 
     }
 

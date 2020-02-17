@@ -25,6 +25,16 @@ namespace Swabbr.Infrastructure.Repositories
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
         }
 
+        public Task<NotificationRegistration> CreateAsync(NotificationRegistration entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(NotificationRegistration entity)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> ExistsForUser(Guid userId)
         {
             throw new NotImplementedException();
@@ -36,6 +46,11 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         public Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<NotificationRegistration> UpdateAsync(NotificationRegistration entity)
         {
             throw new NotImplementedException();
         }

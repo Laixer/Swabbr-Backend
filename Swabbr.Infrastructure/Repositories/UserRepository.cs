@@ -30,6 +30,17 @@ namespace Swabbr.Infrastructure.Repositories
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
         }
 
+        public Task<SwabbrUser> CreateAsync(SwabbrUser entity)
+        {
+            // TODO THOMAS This probably shouldn't even have this function.
+            throw new InvalidOperationException("Creation of users should ONLY be done by the identity framework!");
+        }
+
+        public Task DeleteAsync(SwabbrUser entity)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Gets a single <see cref="SwabbrUser"/> from the database based on its internal id.
         /// </summary>
@@ -88,6 +99,16 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         public Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<SwabbrUser> UpdateAsync(SwabbrUser entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<UserSettings> UpdateUserSettingsAsync(UserSettings userSettings)
         {
             throw new NotImplementedException();
         }
