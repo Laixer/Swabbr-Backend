@@ -351,7 +351,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-Swabbr/appsettings.json
-Swabbr/appsettings.json
-Swabbr.Infrastructure/.editorconfig
-Swabbr.Api/appsettings.Development.json
+
+appsettings.json
+appsettings.*.json
+.editorconfig
