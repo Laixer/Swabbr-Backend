@@ -19,20 +19,26 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
+
+    /// <summary>
+    /// Contains all endpoints regarding <see cref="Livestream"/> entities.
+    /// </summary>
     [Authorize]
     [ApiController]
     [Route("livestreams")]
     public class LivestreamsController : ControllerBase
     {
-        private readonly UserManager<SwabbrIdentityUser> _userManager;
 
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILivestreamingService _livestreamingService;
         private readonly INotificationService _notificationService;
-
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IFollowRequestRepository _followRequestRepository;
         private readonly IVlogRepository _vlogRepository;
 
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
         public LivestreamsController(
             UserManager<SwabbrIdentityUser> userManager,
             ILivestreamingService livestreamingService,

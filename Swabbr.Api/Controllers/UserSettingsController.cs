@@ -4,105 +4,80 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Configuration;
-using Swabbr.Api.Errors;
-using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
+using System;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
+
     /// <summary>
-    /// Controller for handling requests related to user settings.
+    /// Controller for handling requests related to any <see cref="UserSettings"/>.
     /// </summary>
     [Authorize]
     [ApiController]
     [Route("users/self/settings")]
     public class UserSettingsController : ControllerBase
     {
-        private readonly IUserSettingsRepository _userSettingsRepository;
+
+        private readonly IUserRepository _userRepository;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly UserSettingsConfiguration _userSettingsOptions;
 
-        public UserSettingsController(
-            IUserSettingsRepository userSettingsRepository,
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
+        public UserSettingsController(IUserRepository userRepository,
             UserManager<SwabbrIdentityUser> userManager,
-            IOptions<UserSettingsConfiguration> userSettingsOptions
-            )
+            IOptions<UserSettingsConfiguration> userSettingsOptions)
         {
-            _userSettingsRepository = userSettingsRepository;
-            _userManager = userManager;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            if (userSettingsOptions == null || userSettingsOptions.Value == null) { throw new ArgumentNullException(nameof(userSettingsOptions)); }
             _userSettingsOptions = userSettingsOptions.Value;
         }
 
         /// <summary>
         /// Get user settings for the authenticated user.
         /// </summary>
+        /// <returns><see cref="OkResult"/></returns>
         [HttpGet("get")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> GetAsync()
         {
             var identityUser = await _userManager.GetUserAsync(User);
-            var userId = identityUser.UserId;
-
-            // If no user settings exist for this user, create a new settings entity for the user
-            // with default values.
-            if (!(await _userSettingsRepository.ExistsForUserAsync(userId)))
-            {
-                await _userSettingsRepository.CreateAsync(new UserSettings
-                {
-                    UserId = userId
-                });
-            }
-
-            //TODO: Custom key-value store property
-
-            // Obtain and return the users' settings.
-            UserSettingsOutputModel output = await _userSettingsRepository.GetForUserAsync(userId);
-            return Ok(output);
+            if (identityUser == null) { throw new InvalidOperationException("Can't get user settings when no user is logged in"); }
+            
+            return Ok(await _userRepository.GetUserSettingsAsync(identityUser.Id));
         }
 
         /// <summary>
-        /// Update user settings.
+        /// Update user settings for the currently logged in user.
         /// </summary>
+        /// <param name="input"><see cref="UserSettingsInputModel"/></param>
+        /// <returns><see cref="OkResult"/> or <see cref="BadRequestResult"/></returns>
         [HttpPut("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> UpdateAsync([FromBody] UserSettingsInputModel input)
         {
-            //TODO: Where to handle constraints like these?
-            //TODO: Configuration values
-            if (input.DailyVlogRequestLimit > _userSettingsOptions.DailyVlogRequestLimit)
-            {
-                return BadRequest(
-                    this.Error(ErrorCodes.InvalidInput, "Input is invalid.")
-                    );
-            }
+            if (!ModelState.IsValid) { throw new InvalidOperationException("Input model is invalid"); }
 
             var identityUser = await _userManager.GetUserAsync(User);
-            var userId = identityUser.UserId;
-
-            // If no user settings exist for this user, create a new settings entity for the user
-            // with default values.
-            if (!(await _userSettingsRepository.ExistsForUserAsync(userId)))
-            {
-                await _userSettingsRepository.CreateAsync(new UserSettings
-                {
-                    UserId = userId
-                });
-            }
+            if (identityUser == null) { throw new InvalidOperationException("Can't modify user settings if no user is logged in"); }
 
             // Obtain settings and set updated properties.
-            UserSettings settings = await _userSettingsRepository.GetForUserAsync(userId);
-
+            var settings = await _userRepository.GetUserSettingsAsync(identityUser.Id);
             settings.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
             settings.FollowMode = input.FollowMode;
             settings.IsPrivate = input.IsPrivate;
 
             // Update and return (updated) settings entity
-            UserSettingsOutputModel output = await _userSettingsRepository.UpdateAsync(settings);
-            return Ok(output);
+            return Ok(await _userRepository.UpdateUserSettingsAsync(settings));
         }
+
     }
+
 }

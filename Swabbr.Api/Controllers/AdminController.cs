@@ -12,7 +12,13 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
+
+    /// <summary>
+    /// This controller contains admin functionality. This will be implemented in
+    /// a version way beyond where we are currently (version 1).
+    /// </summary>
     ////[Authorize(Roles = "Admin")]
+    [Obsolete]
     [Route("v1/api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
@@ -21,11 +27,10 @@ namespace Swabbr.Api.Controllers
         private readonly INotificationService _notificationService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public AdminController(
-            IUserRepository userRepository,
+        [Obsolete]
+        public AdminController(IUserRepository userRepository,
             INotificationService notificationService,
-            UserManager<SwabbrIdentityUser> userManager
-            )
+            UserManager<SwabbrIdentityUser> userManager)
         {
             _userRepository = userRepository;
             _notificationService = notificationService;
@@ -39,7 +44,6 @@ namespace Swabbr.Api.Controllers
         [HttpPut("users/{userId}/ban")]
         public async Task<IActionResult> BanUserAsync()
         {
-            //TODO: Not implemented
             throw new NotImplementedException();
         }
 
@@ -50,7 +54,6 @@ namespace Swabbr.Api.Controllers
         [HttpDelete("users/{userId}/delete")]
         public async Task<IActionResult> DeleteUserAsync()
         {
-            //TODO: Not implemented
             throw new NotImplementedException();
         }
 
@@ -61,7 +64,6 @@ namespace Swabbr.Api.Controllers
         [HttpPost("users/{userId}/warning")]
         public async Task<IActionResult> WarnUserAsync(string warningMessage)
         {
-            //TODO: Not implemented
             throw new NotImplementedException();
         }
 
@@ -76,8 +78,11 @@ namespace Swabbr.Api.Controllers
         [HttpPost("notifications/send/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
+        [Obsolete]
         public async Task<IActionResult> SendNotificationAsync([FromBody] SwabbrNotification newNotification, Guid userId)
         {
+            throw new NotImplementedException();
+
             NotificationResponse pushDeliveryResult = await _notificationService.SendNotificationToUserAsync(newNotification, userId);
 
             if (pushDeliveryResult.CompletedWithSuccess)
