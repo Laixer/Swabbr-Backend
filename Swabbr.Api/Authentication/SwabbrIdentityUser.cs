@@ -1,30 +1,86 @@
-﻿using Swabbr.Infrastructure.Data.Entities;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Identity;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
+using Swabbr.Infrastructure.Data.Entities;
 using System;
 
 namespace Swabbr.Api.Authentication
 {
-    public class SwabbrIdentityUser : UserTableEntity
+
+    /// <summary>
+    /// Custom Identity framework user.
+    /// </summary>
+    public class SwabbrIdentityUser : IdentityUser<Guid>
     {
-        public string PasswordHash { get; set; }
 
-        public DateTimeOffset? LockoutEnd { get; set; }
+        /// <summary>
+        /// First name of the user.
+        /// </summary>
+        public string FirstName { get; set; }
 
-        public bool LockoutEnabled { get; set; }
+        /// <summary>
+        /// Surname of the user.
+        /// </summary>
+        public string LastName { get; set; }
 
-        public string Email { get; set; }
+        /// <summary>
+        /// Selected gender of the user.
+        /// </summary>
+        public Gender Gender { get; set; }
+        public string GenderText => Gender.GetEnumMemberAttribute();
 
-        public string NormalizedEmail { get; set; }
+        /// <summary>
+        /// Selected country.
+        /// TODO Enum or something?
+        /// </summary>
+        public string Country { get; set; }
 
-        public bool EmailConfirmed { get; set; }
+        /// <summary>
+        /// Date of birth for the given user.
+        /// </summary>
+        public DateTime BirthDate { get; set; }
 
-        public string PhoneNumber { get; set; }
+        /// <summary>
+        /// The specified timezone of the user.
+        /// </summary>
+        public string Timezone { get; set; }
 
-        public bool PhoneNumberConfirmed { get; set; }
+        /// <summary>
+        /// Nickname to display for the user.
+        /// </summary>
+        public string Nickname { get; set; }
 
-        public string ConcurrencyStamp { get; set; }
+        /// <summary>
+        /// URL containing the uploaded profile image of the user.
+        /// </summary>
+        public Uri ProfileImageUrl { get; set; }
 
-        public int AccessFailedCount { get; set; }
+        /// <summary>
+        /// Angular longitude coordinate.
+        /// </summary>
+        public double Longitude { get; set; }
 
-        public bool TwoFactorEnabled { get; set; }
+        /// <summary>
+        /// Angular latitude coordinate.
+        /// </summary>
+        public double Latitude { get; set; }
+
+        /// <summary>
+        /// Indicates whether the profile of the user is publicly visible to other users.
+        /// </summary>
+        public bool IsPrivate { get; set; }
+
+        /// <summary>
+        /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
+        /// </summary>
+        public uint DailyVlogRequestLimit { get; set; }
+
+        /// <summary>
+        /// Determines how follow requests are processed for the user.
+        /// </summary>
+        public FollowMode FollowMode { get; set; }
+
     }
+
 }

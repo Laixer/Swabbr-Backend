@@ -115,23 +115,26 @@ namespace Swabbr
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<ILivestreamingClient, LivestreamingClient>();
 
-            // Configure DI for identity stores
-            services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
-            services.AddTransient<IRoleStore<SwabbrIdentityRole>, RoleStore>();
-
             // Add background services
             services.AddHostedService<VlogTriggerHostedService>();
 
-            // Add identity middleware
+            // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
-             {
-                 //TODO: Determine configuration for password strength
-                 setup.Password.RequireDigit = false;
-                 setup.Password.RequireUppercase = false;
-                 setup.Password.RequireLowercase = false;
-                 setup.Password.RequireNonAlphanumeric = false;
-                 setup.User.RequireUniqueEmail = true;
-             })
+            {
+                setup.Password.RequireDigit = true;
+                setup.Password.RequireUppercase = true;
+                setup.Password.RequireLowercase = true;
+                setup.Password.RequireNonAlphanumeric = true;
+                setup.Password.RequiredLength = 8;
+                setup.User.RequireUniqueEmail = true;
+            })
+            .AddDapperStores(options =>
+            {
+                options.UserTable = "user";
+                options.Schema = "public";
+                options.MatchWithUnderscore = true;
+                options.UseNpgsql<IdentityQueryRepository>(Configuration.GetConnectionString("DatabaseInternal"));
+            })
             .AddDefaultTokenProviders();
 
             // Add authentication middleware

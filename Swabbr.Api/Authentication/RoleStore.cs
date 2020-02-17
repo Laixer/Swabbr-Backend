@@ -13,8 +13,8 @@ namespace Swabbr.Api.Authentication
     {
         protected static readonly List<SwabbrIdentityRole> Roles = new List<SwabbrIdentityRole>
         {
-            new SwabbrIdentityRole{ RoleId = "0", Name = "User", NormalizedName = "USER" },
-            new SwabbrIdentityRole{ RoleId = "1", Name = "Admin", NormalizedName = "ADMIN" },
+            new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "User", NormalizedName = "USER" },
+            new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
         };
 
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
@@ -38,7 +38,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            return Roles.Where(r => r.RoleId == roleId).First();
+            return Roles.Where(r => r.Id.ToString() == roleId).First();
         }
 
         public async Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            return role.RoleId;
+            return role.Id.ToString();
         }
 
         public async Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)

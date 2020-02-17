@@ -1,20 +1,12 @@
-﻿namespace Swabbr.Api.Authentication
+﻿using Microsoft.AspNetCore.Identity;
+using System;
+
+namespace Swabbr.Api.Authentication
 {
-    public class SwabbrIdentityRole
+    public class SwabbrIdentityRole : IdentityRole<Guid>
     {
-        /// <summary>
-        /// Id of the role.
-        /// </summary>
-        public string RoleId { get; set; }
 
-        /// <summary>
-        /// The name which the role represents.
-        /// </summary>
-        public string Name { get; set; }
+        // TODO Fill?
 
-        /// <summary>
-        /// The normalized name of the role.
-        /// </summary>
-        public string NormalizedName { get; set; }
     }
 }

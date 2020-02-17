@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    //TODO: Not optimized
+
+    // TODO: Not optimized
     // TODO THOMAS This is a lot of code, might be worth revisiting.
     // TODO THOMAS Rename to SwabbrUserStore oid! (yorick)
     public class UserStore :
@@ -23,19 +24,12 @@ namespace Swabbr.Api.Authentication
         IUserRoleStore<SwabbrIdentityUser>
     {
 
-        private readonly IDbClientFactory _factory;
-
-        public UserStore(IDbClientFactory factory)
-        {
-            _factory = factory;
-        }
-
         public static string UsersTableName => "Users";
         public static string UserSettingsTableName => "UserSettings";
 
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
+            /*var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
 
             // Ensure user does not exist
             // TODO THOMAS This should be success or throw
@@ -54,34 +48,39 @@ namespace Swabbr.Api.Authentication
                 return IdentityResult.Success;
             }
 
-            return IdentityResult.Failed(new IdentityError { Description = "Could not insert user" });
+            return IdentityResult.Failed(new IdentityError { Description = "Could not insert user" });*/
+            throw new NotImplementedException();
         }
 
         public async Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
+            //var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
             //! Important: Merging the entity because we do not want to discard the existing properties
-            await client.MergeEntityAsync(user);
-            return IdentityResult.Success;
+            //await client.MergeEntityAsync(user);
+            // return IdentityResult.Success;
+            throw new NotImplementedException(); ;
         }
 
         public async Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
-            await client.DeleteEntityAsync(user);
-            return IdentityResult.Success;
+            //var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
+            //await client.DeleteEntityAsync(user);
+            //return IdentityResult.Success;
+            throw new NotImplementedException();
         }
 
         public async Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
-            return await client.RetrieveEntityAsync(userId, userId);
+            //var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
+            //return await client.RetrieveEntityAsync(userId, userId);
+            throw new NotImplementedException();
         }
 
         public async Task<SwabbrIdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             // Usernames are e-mails in this application.
-            return await FindByEmailAsync(normalizedUserName, cancellationToken);
+            //return await FindByEmailAsync(normalizedUserName, cancellationToken);
+            throw new NotImplementedException();
         }
 
         public async Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
@@ -111,7 +110,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<string> GetUserIdAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
-            return user.UserId.ToString();
+            return user.Id.ToString();
         }
 
         public async Task<string> GetUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
@@ -159,7 +158,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).TableReference;
+            /*var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).TableReference;
 
             // Check if the normalized email already exists in the table.
             var tq = new TableQuery<SwabbrIdentityUser>().Where(
@@ -172,7 +171,8 @@ namespace Swabbr.Api.Authentication
                 return queryResults.First();
             }
 
-            return null;
+            return null;*/
+            throw new NotImplementedException();
         }
 
         public async Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
