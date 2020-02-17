@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Dapper;
+using Laixer.Identity.Dapper.Extensions;
+using Laixer.Infra.Npgsql;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -8,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Extensions;
+using Swabbr.Api.DapperUtility;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces;
@@ -85,13 +88,12 @@ namespace Swabbr
                 );
             });
 
-            var cosmosDbConfig = Configuration.GetSection("CosmosDb").Get<CosmosDbConfiguration>();
-            var connectionStringConfig = cosmosDbConfig.ConnectionStrings;
-            var connectionString = connectionStringConfig.ActiveConnectionString;
-            var tableProperties = cosmosDbConfig.Tables;
-
-            // Add CosmosDb. Ensure database and tables exist.
-            services.AddCosmosDb(connectionString, tableProperties);
+            // Add postgresql database functionality
+            // TODO Clean up
+            NpgsqlSetup.Setup();
+            SqlMapper.AddTypeHandler(new UriHandler());
+            services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
+            services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionStringName = "DatabaseInternal"; });
 
             // Configure DI for data repositories
             services.AddTransient<IUserRepository, UserRepository>();
