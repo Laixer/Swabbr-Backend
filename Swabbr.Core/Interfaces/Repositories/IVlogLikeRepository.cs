@@ -1,8 +1,9 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
     public interface IVlogLikeRepository : IRepository<VlogLike>
     {

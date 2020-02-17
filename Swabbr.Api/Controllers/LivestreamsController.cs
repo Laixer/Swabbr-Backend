@@ -10,6 +10,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System;

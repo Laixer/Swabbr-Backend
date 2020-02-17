@@ -6,6 +6,7 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
 using System;

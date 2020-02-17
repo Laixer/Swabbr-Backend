@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
 
     /// <summary>

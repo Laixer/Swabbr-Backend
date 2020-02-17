@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;

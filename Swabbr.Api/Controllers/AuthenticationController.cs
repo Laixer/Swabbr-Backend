@@ -7,6 +7,7 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Net;
 using System.Threading.Tasks;

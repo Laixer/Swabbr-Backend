@@ -1,6 +1,7 @@
 ﻿using Laixer.Infra.Npgsql;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Text;

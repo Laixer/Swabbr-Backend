@@ -16,6 +16,7 @@ using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;

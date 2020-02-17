@@ -4,6 +4,7 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System;

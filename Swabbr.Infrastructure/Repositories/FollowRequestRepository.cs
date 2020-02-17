@@ -11,6 +11,7 @@ using Swabbr.Core.Exceptions;
 
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Interfaces.Repositories;
 
 namespace Swabbr.Infrastructure.Repositories
 {

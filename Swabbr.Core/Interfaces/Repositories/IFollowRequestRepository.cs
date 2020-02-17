@@ -1,10 +1,11 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
 
     /// <summary>
