@@ -353,3 +353,5 @@ MigrationBackup/
 .ionide/
 Swabbr/appsettings.json
 Swabbr/appsettings.json
+Swabbr.Infrastructure/.editorconfig
+Swabbr.Api/appsettings.Development.json
