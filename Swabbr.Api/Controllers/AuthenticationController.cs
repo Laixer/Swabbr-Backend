@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
+using Swabbr.Api.Mapping;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Interfaces;
@@ -26,6 +27,7 @@ namespace Swabbr.Api.Controllers
     {
 
         private readonly IUserRepository _userRepository;
+        private readonly IUserWithStatsRepository _userWithStatsRepository; // TODO Double functionality? Clean this up
         private readonly ITokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
@@ -34,11 +36,13 @@ namespace Swabbr.Api.Controllers
         /// Constructor for dependency injection.
         /// </summary>
         public AuthenticationController(IUserRepository userRepository,
+            IUserWithStatsRepository userWithStatsRepository,
             ITokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
@@ -89,7 +93,7 @@ namespace Swabbr.Api.Controllers
             {
                 await _signInManager.SignInAsync(identityUser, isPersistent: true);
                 var token = _tokenService.GenerateToken(identityUser);
-                var userOutput = UserOutputModel.Parse(await _userRepository.GetAsync(identityUser.Id));
+                var userOutput = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id));
 
                 return Ok(new UserAuthenticationOutputModel
                 {
@@ -143,7 +147,7 @@ namespace Swabbr.Api.Controllers
                     Token = token,
                     Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
                     Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
-                    User = UserOutputModel.Parse(await _userRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
+                    User = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
                     UserSettings = await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false)
                 });
             }

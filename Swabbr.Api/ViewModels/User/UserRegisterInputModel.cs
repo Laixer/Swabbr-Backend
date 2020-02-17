@@ -6,8 +6,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Viewmodel for registering a new user.
+    /// </summary>
     public class UserRegisterInputModel
     {
+
         /// <summary>
         /// First name of the user.
         /// </summary>
@@ -25,7 +30,6 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Selected gender of the user.
         /// </summary>
-        [Required]
         [JsonProperty("gender")]
         public Gender Gender { get; set; }
 
@@ -90,6 +94,10 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("phoneNumber", Required = Required.DisallowNull)]
         public string PhoneNumber { get; set; }
 
+        /// <summary>
+        /// TODO THOMAS Move
+        /// </summary>
+        /// <param name="user"></param>
         public static implicit operator SwabbrUser(UserRegisterInputModel user)
         {
             return new SwabbrUser

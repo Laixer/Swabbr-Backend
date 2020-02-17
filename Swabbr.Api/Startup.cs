@@ -98,6 +98,7 @@ namespace Swabbr
 
             // Configure DI for data repositories
             services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
             services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
             services.AddTransient<IVlogRepository, VlogRepository>();
             services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();

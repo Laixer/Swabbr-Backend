@@ -23,5 +23,7 @@
 
         internal static string ViewUserSettings => "public.user_settings";
 
+        internal static string ViewUserWithStats => "public.user_with_stats";
+
     }
 }
