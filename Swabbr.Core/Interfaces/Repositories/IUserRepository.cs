@@ -10,7 +10,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     /// Repository for <see cref="SwabbrUser"/> entities.
     /// </summary>
-    public interface IUserRepository : IRepository<SwabbrUser>
+    public interface IUserRepository : IRepository<SwabbrUser>, ICudFunctionality<SwabbrUser>
     {
 
         /// <summary>
@@ -22,6 +22,7 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         /// <summary>
         /// Updates our <see cref="UserSettings"/>.
+        /// TODO Do we need this?
         /// </summary>
         /// <param name="userSettings"><see cref="UserSettings"/></param>
         /// <returns><see cref="UserSettings"/></returns>

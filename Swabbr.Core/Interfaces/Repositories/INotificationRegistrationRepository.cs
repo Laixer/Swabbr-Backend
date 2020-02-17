@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-    public interface INotificationRegistrationRepository : IRepository<NotificationRegistration>
+    public interface INotificationRegistrationRepository : IRepository<NotificationRegistration>, ICudFunctionality<NotificationRegistration>
     {
         /// <summary>
         /// Get a notification registration record by providing the user and registration id.

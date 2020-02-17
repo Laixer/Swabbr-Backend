@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-    public interface IVlogLikeRepository : IRepository<VlogLike>
+    public interface IVlogLikeRepository : IRepository<VlogLike>, ICudFunctionality<VlogLike>
     {
         /// <summary>
         /// Get a like for a vlog given by a specific user

@@ -11,7 +11,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     /// Contract for the <see cref="FollowRequest"/> repository.
     /// </summary>
-    public interface IFollowRequestRepository : IRepository<FollowRequest>
+    public interface IFollowRequestRepository : IRepository<FollowRequest>, ICudFunctionality<FollowRequest>
     {
 
         /// <summary>
