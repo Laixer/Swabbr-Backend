@@ -1,4 +1,7 @@
-﻿namespace Swabbr.Core.Enums
+﻿using System.ComponentModel;
+using System.Runtime.Serialization;
+
+namespace Swabbr.Core.Enums
 {
     /// <summary>
     /// Enum for the gender of a <see cref="UserItem"/>.
@@ -8,16 +11,19 @@
         /// <summary>
         /// Female gender.
         /// </summary>
+        [EnumMember(Value = "female")]
         Female,
 
         /// <summary>
         /// Male gender.
         /// </summary>
+        [EnumMember(Value = "male")]
         Male,
 
         /// <summary>
         /// Other or unknown gender.
         /// </summary>
+        [EnumMember(Value = "unspecified")]
         Unspecified
     }
 }

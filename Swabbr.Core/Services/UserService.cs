@@ -11,11 +11,9 @@ namespace Swabbr.Core.Services
     {
         private readonly IUserRepository _userRepository;
 
-        public UserService(
-            IUserRepository userRepository
-            )
+        public UserService(IUserRepository userRepository)
         {
-            _userRepository = userRepository;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         public async Task<SwabbrUser> CreateAsync(SwabbrUser user)
