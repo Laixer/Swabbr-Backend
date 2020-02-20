@@ -8,7 +8,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents a single registration event for a device to receive notifications.
     /// </summary>
-    public class NotificationRegistration : EntityBase
+    public class NotificationRegistration : EntityBase<Guid>
     {
 
         /// <summary>

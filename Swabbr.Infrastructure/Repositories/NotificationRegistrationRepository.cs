@@ -31,7 +31,7 @@ namespace Swabbr.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task DeleteAsync(NotificationRegistration entity)
+        public Task DeleteAsync(Guid id)
         {
             throw new NotImplementedException();
         }

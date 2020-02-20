@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Swabbr.Core.Entities
+namespace Swabbr.Core.Types
 {
 
     /// <summary>

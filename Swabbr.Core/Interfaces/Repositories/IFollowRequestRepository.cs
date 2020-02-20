@@ -1,6 +1,7 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     /// Contract for the <see cref="FollowRequest"/> repository.
     /// </summary>
-    public interface IFollowRequestRepository : IRepository<FollowRequest>, ICudFunctionality<FollowRequest>
+    public interface IFollowRequestRepository : IRepository<FollowRequest, FollowRequestId>, ICudFunctionality<FollowRequest, FollowRequestId>
     {
 
         /// <summary>
@@ -28,7 +29,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <returns></returns>
         /// TODO THOMAS I suspect that this exists to battle the double-follow-request race conditions. These should
         /// never be a problem as long as the follow request processsing pipeline is transactional. --> postgresql
-        Task<bool> ExistsAsync(Guid receiverId, Guid requesterId);
+        Task<bool> ExistsAsync(FollowRequestId id);
 
         /// <summary>
         /// Returns all follow requests targeted to a specific user.
@@ -67,7 +68,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
         /// <param name="status"><see cref="FollowRequestStatus"/></param>
         /// <returns><see cref="Task"/></returns>
-        Task<FollowRequest> UpdateStatusAsync(Guid id, FollowRequestStatus status);
+        Task<FollowRequest> UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status);
 
     }
 

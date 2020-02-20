@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents a like (love-it) given to a vlog.
     /// </summary>
-    public class VlogLike : EntityBase
+    public class VlogLike : EntityBase<Guid>
     {
 
         /// <summary>

@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents a video reaction to a vlog.
     /// </summary>
-    public class Reaction : EntityBase
+    public class Reaction : EntityBase<Guid>
     {
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// A vlog created by a user.
     /// </summary>
-    public class Vlog : EntityBase
+    public class Vlog : EntityBase<Guid>
     {
 
         /// <summary>

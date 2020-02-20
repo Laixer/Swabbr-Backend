@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-    public interface IReactionRepository : IRepository<Reaction>, ICudFunctionality<Reaction>
+    public interface IReactionRepository : IRepository<Reaction, Guid>, ICudFunctionality<Reaction, Guid>
     {
         /// <summary>
         /// Returns whether a reaction with the given id exists.

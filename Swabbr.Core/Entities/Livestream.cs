@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents a livestream entity.
     /// </summary>
-    public class Livestream : EntityBase
+    public class Livestream : EntityBase<Guid>
     {
 
         /// <summary>

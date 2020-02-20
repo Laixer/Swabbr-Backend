@@ -1,18 +1,17 @@
 ﻿using Swabbr.Core.Entities;
-using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
 
     /// <summary>
-    /// Generic repository base for an <see cref="EntityBase"/>.
+    /// Generic repository base for an <see cref="EntityBase<typeparamref name="TPrimary"/>"/>.
     /// </summary>
-    public interface IRepository<TEntity> 
-        where TEntity : EntityBase
+    public interface IRepository<TEntity, TPrimary> 
+        where TEntity : EntityBase<TPrimary>
     {
 
-        Task<TEntity> GetAsync(Guid id);
+        Task<TEntity> GetAsync(TPrimary id);
 
     }
 

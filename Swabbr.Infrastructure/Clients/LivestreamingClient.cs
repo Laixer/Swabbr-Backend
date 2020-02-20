@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using System;
 using System.Threading.Tasks;
 using WowzaStreamingCloud;

@@ -1,12 +1,12 @@
-﻿namespace Swabbr.Core.Entities
+﻿namespace Swabbr.Core.Types
 {
 
     /// <summary>
-    /// TODO THOMAS Double check what this does
     /// Contains all details for a given livestream connection.
     /// </summary>
     public class LivestreamConnectionDetails
     {
+
         /// <summary>
         /// External id of the livestream.
         /// </summary>
@@ -41,5 +41,7 @@
         /// Password to be used for authenticating the connection.
         /// </summary>
         public string Password { get; set; }
+
     }
+
 }

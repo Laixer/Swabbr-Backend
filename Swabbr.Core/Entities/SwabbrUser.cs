@@ -7,7 +7,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents a single user.
     /// </summary>
-    public class SwabbrUser : EntityBase
+    public class SwabbrUser : EntityBase<Guid>
     {
 
         /// <summary>

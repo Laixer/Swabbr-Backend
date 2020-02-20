@@ -10,7 +10,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     /// Repository for <see cref="Livestream"/> entities.
     /// </summary>
-    public interface ILivestreamRepository : IRepository<Livestream>, ICudFunctionality<Livestream>
+    public interface ILivestreamRepository : IRepository<Livestream, Guid>, ICudFunctionality<Livestream, Guid>
     {
 
         /// <summary>

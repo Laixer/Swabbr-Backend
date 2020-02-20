@@ -1,12 +1,16 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-    public interface INotificationRegistrationRepository : IRepository<NotificationRegistration>, ICudFunctionality<NotificationRegistration>
+
+    /// <summary>
+    /// Contract for a <see cref="NotificationRegistration"/> repository.
+    /// </summary>
+    public interface INotificationRegistrationRepository : IRepository<NotificationRegistration, Guid>, ICudFunctionality<NotificationRegistration, Guid>
     {
+
         /// <summary>
         /// Get a notification registration record by providing the user and registration id.
         /// </summary>
@@ -16,5 +20,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// Checks if a registration exists for a specific user.
         /// </summary>
         Task<bool> ExistsForUser(Guid userId);
+
     }
+
 }

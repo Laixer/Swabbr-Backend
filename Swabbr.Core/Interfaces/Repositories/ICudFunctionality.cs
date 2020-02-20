@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
@@ -9,15 +10,15 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// a given <see cref="TEntity"/> entity type.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public interface ICudFunctionality<TEntity>
-        where TEntity : EntityBase
+    public interface ICudFunctionality<TEntity, TPrimary>
+        where TEntity : EntityBase<TPrimary>
     {
 
         Task<TEntity> CreateAsync(TEntity entity);
 
         Task<TEntity> UpdateAsync(TEntity entity);
 
-        Task DeleteAsync(TEntity entity);
+        Task DeleteAsync(TPrimary id);
 
     }
 

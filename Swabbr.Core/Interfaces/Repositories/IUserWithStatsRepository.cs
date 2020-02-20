@@ -9,7 +9,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     /// Contract for a <see cref="SwabbrUserWithStats"/> repository.
     /// </summary>
-    public interface IUserWithStatsRepository : IRepository<SwabbrUserWithStats>
+    public interface IUserWithStatsRepository : IRepository<SwabbrUserWithStats, Guid>
     {
 
         Task<IEnumerable<SwabbrUserWithStats>> SearchAsync(string searchString, int page, int itemsPerPage);

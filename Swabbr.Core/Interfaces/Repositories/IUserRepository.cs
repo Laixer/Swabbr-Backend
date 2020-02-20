@@ -10,7 +10,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     /// Repository for <see cref="SwabbrUser"/> entities.
     /// </summary>
-    public interface IUserRepository : IRepository<SwabbrUser>, ICudFunctionality<SwabbrUser>
+    public interface IUserRepository : IRepository<SwabbrUser, Guid>, ICudFunctionality<SwabbrUser, Guid>
     {
 
         /// <summary>
