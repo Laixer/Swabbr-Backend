@@ -22,10 +22,10 @@ namespace Swabbr.Api.Mapping
                 Email = input.Email,
                 BirthDate = input.BirthDate,
                 Country = input.Country,
-                Gender = input.Gender,
+                Gender = MapperEnum.Map(input.Gender),
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
-                ProfileImageUrl = (input.ProfileImageUrl == null) ? "" : input.ProfileImageUrl.ToString(), // TODO Double check this
+                ProfileImageUrl = input.ProfileImageUrl,
                 Timezone = input.Timezone,
                 TotalFollowers = input.TotalFollowers,
                 TotalFollowing = input.TotalFollowing,
@@ -35,8 +35,38 @@ namespace Swabbr.Api.Mapping
 
         internal static SwabbrUser Map(UserUpdateInputModel input)
         {
-            throw new NotImplementedException();
+            if (input == null) { throw new ArgumentNullException(nameof(input)); }
+            return new SwabbrUser
+            {
+                BirthDate = input.BirthDate,
+                Country = input.Country,
+                //DailyVlogRequestLimit = ??
+                //Email = ??,
+                FirstName = input.FirstName,
+                //FollowMode = ??
+                Gender = MapperEnum.Map(input.Gender),
+                LastName = input.LastName,
+                IsPrivate = input.IsPrivate,
+                //Latitude = ??
+                //Longitude = ??
+                Nickname = input.Nickname,
+                ProfileImageUrl = input.ProfileImageUrl,
+                Timezone = input.Timezone
+            };
         }
+
+        internal static UserSettingsOutputModel Map(UserSettings settings)
+        {
+            if (settings == null) { throw new ArgumentNullException(nameof(settings)); }
+            return new UserSettingsOutputModel
+            {
+                DailyVlogRequestLimit = settings.DailyVlogRequestLimit,
+                FollowMode = MapperEnum.Map(settings.FollowMode),
+                IsPrivate = settings.IsPrivate,
+                UserId = settings.UserId
+            };
+        }
+
     }
 
 }
