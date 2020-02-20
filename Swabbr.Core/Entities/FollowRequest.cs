@@ -1,4 +1,6 @@
-﻿using Swabbr.Core.Enums;
+﻿using Laixer.Utility.Extensions;
+using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Core.Entities
@@ -7,23 +9,14 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Represents an active follow request between two users.
     /// </summary>
-    public class FollowRequest : EntityBase
+    public class FollowRequest : EntityBase<FollowRequestId>
     {
-
-        /// <summary>
-        /// Id of the user that initiated the follow request.
-        /// </summary>
-        public Guid RequesterId { get; set; }
-
-        /// <summary>
-        /// Id of the user that should receive the follow request.
-        /// </summary>
-        public Guid ReceiverId { get; set; }
 
         /// <summary>
         /// Current status of the follow request.
         /// </summary>
         public FollowRequestStatus Status { get; set; }
+        public string StatusText => Status.GetEnumMemberAttribute();
 
         /// <summary>
         /// Timestamp of when the request was initiated.

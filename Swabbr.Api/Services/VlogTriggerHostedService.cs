@@ -6,6 +6,7 @@ using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading;

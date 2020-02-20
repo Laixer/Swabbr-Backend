@@ -1,103 +1,141 @@
-﻿using Swabbr.Core.Entities;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.Extensions.Logging;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Types;
+using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
+
+    /// <summary>
+    /// Contains functionality to handle <see cref="FollowRequest"/> operations.
+    /// </summary>
     public class FollowRequestService : IFollowRequestService
     {
+
         private readonly IFollowRequestRepository _followRequestRepository;
-        private readonly IUserSettingsRepository _userSettingsRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ILogger logger;
 
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
         public FollowRequestService(IFollowRequestRepository followRequestRepository,
-            IUserSettingsRepository userSettingsRepository)
+            IUserRepository userRepository)
         {
-            _followRequestRepository = followRequestRepository;
-            _userSettingsRepository = userSettingsRepository;
+            _followRequestRepository = followRequestRepository ?? throw new ArgumentNullException(nameof(followRequestRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
-        // TODO THOMAS Q What do we want to do when we have a follow request that was already declined in the past?
-        // Don't try to battle the race conditions, just stop the process immediately.
-        public async Task<FollowRequest> SendAsync(Guid receiverId, Guid requesterId)
+        /// <summary>
+        /// Sends a <see cref="FollowRequest"/>. If a previous one already exists
+        /// between the sender and receiver and has been declined, the request will
+        /// be sent again.
+        /// </summary>
+        /// <remarks>
+        /// Any operations regarding user settings (being auto accept and/or 
+        /// auto decline) are handled by our database.
+        /// </remarks>
+        /// <param name="requesterId">Requesting <see cref="SwabbrUser"/> internal id</param>
+        /// <param name="receiverId">Receiving <see cref="SwabbrUser"/> internal id</param>
+        /// <returns><see cref="FollowRequest"/></returns>
+        public async Task<FollowRequest> SendAsync(Guid requesterId, Guid receiverId)
         {
-            // In case a request between these users already exists...
-            if (await _followRequestRepository.ExistsAsync(receiverId, requesterId))
+            receiverId.ThrowIfNullOrEmpty();
+            requesterId.ThrowIfNullOrEmpty();
+            var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = receiverId };
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var existingRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, requesterId);
-                if (existingRequest.Status == FollowRequestStatus.Declined)
+                // Handle if the request exists.
+                if (await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
                 {
-                    //TODO:Should we allow re-sending declined requests? Currently doing so by updating the status to pending.
-                    existingRequest.Status = FollowRequestStatus.Pending;
-                    var updatedEntity = await _followRequestRepository.UpdateAsync(existingRequest);
-                    return updatedEntity;
+                    // TODO This can be done with a database function maybe
+                    var existingRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+                    if (existingRequest.Status == FollowRequestStatus.Declined)
+                    {
+                        existingRequest.Status = FollowRequestStatus.Pending;
+                        var updatedEntity = await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
+
+                        // Commit and return
+                        scope.Complete();
+                        return updatedEntity;
+                    }
+
+                    // If we get here, a request that is either pending or accepted already exists between these users.
+                    throw new EntityAlreadyExistsException("A follow request between the requesting and receiving user already exists (and is not declined)");
                 }
 
-                // If we get here, a request that is either pending or accepted already exists between these users.
-                throw new EntityAlreadyExistsException();
-            }
-
-            // Obtain the follow mode setting of the receiving user.
-            var userSettings = await _userSettingsRepository.GetForUserAsync(receiverId).ConfigureAwait(false);
-
-            // Function to extract the correct request status.
-            FollowRequestStatus getRequestStatus(FollowMode followMode)
-            {
-                switch (followMode)
+                // Continue if the request does not exist yet
+                var result = await _followRequestRepository.CreateAsync(new FollowRequest
                 {
-                    case FollowMode.AcceptAll:
-                        return FollowRequestStatus.Accepted;
-                    case FollowMode.DeclineAll:
-                        return FollowRequestStatus.Declined;
-                    case FollowMode.Manual:
-                        return FollowRequestStatus.Pending;
-                }
+                    Id = new FollowRequestId
+                    {
+                        ReceiverId = receiverId,
+                        RequesterId = requesterId
+                    }
+                }).ConfigureAwait(false);
 
-                throw new InvalidOperationException(nameof(followMode));
+                // Commit and return
+                scope.Complete();
+                return result;
             }
-
-            return await _followRequestRepository.CreateAsync(new FollowRequest
-            {
-                ReceiverId = receiverId,
-                RequesterId = requesterId,
-                Status = getRequestStatus(userSettings.FollowMode),
-                TimeCreated = DateTime.Now
-            }).ConfigureAwait(false);
         }
 
-        public async Task<FollowRequest> AcceptAsync(Guid followRequestId)
+        /// <summary>
+        /// Accepts a <see cref="FollowRequest"/>.
+        /// </summary>
+        /// <param name="followRequestId"></param>
+        /// <returns></returns>
+        public async Task<FollowRequest> AcceptAsync(FollowRequestId id)
         {
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-            followRequest.Status = FollowRequestStatus.Accepted;
-            return await _followRequestRepository.UpdateAsync(followRequest);
+            id.ThrowIfNullOrEmpty();
+
+            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+            if (followRequest.Status != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
+
+            return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted).ConfigureAwait(false);
         }
 
-        public async Task<FollowRequest> DeclineAsync(Guid followRequestId)
+        public async Task<FollowRequest> DeclineAsync(FollowRequestId id)
         {
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-            followRequest.Status = FollowRequestStatus.Declined;
-            return await _followRequestRepository.UpdateAsync(followRequest);
+            id.ThrowIfNullOrEmpty();
+
+            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+            if (followRequest.Status != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
+
+            return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
         }
 
-        public Task<bool> ExistsAsync(Guid receiverId, Guid requesterId)
+        public Task<FollowRequest> GetAsync(FollowRequestId id)
         {
-            return _followRequestRepository.ExistsAsync(receiverId, requesterId);
+            return _followRequestRepository.GetAsync(id);
         }
 
-        public Task<FollowRequest> GetAsync(Guid followRequestId)
+        /// <summary>
+        /// Gets the <see cref="FollowRequestStatus"/> for a <see cref="FollowRequest"/>
+        /// between two <see cref="SwabbrUser"/>s.
+        /// </summary>
+        /// <remarks>
+        /// TODO Maybe a separate call for the repository to save processing power? Minor optimization
+        /// </remarks>
+        /// <param name="receiverId">Internal receiver id</param>
+        /// <param name="requesterId">Internal requester id</param>
+        /// <returns><see cref="FollowRequestStatus"/></returns>
+        public async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
         {
-            return _followRequestRepository.GetByIdAsync(followRequestId);
-        }
-
-        public Task<FollowRequest> GetAsync(Guid receiverId, Guid requesterId)
-        {
-            return _followRequestRepository.GetByUserIdAsync(receiverId, requesterId);
+            id.RequesterId.ThrowIfNullOrEmpty();
+            id.ReceiverId.ThrowIfNullOrEmpty();
+            return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).Status;
         }
 
         public Task<int> GetFollowerCountAsync(Guid userId)
@@ -122,27 +160,54 @@ namespace Swabbr.Core.Services
                 .Where(entity => entity.Status == FollowRequestStatus.Pending);
         }
 
-        public async Task CancelAsync(Guid followRequestId)
+        /// <summary>
+        /// Cancels a <see cref="FollowRequest"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <paramref name="requesterId"/> is used to ensure that a user can 
+        /// only cancel a <see cref="FollowRequest"/> that he has requested himself.
+        /// </remarks>
+        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="requesterId">Internal requesting <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CancelAsync(FollowRequestId id)
         {
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-            if (followRequest.Status == FollowRequestStatus.Pending)
+            id.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                // Delete the request
-                await _followRequestRepository.DeleteAsync(followRequest);
+                if (!await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
+                {
+                    throw new InvalidOperationException("Follow request does not exist");
+                }
+                // if (followRequest.Id.RequesterId != requesterId) { throw new InvalidOperationException("Follow request not owned by user"); }
+                // TODO We can't really check this, you can always do this wrong.
+                // We can only require the function call to have both the requester and receiver id, as we do now.
+
+                await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
+                scope.Complete();
             }
-            throw new InvalidOperationException();
         }
 
-        public async Task<bool> IsOwnedByUserAsync(Guid followRequestId, Guid userId)
+        /// <summary>
+        /// Unfollows a user.
+        /// </summary>
+        /// <param name="receiverId">Internal receiver id</param>
+        /// <param name="requesterId">Internal requester id</param>
+        /// <returns></returns>
+        public async Task UnfollowAsync(FollowRequestId id)
         {
-            var followRequest = await _followRequestRepository.GetByIdAsync(followRequestId);
-            return followRequest.ReceiverId == userId;
+            id.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+                if (followRequest.Status != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
+
+                await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
+                scope.Complete();
+            }
         }
 
-        public async Task UnfollowAsync(Guid receiverId, Guid requesterId)
-        {
-            var followRequest = await _followRequestRepository.GetByUserIdAsync(receiverId, requesterId);
-            await _followRequestRepository.DeleteAsync(followRequest);
-        }
     }
 }
