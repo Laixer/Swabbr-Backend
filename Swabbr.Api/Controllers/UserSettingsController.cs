@@ -64,19 +64,20 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserSettingsOutputModel))]
         public async Task<IActionResult> UpdateAsync([FromBody] UserSettingsInputModel input)
         {
-            if (!ModelState.IsValid) { throw new InvalidOperationException("Input model is invalid"); }
+            throw new NotImplementedException();
+            //if (!ModelState.IsValid) { throw new InvalidOperationException("Input model is invalid"); }
 
-            var identityUser = await _userManager.GetUserAsync(User);
-            if (identityUser == null) { throw new InvalidOperationException("Can't modify user settings if no user is logged in"); }
+            //var identityUser = await _userManager.GetUserAsync(User);
+            //if (identityUser == null) { throw new InvalidOperationException("Can't modify user settings if no user is logged in"); }
 
-            // Obtain settings and set updated properties.
-            var settings = await _userRepository.GetUserSettingsAsync(identityUser.Id);
-            settings.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
-            settings.FollowMode = input.FollowMode;
-            settings.IsPrivate = input.IsPrivate;
+            //// Obtain settings and set updated properties.
+            //var settings = await _userRepository.GetUserSettingsAsync(identityUser.Id);
+            //settings.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
+            //settings.FollowMode = input.FollowMode;
+            //settings.IsPrivate = input.IsPrivate;
 
-            // Update and return (updated) settings entity
-            return Ok(await _userRepository.UpdateUserSettingsAsync(settings));
+            //// Update and return (updated) settings entity
+            //return Ok(await _userRepository.UpdateUserSettingsAsync(settings));
         }
 
     }

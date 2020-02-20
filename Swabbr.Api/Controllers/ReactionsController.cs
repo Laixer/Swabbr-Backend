@@ -47,21 +47,22 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
         public async Task<IActionResult> Create([FromBody] ReactionInputModel inputModel)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //var identityUser = await _userManager.GetUserAsync(User);
 
-            //TODO: Check if user has access to post a reaction to the given vlog
+            ////TODO: Check if user has access to post a reaction to the given vlog
 
-            var newReaction = new Reaction
-            {
-                VlogId = inputModel.VlogId,
-                UserId = identityUser.Id,
-                IsPrivate = inputModel.IsPrivate,
-                DatePosted = DateTime.Now,
-            };
+            //var newReaction = new Reaction
+            //{
+            //    VlogId = inputModel.VlogId,
+            //    UserId = identityUser.Id,
+            //    IsPrivate = inputModel.IsPrivate,
+            //    DatePosted = DateTime.Now,
+            //};
 
-            // Create and return the reaction entity
-            ReactionOutputModel output = await _reactionRepository.CreateAsync(newReaction);
-            return Ok(output);
+            //// Create and return the reaction entity
+            //ReactionOutputModel output = await _reactionRepository.CreateAsync(newReaction);
+            //return Ok(output);
         }
 
         /// <summary>
@@ -72,23 +73,24 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> Update([FromBody] ReactionUpdateInputModel inputModel)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //var identityUser = await _userManager.GetUserAsync(User);
 
-            var reaction = await _reactionRepository.GetByIdAsync(inputModel.ReactionId);
+            //var reaction = await _reactionRepository.GetByIdAsync(inputModel.ReactionId);
 
-            if (!reaction.UserId.Equals(identityUser.Id))
-            {
-                return StatusCode(
-                    (int)HttpStatusCode.Forbidden,
-                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
-                );
-            }
+            //if (!reaction.UserId.Equals(identityUser.Id))
+            //{
+            //    return StatusCode(
+            //        (int)HttpStatusCode.Forbidden,
+            //        this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
+            //    );
+            //}
 
-            // Update the reaction entity
-            reaction.IsPrivate = inputModel.IsPrivate;
+            //// Update the reaction entity
+            //reaction.IsPrivate = inputModel.IsPrivate;
 
-            ReactionOutputModel output = await _reactionRepository.UpdateAsync(reaction);
-            return Ok(output);
+            //ReactionOutputModel output = await _reactionRepository.UpdateAsync(reaction);
+            //return Ok(output);
         }
 
         /// <summary>
@@ -99,20 +101,21 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> GetReactionsForVlog([FromRoute] Guid vlogId)
         {
-            if (!(await _vlogRepository.ExistsAsync(vlogId)))
-            {
-                return NotFound(
-                    this.Error(ErrorCodes.EntityNotFound, "Vlog does not exist.")
-                    );
-            }
+            throw new NotImplementedException();
+            //if (!(await _vlogRepository.ExistsAsync(vlogId)))
+            //{
+            //    return NotFound(
+            //        this.Error(ErrorCodes.EntityNotFound, "Vlog does not exist.")
+            //        );
+            //}
 
-            var reactions = await _reactionRepository.GetReactionsForVlogAsync(vlogId);
+            //var reactions = await _reactionRepository.GetReactionsForVlogAsync(vlogId);
 
-            // Map the collection to output models.
-            IEnumerable<ReactionOutputModel> output = reactions
-                .Select(entity => (ReactionOutputModel)entity);
+            //// Map the collection to output models.
+            //IEnumerable<ReactionOutputModel> output = reactions
+            //    .Select(entity => (ReactionOutputModel)entity);
 
-            return Ok(output);
+            //return Ok(output);
         }
 
         /// <summary>
@@ -123,17 +126,18 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> Get([FromRoute] Guid reactionId)
         {
-            try
-            {
-                ReactionOutputModel output = await _reactionRepository.GetByIdAsync(reactionId);
-                return Ok(output);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound(
-                    this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
-                    );
-            }
+            throw new NotImplementedException();
+            //try
+            //{
+            //    ReactionOutputModel output = await _reactionRepository.GetByIdAsync(reactionId);
+            //    return Ok(output);
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return NotFound(
+            //        this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
+            //        );
+            //}
         }
 
         /// <summary>
@@ -145,29 +149,30 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> Delete([FromRoute] Guid reactionId)
         {
-            try
-            {
-                var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //try
+            //{
+            //    var identityUser = await _userManager.GetUserAsync(User);
 
-                var reaction = await _reactionRepository.GetByIdAsync(reactionId);
+            //    var reaction = await _reactionRepository.GetByIdAsync(reactionId);
 
-                if (!identityUser.Id.Equals(reaction.UserId))
-                {
-                    return StatusCode(
-                        (int)HttpStatusCode.Forbidden,
-                        this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
-                    );
-                }
+            //    if (!identityUser.Id.Equals(reaction.UserId))
+            //    {
+            //        return StatusCode(
+            //            (int)HttpStatusCode.Forbidden,
+            //            this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
+            //        );
+            //    }
 
-                await _reactionRepository.DeleteAsync(reaction);
-                return NoContent();
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound(
-                    this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
-                    );
-            }
+            //    await _reactionRepository.DeleteAsync(reaction);
+            //    return NoContent();
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return NotFound(
+            //        this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
+            //        );
+            //}
         }
     }
 }

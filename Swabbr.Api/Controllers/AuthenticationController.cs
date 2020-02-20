@@ -7,7 +7,6 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Net;
@@ -62,15 +61,19 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterInputModel input)
         {
+            if (input == null) { return BadRequest("Form body can't be null"); }
             if (!ModelState.IsValid) { throw new InvalidOperationException("Input model is not valid"); }
-            if ((await _userManager.FindByEmailAsync(input.Email)) != null)
+            if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
             {
                 return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User already exists."));
             }
 
+            // TODO This should not be possible if we are already logged in
+
             // Construct a new identity user for a new user based on the given input
             // TODO Make sure we copy all that we need here
             // TODO Check all properties here
+            // TODO Shouldn't the mapper do this? Probably!
             var identityUser = new SwabbrIdentityUser
             {
                 Email = input.Email,
@@ -78,7 +81,7 @@ namespace Swabbr.Api.Controllers
                 LastName = input.LastName,
                 BirthDate = input.BirthDate,
                 Country = input.Country,
-                Gender = input.Gender,
+                Gender = MapperEnum.Map(input.Gender),
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
                 Timezone = input.Timezone,
@@ -86,22 +89,23 @@ namespace Swabbr.Api.Controllers
             };
 
             // Create the user
-            var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
+            var identityResult = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
 
             // Sign in and return
             if (identityResult.Succeeded)
             {
-                await _signInManager.SignInAsync(identityUser, isPersistent: true);
+                // TODO This bugs out and can't sign in the first try. The exception says id is null, but the identityUser id gets set anyways!
+                await _signInManager.SignInAsync(identityUser, isPersistent: true).ConfigureAwait(false);
                 var token = _tokenService.GenerateToken(identityUser);
-                var userOutput = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id));
+                var userOutput = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false));
 
                 return Ok(new UserAuthenticationOutputModel
                 {
                     Token = token,
-                    Claims = await _userManager.GetClaimsAsync(identityUser),
-                    Roles = await _userManager.GetRolesAsync(identityUser),
+                    Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
+                    Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
                     User = userOutput,
-                    UserSettings = await _userRepository.GetUserSettingsAsync(identityUser.Id) // TODO User also contains settings, do we want this? How to handle?
+                    UserSettings = MapperUser.Map(await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false)) // TODO User also contains settings, do we want this? How to handle?
                 });
             }
 
@@ -123,7 +127,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
         public async Task<IActionResult> LoginAsync([FromBody] UserAuthenticationInputModel input)
         {
-            if (!ModelState.IsValid) { throw new InvalidOperationException("Input model is not valid"); }
+            if (input == null) { return BadRequest("Form body can't be null"); }
+            if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
 
             // Throw a bad request if we are already logged in
             // TODO Implement
@@ -148,7 +153,7 @@ namespace Swabbr.Api.Controllers
                     Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
                     Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
                     User = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
-                    UserSettings = await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false)
+                    UserSettings = MapperUser.Map(await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
                 });
             }
 
@@ -165,8 +170,8 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> LogoutAsync()
         {
-            // TODO What happens if we aren't signed in in the first place?
-            await _signInManager.SignOutAsync();
+            // TODO What happens if we aren't signed in in the first place? --> BadRequest
+            await _signInManager.SignOutAsync().ConfigureAwait(false);
             return NoContent();
         }
 

@@ -47,27 +47,28 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //var identityUser = await _userManager.GetUserAsync(User);
 
-            try
-            {
-                var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+            //try
+            //{
+            //    var vlog = await _vlogRepository.GetByIdAsync(vlogId);
 
-                if (vlog.IsPrivate)
-                {
-                    ////var b = (await _vlogRepository.GetSharedUserIdsAsync(vlogId)).Contains(identityUser.UserId);
-                    //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
-                }
+            //    if (vlog.IsPrivate)
+            //    {
+            //        ////var b = (await _vlogRepository.GetSharedUserIdsAsync(vlogId)).Contains(identityUser.UserId);
+            //        //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
+            //    }
 
-                VlogOutputModel output = VlogOutputModel.Parse(vlog);
-                return Ok(output);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound(
-                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-                );
-            }
+            //    VlogOutputModel output = VlogOutputModel.Parse(vlog);
+            //    return Ok(output);
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return NotFound(
+            //        this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
+            //    );
+            //}
         }
 
         /// <summary>
@@ -77,34 +78,35 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogUpdateModel input)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //var identityUser = await _userManager.GetUserAsync(User);
 
-            try
-            {
-                var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+            //try
+            //{
+            //    var vlog = await _vlogRepository.GetByIdAsync(vlogId);
 
-                if (vlog.UserId != identityUser.Id)
-                {
-                    return StatusCode(
-                        (int)HttpStatusCode.Forbidden,
-                        this.Error(ErrorCodes.InsufficientAccessRights, "User does not have access to this vlog.")
-                        );
-                }
+            //    if (vlog.UserId != identityUser.Id)
+            //    {
+            //        return StatusCode(
+            //            (int)HttpStatusCode.Forbidden,
+            //            this.Error(ErrorCodes.InsufficientAccessRights, "User does not have access to this vlog.")
+            //            );
+            //    }
 
-                if (vlog.IsPrivate)
-                {
-                    //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
-                }
+            //    if (vlog.IsPrivate)
+            //    {
+            //        //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
+            //    }
 
-                VlogOutputModel output = VlogOutputModel.Parse(vlog);
-                return Ok(output);
-            }
-            catch (EntityNotFoundException)
-            {
-                return NotFound(
-                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-                );
-            }
+            //    VlogOutputModel output = VlogOutputModel.Parse(vlog);
+            //    return Ok(output);
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return NotFound(
+            //        this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
+            //    );
+            //}
         }
 
         /// <summary>
@@ -115,18 +117,19 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> FeaturedAsync()
         {
-            var vlogs = await _vlogRepository.GetFeaturedVlogsAsync();
+            throw new NotImplementedException();
+            //var vlogs = await _vlogRepository.GetFeaturedVlogsAsync();
 
-            //TODO: Temporarily returning the latest (last started) vlogs by started date
-            IEnumerable<VlogOutputModel> output = vlogs
-                //.Select(v => (VlogOutputModel)v)
-                .Select(v => VlogOutputModel.Parse(v))
-                .OrderByDescending(v => v.DateStarted)
+            ////TODO: Temporarily returning the latest (last started) vlogs by started date
+            //IEnumerable<VlogOutputModel> output = vlogs
+            //    //.Select(v => (VlogOutputModel)v)
+            //    .Select(v => VlogOutputModel.Parse(v))
+            //    .OrderByDescending(v => v.DateStarted)
 
-                //TODO: Remove take once GetFeaturedVlogs is implemented, using this temporarily to limit the amount sent to the client
-                .Take(10);
+            //    //TODO: Remove take once GetFeaturedVlogs is implemented, using this temporarily to limit the amount sent to the client
+            //    .Take(10);
 
-            return Ok(output);
+            //return Ok(output);
         }
 
         //TODO: For later: Specify limit? pagination?
@@ -137,17 +140,18 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId)
         {
-            var vlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
+            throw new NotImplementedException();
+            //var vlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
 
-            // Map the vlogs to their output model representations.
-            IEnumerable<VlogOutputModel> output = vlogs
-                .Select(vlog =>
-                {
-                    VlogOutputModel outputModel = VlogOutputModel.Parse(vlog);
-                    return outputModel;
-                });
+            //// Map the vlogs to their output model representations.
+            //IEnumerable<VlogOutputModel> output = vlogs
+            //    .Select(vlog =>
+            //    {
+            //        VlogOutputModel outputModel = VlogOutputModel.Parse(vlog);
+            //        return outputModel;
+            //    });
 
-            return Ok(output);
+            //return Ok(output);
         }
 
         /// <summary>
@@ -158,31 +162,32 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
         {
-            try
-            {
-                var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //try
+            //{
+            //    var identityUser = await _userManager.GetUserAsync(User);
 
-                var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
+            //    var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
 
-                // Ensure the authenticated user is the owner of this vlog
-                if (!vlogEntity.UserId.Equals(identityUser.Id))
-                {
-                    return BadRequest(
-                        this.Error(ErrorCodes.InsufficientAccessRights, "Access to this vlog is not allowed.")
-                    );
-                }
+            //    // Ensure the authenticated user is the owner of this vlog
+            //    if (!vlogEntity.UserId.Equals(identityUser.Id))
+            //    {
+            //        return BadRequest(
+            //            this.Error(ErrorCodes.InsufficientAccessRights, "Access to this vlog is not allowed.")
+            //        );
+            //    }
 
-                // Delete the vlog
-                await _vlogRepository.DeleteAsync(vlogEntity);
+            //    // Delete the vlog
+            //    await _vlogRepository.DeleteAsync(vlogEntity);
 
-                return NoContent();
-            }
-            catch (EntityNotFoundException)
-            {
-                return BadRequest(
-                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-                );
-            }
+            //    return NoContent();
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return BadRequest(
+            //        this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
+            //    );
+            //}
         }
 
         //TODO: What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog. Currently returning status code only.
@@ -224,22 +229,23 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> UnlikeAsync([FromRoute]Guid vlogId)
         {
-            try
-            {
-                var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //try
+            //{
+            //    var identityUser = await _userManager.GetUserAsync(User);
 
-                // Retrieve and delete the entity
-                var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.Id);
-                await _vlogLikeRepository.DeleteAsync(entityToDelete);
+            //    // Retrieve and delete the entity
+            //    var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.Id);
+            //    await _vlogLikeRepository.DeleteAsync(entityToDelete);
 
-                return NoContent();
-            }
-            catch (EntityNotFoundException)
-            {
-                return BadRequest(
-                    this.Error(ErrorCodes.EntityNotFound, "Like could not be found.")
-                );
-            }
+            //    return NoContent();
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return BadRequest(
+            //        this.Error(ErrorCodes.EntityNotFound, "Like could not be found.")
+            //    );
+            //}
         }
     }
 }

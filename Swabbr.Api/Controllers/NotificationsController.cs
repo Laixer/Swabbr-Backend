@@ -9,6 +9,7 @@ using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
+using System;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -43,24 +44,25 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> UnregisterFromNotificationsAsync()
         {
-            var identityUser = await _userManager.GetUserAsync(User);
+            throw new NotImplementedException();
+            //var identityUser = await _userManager.GetUserAsync(User);
 
-            try
-            {
-                var registration = await _notificationRegistrationRepository.GetByUserIdAsync(identityUser.Id);
+            //try
+            //{
+            //    var registration = await _notificationRegistrationRepository.GetByUserIdAsync(identityUser.Id);
 
-                // Delete the registration from the hub
-                await _notificationService.DeleteRegistrationAsync(registration.Id);
-                await _notificationRegistrationRepository.DeleteAsync(registration);
+            //    // Delete the registration from the hub
+            //    await _notificationService.DeleteRegistrationAsync(registration.Id);
+            //    await _notificationRegistrationRepository.DeleteAsync(registration);
 
-                return Ok();
-            }
-            catch (EntityNotFoundException)
-            {
-                return BadRequest(
-                    this.Error(ErrorCodes.EntityNotFound, "Notification registration could not be found.")
-                    );
-            }
+            //    return Ok();
+            //}
+            //catch (EntityNotFoundException)
+            //{
+            //    return BadRequest(
+            //        this.Error(ErrorCodes.EntityNotFound, "Notification registration could not be found.")
+            //        );
+            //}
         }
 
         /// <summary>

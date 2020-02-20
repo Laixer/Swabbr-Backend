@@ -145,7 +145,7 @@ namespace Swabbr.Api.Controllers
             // Send the notification to each follower
             foreach (FollowRequest fr in followers)
             {
-                Guid followerId = fr.RequesterId;
+                Guid followerId = fr.Id.RequesterId;
                 await _notificationService.SendNotificationToUserAsync(notification, followerId);
             }
 
@@ -202,16 +202,17 @@ namespace Swabbr.Api.Controllers
                 await _vlogRepository.ShareWithUserAsync(vlog.Id, userId);
             }
 
-            VlogOutputModel output = VlogOutputModel.Parse(await _vlogRepository.UpdateAsync(vlog));
+            throw new NotImplementedException();
+            //VlogOutputModel output = VlogOutputModel.Parse(await _vlogRepository.UpdateAsync(vlog));
 
-            // Stop the external livestream asynchronously
-            await _livestreamingService.StopStreamAsync(livestreamId);
+            //// Stop the external livestream asynchronously
+            //await _livestreamingService.StopStreamAsync(livestreamId);
 
-            // Synchronize the livestream recordings for the vlog asynchronously without awaiting
-            // the result
-            _ = _livestreamingService.SyncRecordingsForVlogAsync(livestreamId, livestream.VlogId);
+            //// Synchronize the livestream recordings for the vlog asynchronously without awaiting
+            //// the result
+            //_ = _livestreamingService.SyncRecordingsForVlogAsync(livestreamId, livestream.VlogId);
 
-            return Ok(output);
+            //return Ok(output);
         }
 
         /// <summary>
