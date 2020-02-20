@@ -1,12 +1,16 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
 using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Input model for liking a vlog.
+    /// </summary>
     public class VlogLikeInputModel
     {
+
         /// <summary>
         /// Id of the vlog to send the like to.
         /// </summary>
@@ -21,11 +25,6 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("userId")]
         public Guid UserId { get; set; }
 
-        public static implicit operator VlogLike(VlogLikeInputModel entity)
-            => new VlogLike
-            {
-                UserId = entity.UserId,
-                VlogId = entity.VlogId
-            };
     }
+
 }

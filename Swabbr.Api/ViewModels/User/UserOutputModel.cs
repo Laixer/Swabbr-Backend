@@ -1,11 +1,16 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Enums;
+using Swabbr.Api.ViewModels.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Reprents a single user.
+    /// </summary>
     public partial class UserOutputModel
     {
+
         /// <summary>
         /// Unique identifier.
         /// </summary>
@@ -34,7 +39,7 @@ namespace Swabbr.Api.ViewModels
         /// Selected gender of the user.
         /// </summary>
         [JsonProperty("gender")]
-        public Gender Gender { get; set; }
+        public GenderModel Gender { get; set; }
 
         /// <summary>
         /// Selected country.
@@ -64,7 +69,7 @@ namespace Swabbr.Api.ViewModels
         /// URL containing the uploaded profile image of the user.
         /// </summary>
         [JsonProperty("profileImageUrl")]
-        public string ProfileImageUrl { get; set; }
+        public Uri ProfileImageUrl { get; set; }
 
         /// <summary>
         /// Total amount of followers the user has acquired.
@@ -89,5 +94,7 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("isPrivate")]
         public bool IsPrivate { get; set; }
+
     }
+
 }

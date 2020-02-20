@@ -1,11 +1,15 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
+using Swabbr.Api.ViewModels.Enums;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Input model for changing the user settings.
+    /// </summary>
     public class UserSettingsInputModel
     {
+
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
@@ -22,16 +26,8 @@ namespace Swabbr.Api.ViewModels
         /// Determines how follow requests are processed for the user.
         /// </summary>
         [JsonProperty("followMode")]
-        public FollowMode FollowMode { get; set; }
+        public FollowModeModel FollowMode { get; set; }
 
-        public static implicit operator UserSettings(UserSettingsInputModel entity)
-        {
-            return new UserSettings
-            {
-                FollowMode = entity.FollowMode,
-                DailyVlogRequestLimit = entity.DailyVlogRequestLimit,
-                IsPrivate = entity.IsPrivate
-            };
-        }
     }
+
 }

@@ -1,12 +1,16 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
+using Swabbr.Api.ViewModels.Enums;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Represents a single user profile.
+    /// </summary>
     public class UserProfileOutputModel
     {
+
         /// <summary>
         /// Unique identifier.
         /// </summary>
@@ -29,7 +33,7 @@ namespace Swabbr.Api.ViewModels
         /// Selected gender of the user.
         /// </summary>
         [JsonProperty("gender")]
-        public Gender Gender { get; set; }
+        public GenderModel Gender { get; set; }
 
         /// <summary>
         /// Selected country.
@@ -85,20 +89,6 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("totalFollowing")]
         public int TotalFollowing { get; set; }
 
-        public static implicit operator UserProfileOutputModel(SwabbrUser user)
-        {
-            return new UserProfileOutputModel
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                BirthDate = user.BirthDate,
-                Country = user.Country,
-                Gender = user.Gender,
-                IsPrivate = user.IsPrivate,
-                Nickname = user.Nickname,
-                ProfileImageUrl = user.ProfileImageUrl,
-                Timezone = user.Timezone
-            };
-        }
     }
+
 }

@@ -1,12 +1,18 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Api.ViewModels.Vlog;
 using Swabbr.Core.Entities;
 using System;
 using System.Collections.Generic;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Represents a single vlog.
+    /// </summary>
     public class VlogOutputModel
     {
+
         /// <summary>
         /// Id of the vlog.
         /// </summary>
@@ -47,21 +53,8 @@ namespace Swabbr.Api.ViewModels
         /// Likes given to this vlog by users.
         /// </summary>
         [JsonProperty("likes")]
-        public IEnumerable<VlogLike> Likes { get; set; }
-
-        public static VlogOutputModel Parse(Core.Entities.Vlog vlog)
-        {
-            return new VlogOutputModel
-            {
-                Id = vlog.Id,
-                UserId = vlog.UserId,
-                DownloadUrl = vlog.DownloadUrl,
-                DateStarted = vlog.DateStarted,
-                IsLive = vlog.IsLive,
-                IsPrivate = vlog.IsPrivate,
-                Likes = vlog.Likes,
-            };
-        }
+        public IEnumerable<VlogLikeOutputModel> Likes { get; set; }
 
     }
+
 }

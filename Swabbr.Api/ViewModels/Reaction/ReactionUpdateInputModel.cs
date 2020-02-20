@@ -3,8 +3,13 @@ using System;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Input model for updating a reaction.
+    /// </summary>
     public class ReactionUpdateInputModel
     {
+
         /// <summary>
         /// Id of the reaction.
         /// </summary>
@@ -16,5 +21,7 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("isPrivate")]
         public bool IsPrivate { get; set; }
+
     }
+
 }

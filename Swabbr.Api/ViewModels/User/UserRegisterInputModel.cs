@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
+using Swabbr.Api.ViewModels.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,7 +7,7 @@ namespace Swabbr.Api.ViewModels
 {
 
     /// <summary>
-    /// Viewmodel for registering a new user.
+    /// Input model for registering a new user.
     /// </summary>
     public class UserRegisterInputModel
     {
@@ -31,7 +30,7 @@ namespace Swabbr.Api.ViewModels
         /// Selected gender of the user.
         /// </summary>
         [JsonProperty("gender")]
-        public Gender Gender { get; set; }
+        public GenderModel Gender { get; set; }
 
         /// <summary>
         /// Selected country.
@@ -94,24 +93,6 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("phoneNumber", Required = Required.DisallowNull)]
         public string PhoneNumber { get; set; }
 
-        /// <summary>
-        /// TODO THOMAS Move
-        /// </summary>
-        /// <param name="user"></param>
-        public static implicit operator SwabbrUser(UserRegisterInputModel user)
-        {
-            return new SwabbrUser
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                BirthDate = user.BirthDate,
-                Country = user.Country,
-                Gender = user.Gender,
-                IsPrivate = user.IsPrivate,
-                Nickname = user.Nickname,
-                ProfileImageUrl = user.ProfileImageUrl,
-                Timezone = user.Timezone,
-            };
-        }
     }
+
 }

@@ -1,11 +1,15 @@
 ﻿using Newtonsoft.Json;
-using Swabbr.Core.Entities;
 using System;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Represents a single reaction.
+    /// </summary>
     public class ReactionOutputModel
     {
+
         /// <summary>
         /// Id of the reaction.
         /// </summary>
@@ -42,17 +46,6 @@ namespace Swabbr.Api.ViewModels
         [JsonProperty("mediaServiceData")]
         public object MediaServiceData { get; set; }
 
-        public static implicit operator ReactionOutputModel(Reaction entity)
-        {
-            return new ReactionOutputModel
-            {
-                Id = entity.Id,
-                UserId = entity.UserId,
-                VlogId = entity.VlogId,
-                DatePosted = entity.DatePosted,
-                IsPrivate = entity.IsPrivate,
-                MediaServiceData = entity.MediaServiceData
-            };
-        }
     }
+
 }

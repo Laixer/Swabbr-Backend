@@ -4,8 +4,14 @@ using System.Collections.Generic;
 
 namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Input model for updating a vlog.
+    /// TODO The vlog id? ...
+    /// </summary>
     public class VlogUpdateModel
     {
+
         /// <summary>
         /// A collection of user id's to share the vlog with.
         /// </summary>
@@ -17,5 +23,7 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("isPrivate")]
         public bool IsPrivate { get; set; }
+
     }
+
 }

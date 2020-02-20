@@ -1,7 +1,12 @@
 ﻿namespace Swabbr.Api.ViewModels
 {
+
+    /// <summary>
+    /// Represents all statistics belonging to a single <see cref="UserOutputModel"/>.
+    /// </summary>
     public class UserStatisticsOutputModel
     {
+
         /// <summary>
         /// The total amount of accumulated likes for the vlogs of this user.
         /// </summary>
@@ -36,5 +41,7 @@
         /// The total amount of accumulated views for the vlogs this user owns.
         /// </summary>
         public int TotalViews { get; set; }
+
     }
+
 }

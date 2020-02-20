@@ -3,11 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels
 {
+
     /// <summary>
     /// Represents an input model provided by the client for authenticating a user.
     /// </summary>
     public class UserAuthenticationInputModel
     {
+
         /// <summary>
         /// Email address input.
         /// </summary>
@@ -29,5 +31,7 @@ namespace Swabbr.Api.ViewModels
         /// </summary>
         [JsonProperty("rememberMe")]
         public bool RememberMe { get; set; } = false;
+
     }
+
 }
