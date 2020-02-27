@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core.Enums;
+using System;
 
 namespace Swabbr.Core.Entities
 {
@@ -20,11 +21,6 @@ namespace Swabbr.Core.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Unique identifier of the vlog this livestream temporarily belongs to.
-        /// </summary>
-        public Guid VlogId { get; set; }
-
-        /// <summary>
         /// Name of the livestream.
         /// </summary>
         public string Name { get; set; }
@@ -42,12 +38,17 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Creation date.
         /// </summary>
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset CreateDate { get; set; }
 
         /// <summary>
         /// Update date.
         /// </summary>
-        public DateTimeOffset UpdatedAt { get; set; }
+        public DateTimeOffset UpdateDate { get; set; }
+
+        /// <summary>
+        /// Indicates the current status of the livestream on our external platform.
+        /// </summary>
+        public LivestreamStatus LivestreamStatus { get; set; }
 
     }
 

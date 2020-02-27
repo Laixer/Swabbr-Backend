@@ -17,6 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Infra.Npgsql", "Laix
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Utility", "Laixer.Utility\Laixer.Utility.csproj", "{F6BDF238-235F-4CA1-93B3-20393338BA87}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Identity.Dapper", "..\LaixerIdentityDapper\src\Laixer.Identity.Dapper\Laixer.Identity.Dapper.csproj", "{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
