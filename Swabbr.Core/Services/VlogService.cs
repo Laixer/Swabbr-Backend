@@ -12,6 +12,10 @@ namespace Swabbr.Core.Services
     {
         private readonly IVlogRepository _vlogRepository;
 
+        /// <summary>
+        /// TODO When do we ever need this?
+        /// </summary>
+        /// <param name="vlogRepository"></param>
         public VlogService(IVlogRepository vlogRepository)
         {
             _vlogRepository = vlogRepository;
@@ -24,7 +28,7 @@ namespace Swabbr.Core.Services
 
         public Task<Vlog> GetAsync(Guid vlogId)
         {
-            return _vlogRepository.GetByIdAsync(vlogId);
+            return _vlogRepository.GetAsync(vlogId);
         }
 
         public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync()

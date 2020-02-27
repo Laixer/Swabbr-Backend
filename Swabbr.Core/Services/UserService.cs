@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
+
+    /// <summary>
+    /// User service.
+    /// TODO This is never used.
+    /// </summary>
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
@@ -17,34 +22,34 @@ namespace Swabbr.Core.Services
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
-        public async Task<SwabbrUser> CreateAsync(SwabbrUser user)
+        public Task<SwabbrUser> CreateAsync(SwabbrUser user)
         {
-            return await _userRepository.CreateAsync(user);
+            return _userRepository.CreateAsync(user);
         }
 
-        public async Task<bool> ExistsAsync(Guid userId)
+        public Task<bool> ExistsAsync(Guid userId)
         {
-            return await _userRepository.UserExistsAsync(userId);
+            return _userRepository.UserExistsAsync(userId);
         }
 
-        public async Task<SwabbrUser> GetAsync(Guid userId)
+        public Task<SwabbrUser> GetAsync(Guid userId)
         {
-            return await _userRepository.GetAsync(userId);
+            return _userRepository.GetAsync(userId);
         }
 
-        public async Task<SwabbrUser> GetByEmailAsync(string email)
+        public Task<SwabbrUser> GetByEmailAsync(string email)
         {
-            return await _userRepository.GetByEmailAsync(email);
+            return _userRepository.GetByEmailAsync(email);
         }
 
-        public async Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit)
+        public Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit)
         {
-            return await _userRepository.SearchAsync(query, offset, limit);
+            return _userRepository.SearchAsync(query, offset, limit);
         }
 
-        public async Task<SwabbrUser> UpdateAsync(SwabbrUser user)
+        public Task<SwabbrUser> UpdateAsync(SwabbrUser user)
         {
-            return await _userRepository.UpdateAsync(user);
+            return _userRepository.UpdateAsync(user);
         }
     }
 }

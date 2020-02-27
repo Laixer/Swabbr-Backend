@@ -3,8 +3,14 @@ using System;
 
 namespace Swabbr.Core.Notifications
 {
+
+    /// <summary>
+    /// Contains information about a notification to a user.
+    /// TODO Refactor this
+    /// </summary>
     public class SwabbrNotificationBody
     {
+
         /// <summary>
         /// Title of the notification
         /// </summary>
