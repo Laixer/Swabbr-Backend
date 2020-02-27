@@ -24,7 +24,7 @@
     <ProjectReference Include="..\Laixer.Infra.Npgsql\Laixer.Infra.Npgsql.csproj" />
     <ProjectReference Include="..\Laixer.Utility\Laixer.Utility.csproj" />
     <ProjectReference Include="..\Swabbr.Core\Swabbr.Core.csproj" />
-    <ProjectReference Include="..\WowzaStreamingCloud\WowzaStreamingCloud.csproj" />
+    <ProjectReference Include="..\WowzaStreamingCloud\Swabbr.WowzaStreamingCloud.csproj" />
   </ItemGroup>
 
 </Project>
