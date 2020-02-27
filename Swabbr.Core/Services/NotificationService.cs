@@ -16,13 +16,11 @@ namespace Swabbr.Core.Services
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
         private readonly INotificationClient _notificationClient;
 
-        public NotificationService(
-            INotificationRegistrationRepository notificationRegistrationRepository,
-            INotificationClient notificationClient
-            )
+        public NotificationService(INotificationRegistrationRepository notificationRegistrationRepository,
+            INotificationClient notificationClient)
         {
-            _notificationRegistrationRepository = notificationRegistrationRepository;
-            _notificationClient = notificationClient;
+            _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
+            _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
         }
 
         public Task DeleteRegistrationAsync(Guid registrationId)
@@ -53,6 +51,11 @@ namespace Swabbr.Core.Services
             return new NotificationResponse();
         }
 
+        public Task SendNotificationToFollowersAsync(Guid userId, Guid vlogId)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId)
         {
             List<string> userTag = new List<string>()
@@ -65,6 +68,11 @@ namespace Swabbr.Core.Services
             var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
 
             return await _notificationClient.SendNotification(notification, registration.Platform, userTag);
+        }
+
+        public Task SendVlogTriggerToUserAsync(Guid userId, Guid liverstreamId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
