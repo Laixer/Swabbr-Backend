@@ -1,70 +1,28 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
 using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
+    /// <summary>
+    /// Handles all functionality for our <see cref="Livestream"/> objects.
+    /// </summary>
     public interface ILivestreamingService
     {
-        /// <summary>
-        /// Create a new livestream.
-        /// </summary>
-        /// <param name="name">Name of the livestream.</param>
-        /// <param name="userId">Id of the user this stream should belong to.</param>
-        /// <returns>Connection details for broadcasting the stream.</returns>
-        Task<Livestream> CreateLivestreamAsync(string name);
 
-        /// <summary>
-        /// Fetches the connection details for an existing stream
-        /// </summary>
-        /// <returns>Connection details for broadcasting the stream.</returns>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        Task<LivestreamConnectionDetails> GetStreamConnectionAsync(string livestreamId);
+        Task<Livestream> CreateAndStartLivestreamForUserAsync(Guid userId);
 
-        /// <summary>
-        /// Returns connection details for an available livestream from the pool, creates a new
-        /// livestream if none are available.
-        /// </summary>
-        /// <param name="userId">Id of the user to reserve the livestream for.</param>
-        Task<LivestreamConnectionDetails> ReserveLiveStreamForUserAsync(Guid userId);
+        Task OnUserStartStreamingAsync(Guid livestreamId, Guid userId);
 
-        /// <summary>
-        /// Delete a new livestream.
-        /// </summary>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        Task DeleteStreamAsync(string livestreamId);
+        Task OnUserStopStreamingAsync(Guid livestreamId, Guid userId);
 
-        /// <summary>
-        /// Start a stopped livestream.
-        /// </summary>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        Task StartStreamAsync(string livestreamId);
+        Task AbortLivestreamAsync(Guid livestreamId);
 
-        /// <summary>
-        /// Stop a started livestream.
-        /// </summary>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        Task StopStreamAsync(string livestreamId);
+        Task DiscardLivestreamAsync(Guid livestreamId);
 
-        /// <summary>
-        /// Fetch the playback of a livestream.
-        /// </summary>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        Task<LivestreamPlaybackDetails> GetStreamPlaybackAsync(string livestreamId);
+        // TODO All the getters
 
-        /// <summary>
-        /// Fetches the thumbnail URL of the given stream.
-        /// </summary>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        Task<string> GetThumbnailUrlAsync(string livestreamId);
-
-        /// <summary>
-        /// Synchronize the recordings from a livestream to a vlog.
-        /// </summary>
-        /// <param name="livestreamId">Id of the livestream.</param>
-        /// <param name="vlogId">Id of the vlog.</param>
-        /// <returns></returns>
-        Task SyncRecordingsForVlogAsync(string livestreamId, Guid vlogId);
     }
+
 }

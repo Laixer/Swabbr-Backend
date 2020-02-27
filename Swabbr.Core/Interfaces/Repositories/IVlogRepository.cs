@@ -23,12 +23,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync();
 
         /// <summary>
-        /// Returns a single vlog with the specified Id.
-        /// </summary>
-        /// <param name="vlogId">Unique identifier of the vlog.</param>
-        Task<Vlog> GetByIdAsync(Guid vlogId);
-
-        /// <summary>
         /// Returns whether the vlog with the specified id exists.
         /// </summary>
         /// <param name="vlogId">Unique identifier of the vlog.</param>
@@ -55,5 +49,16 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="userId">Unique identifier of the user to check the amount of vlogs for.</param>
         /// <returns></returns>
         Task<int> GetVlogCountForUserAsync(Guid userId);
+
+        /// <summary>
+        /// Checks to see if there is a <see cref="Vlog"/> that belongs to a
+        /// specified <see cref="Livestream"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="true"/> if exists</returns>
+        Task<bool> ExistsForLivestreamAsync(Guid livestreamId);
+
+        Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId);
+
     }
 }

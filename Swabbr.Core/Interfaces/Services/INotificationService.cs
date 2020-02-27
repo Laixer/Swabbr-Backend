@@ -4,11 +4,13 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
     /// <summary>
     /// A service for notification related actions.
     /// </summary>
     public interface INotificationService
     {
+
         /// <summary>
         /// Delete the registration for an already registered device
         /// </summary>
@@ -29,5 +31,17 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="notification">The notification to send</param>
         /// <returns>A response containing</returns>
         Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId);
+
+        Task SendVlogTriggerToUserAsync(Guid userId, Guid liverstreamId);
+
+        /// <summary>
+        /// TODO This lacks specific functionality. Implement this properly!
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="vlogId"></param>
+        /// <returns></returns>
+        Task SendNotificationToFollowersAsync(Guid userId, Guid vlogId);
+
     }
+
 }

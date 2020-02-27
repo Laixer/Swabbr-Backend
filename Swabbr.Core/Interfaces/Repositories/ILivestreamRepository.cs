@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
@@ -14,28 +15,19 @@ namespace Swabbr.Core.Interfaces.Repositories
     {
 
         /// <summary>
-        /// Returns all active livestreams.
+        /// Gets the external id of a <see cref="Livestream"/>.
         /// </summary>
-        Task<IEnumerable<Livestream>> GetActiveLivestreamsAsync();
+        /// <param name="id">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Livestream.ExternalId"/> string value</returns>
+        Task<string> GetExternalIdAsync(Guid id);
 
         /// <summary>
-        /// Returns a <see cref="Livestream"/> that is active and currently claimed by the specified user.
+        /// Sets the <see cref="Livestream.LivestreamStatus"/> property in our database.
         /// </summary>
-        /// <param name="userId">The internal <see cref="SwabbrUser"/> id</param>
-        Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId);
-
-        /// <summary>
-        /// Returns a <see cref="Livestream"/> that is available for usage and claims ownership for
-        /// the specified user.
-        /// </summary>
-        /// <param name="userId">The internal <see cref="SwabbrUser"/> id</param>
-        Task<Livestream> ReserveLivestreamForUserAsync(Guid userId);
-
-        /// <summary>
-        /// Return a single entity by providing its unique identifier.
-        /// </summary>
-        /// <param name="livestreamId">Unique identifier of the livestream</param>
-        Task<Livestream> GetByIdAsync(string livestreamId);
+        /// <param name="id">Internal <see cref="Livestream"/> id</param>
+        /// <param name="status">New <see cref="LivestreamStatus"/></param>
+        /// <returns><see cref="Task"/></returns>
+        Task UpdateLivestreamStatusAsync(Guid id, LivestreamStatus status);
 
     }
 

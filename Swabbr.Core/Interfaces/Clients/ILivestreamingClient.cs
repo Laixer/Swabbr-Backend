@@ -5,8 +5,13 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Clients
 {
+
+    /// <summary>
+    /// Contains functionality for managing livestreams.
+    /// </summary>
     public interface ILivestreamingClient
     {
+
         /// <summary>
         /// Create a new livestream.
         /// </summary>
@@ -66,5 +71,7 @@ namespace Swabbr.Core.Interfaces.Clients
         /// <param name="vlogId">Id of the vlog.</param>
         /// <returns></returns>
         Task GetRecordingsAsync(string livestreamId);
+
     }
+
 }
