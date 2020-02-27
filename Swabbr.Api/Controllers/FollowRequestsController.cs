@@ -61,7 +61,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
         public async Task<IActionResult> IncomingAsync()
         {
-            throw new NotImplementedException();
+            return Conflict("Not yet implemeneted");
             //var user = await _userManager.GetUserAsync(User);
 
             //// Retrieve all pending incoming requests for the authenticated user.
@@ -80,7 +80,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
         public async Task<IActionResult> OutgoingAsync()
         {
-            throw new NotImplementedException();
+            return Conflict("Not yet implemeneted");
             //var user = await _userManager.GetUserAsync(User);
 
             //// Retrieve all pending outgoing requests for the authenticated user.
@@ -98,7 +98,7 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
         public async Task<IActionResult> GetSingleOutgoingAsync(Guid receiverId)
         {
-            throw new NotImplementedException();
+            return Conflict("Not yet implemeneted");
             //var identityUser = await _userManager.GetUserAsync(User);
 
             //try

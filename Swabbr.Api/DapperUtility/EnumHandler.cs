@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Swabbr.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,16 +8,17 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.DapperUtility
 {
-    public class EnumHandler : SqlMapper.ITypeHandler
+    public class EnumHandler : SqlMapper.TypeHandler<FollowRequestStatus>
     {
-        public object Parse(Type destinationType, object value)
+        public override FollowRequestStatus Parse(object value)
         {
-            throw new NotImplementedException();
+            var result = (FollowRequestStatus)value;
+            return result;
         }
 
-        public void SetValue(IDbDataParameter parameter, object value)
+        public override void SetValue(IDbDataParameter parameter, FollowRequestStatus value)
         {
-            throw new NotImplementedException();
+            parameter.Value = value;
         }
     }
 }
