@@ -1,8 +1,12 @@
-﻿namespace WowzaStreamingCloud.Configuration
+﻿namespace Swabbr.WowzaStreamingCloud.Configuration
 {
 
+    /// <summary>
+    /// Used to configure the options for the Wowza streaming cloud with IOptions.
+    /// </summary>
     public class WowzaStreamingCloudConfiguration
     {
+
         /// <summary>
         /// WSC API host URL
         /// </summary>
@@ -37,5 +41,7 @@
         /// Stream resolution height
         /// </summary>
         public int AspectRatioHeight { get; set; }
+
     }
+
 }

@@ -1,14 +1,14 @@
 ﻿using Newtonsoft.Json;
 
-namespace WowzaStreamingCloud.Data
+namespace Swabbr.WowzaStreamingCloud.Entities
 {
-    public class WscGetThumbnailResponse
+    internal class WscGetThumbnailResponse
     {
         [JsonProperty("live_stream")]
         public WscThumbnailContainer Livestream { get; set; }
     }
 
-    public class WscThumbnailContainer
+    internal class WscThumbnailContainer
     {
         [JsonProperty("thumbnail_url")]
         public string ThumbnailUrl { get; set; }

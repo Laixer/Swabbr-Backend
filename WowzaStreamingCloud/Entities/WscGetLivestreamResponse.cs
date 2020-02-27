@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace WowzaStreamingCloud.Data
+namespace Swabbr.WowzaStreamingCloud.Entities
 {
     // Wowza Streaming Cloud API Version 1.3 Livestream response
-    public partial class WscGetLivestreamResponse
+    internal partial class WscGetLivestreamResponse
     {
         [JsonProperty("live_stream")]
         public WscLivestream Livestream { get; set; }

@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace WowzaStreamingCloud.Data
+namespace Swabbr.WowzaStreamingCloud.Entities
 {
-    public class WscGetSingleRecordingResponse
+    internal class WscGetSingleRecordingResponse
     {
         [JsonProperty("recording")]
         public WscRecording Recording { get; set; }

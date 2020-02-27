@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace WowzaStreamingCloud.Data
+namespace Swabbr.WowzaStreamingCloud.Entities
 {
-    public partial class WscRecordingDetails
+    internal partial class WscRecordingDetails
     {
         [JsonProperty("id")]
         public string Id { get; set; }

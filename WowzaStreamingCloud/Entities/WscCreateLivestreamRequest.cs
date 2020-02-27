@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 
-namespace WowzaStreamingCloud.Data
+namespace Swabbr.WowzaStreamingCloud.Entities
 {
 
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Creating live stream object.
     /// </summary>
-    public partial class WscCreateLivestreamRequest
+    internal partial class WscCreateLivestreamRequest
     {
         [JsonProperty("live_stream")]
         public WscCreateLiveStreamRequestBody Livestream { get; set; }
@@ -15,7 +15,7 @@ namespace WowzaStreamingCloud.Data
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Creating live stream object.
     /// </summary>
-    public partial class WscCreateLiveStreamRequestBody
+    internal partial class WscCreateLiveStreamRequestBody
     {
         [JsonProperty("aspect_ratio_height")]
         public long AspectRatioHeight { get; set; }

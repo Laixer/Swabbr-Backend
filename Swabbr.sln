@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Core", "Swabbr.Core\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Infrastructure", "Swabbr.Infrastructure\Swabbr.Infrastructure.csproj", "{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WowzaStreamingCloud", "WowzaStreamingCloud\WowzaStreamingCloud.csproj", "{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.WowzaStreamingCloud", "WowzaStreamingCloud\Swabbr.WowzaStreamingCloud.csproj", "{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contrib", "contrib", "{FB041A95-1F0E-4355-B716-F18E6BC60829}"
 EndProject

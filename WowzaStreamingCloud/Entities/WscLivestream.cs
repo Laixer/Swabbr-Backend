@@ -2,13 +2,15 @@
 using System;
 using System.Collections.Generic;
 
-namespace WowzaStreamingCloud.Data
+namespace Swabbr.WowzaStreamingCloud.Entities
 {
+
     /// <summary>
     /// Wowza Streaming Cloud API Version 1.3 Livestream object
     /// </summary>
-    public partial class WscLivestream
+    internal partial class WscLivestream
     {
+
         [JsonProperty("id")]
         public string Id { get; set; }
 
@@ -106,7 +108,7 @@ namespace WowzaStreamingCloud.Data
         public DateTimeOffset UpdatedAt { get; set; }
     }
 
-    public partial class DirectPlaybackUrls
+    internal partial class DirectPlaybackUrls
     {
         [JsonProperty("rtmp")]
         public List<Rtmp> Rtmp { get; set; }
@@ -118,7 +120,7 @@ namespace WowzaStreamingCloud.Data
         public List<Rtmp> Wowz { get; set; }
     }
 
-    public partial class Rtmp
+    internal partial class Rtmp
     {
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -130,7 +132,7 @@ namespace WowzaStreamingCloud.Data
         public string OutputId { get; set; }
     }
 
-    public partial class SourceConnectionInformation
+    internal partial class SourceConnectionInformation
     {
         [JsonProperty("primary_server")]
         public string PrimaryServer { get; set; }
@@ -154,7 +156,7 @@ namespace WowzaStreamingCloud.Data
         public string Password { get; set; }
     }
 
-    public partial class StreamTarget
+    internal partial class StreamTarget
     {
         [JsonProperty("id")]
         public string Id { get; set; }
