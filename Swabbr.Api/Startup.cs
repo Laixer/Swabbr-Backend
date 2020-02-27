@@ -14,19 +14,18 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.DapperUtility;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Repositories;
-using Swabbr.Infrastructure.Services;
+using Swabbr.WowzaStreamingCloud.Configuration;
+using Swabbr.WowzaStreamingCloud.Services;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using WowzaStreamingCloud.Configuration;
 
 namespace Swabbr
 {
@@ -53,17 +52,10 @@ namespace Swabbr
                 options.LowercaseUrls = true;
             });
 
-            var jwtConfigSection = Configuration.GetSection("Jwt");
-            var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
-            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
-
-            var notificationHubConfigSection = Configuration.GetSection("NotificationHub");
-            var wowzaStreamingCloudSection = Configuration.GetSection("WowzaStreamingCloud");
-
             // Add configurations
-            services.Configure<JwtConfiguration>(jwtConfigSection);
-            services.Configure<NotificationHubConfiguration>(notificationHubConfigSection);
-            services.Configure<WowzaStreamingCloudConfiguration>(wowzaStreamingCloudSection);
+            services.Configure<JwtConfiguration>(Configuration.GetSection("Jwt"));
+            services.Configure<NotificationHubConfiguration>(Configuration.GetSection("NotificationHub"));
+            services.Configure<WowzaStreamingCloudConfiguration>(Configuration.GetSection("WowzaStreamingCloud"));
 
             // Add OpenAPI definition
             services.AddSwaggerGen(c =>
@@ -90,7 +82,6 @@ namespace Swabbr
             });
 
             // Add postgresql database functionality
-            // TODO Clean up
             NpgsqlSetup.Setup();
             SqlMapper.AddTypeHandler(new UriHandler());
             services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
@@ -108,19 +99,20 @@ namespace Swabbr
 
             // Configure DI for services
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IVlogService, VlogService>();
-            services.AddTransient<IReactionService, ReactionService>();
+            //services.AddTransient<IVlogService, VlogService>();
+            services.AddTransient<IVlogTriggerService, VlogTriggerService>();
+            //services.AddTransient<IReactionService, ReactionService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<ILivestreamingService, LivestreamingService>();
-            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<ILivestreamingService, WowzaLivestreamingService>();
             services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<INotificationService, NotificationServiceDummy>(); // TODO Replace
+            services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
 
             // Configure DI for client services
-            services.AddTransient<INotificationClient, NotificationClient>();
-            services.AddTransient<ILivestreamingClient, LivestreamingClient>();
+            //services.AddTransient<INotificationClient, NotificationClient>();
 
             // Add background services
-            services.AddHostedService<VlogTriggerHostedService>();
+            //services.AddHostedService<VlogTriggerHostedService>();
 
             // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
@@ -142,6 +134,11 @@ namespace Swabbr
             .AddDefaultTokenProviders();
 
             // Add authentication middleware
+            // TODO Double get
+            var jwtConfigSection = Configuration.GetSection("Jwt");
+            var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
+            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
