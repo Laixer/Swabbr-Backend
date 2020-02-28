@@ -34,6 +34,25 @@ namespace Swabbr.Api.Mapping
             };
         }
 
+        internal static UserOutputModel Map(SwabbrUser input)
+        {
+            if (input == null) { throw new ArgumentNullException(nameof(input)); }
+            return new UserOutputModel
+            {
+                Id = input.Id,
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                Email = input.Email,
+                BirthDate = input.BirthDate,
+                Country = input.Country,
+                Gender = MapperEnum.Map(input.Gender),
+                IsPrivate = input.IsPrivate,
+                Nickname = input.Nickname,
+                ProfileImageUrl = input.ProfileImageUrl,
+                Timezone = input.Timezone
+            };
+        }
+
         internal static SwabbrUser Map(UserUpdateInputModel input)
         {
             if (input == null) { throw new ArgumentNullException(nameof(input)); }
@@ -65,6 +84,21 @@ namespace Swabbr.Api.Mapping
                 FollowMode = MapperEnum.Map(settings.FollowMode),
                 IsPrivate = settings.IsPrivate,
                 UserId = settings.UserId
+            };
+        }
+
+        internal static UserStatisticsOutputModel Map (UserStatistics userStatistics)
+        {
+            if (userStatistics == null) { throw new ArgumentNullException(nameof(userStatistics)); }
+            return new UserStatisticsOutputModel
+            {
+                TotalFollowers = userStatistics.TotalFollowers,
+                TotalFollowing = userStatistics.TotalFollowing,
+                TotalLikes = userStatistics.TotalLikes,
+                TotalReactionsGiven = userStatistics.TotalReactionsGiven,
+                TotalReactionsReceived = userStatistics.TotalReactionsReceived,
+                TotalViews = userStatistics.TotalViews,
+                TotalVlogs = userStatistics.TotalVlogs
             };
         }
 

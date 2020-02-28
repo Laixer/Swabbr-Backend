@@ -1,6 +1,8 @@
 ﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
@@ -20,39 +22,36 @@ namespace Swabbr.Api.Controllers
 {
 
     /// <summary>
-    /// Controller for handling requests related to users.
+    /// Controller for handling requests related to users. This is NOT used for
+    /// processing any requests regarding the identity side of the users.
+    /// TODO Proper conflict return for null input
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("users")]
     public class UsersController : ControllerBase
     {
 
-        private readonly IFollowRequestRepository _followRequestRepository;
-        private readonly IVlogRepository _vlogRepository;
-        private readonly IVlogLikeRepository _vlogLikeRepository;
-        private readonly IReactionRepository _reactionRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IUserWithStatsRepository _userWithStatsRepository;
         private readonly IUserService _userService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public UsersController(IFollowRequestRepository followRequestRepository,
-            IVlogRepository vlogRepository,
-            IVlogLikeRepository vlogLikeRepository,
-            IReactionRepository reactionRepository,
+        public UsersController(IUserRepository userRepository,
             IUserWithStatsRepository userWithStatsRepository,
             IUserService userService,
-            UserManager<SwabbrIdentityUser> userManager)
+            UserManager<SwabbrIdentityUser> userManager,
+            ILoggerFactory loggerFactory)
         {
-            _followRequestRepository = followRequestRepository ?? throw new ArgumentNullException(nameof(followRequestRepository));
-            _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
-            _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
-            _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(UsersController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -67,12 +66,20 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
+                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
+
                 var user = await _userWithStatsRepository.GetAsync(userId).ConfigureAwait(false);
                 return Ok(MapperUser.Map(user));
             }
-            catch (EntityNotFoundException)
+            catch (EntityNotFoundException e)
             {
+                logger.LogError(e.Message);
                 return NotFound(this.Error(ErrorCodes.EntityNotFound, "User could not be found."));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get user"));
             }
         }
 
@@ -87,12 +94,20 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> SearchAsync([FromQuery]string query, [FromQuery]int page = 1, [FromQuery]int itemsPerPage = 50)
         {
-            query.ThrowIfNullOrEmpty();
-            if (page < 1) { throw new ArgumentOutOfRangeException("Page number must be greater than one"); }
-            if (itemsPerPage < 1) { throw new ArgumentOutOfRangeException("Items per page must be greater than one"); }
+            try
+            {
+                if (query.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Query string can't be null or empty")); }
+                if (page < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Page number must be greater than one")); }
+                if (itemsPerPage < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Items per page must be greater than one")); }
 
-            var users = await _userWithStatsRepository.SearchAsync(query, page, itemsPerPage).ConfigureAwait(false);
-            return Ok(users.Select(x => MapperUser.Map(x)));
+                var users = await _userWithStatsRepository.SearchAsync(query, page, itemsPerPage).ConfigureAwait(false);
+                return Ok(users.Select(x => MapperUser.Map(x)));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not search for users"));
+            }
         }
 
         /// <summary>
@@ -103,9 +118,17 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> SelfAsync()
         {
-            var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-            var userWithStats = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
-            return Ok(MapperUser.Map(userWithStats));
+            try
+            {
+                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var userWithStats = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
+                return Ok(MapperUser.Map(userWithStats));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get information about self"));
+            }
         }
 
         /// <summary>
@@ -115,24 +138,37 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
         public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateInputModel input)
         {
-            if (!ModelState.IsValid) { return BadRequest("Post body is invalid"); }
+            try
+            {
+                if (input == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is null")); }
+                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
-            var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-            var userEntity = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
 
-            // TODO Question --> Also password changes in here? What kind of user changes do we want to be able to make?
-            throw new NotImplementedException("Do we want to have our password changes in here as well?");
-        }
+                // Copy properties
+                user.BirthDate = input.BirthDate;
+                user.Country = input.Country;
+                user.FirstName = input.FirstName;
+                user.Gender = MapperEnum.Map(input.Gender);
+                user.IsPrivate = input.IsPrivate;
+                user.LastName = input.LastName;
+                user.Nickname = input.Nickname;
+                user.ProfileImageUrl = input.ProfileImageUrl;
+                user.Timezone = input.Timezone;
 
-        /// <summary>
-        /// Deletes the account of the authenticated user.
-        /// </summary>
-        [HttpDelete("delete")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> DeleteAsync()
-        {
-            //TODO: Delete all user data? Or flag user as inactive? Not yet implemented.
-            throw new NotImplementedException();
+                // Update
+                var updatedUser = await _userRepository.UpdateAsync(user).ConfigureAwait(false);
+
+                // Return updated values
+                // TODO Separate output model for this maybe?
+                return Ok(MapperUser.Map(updatedUser));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+            }
         }
 
         /// <summary>
@@ -142,30 +178,47 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
         public async Task<IActionResult> ListFollowingAsync([FromRoute] Guid userId)
         {
-            throw new NotImplementedException();
-            //var usersOutput =
-            //    (await _followRequestRepository.GetOutgoingForUserAsync(userId))
-            //    .Where(request => request.Status == FollowRequestStatus.Accepted)
-            //    .Select(async request =>
-            //    {
-            //        var user = await _userService.GetAsync(request.RequesterId);
-            //        UserOutputModel output = await CreateUserOutputModelAsync(user);
-            //        return output;
-            //    })
-            //    .Select(t => t.Result);
+            try
+            {
+                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-            //return Ok(usersOutput);
+                return Ok(new FollowingOutputModel
+                {
+                    Following = (await _userRepository.GetFollowingAsync(userId)
+                        .ConfigureAwait(false))
+                        .Select(x => MapperUser.Map(x))
+                });
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+            }
         }
 
         /// <summary>
-        /// Returns statistics of the specified user.
+        /// Get the followers of a single <see cref="SwabbrUser"/>.
         /// </summary>
-        [HttpGet("self/statistics")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserStatisticsOutputModel))]
-        public async Task<IActionResult> GetStatisticsSelfAsync()
+        [HttpGet("{userId}/followers")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        public async Task<IActionResult> ListFollowersAsync([FromRoute] Guid userId)
         {
-            var userId = (await _userManager.GetUserAsync(User)).Id;
-            return await GetStatisticsAsync(userId);
+            try
+            {
+                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
+
+                return Ok(new FollowersOutputModel
+                {
+                    Followers = (await _userRepository.GetFollowersAsync(userId)
+                        .ConfigureAwait(false))
+                        .Select(x => MapperUser.Map(x))
+                });
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+            }
         }
 
         /// <summary>
@@ -175,58 +228,40 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserStatisticsOutputModel))]
         public async Task<IActionResult> GetStatisticsAsync([FromRoute] Guid userId)
         {
-            throw new NotImplementedException();
-            //var userVlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
+            try
+            {
+                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-            //int totalReactionsReceivedCount = 0;
-            //int totalLikesReceivedCount = 0;
-
-            ////TODO: Total views counter should be incremented in the for each loop for vlogs below
-            //int totalViewsCount = int.MinValue;
-
-            //// Add up statistical data for each of the users' vlogs.
-            //foreach (var vlog in userVlogs)
-            //{
-            //    totalReactionsReceivedCount += await _reactionRepository.GetReactionCountForVlogAsync(vlog.Id);
-            //    totalLikesReceivedCount += vlog.Likes.Count();
-
-            //    //TODO: Add up received views for each vlog here: v
-            //    //// totalViews += ?
-            //}
-
-            //return Ok(new UserStatisticsOutputModel
-            //{
-            //    TotalFollowers = await _followRequestRepository.GetFollowerCountAsync(userId),
-            //    TotalFollowing = await _followRequestRepository.GetFollowingCountAsync(userId),
-            //    TotalVlogs = await _vlogRepository.GetVlogCountForUserAsync(userId),
-            //    TotalReactionsGiven = await _reactionRepository.GetGivenReactionCountForUserAsync(userId),
-            //    TotalLikes = totalLikesReceivedCount,
-            //    TotalReactionsReceived = totalReactionsReceivedCount,
-            //    TotalViews = totalViewsCount
-            //});
+                return Ok(MapperUser.Map(
+                    await _userRepository.GetUserStatisticsAsync(userId)
+                    .ConfigureAwait(false)));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+            }
         }
 
         /// <summary>
-        /// Get the followers of a single user.
+        /// Returns statistics of the specified user.
         /// </summary>
-        [HttpGet("{userId}/followers")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
-        public async Task<IActionResult> ListFollowersAsync([FromRoute] Guid userId)
+        [HttpGet("self/statistics")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserStatisticsOutputModel))]
+        public async Task<IActionResult> GetStatisticsSelfAsync()
         {
-            throw new NotImplementedException();
-            //var followRelationships = await _followRequestRepository.GetIncomingForUserAsync(userId);
+            try
+            {
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                user.Id.ThrowIfNullOrEmpty();
 
-            //var usersOutput = followRelationships
-            //    .Where(x => x.Status == FollowRequestStatus.Accepted)
-            //    .Select(async x =>
-            //    {
-            //        var u = await _userService.GetAsync(x.RequesterId);
-            //        UserOutputModel o = await CreateUserOutputModelAsync(u);
-            //        return o;
-            //    })
-            //    .Select(t => t.Result);
-
-            //return Ok(usersOutput);
+                return await GetStatisticsAsync(user.Id).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+            }
         }
 
     }

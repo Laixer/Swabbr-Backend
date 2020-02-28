@@ -20,6 +20,8 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <returns><see cref="UserSettings"/></returns>
         Task<UserSettings> GetUserSettingsAsync(Guid userId);
 
+        Task<UserStatistics> GetUserStatisticsAsync(Guid userId);
+
         /// <summary>
         /// Updates our <see cref="UserSettings"/>.
         /// TODO Do we need this?
@@ -48,6 +50,10 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// Checks if a user with the given id exists.
         /// </summary>
         Task<bool> UserExistsAsync(Guid userId);
+
+        Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
+
+        Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId);
 
     }
 

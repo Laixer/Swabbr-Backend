@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
@@ -54,8 +54,8 @@ namespace Swabbr.Infrastructure.Repositories
             userId.ThrowIfNullOrEmpty();
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT * FROM {TableUser} WHERE id = '{userId}';";
-                var result = await connection.QueryAsync<SwabbrUser>(sql);
+                var sql = $"SELECT * FROM {TableUser} WHERE id = @Id FOR UPDATE;";
+                var result = await connection.QueryAsync<SwabbrUser>(sql, new { Id = userId }).ConfigureAwait(false);
                 if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
                 else
                 {
@@ -78,12 +78,59 @@ namespace Swabbr.Infrastructure.Repositories
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 var sql = $"SELECT * FROM {TableUser} WHERE email = '{email}';";
-                var result = await connection.QueryAsync<SwabbrUser>(sql);
+                var result = await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
                 if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with email = {email}"); }
                 else
                 {
                     return result.First();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets all <see cref="SwabbrUser"/> entities that follow a given
+        /// <see cref="SwabbrUser"/> specified by <paramref name="userId"/>.
+        /// 
+        /// TODO Pagination?
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns>All followers for <paramref name="userId"/></returns>
+        public async Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT * FROM {ViewUserWithStats} AS u
+                    JOIN {TableFollowRequest} AS f
+                    ON u.id = f.requester_id
+                    WHERE f.receiver_id = @Id";
+                return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Gets all <see cref="SwabbrUser"/> entities that a given
+        /// <see cref="SwabbrUser"/> specified by <paramref name="userId"/>
+        /// is following.
+        /// 
+        /// TODO Pagination?
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns>All users that <paramref name="userId"/> follows</returns>
+        public async Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT * FROM {ViewUserWithStats} AS u
+                    JOIN {TableFollowRequest} AS f
+                    ON u.id = f.receiver_id
+                    WHERE f.requester_id = @Id";
+                return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
             }
         }
 
@@ -98,7 +145,7 @@ namespace Swabbr.Infrastructure.Repositories
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 var sql = $"SELECT * FROM {ViewUserSettings} WHERE id = '{userId}';";
-                var result = await connection.QueryAsync<UserSettings>(sql);
+                var result = await connection.QueryAsync<UserSettings>(sql).ConfigureAwait(false);
                 if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
                 else
                 {
@@ -107,14 +154,69 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="UserStatistics"/> for a given <see cref="SwabbrUser"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="UserStatistics"/></returns>
+        public async Task<UserStatistics> GetUserStatisticsAsync(Guid userId)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"SELECT * FROM {ViewUserStatistics} WHERE id = @Id";
+                var result = await connection.QueryAsync<UserStatistics>(sql, new { Id = userId }).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+                if (result.Count() > 1) { throw new InvalidOperationException("Found multiple on single get"); }
+                return result.First();
+            }
+        }
+
         public Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit)
         {
+            // Do we ever need this? I don't think so? --> stats
             throw new NotImplementedException();
         }
 
-        public Task<SwabbrUser> UpdateAsync(SwabbrUser entity)
+        /// <summary>
+        /// Updates a <see cref="SwabbrUser"/> in our database.
+        /// </summary>
+        /// <param name="entity"><see cref="SwabbrUser"/></param>
+        /// <returns>Updated and queried <see cref="SwabbrUser"/></returns>
+        public async Task<SwabbrUser> UpdateAsync(SwabbrUser entity)
         {
-            throw new NotImplementedException();
+            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
+            entity.Id.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                using (var connection = _databaseProvider.GetConnectionScope())
+                {
+                    await GetAsync(entity.Id).ConfigureAwait(false); // FOR UPATE
+
+                    // TODO Enum injection
+                    var sql = $@"
+                    UPDATE {TableUser} SET
+                        birth_date = @BirthDate,
+                        country = @Country,
+                        first_name = @FirstName,
+                        gender = '{entity.Gender.GetEnumMemberAttribute()}', 
+                        is_private = @IsPrivate,
+                        last_name = @LastName,
+                        nickname = @NickName,
+                        profile_image_url = @ProfileImageUrl,
+                        timezone = @Timezone
+                    WHERE id = @Id";
+                    int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
+                    if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
+                    if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple results on single get"); }
+
+                    var result = await GetAsync(entity.Id).ConfigureAwait(false);
+                    scope.Complete();
+                    return result;
+                }
+            }
         }
 
         public Task<UserSettings> UpdateUserSettingsAsync(UserSettings userSettings)
