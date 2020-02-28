@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.ViewModels.User
 {
 
     /// <summary>

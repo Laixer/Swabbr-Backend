@@ -1,4 +1,5 @@
 ﻿using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
 using System;
 

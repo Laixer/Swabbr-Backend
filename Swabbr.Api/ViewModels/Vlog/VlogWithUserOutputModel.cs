@@ -1,4 +1,6 @@
-﻿namespace Swabbr.Api.ViewModels
+﻿using Swabbr.Api.ViewModels.User;
+
+namespace Swabbr.Api.ViewModels
 {
 
     /// <summary>

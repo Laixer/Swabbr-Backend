@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.ViewModels.User
 {
 
     /// <summary>

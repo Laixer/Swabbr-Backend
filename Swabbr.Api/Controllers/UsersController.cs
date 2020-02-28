@@ -5,7 +5,7 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
-using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;

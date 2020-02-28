@@ -3,7 +3,7 @@ using Swabbr.Api.ViewModels.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.ViewModels.User
 {
 
     /// <summary>
