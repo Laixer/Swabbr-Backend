@@ -18,5 +18,11 @@ namespace Laixer.Utility.Extensions
             if (string.IsNullOrEmpty(s)) { throw new ArgumentNullException("String is be null or empty"); }
         }
 
+        public static bool IsNullOrEmpty(this string s)
+        {
+            return string.IsNullOrEmpty(s);
+        }
+
+
     }
 }

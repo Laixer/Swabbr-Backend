@@ -27,7 +27,17 @@ namespace Laixer.Utility.Extensions
         /// <param name="guid"><see cref="Guid"/></param>
         public static void ThrowIfNotNullOrEmpty(this Guid guid)
         {
-            if (guid != null && guid != Guid.Empty) { throw new InvalidOperationException("Guid is not null or empty"); }
+            if (!guid.IsNullOrEmpty()) { throw new InvalidOperationException("Guid is not null or empty"); }
+        }
+
+        /// <summary>
+        /// Checks if a <see cref="Guid"/> is <see cref="null"/> or <see cref="Guid.Empty"/>.
+        /// </summary>
+        /// <param name="guid"><see cref="Guid"/></param>
+        /// <returns><see cref="true"/> if null or empty</returns>
+        public static bool IsNullOrEmpty(this Guid guid)
+        {
+            return guid == null || guid == Guid.Empty;
         }
 
     }
