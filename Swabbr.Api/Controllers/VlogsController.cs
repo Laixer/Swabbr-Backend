@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
-using Swabbr.Api.ViewModels;
+using Swabbr.Api.Mapping;
+using Swabbr.Api.ViewModels.Vlog;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces;
-using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,235 +19,245 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
+
     /// <summary>
-    /// Controller for handling requests related to vlogs.
+    /// Controller for handling requests related to <see cref="Vlog"/> entities.
+    /// TODO Private functionality for vlogs
     /// </summary>
     [Authorize]
     [ApiController]
     [Route("vlogs")]
-    public class VlogsController : ControllerBase
+    public sealed class VlogsController : ControllerBase
     {
-        private readonly IVlogRepository _vlogRepository;
-        private readonly IVlogLikeRepository _vlogLikeRepository;
-        private readonly UserManager<SwabbrIdentityUser> _userManager;
 
-        public VlogsController(
-            IVlogRepository vlogRepository,
-            IVlogLikeRepository vlogLikeRepository,
-            UserManager<SwabbrIdentityUser> userManager
-            )
+        private readonly IVlogService _vlogService;
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly ILogger logger;
+
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
+        public VlogsController(IVlogService vlogService,
+            UserManager<SwabbrIdentityUser> userManager,
+            ILoggerFactory loggerFactory)
         {
-            _vlogRepository = vlogRepository;
-            _vlogLikeRepository = vlogLikeRepository;
-            _userManager = userManager;
+            _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogsController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
-        /// Get a single vlog.
+        /// Gets a single <see cref="Vlog"/> from our data store.
         /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns></returns>
         [HttpGet("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
-            throw new NotImplementedException();
-            //var identityUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
 
-            //try
-            //{
-            //    var vlog = await _vlogRepository.GetByIdAsync(vlogId);
-
-            //    if (vlog.IsPrivate)
-            //    {
-            //        ////var b = (await _vlogRepository.GetSharedUserIdsAsync(vlogId)).Contains(identityUser.UserId);
-            //        //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
-            //    }
-
-            //    VlogOutputModel output = VlogOutputModel.Parse(vlog);
-            //    return Ok(output);
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return NotFound(
-            //        this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-            //    );
-            //}
+                return Ok(new VlogWithLikesOutputModel
+                {
+                    Vlog = MapperVlog.Map(
+                        await _vlogService
+                        .GetAsync(vlogId)
+                        .ConfigureAwait(false)),
+                    VlogLikes = (await _vlogService
+                        .GetVlogLikesForVlogAsync(vlogId)
+                        .ConfigureAwait(false))
+                        .Select(x => MapperVlogLike.Map(x))
+                });
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get vlog"));
+            }
         }
 
         /// <summary>
-        /// Update a single vlog.
+        /// Updates the details for a <see cref="Vlog"/>.
         /// </summary>
-        [HttpPut("{vlogId}")]
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <param name="input"><see cref="VlogUpdateInputModel"/></param>
+        /// <returns><see cref="OkObjectResult"/> with updated <see cref="VlogOutputModel"/></returns>
+        [HttpPost("{vlogId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
-        public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogUpdateModel input)
+        public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogUpdateInputModel input)
         {
-            throw new NotImplementedException();
-            //var identityUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                if (input == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Body can't be null")); }
+                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Input model is invalid")); }
 
-            //try
-            //{
-            //    var vlog = await _vlogRepository.GetByIdAsync(vlogId);
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            //    if (vlog.UserId != identityUser.Id)
-            //    {
-            //        return StatusCode(
-            //            (int)HttpStatusCode.Forbidden,
-            //            this.Error(ErrorCodes.InsufficientAccessRights, "User does not have access to this vlog.")
-            //            );
-            //    }
-
-            //    if (vlog.IsPrivate)
-            //    {
-            //        //TODO: Check if this vlog (vlog.VlogId) is shared with the authenticated user (identityUser.UserId) since this vlog is private.
-            //    }
-
-            //    VlogOutputModel output = VlogOutputModel.Parse(vlog);
-            //    return Ok(output);
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return NotFound(
-            //        this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-            //    );
-            //}
+                return Ok(MapperVlog.Map(await _vlogService.UpdateAsync(vlogId, user.Id, input.IsPrivate).ConfigureAwait(false)));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (NotAllowedException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User does not own vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update vlog"));
+            }
         }
 
         /// <summary>
-        /// Get a collection of featured vlogs.
+        /// Gets all vlogs for a given <see cref="SwabbrUser"/>.
+        /// TODO This ignores <see cref="Vlog.IsPrivate"/>.
         /// </summary>
-        /// <returns></returns>
-        [HttpGet("featured")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
-        public async Task<IActionResult> FeaturedAsync()
-        {
-            throw new NotImplementedException();
-            //var vlogs = await _vlogRepository.GetFeaturedVlogsAsync();
-
-            ////TODO: Temporarily returning the latest (last started) vlogs by started date
-            //IEnumerable<VlogOutputModel> output = vlogs
-            //    //.Select(v => (VlogOutputModel)v)
-            //    .Select(v => VlogOutputModel.Parse(v))
-            //    .OrderByDescending(v => v.DateStarted)
-
-            //    //TODO: Remove take once GetFeaturedVlogs is implemented, using this temporarily to limit the amount sent to the client
-            //    .Take(10);
-
-            //return Ok(output);
-        }
-
-        //TODO: For later: Specify limit? pagination?
-        /// <summary>
-        /// Get vlogs from the specified user.
-        /// </summary>
-        [HttpGet("users/{userId}")]
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="OkObjectResult"/> with <see cref="VlogCollectionOutputModel"/></returns>
+        [HttpGet("foruser/{userId}")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
         public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId)
         {
-            throw new NotImplementedException();
-            //var vlogs = await _vlogRepository.GetVlogsByUserAsync(userId);
+            try
+            {
+                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-            //// Map the vlogs to their output model representations.
-            //IEnumerable<VlogOutputModel> output = vlogs
-            //    .Select(vlog =>
-            //    {
-            //        VlogOutputModel outputModel = VlogOutputModel.Parse(vlog);
-            //        return outputModel;
-            //    });
-
-            //return Ok(output);
+                return Ok(new VlogCollectionOutputModel
+                {
+                    Vlogs = (await _vlogService
+                        .GetVlogsFromUserAsync(userId)
+                        .ConfigureAwait(false))
+                        .Select(x => MapperVlog.Map(x))
+                });
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find object")); // TODO Specify
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get vlogs for user"));
+            }
         }
 
         /// <summary>
-        /// Delete a vlog that is owned by the authenticated user.
+        /// Deletes a <see cref="Vlog"/> for the logged in <see cref="SwabbrUser"/>.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="OkObjectResult"/></returns>
         [HttpDelete("{vlogId}")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
         {
-            throw new NotImplementedException();
-            //try
-            //{
-            //    var identityUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
 
-            //    var vlogEntity = await _vlogRepository.GetByIdAsync(vlogId);
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            //    // Ensure the authenticated user is the owner of this vlog
-            //    if (!vlogEntity.UserId.Equals(identityUser.Id))
-            //    {
-            //        return BadRequest(
-            //            this.Error(ErrorCodes.InsufficientAccessRights, "Access to this vlog is not allowed.")
-            //        );
-            //    }
+                await _vlogService.DeleteAsync(vlogId, user.Id).ConfigureAwait(false);
 
-            //    // Delete the vlog
-            //    await _vlogRepository.DeleteAsync(vlogEntity);
-
-            //    return NoContent();
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return BadRequest(
-            //        this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-            //    );
-            //}
+                return Ok();
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (NotAllowedException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User does not own vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not delete vlog"));
+            }
         }
 
-        //TODO: What to return? Maybe an updated model of the vlog? Or the amount of likes for the vlog. Currently returning status code only.
         /// <summary>
-        /// Leave a like on a single vlog.
+        /// Creates a new vlog-like relationship between a vlog and a user.
         /// </summary>
-        [HttpPost("like/{vlogId}")]
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="OkResult"/></returns>
+        [HttpPost("{vlogId}/like")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> LikeAsync([FromRoute]Guid vlogId)
         {
-            // Check if the vlog with the specified id exists
-            //TODO: Check if the user has sufficient rights to access this vlog (shared users only for private vlogs)
-            if (!(await _vlogRepository.ExistsAsync(vlogId)))
+            try
             {
-                return BadRequest(
-                    this.Error(ErrorCodes.EntityNotFound, "Vlog could not be found.")
-                );
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                await _vlogService.LikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                return Ok();
             }
-
-            var identityUser = await _userManager.GetUserAsync(User);
-
-            // Create a new like record
-            var entityToCreate = new VlogLike
+            catch (EntityNotFoundException e)
             {
-                UserId = identityUser.Id,
-                VlogId = vlogId,
-                TimeCreated = DateTime.Now,
-            };
-
-            await _vlogLikeRepository.CreateAsync(entityToCreate);
-
-            return Ok();
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (NotAllowedException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "You are not allowed to like your own vlog"));
+            }
+            catch (OperationAlreadyExecutedException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User has already liked this vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not like vlog"));
+            }
         }
 
         /// <summary>
-        /// Remove a like previously given to a single vlog.
+        /// Removes a new vlog-like relationship between a vlog and a user.
         /// </summary>
-        [HttpDelete("like/{vlogId}")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="OkResult"/></returns>
+        [HttpPost("{vlogId}/unlike")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> UnlikeAsync([FromRoute]Guid vlogId)
         {
-            throw new NotImplementedException();
-            //try
-            //{
-            //    var identityUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            //    // Retrieve and delete the entity
-            //    var entityToDelete = await _vlogLikeRepository.GetSingleForUserAsync(vlogId, identityUser.Id);
-            //    await _vlogLikeRepository.DeleteAsync(entityToDelete);
-
-            //    return NoContent();
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return BadRequest(
-            //        this.Error(ErrorCodes.EntityNotFound, "Like could not be found.")
-            //    );
-            //}
+                await _vlogService.UnlikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                return Ok();
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog-like relationship"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not unlike vlog"));
+            }
         }
+
     }
+
 }

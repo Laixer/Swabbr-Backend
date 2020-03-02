@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Swabbr.Api.ViewModels.Vlog
+namespace Swabbr.Api.ViewModels.VlogLike
 {
 
     /// <summary>
@@ -8,11 +8,6 @@ namespace Swabbr.Api.ViewModels.Vlog
     /// </summary>
     public sealed class VlogLikeOutputModel
     {
-
-        /// <summary>
-        /// Internal unique identifier.
-        /// </summary>
-        public Guid Id { get; set; }
 
         /// <summary>
         /// Id of the vlog that was given a like.

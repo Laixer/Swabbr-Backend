@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.ViewModels.Vlog
 {
 
     /// <summary>
-    /// Input model for updating a vlog.
-    /// TODO The vlog id? ...
+    /// Input model for updating a <see cref="Vlog"/>.
     /// </summary>
-    public class VlogUpdateModel
+    public class VlogUpdateInputModel
     {
 
         /// <summary>

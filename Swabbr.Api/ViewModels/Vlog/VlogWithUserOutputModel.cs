@@ -1,6 +1,6 @@
 ﻿using Swabbr.Api.ViewModels.User;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.ViewModels.Vlog
 {
 
     /// <summary>
