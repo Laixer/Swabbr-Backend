@@ -84,6 +84,7 @@ namespace Swabbr
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
             SqlMapper.AddTypeHandler(new UriHandler());
+            SqlMapper.AddTypeHandler(new FollowRequestStatusHandler());
             services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
             services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionStringName = "DatabaseInternal"; });
 
@@ -99,9 +100,9 @@ namespace Swabbr
 
             // Configure DI for services
             services.AddTransient<IUserService, UserService>();
-            //services.AddTransient<IVlogService, VlogService>();
+            services.AddTransient<IVlogService, VlogService>();
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
-            //services.AddTransient<IReactionService, ReactionService>();
+            services.AddTransient<IReactionService, ReactionService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<ILivestreamingService, WowzaLivestreamingService>();
             services.AddTransient<ITokenService, TokenService>();

@@ -192,7 +192,7 @@ namespace Swabbr.Api.Controllers
             catch (Exception e)
             {
                 logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not list users following"));
             }
         }
 
@@ -217,7 +217,7 @@ namespace Swabbr.Api.Controllers
             catch (Exception e)
             {
                 logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get user followers"));
             }
         }
 
@@ -239,7 +239,7 @@ namespace Swabbr.Api.Controllers
             catch (Exception e)
             {
                 logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get statistics for user"));
             }
         }
 
@@ -260,7 +260,7 @@ namespace Swabbr.Api.Controllers
             catch (Exception e)
             {
                 logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update user"));
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get statistics for self"));
             }
         }
 

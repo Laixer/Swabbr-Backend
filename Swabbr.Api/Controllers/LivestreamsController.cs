@@ -8,6 +8,7 @@ using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.Livestreaming;
+using Swabbr.Api.ViewModels.Vlog;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
