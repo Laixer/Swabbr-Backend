@@ -7,6 +7,7 @@ namespace Swabbr.Api.DapperUtility
 
     /// <summary>
     /// Implements custom type handling functionality for Dapper regarding <see cref="Uri"/> objects.
+    /// TODO This should NOTTTTT BE IN HERE!
     /// </summary>
     public class UriHandler : SqlMapper.TypeHandler<Uri>
     {
@@ -14,7 +15,16 @@ namespace Swabbr.Api.DapperUtility
         public override Uri Parse(object value)
         {
             if (value == null) { return null; } // TODO Do we want this?
-            return new Uri(value.ToString()); // TODO Unsafe!
+            try
+            {
+                var toString = value.ToString();
+                var builder = new UriBuilder(value.ToString());
+                return builder.Uri;
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException($"Error while parsing {value.ToString()} to URI", e);
+            }
         }
 
         public override void SetValue(IDbDataParameter parameter, Uri value)
