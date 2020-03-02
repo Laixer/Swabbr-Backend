@@ -1,49 +1,28 @@
 ﻿using Swabbr.Core.Entities;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
+    /// <summary>
+    /// Contract for a service that handles everything related to <see cref="Reaction"/> entities.
+    /// </summary>
     public interface IReactionService
     {
-        /// <summary>
-        /// Returns whether a reaction with the given id exists.
-        /// </summary>
-        /// <param name="reactionId">Unique identifier of a reaction</param>
-        /// TODO THOMAS This should never be required
-        Task<bool> ExistsAsync(Guid reactionId);
 
-        /// <summary>
-        /// Returns a reaction with the specified id.
-        /// </summary>
-        /// <param name="reactionId">Unique identifier of a reaction</param>
-        /// <returns></returns>
-        Task<Reaction> GetByIdAsync(Guid reactionId);
+        Task<Reaction> GetReactionAsync(Guid reactionId);
 
-        /// <summary>
-        /// Returns a collection of reactions for a given vlog.
-        /// </summary>
-        /// <param name="vlogId">Unique identifier of the vlog the reactions were placed on</param>
+        // TODO This needs to incorperate the actual file sending as well!
+        Task<Reaction> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate);
+
+        Task<Reaction> UpdateReactionAsync(Guid userId, Guid reactionId, bool isPrivate);
+
         Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId);
 
-        /// <summary>
-        /// Returns a collection of reactions that were placed by a specific user.
-        /// </summary>
-        /// <param name="userId">Unique identifier of the user who placed the reactions</param>
-        Task<IEnumerable<Reaction>> GetReactionsByUserAsync(Guid userId);
+        Task DeleteReactionAsync(Guid userId, Guid reactionId);
 
-        /// <summary>
-        /// Returns the amount of reactions that were placed on a specific vlog.
-        /// </summary>
-        /// <param name="userId">Unique identifier of a vlog</param>
-        Task<int> GetReactionCountForVlogAsync(Guid vlogId);
-
-        /// <summary>
-        /// Returns the amount of reactions that were placed by a specific user.
-        /// </summary>
-        /// <param name="userId">Unique identifier of a user</param>
-        Task<int> GetGivenReactionCountForUserAsync(Guid userId);
     }
+
 }

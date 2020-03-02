@@ -15,7 +15,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// Returns a collection of vlogs that are owned by the specified user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user and owner of the vlogs.</param>
-        Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId);
+        Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId);
 
         /// <summary>
         /// Returns a collection of featured vlogs.

@@ -1,19 +1,15 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-    public interface IVlogLikeRepository : IRepository<VlogLike, Guid>, ICudFunctionality<VlogLike, Guid>
+    public interface IVlogLikeRepository : IRepository<VlogLike, VlogLikeId>, ICudFunctionality<VlogLike, VlogLikeId>
     {
-        /// <summary>
-        /// Get a like for a vlog given by a specific user
-        /// </summary>
-        /// <param name="vlogId">Unique identifier of the vlog.</param>
-        /// <param name="userId">Unique identifier of the user who submitted the like.</param>
-        /// <returns></returns>
-        Task<VlogLike> GetSingleForUserAsync(Guid vlogId, Guid userId);
 
         /// <summary>
         /// Returns the count of all given likes by a single user.
@@ -21,5 +17,10 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="userId">Unique identifier of the user who submitted the likes.</param>
         /// <returns></returns>
         Task<int> GetGivenCountForUserAsync(Guid userId);
+
+        Task<IEnumerable<VlogLike>> GetForVlogAsync(Guid vlogId);
+
+        Task<bool> ExistsAsync(VlogLikeId vlogLikeId);
+
     }
 }

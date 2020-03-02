@@ -23,7 +23,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <returns></returns>
         /// TODO THOMAS I suspect that this exists to battle the double-follow-request race conditions. These should
         /// never be a problem as long as the follow request processsing pipeline is transactional. --> postgresql
-        Task<bool> ExistsAsync(FollowRequestId id);
+        Task<bool> ExistsAsync(FollowRequestId followRequestId);
 
         /// <summary>
         /// Returns all follow requests targeted to a specific user.
