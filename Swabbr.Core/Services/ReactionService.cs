@@ -1,55 +1,127 @@
-﻿using Swabbr.Core.Entities;
+﻿using Laixer.Utility.Extensions;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
 
-    // TODO THOMAS This is just a wrapper for the repo...
-    // TODO THOMAS This is never used
+    /// <summary>
+    /// Service for everything <see cref="Reaction"/> related.
+    /// </summary>
     public class ReactionService : IReactionService
     {
+
         private readonly IReactionRepository _reactionRepository;
 
-        public ReactionService(
-                IReactionRepository reactionRepository
-            )
+        /// <summary>
+        /// Constructor for dependency injeciton.
+        /// </summary>
+        public ReactionService(IReactionRepository reactionRepository)
         {
-            _reactionRepository = reactionRepository;
+            _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
         }
 
-        public Task<bool> ExistsAsync(Guid reactionId)
+        /// <summary>
+        /// Deletes a <see cref="Reaction"/> from our data store.
+        /// </summary>
+        /// <remarks>
+        /// Throws a <see cref="NotAllowedException"/> if the <paramref name="userId"/>
+        /// does not match the <see cref="Reaction.UserId"/> in our data store.
+        /// </remarks>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task DeleteReactionAsync(Guid userId, Guid reactionId)
         {
-            return _reactionRepository.ExistsAsync(reactionId);
+            userId.ThrowIfNullOrEmpty();
+            reactionId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // TODO Would we want to check user existence here? It is not required, could be useful for quicker debug feedback though?
+                var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
+                if (reaction.UserId != userId) { throw new NotAllowedException("User does not own reaction"); }
+
+                await _reactionRepository.DeleteAsync(reactionId).ConfigureAwait(false);
+                scope.Complete();
+            }
         }
 
-        public Task<Reaction> GetByIdAsync(Guid reactionId)
+        /// <summary>
+        /// Gets a <see cref="Reaction"/> from our data store.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Reaction"/></returns>
+        public Task<Reaction> GetReactionAsync(Guid reactionId)
         {
-            return _reactionRepository.GetByIdAsync(reactionId);
+            reactionId.ThrowIfNullOrEmpty();
+            return _reactionRepository.GetAsync(reactionId);
         }
 
-        public Task<int> GetGivenReactionCountForUserAsync(Guid userId)
-        {
-            return _reactionRepository.GetGivenReactionCountForUserAsync(userId);
-        }
-
-        public Task<int> GetReactionCountForVlogAsync(Guid vlogId)
-        {
-            return _reactionRepository.GetReactionCountForVlogAsync(vlogId);
-        }
-
-        public Task<IEnumerable<Reaction>> GetReactionsByUserAsync(Guid userId)
-        {
-            return _reactionRepository.GetReactionsByUserAsync(userId);
-        }
-
+        /// <summary>
+        /// Gets all <see cref="Reaction"/> entities that belong to a given
+        /// <see cref="Vlog"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="Reaction"/> collection</returns>
         public Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId)
         {
-            return _reactionRepository.GetReactionsForVlogAsync(vlogId);
+            vlogId.ThrowIfNullOrEmpty();
+            return _reactionRepository.GetForVlogAsync(vlogId);
         }
+
+        /// <summary>
+        /// Posts a new <see cref="Reaction"/> to a <see cref="Vlog"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="targetVlogId">Internal <see cref="Vlog"/> id</param>
+        /// <param name="isPrivate">If the reaction is private</param>
+        /// <returns>The created and queried <see cref="Reaction"/></returns>
+        public Task<Reaction> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate)
+        {
+            userId.ThrowIfNullOrEmpty();
+            targetVlogId.ThrowIfNullOrEmpty();
+
+            return _reactionRepository.CreateAsync(new Reaction
+            {
+                UserId = userId,
+                TargetVlogId = targetVlogId,
+                IsPrivate = isPrivate
+            });
+        }
+
+        /// <summary>
+        /// Updates a <see cref="Reaction"/> in our data store.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <param name="isPrivate">If the reaction is private</param>
+        /// <returns>The updated and queried <see cref="Reaction"/></returns>
+        public async Task<Reaction> UpdateReactionAsync(Guid userId, Guid reactionId, bool isPrivate)
+        {
+            userId.ThrowIfNullOrEmpty();
+            reactionId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
+                if (reaction.UserId != userId) { throw new NotAllowedException("User does not own reaction"); }
+
+                reaction.IsPrivate = isPrivate;
+
+                reaction = await _reactionRepository.UpdateAsync(reaction).ConfigureAwait(false);
+                scope.Complete();
+                return reaction;
+            }
+        }
+
     }
+
 }

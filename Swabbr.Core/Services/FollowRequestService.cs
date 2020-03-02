@@ -61,9 +61,9 @@ namespace Swabbr.Core.Services
                 {
                     // TODO This can be done with a database function maybe
                     var existingRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-                    if (existingRequest.Status == FollowRequestStatus.Declined)
+                    if (existingRequest.FollowRequestStatus == FollowRequestStatus.Declined)
                     {
-                        existingRequest.Status = FollowRequestStatus.Pending;
+                        existingRequest.FollowRequestStatus = FollowRequestStatus.Pending;
                         var updatedEntity = await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
 
                         // Commit and return
@@ -101,7 +101,7 @@ namespace Swabbr.Core.Services
             id.ThrowIfNullOrEmpty();
 
             var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-            if (followRequest.Status != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
+            if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
 
             return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted).ConfigureAwait(false);
         }
@@ -111,7 +111,7 @@ namespace Swabbr.Core.Services
             id.ThrowIfNullOrEmpty();
 
             var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-            if (followRequest.Status != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
+            if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
 
             return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
         }
@@ -135,7 +135,7 @@ namespace Swabbr.Core.Services
         {
             id.RequesterId.ThrowIfNullOrEmpty();
             id.ReceiverId.ThrowIfNullOrEmpty();
-            return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).Status;
+            return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).FollowRequestStatus;
         }
 
         public Task<int> GetFollowerCountAsync(Guid userId)
@@ -151,13 +151,13 @@ namespace Swabbr.Core.Services
         public async Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId)
         {
             return (await _followRequestRepository.GetIncomingForUserAsync(userId))
-                .Where(entity => entity.Status == FollowRequestStatus.Pending);
+                .Where(entity => entity.FollowRequestStatus == FollowRequestStatus.Pending);
         }
 
         public async Task<IEnumerable<FollowRequest>> GetPendingOutgoingForUserAsync(Guid userId)
         {
             return (await _followRequestRepository.GetOutgoingForUserAsync(userId))
-                .Where(entity => entity.Status == FollowRequestStatus.Pending);
+                .Where(entity => entity.FollowRequestStatus == FollowRequestStatus.Pending);
         }
 
         /// <summary>
@@ -202,7 +202,7 @@ namespace Swabbr.Core.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-                if (followRequest.Status != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
+                if (followRequest.FollowRequestStatus != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
 
                 await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
                 scope.Complete();
