@@ -18,7 +18,7 @@ namespace Swabbr.Api.Mapping
             {
                 ReceiverId = followRequest.Id.ReceiverId,
                 RequesterId = followRequest.Id.RequesterId,
-                Status = MapperEnum.Map(followRequest.Status),
+                Status = MapperEnum.Map(followRequest.FollowRequestStatus),
                 TimeCreated = followRequest.TimeCreated
             };
         }
