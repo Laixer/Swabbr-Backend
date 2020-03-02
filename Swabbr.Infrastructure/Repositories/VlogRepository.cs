@@ -2,11 +2,13 @@
 using Laixer.Infra.Npgsql;
 using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
@@ -69,7 +71,10 @@ namespace Swabbr.Infrastructure.Repositories
         /// </remarks>
         /// <param name="id">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public Task DeleteAsync(Guid id) => SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableVlog);
+        public Task DeleteAsync(Guid id)
+        {
+            return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableVlog);
+        }
 
         public Task<bool> ExistsAsync(Guid vlogId)
         {
@@ -101,7 +106,10 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="id">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="Vlog"/>/returns>
-        public Task<Vlog> GetAsync(Guid id) => SharedRepositoryFunctions.GetAsync<Vlog>(_databaseProvider, id, TableVlog);
+        public Task<Vlog> GetAsync(Guid id)
+        {
+            return SharedRepositoryFunctions.GetAsync<Vlog>(_databaseProvider, id, TableVlog);
+        }
 
         public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync()
         {
@@ -139,9 +147,21 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-        public Task<IEnumerable<Vlog>> GetVlogsByUserAsync(Guid userId)
+        /// <summary>
+        /// Gets all <see cref="Vlog"/> entities owned by a specified
+        /// <see cref="SwabbrUser"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="Vlog"/> collection</returns>
+        public async Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId)
         {
-            throw new NotImplementedException();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"SELECT * FROM {TableVlog} WHERE user_id = @UserId";
+                return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
+            }
         }
 
         public Task ShareWithUserAsync(Guid vlogId, Guid userId)
@@ -149,9 +169,35 @@ namespace Swabbr.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<Vlog> UpdateAsync(Vlog entity)
+        /// <summary>
+        /// Updates a <see cref="Vlog"/> in our database.
+        /// </summary>
+        /// <param name="entity"><see cref="Vlog"/></param>
+        /// <returns>Updated and queried <see cref="Vlog"/></returns>
+        public async Task<Vlog> UpdateAsync(Vlog entity)
         {
-            throw new NotImplementedException();
+            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
+            entity.Id.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                using (var connection = _databaseProvider.GetConnectionScope())
+                {
+                    await GetAsync(entity.Id).ConfigureAwait(false); // FOR UPATE
+
+                    var sql = $@"
+                        UPDATE {TableVlog} SET
+                            is_private = @IsPrivate
+                        WHERE id = @Id";
+                    int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
+                    if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
+                    if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple results on single get"); }
+
+                    var result = await GetAsync(entity.Id).ConfigureAwait(false);
+                    scope.Complete();
+                    return result;
+                }
+            }
         }
 
     }

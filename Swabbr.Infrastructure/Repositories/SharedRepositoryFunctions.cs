@@ -32,8 +32,8 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = provider.GetConnectionScope())
             {
-                var sql = $"SELECT 1 FROM {tableName} WHERE id = '{id}';";
-                var result = await connection.QueryAsync<int>(sql).ConfigureAwait(false);
+                var sql = $"SELECT 1 FROM {tableName} WHERE id = @Id;";
+                var result = await connection.QueryAsync<int>(sql, new { Id = id }).ConfigureAwait(false);
                 if (result == null) { throw new InvalidOperationException("Result for exist checks should never be null"); }
                 if (result.Count() > 1) { throw new InvalidOperationException("Single check result should never have more than one entity"); }
                 return result.Count() == 1;
@@ -62,7 +62,6 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 var sql = $"SELECT * FROM {tableName} WHERE id = @Id FOR UPDATE";
                 var result = await connection.QueryAsync<TEntity>(sql, new { Id = id }).ConfigureAwait(false);
-
                 if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
                 if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
                 return result.First();

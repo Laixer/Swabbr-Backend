@@ -1,11 +1,13 @@
-﻿using Laixer.Infra.Npgsql;
+﻿using Dapper;
+using Laixer.Infra.Npgsql;
+using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Interfaces;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
@@ -16,7 +18,7 @@ namespace Swabbr.Infrastructure.Repositories
     public sealed class ReactionRepository : IReactionRepository
     {
 
-        private IDatabaseProvider _databaseProvider;
+        private readonly IDatabaseProvider _databaseProvider;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -26,54 +28,94 @@ namespace Swabbr.Infrastructure.Repositories
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
         }
 
-        public Task<Reaction> CreateAsync(Reaction entity)
+        /// <summary>
+        /// Creates a new <see cref="Reaction"/> in our database.
+        /// </summary>
+        /// <param name="entity"><see cref="Reaction"/></param>
+        /// <returns>The created and queried <see cref="Reaction"/></returns>
+        public async Task<Reaction> CreateAsync(Reaction entity)
         {
-            throw new NotImplementedException();
+            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
+            entity.Id.ThrowIfNotNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    INSERT INTO {TableReaction} (
+                        is_private,
+                        target_vlog_id,
+                        user_id
+                    ) VALUES (
+                        @IsPrivate,
+                        @TargetVlogId,
+                        @UserId
+                    ) RETURNING id";
+                var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
+                id.ThrowIfNullOrEmpty();
+                return await GetAsync(id).ConfigureAwait(false);
+            }
         }
 
+        /// <summary>
+        /// Deletes a <see cref="Reaction"/> from our database.
+        /// </summary>
+        /// <param name="id">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
         public Task DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            id.ThrowIfNullOrEmpty();
+            return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableReaction);
         }
 
-        public Task<bool> ExistsAsync(Guid reactionId)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <summary>
+        /// Gets a <see cref="Reaction"/> from our database.
+        /// </summary>
+        /// <param name="id">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Reaction"/></returns>
         public Task<Reaction> GetAsync(Guid id)
         {
-            throw new NotImplementedException();
+            id.ThrowIfNullOrEmpty();
+            return SharedRepositoryFunctions.GetAsync<Reaction>(_databaseProvider, id, TableReaction);
         }
 
-        public Task<Reaction> GetByIdAsync(Guid reactionId)
+        /// <summary>
+        /// Gets all <see cref="Reaction"/>s for a given <see cref="Vlog"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="Reaction"/> collection</returns>
+        public async Task<IEnumerable<Reaction>> GetForVlogAsync(Guid vlogId)
         {
-            throw new NotImplementedException();
+            vlogId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"SELECT * FROM {TableReaction} WHERE target_vlog_id = @VlogId FOR UPDATE";
+                return await connection.QueryAsync<Reaction>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+            }
         }
 
-        public Task<int> GetGivenReactionCountForUserAsync(Guid userId)
+        /// <summary>
+        /// Updates a <see cref="Reaction"/> in our database.
+        /// </summary>
+        /// <param name="entity"><see cref="Reaction"/></param>
+        /// <returns>Updated and queried <see cref="Reaction"/></returns>
+        public async Task<Reaction> UpdateAsync(Reaction entity)
         {
-            throw new NotImplementedException();
-        }
+            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
+            entity.Id.ThrowIfNullOrEmpty();
 
-        public Task<int> GetReactionCountForVlogAsync(Guid vlogId)
-        {
-            throw new NotImplementedException();
-        }
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    UPDATE {TableReaction} SET 
+                        is_private = @IsPrivate
+                    WHERE id = @Id";
+                var rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
+                if (rowsAffected == 0) { throw new EntityNotFoundException(); }
+                if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple items on single get"); }
 
-        public Task<IEnumerable<Reaction>> GetReactionsByUserAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Reaction> UpdateAsync(Reaction entity)
-        {
-            throw new NotImplementedException();
+                return await GetAsync(entity.Id).ConfigureAwait(false);
+            }
         }
     }
 }

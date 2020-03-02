@@ -39,41 +39,23 @@ namespace Swabbr.Infrastructure.Repositories
         /// <remarks>
         /// Throws an <see cref="EntityNotFoundException"/> if the entity doesn't exist.
         /// </remarks>
-        /// <param name="id">Internal id</param>
+        /// <param name="followRequestId">Internal id</param>
         /// <returns><see cref="FollowRequest"/></returns>
-        public async Task<FollowRequest> GetAsync(FollowRequestId id)
+        public async Task<FollowRequest> GetAsync(FollowRequestId followRequestId)
         {
-            id.ThrowIfNullOrEmpty();
+            followRequestId.ThrowIfNullOrEmpty();
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                connection.Open();
                 var sql = $@"
                     SELECT * FROM {TableFollowRequest}  
                     WHERE receiver_id = @ReceiverId
                     AND requester_id = @RequesterId
                     FOR UPDATE";
-                using (var command = new NpgsqlCommand(sql, connection as NpgsqlConnection))
-                {
-                    command.Parameters.AddWithValue("ReceiverId", id.ReceiverId);
-                    command.Parameters.AddWithValue("RequesterId", id.RequesterId);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
-                    {
-                        // TODO This is not the final solution
-                        reader.Read();
-                        if (!reader.HasRows) { throw new EntityNotFoundException(); }
-                        return new FollowRequest
-                        {
-                            Id = new FollowRequestId
-                            {
-                                RequesterId = reader.GetFieldValue<Guid>(0),
-                                ReceiverId = reader.GetFieldValue<Guid>(1),
-                            },
-                            TimeCreated = reader.GetFieldValue<DateTimeOffset>(2),
-                            Status = reader.GetFieldValue<FollowRequestStatus>(3),
-                        };
-                    }
-                }
+                var result = await connection.QueryAsync<FollowRequest>(sql, followRequestId).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+                if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+                return result.First();
             }
         }
 
@@ -81,19 +63,17 @@ namespace Swabbr.Infrastructure.Repositories
         /// Checks if a given follow request exists between a receiver and a
         /// requester.
         /// </summary>
-        /// <param name="receiverId">Receiving <see cref="SwabbrUser"/> internal id</param>
-        /// <param name="requesterId">Requesting <see cref="SwabbrUser"/> internal id</param>
+        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
         /// <returns><see cref="true"/> if a <see cref="FollowRequest"/> exists</returns>
-        public async Task<bool> ExistsAsync(FollowRequestId id)
+        public async Task<bool> ExistsAsync(FollowRequestId followRequestId)
         {
-            id.ThrowIfNullOrEmpty();
+            followRequestId.ThrowIfNullOrEmpty();
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 var sql = $"SELECT 1 FROM {TableFollowRequest}" +
                     $" WHERE receiver_id = @ReceiverId" +
                     $" AND requester_id = @RequesterId";
-                var pars = new { id.RequesterId, id.ReceiverId };
-                var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
+                var result = await connection.QueryAsync<int>(sql, followRequestId).ConfigureAwait(false);
                 return result != null && result.Any();
             }
         }
@@ -141,8 +121,7 @@ namespace Swabbr.Infrastructure.Repositories
                         @RequesterId,
                         @ReceiverId
                     )";
-                var pars = new { entity.Id.RequesterId, entity.Id.ReceiverId };
-                await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+                await connection.ExecuteAsync(sql, entity.Id).ConfigureAwait(false);
 
                 return await GetAsync(entity.Id).ConfigureAwait(false);
             }
@@ -162,17 +141,17 @@ namespace Swabbr.Infrastructure.Repositories
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
             entity.Id.ThrowIfNullOrEmpty();
 
-            return UpdateStatusAsync(entity.Id, entity.Status);
+            return UpdateStatusAsync(entity.Id, entity.FollowRequestStatus);
         }
 
         /// <summary>
         /// Deletes a <see cref="FollowRequest"/> from our database.
         /// </summary>
-        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task DeleteAsync(FollowRequestId id)
+        public async Task DeleteAsync(FollowRequestId followRequestId)
         {
-            id.ThrowIfNullOrEmpty();
+            followRequestId.ThrowIfNullOrEmpty();
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
@@ -180,8 +159,7 @@ namespace Swabbr.Infrastructure.Repositories
                     DELETE FROM {TableFollowRequest} 
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-                var pars = new { id.RequesterId, id.ReceiverId };
-                await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+                await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
             }
         }
 
@@ -190,12 +168,12 @@ namespace Swabbr.Infrastructure.Repositories
         /// specified <see cref="FollowRequestStatus"/>. This will throw an
         /// <see cref="EntityNotFoundException"/> if we can't find the object.
         /// </summary>
-        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
         /// <param name="status"><see cref="FollowRequestStatus"/></param>
         /// <returns><see cref="Task"/></returns>
-        public async Task<FollowRequest> UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status)
+        public async Task<FollowRequest> UpdateStatusAsync(FollowRequestId followRequestId, FollowRequestStatus status)
         {
-            id.ThrowIfNullOrEmpty();
+            followRequestId.ThrowIfNullOrEmpty();
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 // TODO Anti SQL inject
@@ -204,13 +182,12 @@ namespace Swabbr.Infrastructure.Repositories
                     SET follow_request_status = '{status.GetEnumMemberAttribute()}'
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-                var pars = new { id.RequesterId, id.ReceiverId };
-                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+                var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
                 if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
                 else if (rowsAffected > 1) { throw new InvalidOperationException($"Affected {rowsAffected} while updating a single follow request, this should never happen"); }
                 else
                 {
-                    return await GetAsync(id).ConfigureAwait(false);
+                    return await GetAsync(followRequestId).ConfigureAwait(false);
                 }
             }
         }

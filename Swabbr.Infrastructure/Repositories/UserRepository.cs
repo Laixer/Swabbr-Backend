@@ -197,17 +197,17 @@ namespace Swabbr.Infrastructure.Repositories
 
                     // TODO Enum injection
                     var sql = $@"
-                    UPDATE {TableUser} SET
-                        birth_date = @BirthDate,
-                        country = @Country,
-                        first_name = @FirstName,
-                        gender = '{entity.Gender.GetEnumMemberAttribute()}', 
-                        is_private = @IsPrivate,
-                        last_name = @LastName,
-                        nickname = @NickName,
-                        profile_image_url = @ProfileImageUrl,
-                        timezone = @Timezone
-                    WHERE id = @Id";
+                        UPDATE {TableUser} SET
+                            birth_date = @BirthDate,
+                            country = @Country,
+                            first_name = @FirstName,
+                            gender = '{entity.Gender.GetEnumMemberAttribute()}', 
+                            is_private = @IsPrivate,
+                            last_name = @LastName,
+                            nickname = @NickName,
+                            profile_image_url = @ProfileImageUrl,
+                            timezone = @Timezone
+                        WHERE id = @Id";
                     int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
                     if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
                     if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple results on single get"); }
