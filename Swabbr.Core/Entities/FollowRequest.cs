@@ -13,10 +13,28 @@ namespace Swabbr.Core.Entities
     {
 
         /// <summary>
+        /// Constructor to ensure <see cref="FollowRequestId"/> initialization.
+        /// </summary>
+        public FollowRequest()
+        {
+            Id = new FollowRequestId();
+        }
+
+        /// <summary>
+        /// Id of the requesting user.
+        /// </summary>
+        public Guid RequesterId { get => Id.RequesterId; set => Id.RequesterId = value; }
+
+        /// <summary>
+        /// Id of the receiving user.
+        /// </summary>
+        public Guid ReceiverId { get => Id.ReceiverId; set => Id.ReceiverId = value; }
+
+        /// <summary>
         /// Current status of the follow request.
         /// </summary>
-        public FollowRequestStatus Status { get; set; }
-        public string StatusText => Status.GetEnumMemberAttribute();
+        public FollowRequestStatus FollowRequestStatus { get; set; }
+        public string FollowRequestStatusText => FollowRequestStatus.GetEnumMemberAttribute();
 
         /// <summary>
         /// Timestamp of when the request was initiated.

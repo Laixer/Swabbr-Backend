@@ -17,7 +17,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Id of the vlog the reaction responds to.
         /// </summary>
-        public Guid VlogId { get; set; }
+        public Guid TargetVlogId { get; set; }
 
         /// <summary>
         /// Duration of the video.
@@ -27,18 +27,17 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// The moment at which the reaction was posted.
         /// </summary>
-        public DateTime DatePosted { get; set; }
+        public DateTime CreateDate { get; set; }
 
         /// <summary>
         /// Indicates whether this reaction is public or private.
         /// </summary>
         public bool IsPrivate { get; set; }
 
-        //TODO: Add metadata from media service? To reactions
         /// <summary>
-        /// Metadata from the Media Service.
+        /// Download location for the content of this <see cref="Reaction"/> video.
         /// </summary>
-        public string MediaServiceData { get; set; }
+        public Uri DownloadUrl { get; set; }
 
     }
 
