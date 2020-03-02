@@ -1,178 +1,206 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
+using Swabbr.Api.Mapping;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Laixer.Utility.Extensions;
+using Swabbr.Api.ViewModels.Reaction;
+using System.Linq;
 
 namespace Swabbr.Api.Controllers
 {
+
     /// <summary>
-    /// Controller for handling requests related to vlog reactions.
+    /// Controller for handling requests related to vlog <see cref="Reaction"/>s.
     /// </summary>
     [Authorize]
     [ApiController]
     [Route("reactions")]
     public class ReactionsController : ControllerBase
     {
-        private readonly UserManager<SwabbrIdentityUser> _userManager;
-        private readonly IReactionRepository _reactionRepository;
-        private readonly IVlogRepository _vlogRepository;
 
-        public ReactionsController(
-            UserManager<SwabbrIdentityUser> userManager,
-            IReactionRepository reactionRepository,
-            IVlogRepository vlogRepository
-            )
+        private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly IReactionService _reactionService;
+        private readonly ILogger logger;
+
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
+        public ReactionsController(UserManager<SwabbrIdentityUser> userManager,
+            IReactionService reactionService,
+            ILoggerFactory loggerFactory)
         {
-            _userManager = userManager;
-            _reactionRepository = reactionRepository;
-            _vlogRepository = vlogRepository;
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(ReactionsController)) : throw new ArgumentNullException(nameof(loggerFactory));
+        }
+
+        /// <summary>
+        /// Deletes a <see cref="Reaction"/> from our backend.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="NoContentResult"/></returns>
+        [HttpDelete("{reactionId}")]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> Delete([FromRoute] Guid reactionId)
+        {
+            try
+            {
+                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                await _reactionService.DeleteReactionAsync(user.Id, reactionId).ConfigureAwait(false);
+                return NoContent();
+            }
+            catch (NotAllowedException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User does not own reaction"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not delete reaction"));
+            }
+        }
+
+        /// <summary>
+        /// Gets a single <see cref="Reaction"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
+        [HttpGet("{reactionId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
+        public async Task<IActionResult> Get([FromRoute] Guid reactionId)
+        {
+            try
+            {
+                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                return Ok(MapperReaction.Map(await _reactionService.GetReactionAsync(reactionId).ConfigureAwait(false)));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find reaction"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get reaction"));
+            }
+        }
+
+        /// <summary>
+        /// Lists all <see cref="Reaction"/>s for a given <see cref="Vlog"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionCollectionOutputModel"/></returns>
+        [HttpGet("for_vlog/{vlogId}")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<ReactionOutputModel>))]
+        public async Task<IActionResult> GetReactionsForVlog([FromRoute] Guid vlogId)
+        {
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                return Ok(new ReactionCollectionOutputModel
+                {
+                    Reactions = (await _reactionService
+                        .GetReactionsForVlogAsync(vlogId)
+                        .ConfigureAwait(false))
+                        .Select(x => MapperReaction.Map(x))
+                });
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get reactions for vlog"));
+            }
         }
 
         /// <summary>
         /// Create a new reaction to a vlog.
         /// </summary>
-        [HttpPost("create")]
+        /// <param name="model"><see cref="ReactionInputModel"/></param>
+        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
+        [HttpPost("new")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
-        public async Task<IActionResult> Create([FromBody] ReactionInputModel inputModel)
+        public async Task<IActionResult> Post([FromBody] ReactionInputModel model)
         {
-            throw new NotImplementedException();
-            //var identityUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (model == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model can't be null")); }
+                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model state is not valid")); }
 
-            ////TODO: Check if user has access to post a reaction to the given vlog
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            //var newReaction = new Reaction
-            //{
-            //    VlogId = inputModel.VlogId,
-            //    UserId = identityUser.Id,
-            //    IsPrivate = inputModel.IsPrivate,
-            //    DatePosted = DateTime.Now,
-            //};
+                var reaction = await _reactionService.PostReactionAsync(user.Id, model.TargetVlogId, model.IsPrivate).ConfigureAwait(false);
 
-            //// Create and return the reaction entity
-            //ReactionOutputModel output = await _reactionRepository.CreateAsync(newReaction);
-            //return Ok(output);
+                return Ok(MapperReaction.Map(reaction));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not post new reaction"));
+            }
         }
 
         /// <summary>
-        /// Update an existing reaction to a vlog.
+        /// Updates a <see cref="Reaction"/> in our data store.
         /// </summary>
-        [HttpPut("update")]
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <param name="model"><see cref="ReactionUpdateInputModel"/></param>
+        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
+        [HttpPost("{reactionId}/update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorMessage))]
-        public async Task<IActionResult> Update([FromBody] ReactionUpdateInputModel inputModel)
+        public async Task<IActionResult> Update([FromRoute] Guid reactionId, [FromBody] ReactionUpdateInputModel model)
         {
-            throw new NotImplementedException();
-            //var identityUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
+                if (model == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model can't be null")); }
+                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model state is not valid")); }
 
-            //var reaction = await _reactionRepository.GetByIdAsync(inputModel.ReactionId);
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            //if (!reaction.UserId.Equals(identityUser.Id))
-            //{
-            //    return StatusCode(
-            //        (int)HttpStatusCode.Forbidden,
-            //        this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
-            //    );
-            //}
-
-            //// Update the reaction entity
-            //reaction.IsPrivate = inputModel.IsPrivate;
-
-            //ReactionOutputModel output = await _reactionRepository.UpdateAsync(reaction);
-            //return Ok(output);
+                var reaction = await _reactionService.UpdateReactionAsync(user.Id, reactionId, model.IsPrivate).ConfigureAwait(false);
+                return Ok(MapperReaction.Map(reaction));
+            }
+            catch (NotAllowedException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User does not own reaction"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update reaction"));
+            }
         }
 
-        /// <summary>
-        /// Get reactions to a vlog.
-        /// </summary>
-        [HttpGet("vlogs/{vlogId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<ReactionOutputModel>))]
-        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
-        public async Task<IActionResult> GetReactionsForVlog([FromRoute] Guid vlogId)
-        {
-            throw new NotImplementedException();
-            //if (!(await _vlogRepository.ExistsAsync(vlogId)))
-            //{
-            //    return NotFound(
-            //        this.Error(ErrorCodes.EntityNotFound, "Vlog does not exist.")
-            //        );
-            //}
-
-            //var reactions = await _reactionRepository.GetReactionsForVlogAsync(vlogId);
-
-            //// Map the collection to output models.
-            //IEnumerable<ReactionOutputModel> output = reactions
-            //    .Select(entity => (ReactionOutputModel)entity);
-
-            //return Ok(output);
-        }
-
-        /// <summary>
-        /// Get a single reaction to a vlog by id.
-        /// </summary>
-        [HttpGet("{reactionId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
-        public async Task<IActionResult> Get([FromRoute] Guid reactionId)
-        {
-            throw new NotImplementedException();
-            //try
-            //{
-            //    ReactionOutputModel output = await _reactionRepository.GetByIdAsync(reactionId);
-            //    return Ok(output);
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return NotFound(
-            //        this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
-            //        );
-            //}
-        }
-
-        /// <summary>
-        /// Delete a reaction to a vlog for the authenticated user.
-        /// </summary>
-        [HttpDelete("{reactionId}")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound, Type = typeof(ErrorMessage))]
-        [ProducesResponseType((int)HttpStatusCode.Forbidden, Type = typeof(ErrorMessage))]
-        public async Task<IActionResult> Delete([FromRoute] Guid reactionId)
-        {
-            throw new NotImplementedException();
-            //try
-            //{
-            //    var identityUser = await _userManager.GetUserAsync(User);
-
-            //    var reaction = await _reactionRepository.GetByIdAsync(reactionId);
-
-            //    if (!identityUser.Id.Equals(reaction.UserId))
-            //    {
-            //        return StatusCode(
-            //            (int)HttpStatusCode.Forbidden,
-            //            this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
-            //        );
-            //    }
-
-            //    await _reactionRepository.DeleteAsync(reaction);
-            //    return NoContent();
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return NotFound(
-            //        this.Error(ErrorCodes.EntityNotFound, "Reaction could not be found.")
-            //        );
-            //}
-        }
     }
+
 }

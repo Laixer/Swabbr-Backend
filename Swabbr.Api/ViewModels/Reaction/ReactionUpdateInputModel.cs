@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels
 {
@@ -11,15 +12,10 @@ namespace Swabbr.Api.ViewModels
     {
 
         /// <summary>
-        /// Id of the reaction.
-        /// </summary>
-        [JsonProperty("reactionId")]
-        public Guid ReactionId { get; set; }
-
-        /// <summary>
         /// Indicates whether this reaction is public or private.
         /// </summary>
         [JsonProperty("isPrivate")]
+        [Required]
         public bool IsPrivate { get; set; }
 
     }
