@@ -79,6 +79,24 @@ namespace Swabbr.WowzaStreamingCloud.Client
         }
 
         /// <summary>
+        /// Checks if a wowza livestream is streaming at this moment.
+        /// </summary>
+        /// <remarks>
+        /// TODO Make this more bulletproof
+        /// </remarks>
+        /// <param name="id">Wowza livestream id</param>
+        /// <returns><see cref="true"/> if streaming</returns>
+        public async Task<bool> IsLivestreamStreamingAsync(string id)
+        {
+            id.ThrowIfNullOrEmpty();
+
+            if (!await IsStreamerConnected(id).ConfigureAwait(false)) { return false; }
+
+            var state = await GetLivestreamStateAsync(id).ConfigureAwait(false);
+            return state == WscLivestreamState.Started;
+        }
+
+        /// <summary>
         /// Starts a livestream in the Wowza cloud.
         /// </summary>
         /// <remarks>

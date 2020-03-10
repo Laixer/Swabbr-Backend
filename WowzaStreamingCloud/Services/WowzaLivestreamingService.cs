@@ -204,7 +204,6 @@ namespace Swabbr.WowzaStreamingCloud.Services
             throw new NotImplementedException();
         }
 
-
         /// <summary>
         /// Deletes a livestream from the Wowza platform.
         /// </summary>
@@ -223,6 +222,30 @@ namespace Swabbr.WowzaStreamingCloud.Services
             _wowzaHttpClient.Dispose();
         }
 
+        /// <summary>
+        /// Checks if a <see cref="Livestream"/> is live and belongs to the given
+        /// <paramref name="userId"/>. This can be called to validate before pushing
+        /// livestream notifications to followers.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns></returns>
+        public async Task<bool> IsLivestreamValidForFollowersAsync(Guid livestreamId, Guid userId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            userId.ThrowIfNullOrEmpty();
+
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.UserId != userId) { throw new UserNotOwnerException(); }
+
+            if (!await _wowzaHttpClient.IsLivestreamStreamingAsync(livestream.ExternalId).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            // If we reach this we have passed all our checks
+            return true;
+        }
     }
 
 }
