@@ -24,19 +24,22 @@ namespace Swabbr.Api.Controllers
 
         private readonly IVlogTriggerService _vlogTriggerService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly INotificationService _notificationService;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public DebugController(IVlogTriggerService vlogTriggerService,
-            UserManager<SwabbrIdentityUser> userManager)
+            UserManager<SwabbrIdentityUser> userManager,
+            INotificationService notificationService)
         {
             _vlogTriggerService = vlogTriggerService ?? throw new ArgumentNullException(nameof(vlogTriggerService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         /// <summary>
-        /// Debug function to launch our <see cref="VlogTriggerService"/>.
+        /// Debug function to launch our <see cref="IVlogTriggerService"/>.
         /// </summary>
         /// <returns><see cref="OkResult"/></returns>
         [Authorize]
@@ -55,7 +58,7 @@ namespace Swabbr.Api.Controllers
             } 
             catch (Exception e)
             {
-                return Conflict();
+                return Conflict(e.Message); // TODO UNSAFE, change
             }
         }
 
@@ -65,6 +68,16 @@ namespace Swabbr.Api.Controllers
             var token = WowzaAuthenticationService.GenerateTokenHmac(sharedKey);
             return Ok(token);
         }
+
+        [HttpPost("notification_test")]
+        public async Task<IActionResult> NotificationTest(string message)
+        {
+            message.ThrowIfNullOrEmpty();
+            var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+            await _notificationService.TestNotifationAsync(user.Id, message).ConfigureAwait(false);
+            return Ok();
+        }
+
 
     }
 }

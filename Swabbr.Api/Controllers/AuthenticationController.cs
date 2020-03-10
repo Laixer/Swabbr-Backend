@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
@@ -9,6 +10,7 @@ using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -31,6 +33,8 @@ namespace Swabbr.Api.Controllers
         private readonly ITokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
+        private readonly IDeviceRegistrationService _deviceRegistrationService;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -39,13 +43,17 @@ namespace Swabbr.Api.Controllers
             IUserWithStatsRepository userWithStatsRepository,
             ITokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
-            SignInManager<SwabbrIdentityUser> signInManager)
+            SignInManager<SwabbrIdentityUser> signInManager,
+            IDeviceRegistrationService deviceRegistrationService,
+            ILoggerFactory loggerFactory)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
+            _deviceRegistrationService = deviceRegistrationService ?? throw new ArgumentNullException(nameof(deviceRegistrationService));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(AuthenticationController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -90,15 +98,18 @@ namespace Swabbr.Api.Controllers
             };
 
             // Create the user
-            var identityResult = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
+            var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
 
             // Sign in and return
-            if (identityResult.Succeeded)
+            if (user.Succeeded)
             {
                 // TODO This bugs out and can't sign in the first try. The exception says id is null, but the identityUser id gets set anyways!
                 await _signInManager.SignInAsync(identityUser, isPersistent: true).ConfigureAwait(false);
                 var token = _tokenService.GenerateToken(identityUser);
                 var userOutput = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false));
+
+                // Manage the device registration
+                await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(input.PushNotificationPlatform), input.Handle).ConfigureAwait(false);
 
                 return Ok(new UserAuthenticationOutputModel
                 {
@@ -120,46 +131,57 @@ namespace Swabbr.Api.Controllers
         /// <remarks>
         /// TODO THOMAS Validate user input! Null checks, format checks, etc
         /// </remarks>
-        /// <param name="input"><see cref="UserAuthenticationInputModel"/></param>
+        /// <param name="input"><see cref="UserLoginInputModel"/></param>
         /// <returns><see cref="IActionResult"/></returns>
         [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
-        public async Task<IActionResult> LoginAsync([FromBody] UserAuthenticationInputModel input)
+        public async Task<IActionResult> LoginAsync([FromBody] UserLoginInputModel input)
         {
-            if (input == null) { return BadRequest("Form body can't be null"); }
-            if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
-
-            // Throw a bad request if we are already logged in
-            // TODO Implement
-            // if (_signInManager.IsSignedIn()) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Already logged in")); }
-
-            var identityUser = await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false);
-            if (identityUser == null) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Invalid credentials")); }
-
-            // Attempt a sign in using the user-provided password input
-            var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false).ConfigureAwait(false);
-
-            if (result.IsLockedOut) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Too many attempts.")); }
-            if (result.IsNotAllowed) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Not allowed to log in.")); }
-            if (result.Succeeded)
+            try
             {
-                // Login succeeded, generate and return access token
-                var token = _tokenService.GenerateToken(identityUser);
+                if (input == null) { return BadRequest("Form body can't be null"); }
+                if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
 
-                return Ok(new UserAuthenticationOutputModel
+                // Throw a bad request if we are already logged in
+                // TODO Implement
+                // if (_signInManager.IsSignedIn()) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Already logged in")); }
+
+                var identityUser = await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false);
+                if (identityUser == null) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Invalid credentials")); }
+
+                // Attempt a sign in using the user-provided password input
+                var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false).ConfigureAwait(false);
+
+                if (result.IsLockedOut) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Too many attempts.")); }
+                if (result.IsNotAllowed) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Not allowed to log in.")); }
+                if (result.Succeeded)
                 {
-                    Token = token,
-                    Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
-                    Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
-                    User = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
-                    UserSettings = MapperUser.Map(await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
-                });
-            }
+                    // Login succeeded, generate and return access token
+                    var token = _tokenService.GenerateToken(identityUser);
 
-            // If we get here something definitely went wrong.
-            return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Could not log in."));
+                    // Manage device registration
+                    await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(input.PushNotificationPlatform), input.Handle).ConfigureAwait(false);
+
+                    return Ok(new UserAuthenticationOutputModel
+                    {
+                        Token = token,
+                        Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
+                        Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
+                        User = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
+                        UserSettings = MapperUser.Map(await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
+                    });
+                }
+
+                // If we get here something definitely went wrong.
+                return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Could not log in."));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not log in"));
+            }
         }
 
         /// <summary>
@@ -171,6 +193,10 @@ namespace Swabbr.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> LogoutAsync()
         {
+            // Unregister device
+            var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+            await _deviceRegistrationService.UnregisterAsync(user.Id).ConfigureAwait(false);
+
             // TODO What happens if we aren't signed in in the first place? --> BadRequest
             await _signInManager.SignOutAsync().ConfigureAwait(false);
             return NoContent();

@@ -91,30 +91,6 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Returns a single outgoing follow request from the authenticated user to the specified user.
-        /// </summary>
-        [Authorize]
-        [HttpGet("outgoing")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
-        public async Task<IActionResult> GetSingleOutgoingAsync(Guid receiverId)
-        {
-            return Conflict("Not yet implemeneted");
-            //var identityUser = await _userManager.GetUserAsync(User);
-
-            //try
-            //{
-            //    var request = await _followRequestService.GetAsync(receiverId, identityUser.Id);
-            //    return Ok(FollowRequestOutputModel.Parse(request));
-            //}
-            //catch (EntityNotFoundException)
-            //{
-            //    return NotFound(
-            //        this.Error(ErrorCodes.EntityNotFound, "Outgoing request does not exist.")
-            //        );
-            //}
-        }
-
-        /// <summary>
         /// Returns the status of a single follow relationship from the authenticated user to the
         /// user with the specified id.
         /// </summary>
