@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Swabbr.Core.Entities
+﻿namespace Swabbr.Core.Entities
 {
-    
+
     //public abstract class EntityBase { }
 
     /// <summary>

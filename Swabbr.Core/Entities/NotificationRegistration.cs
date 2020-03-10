@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Enums;
-using Swabbr.Core.Notifications;
 using System;
 
 namespace Swabbr.Core.Entities
@@ -10,6 +9,11 @@ namespace Swabbr.Core.Entities
     /// </summary>
     public class NotificationRegistration : EntityBase<Guid>
     {
+
+        /// <summary>
+        /// External registration id.
+        /// </summary>
+        public string ExternalId { get; set; }
 
         /// <summary>
         /// Id of the user this registration is bound to.
@@ -24,7 +28,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Indicates which platform is being used for sending push notifications.
         /// </summary>
-        public PushNotificationPlatform Platform { get; set; }
+        public PushNotificationPlatform PushNotificationPlatform { get; set; }
 
     }
 
