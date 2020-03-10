@@ -73,7 +73,7 @@ namespace Swabbr.Core.Services
                 await _livestreamingService.OnUserStartStreamingAsync(livestream.Id, user.Id).ConfigureAwait(false);
 
                 // Notify all followers
-                await _notificationService.SendNotificationToFollowersAsync(user.Id, vlog.Id).ConfigureAwait(false);
+                await _notificationService.NotifyFollowersProfileLiveAsync(user.Id, livestream.Id).ConfigureAwait(false);
 
                 // Commit and return
                 scope.Complete();
@@ -107,7 +107,8 @@ namespace Swabbr.Core.Services
 
                 // Notify all followers
                 var vlog = await _vlogRepository.GetVlogFromLivestreamAsync(livestream.Id).ConfigureAwait(false);
-                await _notificationService.SendNotificationToFollowersAsync(user.Id, vlog.Id).ConfigureAwait(false);
+                // await _notificationService.SendNotificationToFollowersAsync(user.Id, vlog.Id).ConfigureAwait(false);
+                throw new NotImplementedException();
 
                 scope.Complete();
             }

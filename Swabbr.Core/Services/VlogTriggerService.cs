@@ -1,6 +1,7 @@
 ﻿using Laixer.Utility.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications;
 using System;
 using System.Threading.Tasks;
 
@@ -45,7 +46,7 @@ namespace Swabbr.Core.Services
             TriggerUserTimeoutFunction(); // TODO HOW?
             TriggerLivestreamTimeoutFunction(); // TODO HOW?
 
-            await _notificationService.SendVlogTriggerToUserAsync(userId, livestream.Id).ConfigureAwait(false);
+            await _notificationService.VlogRecordRequestAsync(userId, livestream.Id).ConfigureAwait(false);
         }
 
         public Task ProcessVlogTriggerTimoutAsync(Guid userId)
