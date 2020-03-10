@@ -21,6 +21,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task DiscardLivestreamAsync(Guid livestreamId);
 
+        Task<bool> IsLivestreamValidForFollowersAsync(Guid livestreamId, Guid userId);
+
         // TODO All the getters
 
     }

@@ -1,10 +1,32 @@
-﻿namespace Swabbr.Core.Notifications
+﻿using System;
+
+namespace Swabbr.Core.Notifications
 {
+
+    /// <summary>
+    /// Represents a single notification to be sent to a user.
+    /// </summary>
     public sealed class SwabbrNotification
     {
+
         /// <summary>
-        /// The content of the notification as specified by the messaging protocol
+        /// Constructor to force us to always initialize <see cref="NotificationAction"/>.
         /// </summary>
-        public SwabbrNotificationBody MessageContent { get; set; }
+        /// <param name="notificationAction"><see cref="NotificationAction"/></param>
+        public SwabbrNotification(NotificationAction notificationAction)
+        {
+            NotificationAction = notificationAction;
+            CreatedAt = DateTimeOffset.Now;
+        }
+
+        public string Title { get; set; }
+
+        public string Body { get; set; }
+
+        public NotificationAction NotificationAction { get; } // TODO Is this allowed? Is this correct?
+
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now; // TODO Is this correct?
+
     }
+
 }

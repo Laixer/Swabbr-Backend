@@ -4,6 +4,7 @@ using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,6 +112,34 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Gets the <see cref="UserPushNotificationDetails"/> for all followers 
+        /// of a specified <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="UserPushNotificationDetails"/> collection</returns>
+        public async Task<IEnumerable<UserPushNotificationDetails>> GetFollowersPushDetailsAsync(Guid userId)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            if (!await UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT 
+                        u.id AS UserId, 
+                        nr.push_notification_platform AS PushNotificationPlatform
+                    FROM {TableUser} AS u
+                    JOIN {TableFollowRequest} AS fr
+                    ON u.id = fr.requester_id
+                    JOIN {TableNotificationRegistration} AS nr
+                    ON u.id = nr.user_id
+                    WHERE fr.receiver_id = @Id";
+                return await connection.QueryAsync<UserPushNotificationDetails>(sql, new { Id = userId }).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Gets all <see cref="SwabbrUser"/> entities that a given
         /// <see cref="SwabbrUser"/> specified by <paramref name="userId"/>
         /// is following.
@@ -131,6 +160,27 @@ namespace Swabbr.Infrastructure.Repositories
                     ON u.id = f.receiver_id
                     WHERE f.requester_id = @Id";
                 return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="UserPushNotificationDetails"/> for a given 
+        /// <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="UserPushNotificationDetails"/></returns>
+        public async Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId)
+        {
+            userId.ThrowIfNullOrEmpty();
+            if (!await UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"SELECT * FROM {ViewUserPushNotificationDetails} WHERE user_id = @UserId";
+                var result = await connection.QueryAsync<UserPushNotificationDetails>(sql, new { UserId = userId }).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+                if (result.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); } // TODO Is this correct?
+                return result.First();
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -54,6 +55,10 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
 
         Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId);
+
+        Task<IEnumerable<UserPushNotificationDetails>> GetFollowersPushDetailsAsync(Guid userId);
+
+        Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId);
 
     }
 

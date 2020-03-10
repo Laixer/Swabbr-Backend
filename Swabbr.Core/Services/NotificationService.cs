@@ -1,78 +1,127 @@
-﻿using Swabbr.Core.Interfaces.Services;
+﻿using Laixer.Utility.Extensions;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
-using Swabbr.Core.Interfaces;
-using Swabbr.Core.Interfaces.Repositories;
 
 namespace Swabbr.Core.Services
 {
-    public class NotificationService : INotificationService
+
+    /// <summary>
+    /// Contains functionality to handle notification operations.
+    /// </summary>
+    public sealed class NotificationService : INotificationService
     {
 
-        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ILivestreamRepository _livestreamRepository;
+        private readonly ILivestreamingService _livestreamingService;
         private readonly INotificationClient _notificationClient;
+        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
 
-        public NotificationService(INotificationRegistrationRepository notificationRegistrationRepository,
-            INotificationClient notificationClient)
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
+        public NotificationService(IUserRepository userRepository,
+            ILivestreamRepository livestreamRepository,
+            ILivestreamingService livestreamingService,
+            INotificationClient notificationClient,
+            INotificationRegistrationRepository notificationRegistrationRepository)
         {
-            _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
+            _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
+            _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
         }
 
-        public Task DeleteRegistrationAsync(Guid registrationId)
+        /// <summary>
+        /// Sends a <see cref="SwabbrNotification"/> to each follower of the 
+        /// specified <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId)
         {
-            throw new NotImplementedException();
-        }
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
 
-        // TODO THOMAS This should be transactional. 
-        // TODO THOMAS The way user tags are used is very bad smelling
-        // TODO THOMAS Why return a new notification response? 
-        // TODO THOMAs The notification client should probably also commit to the database. It's a full process, and should be treated as a transaction.
-        public async Task<NotificationResponse> RegisterUserForPushNotificationsAsync(Guid userId, DeviceRegistration deviceRegistration)
-        {
-            List<string> userTag = new List<string>()
+            if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
+            if (!await _livestreamingService.IsLivestreamValidForFollowersAsync(livestreamId, userId).ConfigureAwait(false))
             {
-                userId.ToString()
+                throw new InvalidOperationException("Livestream is not ready for followers");
+            }
+
+            var notification = new SwabbrNotification(NotificationAction.FollowedProfileLive)
+            {
+                Body = "TODO CENTRALIZE Your following user profile is live!",
+                Title = "TODO CENTRALIZE User is live!"
             };
 
-            // Create a new registration
-            var registration = await _notificationClient.RegisterAsync(deviceRegistration, userTag);
+            var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
 
-            // Bind the registration to the requested user
-            registration.UserId = userId;
+            // TODO Future optimization
+            // var detailsAndroid = new List<UserPushNotificationDetails>();
+            // var detailsIos = new List<UserPushNotificationDetails>();
 
-            // Store the newly created registration in the database
-            await _notificationRegistrationRepository.CreateAsync(registration);
-
-            return new NotificationResponse();
-        }
-
-        public Task SendNotificationToFollowersAsync(Guid userId, Guid vlogId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId)
-        {
-            List<string> userTag = new List<string>()
+            foreach (var item in pushDetails)
             {
-                userId.ToString()
+                await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// DEBUG FUNCTION
+        /// </summary>
+        public async Task TestNotifationAsync(Guid userId, string message)
+        {
+            userId.ThrowIfNullOrEmpty();
+            message.ThrowIfNullOrEmpty();
+            var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
+            if (!registrations.Any()) { throw new DeviceNotRegisteredException(); }
+            await _notificationClient.SendNotificationAsync(userId, PushNotificationPlatform.FCM,
+                new SwabbrNotification(NotificationAction.VlogRecordRequest)
+                {
+                    Body = "This is my body",
+                    CreatedAt = DateTimeOffset.Now,
+                    Title = message,
+                }).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Sends a notification to a <see cref="SwabbrUser"/> when we have decided
+        /// that the user should start streaming.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/>id</param>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task VlogRecordRequestAsync(Guid userId, Guid livestreamId)
+        {
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
+
+            if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
+            if (!await _livestreamingService.IsLivestreamValidForFollowersAsync(livestreamId, userId).ConfigureAwait(false))
+            {
+                //throw new InvalidOperationException("Livestream is not ready for followers");
+            }
+
+            var notification = new SwabbrNotification(NotificationAction.VlogRecordRequest)
+            {
+                Body = "TODO CENTRALIZE A livestream is ready to stream whatever you want!",
+                Title = "TODO CENTRALIZE Time to record a vlog!"
             };
 
-            // Obtain the stored notification registration for this user. 
-            // This is needed to determine the platform for which the notification should be sent out.
-            var registration = await _notificationRegistrationRepository.GetByUserIdAsync(userId);
-
-            return await _notificationClient.SendNotification(notification, registration.Platform, userTag);
-        }
-
-        public Task SendVlogTriggerToUserAsync(Guid userId, Guid liverstreamId)
-        {
-            throw new NotImplementedException();
+            var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
+            await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
         }
     }
+
 }

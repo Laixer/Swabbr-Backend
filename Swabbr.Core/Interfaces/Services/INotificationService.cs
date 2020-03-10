@@ -1,46 +1,24 @@
-﻿using Swabbr.Core.Notifications;
+﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
+using Swabbr.Core.Notifications;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
 
     /// <summary>
-    /// A service for notification related actions.
+    /// A contract for a service to handle everything regarding notification.
     /// </summary>
     public interface INotificationService
     {
 
-        /// <summary>
-        /// Delete the registration for an already registered device
-        /// </summary>
-        /// <param name="registrationId">Id of the registered device</param>
-        Task DeleteRegistrationAsync(Guid registrationId);
+        Task TestNotifationAsync(Guid userId, string message);
 
-        /// <summary>
-        /// Enable push notifications for a device
-        /// </summary>
-        /// <param name="id">Id of the device</param>
-        /// <param name="deviceUpdate">Registration information</param>
-        Task<NotificationResponse> RegisterUserForPushNotificationsAsync(Guid userId, DeviceRegistration deviceUpdate);
+        Task VlogRecordRequestAsync(Guid userId, Guid livesteamId);
 
-        /// <summary>
-        /// Send out a notification
-        /// </summary>
-        /// <typeparam name="T">The notification outcome type</typeparam>
-        /// <param name="notification">The notification to send</param>
-        /// <returns>A response containing</returns>
-        Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId);
-
-        Task SendVlogTriggerToUserAsync(Guid userId, Guid liverstreamId);
-
-        /// <summary>
-        /// TODO This lacks specific functionality. Implement this properly!
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="vlogId"></param>
-        /// <returns></returns>
-        Task SendNotificationToFollowersAsync(Guid userId, Guid vlogId);
+        Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId);
 
     }
 

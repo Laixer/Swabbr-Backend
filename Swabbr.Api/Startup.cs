@@ -15,10 +15,13 @@ using Swabbr.Api.DapperUtility;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
+using Swabbr.Infrastructure.Notifications;
+using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Services;
@@ -106,11 +109,13 @@ namespace Swabbr
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<ILivestreamingService, WowzaLivestreamingService>();
             services.AddTransient<ITokenService, TokenService>();
-            services.AddTransient<INotificationService, NotificationServiceDummy>(); // TODO Replace
+            services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
+            services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
 
             // Configure DI for client services
-            //services.AddTransient<INotificationClient, NotificationClient>();
+            services.AddTransient<INotificationClient, NotificationClient>();
+            services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
 
             // Add background services
             //services.AddHostedService<VlogTriggerHostedService>();

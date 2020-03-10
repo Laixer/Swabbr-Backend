@@ -27,5 +27,7 @@
 
         internal static string ViewUserStatistics => "public.user_statistics";
 
+        internal static string ViewUserPushNotificationDetails => "public.user_push_notification_details";
+
     }
 }
