@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.DapperUtility
 {
-    public class EnumHandler : SqlMapper.TypeHandler<FollowRequestStatus>
+    public class FollowRequestStatusHandler : SqlMapper.TypeHandler<FollowRequestStatus>
     {
         public override FollowRequestStatus Parse(object value)
         {
