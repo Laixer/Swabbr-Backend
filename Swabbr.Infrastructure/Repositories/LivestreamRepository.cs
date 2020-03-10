@@ -7,7 +7,6 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
@@ -21,7 +20,7 @@ namespace Swabbr.Infrastructure.Repositories
     public sealed class LivestreamRepository : ILivestreamRepository
     {
 
-        private IDatabaseProvider _databaseProvider;
+        private readonly IDatabaseProvider _databaseProvider;
 
         /// <summary>
         /// Constructor for dependency injection.
