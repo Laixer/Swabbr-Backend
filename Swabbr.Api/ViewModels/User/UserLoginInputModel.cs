@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Swabbr.Api.ViewModels.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.ViewModels.User
@@ -7,7 +8,7 @@ namespace Swabbr.Api.ViewModels.User
     /// <summary>
     /// Represents an input model provided by the client for authenticating a user.
     /// </summary>
-    public class UserAuthenticationInputModel
+    public class UserLoginInputModel
     {
 
         /// <summary>
@@ -31,6 +32,18 @@ namespace Swabbr.Api.ViewModels.User
         /// </summary>
         [JsonProperty("rememberMe")]
         public bool RememberMe { get; set; } = false;
+
+        /// <summary>
+        /// Indicates which <see cref="PushNotificationPlatform"/> we are on.
+        /// </summary>
+        [Required]
+        public PushNotificationPlatformModel PushNotificationPlatform { get; set; }
+
+        /// <summary>
+        /// PNS handle.
+        /// </summary>
+        [Required(AllowEmptyStrings = false)]
+        public string Handle { get; set; }
 
     }
 

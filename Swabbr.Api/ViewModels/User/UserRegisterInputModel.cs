@@ -93,6 +93,18 @@ namespace Swabbr.Api.ViewModels.User
         [JsonProperty("phoneNumber", Required = Required.DisallowNull)]
         public string PhoneNumber { get; set; }
 
+        /// <summary>
+        /// Indicates which <see cref="PushNotificationPlatform"/> we are on.
+        /// </summary>
+        [Required]
+        public PushNotificationPlatformModel PushNotificationPlatform { get; set; }
+
+        /// <summary>
+        /// PNS handle.
+        /// </summary>
+        [Required(AllowEmptyStrings = false)]
+        public string Handle { get; set; }
+
     }
 
 }
