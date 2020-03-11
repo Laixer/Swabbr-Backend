@@ -66,7 +66,8 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
                 DataType = "TODO FIX MyDataType",
                 DataTypeVersion = "TODO FIX MyDataTypeVersion",
                 NotificationAction = NotificationActionMapper.Map(notification.NotificationAction),
-                Title = notification.Title
+                Title = notification.Title,
+                Pars = notification.Pars // TODO Maybe implement separate JSON objects for this (this actually exposes the core)
             };
         }
 

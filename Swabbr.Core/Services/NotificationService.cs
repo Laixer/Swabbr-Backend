@@ -6,6 +6,8 @@ using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
+using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Utility;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +23,7 @@ namespace Swabbr.Core.Services
 
         private readonly IUserRepository _userRepository;
         private readonly ILivestreamRepository _livestreamRepository;
-        private readonly ILivestreamingService _livestreamingService;
+        private readonly ILivestreamService _livestreamingService;
         private readonly INotificationClient _notificationClient;
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
 
@@ -30,7 +32,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         public NotificationService(IUserRepository userRepository,
             ILivestreamRepository livestreamRepository,
-            ILivestreamingService livestreamingService,
+            ILivestreamService livestreamingService,
             INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository)
         {
@@ -102,21 +104,19 @@ namespace Swabbr.Core.Services
         /// <param name="userId">Internal <see cref="SwabbrUser"/>id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task VlogRecordRequestAsync(Guid userId, Guid livestreamId)
+        public async Task VlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
         {
             userId.ThrowIfNullOrEmpty();
             livestreamId.ThrowIfNullOrEmpty();
+            pars.Validate();
 
             if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
-            if (!await _livestreamingService.IsLivestreamValidForFollowersAsync(livestreamId, userId).ConfigureAwait(false))
-            {
-                //throw new InvalidOperationException("Livestream is not ready for followers");
-            }
 
             var notification = new SwabbrNotification(NotificationAction.VlogRecordRequest)
             {
                 Body = "TODO CENTRALIZE A livestream is ready to stream whatever you want!",
-                Title = "TODO CENTRALIZE Time to record a vlog!"
+                Title = "TODO CENTRALIZE Time to record a vlog!",
+                Pars = pars
             };
 
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core.Notifications.JsonWrappers;
+using System;
 
 namespace Swabbr.Core.Notifications
 {
@@ -26,6 +27,11 @@ namespace Swabbr.Core.Notifications
         public NotificationAction NotificationAction { get; } // TODO Is this allowed? Is this correct?
 
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now; // TODO Is this correct?
+
+        /// <summary>
+        /// Contains action specific values.
+        /// </summary>
+        public ParametersJsonBase Pars { get; set; }
 
     }
 

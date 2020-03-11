@@ -25,6 +25,11 @@ namespace Swabbr.Core.Notifications.JsonWrappers
 
         public DateTimeOffset CreatedAt { get; set; }
 
+        /// <summary>
+        /// TODO Maybe create separate JSON objects for this as well?
+        /// </summary>
+        public ParametersJsonBase Pars { get; set; }
+
     }
 
 }

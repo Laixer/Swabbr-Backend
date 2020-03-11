@@ -1,8 +1,5 @@
-﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
-using Swabbr.Core.Notifications;
+﻿using Swabbr.Core.Notifications.JsonWrappers;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
@@ -16,7 +13,7 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task TestNotifationAsync(Guid userId, string message);
 
-        Task VlogRecordRequestAsync(Guid userId, Guid livesteamId);
+        Task VlogRecordRequestAsync(Guid userId, Guid livesteamId, ParametersRecordVlog pars);
 
         Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId);
 
