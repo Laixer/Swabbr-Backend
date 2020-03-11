@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Notifications.JsonWrappers;
 using System;
 using System.Threading.Tasks;
 
@@ -8,10 +9,10 @@ namespace Swabbr.Core.Interfaces.Services
     /// <summary>
     /// Handles all functionality for our <see cref="Livestream"/> objects.
     /// </summary>
-    public interface ILivestreamingService
+    public interface ILivestreamService
     {
 
-        Task<Livestream> CreateAndStartLivestreamForUserAsync(Guid userId);
+        Task<Livestream> TryStartLivestreamForUserAsync(Guid userId);
 
         Task OnUserStartStreamingAsync(Guid livestreamId, Guid userId);
 
@@ -19,11 +20,9 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task AbortLivestreamAsync(Guid livestreamId);
 
-        Task DiscardLivestreamAsync(Guid livestreamId);
-
         Task<bool> IsLivestreamValidForFollowersAsync(Guid livestreamId, Guid userId);
 
-        // TODO All the getters
+        Task<ParametersRecordVlog> GetUpstreamParametersAsync(Guid livestreamId, Guid userId);
 
     }
 
