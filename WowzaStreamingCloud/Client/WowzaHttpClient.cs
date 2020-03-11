@@ -1,11 +1,14 @@
 ﻿using Laixer.Utility.Extensions;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Entities;
+using Swabbr.WowzaStreamingCloud.Entities.StreamTargets;
+using Swabbr.WowzaStreamingCloud.Entities.Outputs;
 using Swabbr.WowzaStreamingCloud.Enums;
 using Swabbr.WowzaStreamingCloud.Parsing;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Swabbr.WowzaStreamingCloud.Entities.Livestreams;
 
 namespace Swabbr.WowzaStreamingCloud.Client
 {
@@ -28,13 +31,13 @@ namespace Swabbr.WowzaStreamingCloud.Client
         public WowzaHttpClient(WowzaStreamingCloudConfiguration options, Uri apiBase)
         {
             WscOptions = options ?? throw new ArgumentNullException(nameof(options));
-            ApiBase = apiBase ?? throw new ArgumentNullException(nameof(apiBase)); 
+            ApiBase = apiBase ?? throw new ArgumentNullException(nameof(apiBase));
         }
 
         /// <summary>
         /// Simplified constructor.
         /// </summary>
-        public WowzaHttpClient(WowzaStreamingCloudConfiguration options) 
+        public WowzaHttpClient(WowzaStreamingCloudConfiguration options)
             : this(options, new Uri($"{options.Host}/api/{options.Version}/")) { }
 
         /// <summary>
@@ -42,40 +45,12 @@ namespace Swabbr.WowzaStreamingCloud.Client
         /// </summary>
         /// <param name="request"><see cref="WscCreateLivestreamRequest"/></param>
         /// <returns><see cref="WscCreateLivestreamResponse"/></returns>
-        internal Task<WscCreateLivestreamResponse> CreateLivestream(WscCreateLivestreamRequest request)
+        internal Task<WscCreateLivestreamResponse> CreateLivestreamAsync(WscCreateLivestreamRequest request)
         {
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
 
             Uri uri = new Uri(ApiBase, "live_streams");
             return SendHttpRequestAsync<WscCreateLivestreamResponse>(HttpMethod.Post, uri, request);
-        }
-
-        /// <summary>
-        /// Deletes a livestream from the Wowza cloud.
-        /// </summary>
-        /// <param name="id">Wowza livesteam id</param>
-        /// <returns><see cref="Task"/></returns>
-        internal Task DeleteLivestreamAsync(string id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            // TODO First maybe get the item and check for edge cases
-
-            Uri uri = new Uri(ApiBase, $"live_streams/{id}");
-            return SendHttpRequestAsync(HttpMethod.Delete, uri);
-        }
-
-        /// <summary>
-        /// Gets a livestream object from the Wowza cloud.
-        /// </summary>
-        /// <param name="id">Wowza livestream id</param>
-        /// <returns><see cref="WscCreateLivestreamResponse"/></returns>
-        public Task<WscGetLivestreamResponse> GetLivestreamAsync(string id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            Uri uri = new Uri(ApiBase, $"live_streams/{id}");
-            return SendHttpRequestAsync<WscGetLivestreamResponse>(HttpMethod.Get, uri);
         }
 
         /// <summary>
@@ -196,7 +171,7 @@ namespace Swabbr.WowzaStreamingCloud.Client
             id.ThrowIfNullOrEmpty();
 
             Uri uri = new Uri(ApiBase, $"live_streams/{id}/state");
-            var response = await SendHttpRequestAsync<WscGetLivestreamStatusResponse>(HttpMethod.Get, uri).ConfigureAwait(false);
+            var response = await SendHttpRequestAsync<WscLivestreamStatusResponse>(HttpMethod.Get, uri).ConfigureAwait(false);
             if (response == null || response.LiveStream == null) { throw new ArgumentNullException(); }
             return response.LiveStream.State;
         }
@@ -216,42 +191,124 @@ namespace Swabbr.WowzaStreamingCloud.Client
         }
 
         /// <summary>
-        /// Checks if a given Wowza livestream has a stored recording. In this way
-        /// we can verify if data has already been streamed to a livestream.
+        /// Deletes all outputs for a given transcoder.
+        /// </summary>
+        /// <param name="transcoderId">Wowza transcoder id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task DeleteAllOutputsAsync(string transcoderId)
+        {
+            transcoderId.ThrowIfNullOrEmpty();
+
+            var outputWrapper = await GetOutputsAsync(transcoderId).ConfigureAwait(false);
+
+            foreach (var output in outputWrapper.Outputs)
+            {
+                var uriOutputDelete = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs/{output.Id}");
+                await SendHttpRequestAsync(HttpMethod.Delete, uriOutputDelete).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new Fastly stream target in the Wowza API.
+        /// </summary>
+        /// <returns>Wowza stream target id</returns>
+        public async Task<string> CreateFastlyStreamTargetAsync()
+        {
+            var body = new WscFastlyCreateRequest
+            {
+                StreamTargetFastly = new SubWscFastlyStreamTarget
+                {
+                    Name = "Swabbr Fastly Stream Target with SSL and Token Auth",
+                    ForceSslPlayback = true,
+                    TokenAuthEnabled = true
+                }
+            };
+            var uri = new Uri(ApiBase, "stream_targets/fastly");
+            var response = await SendHttpRequestAsync<WscFastlyCreateResponse>(HttpMethod.Post, uri, body).ConfigureAwait(false);
+            return response.StreamTargetFastly.Id;
+        }
+
+        /// <summary>
+        /// Creates a new transcoder output in the Wowza API.
+        /// </summary>
+        /// <param name="transcoderId">Wowza transcoder id</param>
+        /// <returns>Output id</returns>
+        public async Task<string> CreateOutputAsync(string transcoderId)
+        {
+            transcoderId.ThrowIfNullOrEmpty();
+
+            var uri = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs");
+            var body = new WscOutputRequest
+            {
+                Output = new SubWscTranscoderOutputRequest { /* Keep to defaults */ }
+            };
+            var response = await SendHttpRequestAsync<WscOutputResponse>(HttpMethod.Post, uri, body).ConfigureAwait(false);
+            return response.Output.Id;
+        }
+
+        /// <summary>
+        /// Creates a new stream output target for a given transcoder and links 
+        /// it to a Fastly stream target in the Wowza API.
+        /// </summary>
+        /// <param name="transcoderId">Wowza transcoder id</param>
+        /// <param name="outputId">Wowza transcoder output it</param>
+        /// <param name="fastlyId">Wowza fastly stream target id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CreateOutputStreamTargetAsync(string transcoderId, string outputId, string fastlyId)
+        {
+            transcoderId.ThrowIfNullOrEmpty();
+            outputId.ThrowIfNullOrEmpty();
+            fastlyId.ThrowIfNullOrEmpty();
+
+            var uri = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs/{outputId}/output_stream_targets");
+            var body = new WscOutputStreamTargetRequest
+            {
+                OutputStreamTarget = new SubWscOutputStreamTargetRequest
+                {
+                    StreamTargetId = fastlyId
+                }
+            };
+            await SendHttpRequestAsync(HttpMethod.Post, uri, body).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Retrieves the fastly shared secret from the Wowza API.
+        /// </summary>
+        /// <param name="fastlyId">Wowza Fastly id</param>
+        /// <returns>Shared secret</returns>
+        public Task<WscFastlyResponse> GetFastlyAsync(string fastlyId)
+        {
+            fastlyId.ThrowIfNullOrEmpty();
+            var uri = new Uri(ApiBase, $"stream_targets/fastly/{fastlyId}");
+            return SendHttpRequestAsync<WscFastlyResponse>(HttpMethod.Get, uri);
+        }
+
+        /// <summary>
+        /// Gets all Wowza outputs, including stream target details, from the
+        /// Wowza API.
         /// </summary>
         /// <remarks>
-        /// TODO Is this a race condition with the wowza server?
+        /// The transcoder id is equal to the live_stream id.
         /// </remarks>
-        /// <param name="id">Wowza livestream id</param>
-        /// <returns><see cref="true"/> if it has a recording</returns>
-        public async Task<bool> DoesLivestreamHaveRecording(string id)
+        /// <param name="transcoderId">wowza transcoder id</param>
+        /// <returns><see cref="WscOutputsResponse"/></returns>
+        public Task<WscOutputsResponse> GetOutputsAsync(string transcoderId)
         {
-            id.ThrowIfNullOrEmpty();
-
-            var uri = new Uri(ApiBase, $"transcoders/{id}/recordings");
-            var response = await SendHttpRequestAsync<WscTranscoderRecordings>(HttpMethod.Get, uri).ConfigureAwait(false);
-            if (response == null || response.Recordings == null) { throw new ArgumentNullException("Invalid API response object"); }
-            if (response.Recordings.Length == 0) { return false; }
-            else if (response.Recordings.Length == 1) { return true; }
-            else { throw new InvalidOperationException("Multiple recordings found for single livestream"); }
+            transcoderId.ThrowIfNullOrEmpty();
+            var uri = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs");
+            return SendHttpRequestAsync<WscOutputsResponse>(HttpMethod.Get, uri);
         }
 
-
-
-
-        /* TO BE REFACTORED */
-
-
-        public async Task<WscGetRecordingDetailsResponse> GetRecordingsAsync(string id)
+        /// <summary>
+        /// Gets a wowza livestream from the Wowza API.
+        /// </summary>
+        /// <param name="livestreamId">Wowza livestream id</param>
+        /// <returns></returns>
+        public Task<WscLivestreamResponse> GetLivestreamAsync(string livestreamId)
         {
-            Uri uri = new Uri(ApiBase, $"transcoders/{id}/recordings");
-            return await SendHttpRequestAsync<WscGetRecordingDetailsResponse>(HttpMethod.Get, uri);
-        }
-
-        public async Task<WscGetThumbnailResponse> GetThumbnailUrlAsync(string id)
-        {
-            Uri uri = new Uri(ApiBase, $"live_streams/{id}/thumbnail_url");
-            return await SendHttpRequestAsync<WscGetThumbnailResponse>(HttpMethod.Get, uri);
+            livestreamId.ThrowIfNullOrEmpty();
+            var uri = new Uri(ApiBase, $"live_streams/{livestreamId}");
+            return SendHttpRequestAsync<WscLivestreamResponse>(HttpMethod.Get, uri);
         }
 
         /// <summary>

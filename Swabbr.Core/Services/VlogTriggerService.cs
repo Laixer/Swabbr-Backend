@@ -14,14 +14,14 @@ namespace Swabbr.Core.Services
     public sealed class VlogTriggerService : IVlogTriggerService
     {
 
-        private readonly ILivestreamingService _livestreamingService;
+        private readonly ILivestreamService _livestreamingService;
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public VlogTriggerService(ILivestreamingService livestreamingService,
+        public VlogTriggerService(ILivestreamService livestreamingService,
             IUserRepository userRepository,
             INotificationService notificationService)
         {
@@ -41,12 +41,13 @@ namespace Swabbr.Core.Services
             userId.ThrowIfNullOrEmpty();
             if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new InvalidOperationException("User doesn't exist"); }
 
-            var livestream = await _livestreamingService.CreateAndStartLivestreamForUserAsync(userId).ConfigureAwait(false);
+            var livestream = await _livestreamingService.TryStartLivestreamForUserAsync(userId).ConfigureAwait(false);
 
             TriggerUserTimeoutFunction(); // TODO HOW?
             TriggerLivestreamTimeoutFunction(); // TODO HOW?
 
-            await _notificationService.VlogRecordRequestAsync(userId, livestream.Id).ConfigureAwait(false);
+            var parameters = await _livestreamingService.GetUpstreamParametersAsync(livestream.Id, userId).ConfigureAwait(false);
+            await _notificationService.VlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
         }
 
         public Task ProcessVlogTriggerTimoutAsync(Guid userId)

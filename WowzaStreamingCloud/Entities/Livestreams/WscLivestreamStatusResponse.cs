@@ -1,14 +1,14 @@
 ﻿using Newtonsoft.Json;
 using Swabbr.WowzaStreamingCloud.Enums;
 
-namespace Swabbr.WowzaStreamingCloud.Entities
+namespace Swabbr.WowzaStreamingCloud.Entities.Livestreams
 {
 
     /// <summary>
     /// Response object we get when polling a livestream status.
     /// https://api.cloud.wowza.com/api/v1.4/live_streams/state
     /// </summary>
-    internal sealed class WscGetLivestreamStatusResponse
+    internal sealed class WscLivestreamStatusResponse
     {
 
         /// <summary>

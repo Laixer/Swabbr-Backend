@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Swabbr.WowzaStreamingCloud.Entities
+namespace Swabbr.WowzaStreamingCloud.Entities.Livestreams
 {
 
     /// <summary>

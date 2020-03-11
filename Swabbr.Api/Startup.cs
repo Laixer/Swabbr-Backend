@@ -107,7 +107,9 @@ namespace Swabbr
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
             services.AddTransient<IReactionService, ReactionService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<ILivestreamingService, WowzaLivestreamingService>();
+            services.AddTransient<ILivestreamService, WowzaLivestreamService>();
+            services.AddTransient<ILivestreamPoolService, WowzaLivestreamPoolService>();
+            services.AddTransient<ILivestreamPlaybackService, WowzaLivestreamPlaybackService>();
             services.AddTransient<ITokenService, TokenService>();
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();

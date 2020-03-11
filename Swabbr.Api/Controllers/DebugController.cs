@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.Services;
+using Swabbr.Api.Authentication;
+using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
-using Laixer.Utility.Extensions;
-using Swabbr.Core.Interfaces.Services;
-using Microsoft.AspNetCore.Identity;
-using Swabbr.Api.Authentication;
-using Swabbr.WowzaStreamingCloud.Services;
 
 namespace Swabbr.Api.Controllers
 {
@@ -25,24 +23,26 @@ namespace Swabbr.Api.Controllers
         private readonly IVlogTriggerService _vlogTriggerService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly INotificationService _notificationService;
+        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public DebugController(IVlogTriggerService vlogTriggerService,
             UserManager<SwabbrIdentityUser> userManager,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ILivestreamPlaybackService livestreamPlaybackService)
         {
             _vlogTriggerService = vlogTriggerService ?? throw new ArgumentNullException(nameof(vlogTriggerService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
         }
 
         /// <summary>
         /// Debug function to launch our <see cref="IVlogTriggerService"/>.
         /// </summary>
         /// <returns><see cref="OkResult"/></returns>
-        [Authorize]
         [HttpPost("trigger_vlog")]
         public async Task<IActionResult> DriveVlogTriggerService(Guid userId)
         {
@@ -55,18 +55,27 @@ namespace Swabbr.Api.Controllers
 
                 await _vlogTriggerService.ProcessVlogTriggerForUserAsync(userId).ConfigureAwait(false);
                 return Ok();
-            } 
+            }
             catch (Exception e)
             {
                 return Conflict(e.Message); // TODO UNSAFE, change
             }
         }
 
-        [HttpGet("token_test")]
-        public IActionResult TokenTest(string sharedKey)
+        [HttpGet("fastly_token_test")]
+        public async Task<IActionResult> FastlyTokenTest(Guid livestreamId)
         {
-            var token = WowzaAuthenticationService.GenerateTokenHmac(sharedKey);
-            return Ok(token);
+            try
+            {
+                livestreamId.ThrowIfNullOrEmpty();
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var token = await _livestreamPlaybackService.GetTokenAsync(livestreamId, user.Id).ConfigureAwait(false);
+                return Ok(token);
+            }
+            catch (Exception e)
+            {
+                return Conflict(e.Message); // TODO UNSAFE, change
+            }
         }
 
         [HttpPost("notification_test")]

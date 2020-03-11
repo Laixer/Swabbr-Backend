@@ -44,7 +44,14 @@ namespace Swabbr.Core.Enums
         /// </summary>
         [EnumMember(Value = "closed")]
         [PgName("closed")]
-        Closed
+        Closed,
+
+        /// <summary>
+        /// The user never responded.
+        /// </summary>
+        [EnumMember(Value = "user_no_response_timeout")]
+        [PgName("user_no_response_timeout")]
+        UserNoResponseTimeout,
 
     }
 

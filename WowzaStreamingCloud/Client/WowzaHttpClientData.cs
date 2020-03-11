@@ -54,6 +54,7 @@ namespace Swabbr.WowzaStreamingCloud.Client
                 {
                     requestMessage.Content = stringContent;
                     var result = await httpClient.SendAsync(requestMessage);
+
                     result.EnsureSuccessStatusCode();
 
                     var resultString = await result.Content.ReadAsStringAsync();

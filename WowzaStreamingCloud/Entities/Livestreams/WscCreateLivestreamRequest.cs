@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Swabbr.WowzaStreamingCloud.Entities
+namespace Swabbr.WowzaStreamingCloud.Entities.Livestreams
 {
 
     /// <summary>

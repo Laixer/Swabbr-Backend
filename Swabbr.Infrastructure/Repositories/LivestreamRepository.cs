@@ -60,6 +60,7 @@ namespace Swabbr.Infrastructure.Repositories
         {
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
             entity.Id.ThrowIfNotNullOrEmpty();
+            entity.UserId.ThrowIfNotNullOrEmpty();
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
@@ -69,14 +70,12 @@ namespace Swabbr.Infrastructure.Repositories
                         broadcast_location,
                         create_date,
                         external_id,
-                        name,
-                        user_id
+                        name
                     ) VALUES (
                         @BroadcastLocation,
                         @CreateDate,
                         @ExternalId,
-                        @Name,
-                        @UserId
+                        @Name
                     ) RETURNING id";
                 var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
                 id.ThrowIfNullOrEmpty();
@@ -139,6 +138,7 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task UpdateLivestreamStatusAsync(Guid id, LivestreamStatus status)
         {
             id.ThrowIfNullOrEmpty();
+            if (status == LivestreamStatus.PendingUser) { throw new InvalidOperationException($"Use {nameof(MarkPendingUserAsync)} instead"); }
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
@@ -152,6 +152,28 @@ namespace Swabbr.Infrastructure.Repositories
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }
 
+            }
+        }
+
+        /// <summary>
+        /// Sets the user for a <see cref="Livestream"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task MarkPendingUserAsync(Guid livestreamId, Guid userId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    UPDATE {TableLivestream} SET
+                        user_id = @UserId,
+                        livestream_status = '{LivestreamStatus.PendingUser.GetEnumMemberAttribute()}'    
+                    WHERE id = @Id";
+                await connection.ExecuteAsync(sql, new { Id = livestreamId, UserId = userId }).ConfigureAwait(false);
             }
         }
     }

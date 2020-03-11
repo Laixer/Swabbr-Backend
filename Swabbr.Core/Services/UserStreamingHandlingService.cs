@@ -15,7 +15,7 @@ namespace Swabbr.Core.Services
     public sealed class UserStreamingHandlingService : IUserStreamingHandlingService
     {
 
-        private readonly ILivestreamingService _livestreamingService;
+        private readonly ILivestreamService _livestreamingService;
         private readonly INotificationService _notificationService;
 
         private readonly IUserRepository _userRepository;
@@ -25,7 +25,7 @@ namespace Swabbr.Core.Services
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public UserStreamingHandlingService(ILivestreamingService livestreamingService,
+        public UserStreamingHandlingService(ILivestreamService livestreamingService,
             INotificationService notificationService,
             IUserRepository userRepository,
             ILivestreamRepository livestreamRepository,

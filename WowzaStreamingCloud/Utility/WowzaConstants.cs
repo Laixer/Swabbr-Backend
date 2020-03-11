@@ -1,10 +1,10 @@
-﻿namespace Swabbr.WowzaStreamingCloud.Services
+﻿namespace Swabbr.WowzaStreamingCloud.Utility
 {
 
     /// <summary>
     /// Contains constants for managing our wowza livestreams.
     /// </summary>
-    internal static class WowzaLivestreamingServiceConstants
+    internal static class WowzaConstants
     {
 
         internal const string BillingMode = "pay_as_you_go";
