@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Utility", "Laixer.Ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Identity.Dapper", "..\LaixerIdentityDapper\src\Laixer.Identity.Dapper\Laixer.Identity.Dapper.csproj", "{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.AzureFunctions", "Swabbr.AzureFunctions\Swabbr.AzureFunctions.csproj", "{FC34657C-5733-4C13-92FE-10C7B7519663}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC34657C-5733-4C13-92FE-10C7B7519663}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC34657C-5733-4C13-92FE-10C7B7519663}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC34657C-5733-4C13-92FE-10C7B7519663}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC34657C-5733-4C13-92FE-10C7B7519663}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
