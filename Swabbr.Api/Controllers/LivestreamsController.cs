@@ -11,6 +11,7 @@ using Swabbr.Api.ViewModels.Livestreaming;
 using Swabbr.Api.ViewModels.Vlog;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;
@@ -68,26 +69,21 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
-                // TODO How to prevent double error placement? Is this even a problem?
-                // Who should do these checks? Doesn't feel like a controller problem tbh
-
-                // Throw if the user doesn't own the livestream
-                if (livestream.UserId != user.Id)
-                {
-                    return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "The current user does not have access to this livestream."));
-                }
-
-                // Throw if the livestream isnt marked as pending_user
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUser)
-                {
-                    return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream isn't ready to go live"));
-                }
-
                 // Await service 
                 var vlog = await _userStreamingHandlingService.OnUserStartStreaming(user.Id, livestreamId).ConfigureAwait(false);
 
                 // Commit and return
                 return Ok(new LivestreamStartStreamingResponseModel { VlogId = vlog.Id });
+            }
+            catch (UserNotOwnerException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "The current user does not own this livestream."));
+            }
+            catch (LivestreamStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
             }
             catch (Exception e)
             {
@@ -113,21 +109,20 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
-                // TODO Is this really the controllers job?
-                if (livestream.UserId != user.Id)
-                {
-                    return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to stop this livestream"));
-                }
-
-                if (livestream.LivestreamStatus != LivestreamStatus.Live)
-                {
-                    return Conflict(this.Error(ErrorCodes.InvalidOperation, "A non-live livestream can't be stopped"));
-                }
-
                 // Await service
                 await _userStreamingHandlingService.OnUserStopStreaming(user.Id, livestreamId).ConfigureAwait(false);
 
                 return Ok();
+            }
+            catch (UserNotOwnerException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "The current user does not own this livestream."));
+            }
+            catch (LivestreamStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
             }
             catch (Exception e)
             {
@@ -141,46 +136,6 @@ namespace Swabbr.Api.Controllers
         public Task<IActionResult> PublishLivestream([FromRoute]Guid livestreamId)
         {
             // TODO Public or private
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Get thumbnail of livestream.
-        /// </summary>
-        [HttpGet("{livestreamId}/thumbnail")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetThumbnailAsync(Guid livestreamId)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Returns playback details of a livestream.
-        /// </summary>
-        [HttpGet("{livestreamId}/playback")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlaybackAsync(Guid livestreamId)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Returns playback details of a livestream that is broadcasted by the specified user.
-        /// </summary>
-        [HttpGet("playback/user/{userId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlaybackForUserAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Retrieve the connection details of a livestream.
-        /// </summary>
-        [HttpGet("{livestreamId}/connection")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> GetConnectionDetailsAsync(Guid livestreamId)
-        {
             throw new NotImplementedException();
         }
 

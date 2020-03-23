@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
@@ -143,26 +144,30 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is null")); }
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var user = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                    var user = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
 
-                // Copy properties
-                user.BirthDate = input.BirthDate;
-                user.Country = input.Country;
-                user.FirstName = input.FirstName;
-                user.Gender = MapperEnum.Map(input.Gender);
-                user.IsPrivate = input.IsPrivate;
-                user.LastName = input.LastName;
-                user.Nickname = input.Nickname;
-                user.ProfileImageUrl = input.ProfileImageUrl;
-                user.Timezone = input.Timezone;
+                    // Copy properties
+                    user.BirthDate = input.BirthDate;
+                    user.Country = input.Country;
+                    user.FirstName = input.FirstName;
+                    user.Gender = MapperEnum.Map(input.Gender);
+                    user.IsPrivate = input.IsPrivate;
+                    user.LastName = input.LastName;
+                    user.Nickname = input.Nickname;
+                    user.ProfileImageUrl = input.ProfileImageUrl;
+                    user.Timezone = input.Timezone;
 
-                // Update
-                var updatedUser = await _userRepository.UpdateAsync(user).ConfigureAwait(false);
+                    // Update
+                    var updatedUser = await _userRepository.UpdateAsync(user).ConfigureAwait(false);
 
-                // Return updated values
-                // TODO Separate output model for this maybe?
-                return Ok(MapperUser.Map(updatedUser));
+                    // Return updated values
+                    // TODO Separate output model for this maybe?
+                    scope.Complete();
+                    return Ok(MapperUser.Map(updatedUser));
+                }
             }
             catch (Exception e)
             {

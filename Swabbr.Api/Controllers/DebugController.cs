@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Swabbr.Api.Controllers
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly INotificationService _notificationService;
         private readonly ILivestreamPlaybackService _livestreamPlaybackService;
+        private readonly IDeviceRegistrationService _deviceRegistrationService;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -31,12 +33,14 @@ namespace Swabbr.Api.Controllers
         public DebugController(IVlogTriggerService vlogTriggerService,
             UserManager<SwabbrIdentityUser> userManager,
             INotificationService notificationService,
-            ILivestreamPlaybackService livestreamPlaybackService)
+            ILivestreamPlaybackService livestreamPlaybackService,
+            IDeviceRegistrationService deviceRegistrationService)
         {
             _vlogTriggerService = vlogTriggerService ?? throw new ArgumentNullException(nameof(vlogTriggerService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
+            _deviceRegistrationService = deviceRegistrationService ?? throw new ArgumentNullException(nameof(deviceRegistrationService));
         }
 
         /// <summary>
@@ -87,6 +91,15 @@ namespace Swabbr.Api.Controllers
             return Ok();
         }
 
+        [HttpPost("register_device_for_user")]
+        public async Task<IActionResult> RegisterDeviceForUser(Guid userId, string deviceHandle)
+        {
+            userId.ThrowIfNullOrEmpty();
+            deviceHandle.ThrowIfNullOrEmpty();
+
+            await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(userId, PushNotificationPlatform.FCM, deviceHandle).ConfigureAwait(false);
+            return Ok();
+        }
 
     }
 }

@@ -33,6 +33,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly IReactionService _reactionService;
+        private readonly IVlogService _vlogService;
         private readonly ILogger logger;
 
         /// <summary>
@@ -40,10 +41,12 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public ReactionsController(UserManager<SwabbrIdentityUser> userManager,
             IReactionService reactionService,
+            IVlogService vlogService,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
+            _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(ReactionsController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -118,6 +121,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
@@ -127,6 +131,39 @@ namespace Swabbr.Api.Controllers
                         .GetReactionsForVlogAsync(vlogId)
                         .ConfigureAwait(false))
                         .Select(x => MapperReaction.Map(x))
+                });
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get reactions for vlog"));
+            }
+        }
+
+        /// <summary>
+        /// Gets only the <see cref="Reaction"/> count for a <see cref="Vlog"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="ReactionOutputModel"/></returns>
+        [HttpGet("for_vlog/{vlogId}/count")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<ReactionOutputModel>))]
+        public async Task<IActionResult> GetReactionCountForVlog([FromRoute] Guid vlogId)
+        {
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                return Ok(new ReactionCountOutputModel
+                {
+                    ReactionCount = await _reactionService.GetReactionCountForVlogAsync(vlogId).ConfigureAwait(false)
                 });
             }
             catch (EntityNotFoundException e)

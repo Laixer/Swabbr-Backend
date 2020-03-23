@@ -7,12 +7,13 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
+using Swabbr.Api.ViewModels.User;
 using Swabbr.Api.ViewModels.Vlog;
+using Swabbr.Api.ViewModels.VlogLike;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Services;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace Swabbr.Api.Controllers
     {
 
         private readonly IVlogService _vlogService;
+        private readonly IUserWithStatsService _userWithStatsService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
 
@@ -38,10 +40,12 @@ namespace Swabbr.Api.Controllers
         /// Constructor for dependency injection.
         /// </summary>
         public VlogsController(IVlogService vlogService,
+            IUserWithStatsService userWithStatsService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
+            _userWithStatsService = userWithStatsService ?? throw new ArgumentNullException(nameof(userWithStatsService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogsController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
@@ -127,7 +131,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="OkObjectResult"/> with <see cref="VlogCollectionOutputModel"/></returns>
         [HttpGet("foruser/{userId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VlogOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogCollectionOutputModel))]
         public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId)
         {
             try
@@ -255,6 +259,66 @@ namespace Swabbr.Api.Controllers
             {
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not unlike vlog"));
+            }
+        }
+
+        /// <summary>
+        /// Gets all <see cref="VlogLike"/>s including <see cref="SwabbrUser"/>s 
+        /// for a given <paramref name="vlogId"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="VlogLikesWithUsersOutputModel"/></returns>
+        [HttpGet("{vlogId}/vlog_likes")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId)
+        {
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+
+                var vlogLikes = await _vlogService.GetVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
+                var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.UserId)).ConfigureAwait(false);
+
+                return Ok(new VlogLikesWithUsersOutputModel
+                {
+                    TotalLikeCount = vlogLikes.Count(),
+                    UsersMinified = users.Select(x => new UserMinifiedOutputModel
+                    {
+                        Id = x.Id,
+                        NickName = x.Nickname
+                    })
+                });
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get likes for vlog"));
+            }
+        }
+
+        /// <summary>
+        /// Gets a collection of recommended <see cref="Vlog"/>s for the logged in user.
+        /// </summary>
+        /// <returns><see cref="VlogCollectionOutputModel"/></returns>
+        [HttpGet("recommended")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogCollectionOutputModel))]
+        public async Task<IActionResult> GetRecommendedVlogsAsync()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                return Ok(new VlogCollectionOutputModel
+                {
+                    Vlogs = (await _vlogService.GetRecommendedForUserAsync(user.Id, 50)
+                        .ConfigureAwait(false))
+                        .Select(x => MapperVlog.Map(x))
+                });
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get recommended vlogs for user"));
             }
         }
 
