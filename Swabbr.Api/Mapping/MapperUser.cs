@@ -1,4 +1,5 @@
-﻿using Swabbr.Api.ViewModels;
+﻿using Laixer.Utility.Extensions;
+using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
 using System;
@@ -81,7 +82,7 @@ namespace Swabbr.Api.Mapping
             return new UserSettingsOutputModel
             {
                 DailyVlogRequestLimit = settings.DailyVlogRequestLimit,
-                FollowMode = MapperEnum.Map(settings.FollowMode),
+                FollowMode = MapperEnum.Map(settings.FollowMode).GetEnumMemberAttribute(),
                 IsPrivate = settings.IsPrivate,
                 UserId = settings.UserId
             };

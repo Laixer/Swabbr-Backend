@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.DapperUtility;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Core.Interfaces.Clients;
@@ -20,6 +19,7 @@ using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
+using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
@@ -87,7 +87,7 @@ namespace Swabbr
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
             SqlMapper.AddTypeHandler(new UriHandler());
-            SqlMapper.AddTypeHandler(new FollowRequestStatusHandler());
+            SqlMapper.AddTypeHandler(new FollowRequestStatusHandler()); // TODO Look at this
             services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
             services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionStringName = "DatabaseInternal"; });
 
@@ -103,6 +103,7 @@ namespace Swabbr
 
             // Configure DI for services
             services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IUserWithStatsService, UserWithStatsService>();
             services.AddTransient<IVlogService, VlogService>();
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
             services.AddTransient<IReactionService, ReactionService>();
@@ -114,13 +115,11 @@ namespace Swabbr
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
+            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
 
             // Configure DI for client services
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
-
-            // Add background services
-            //services.AddHostedService<VlogTriggerHostedService>();
 
             // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
