@@ -1,4 +1,5 @@
 ﻿using Laixer.Utility.Extensions;
+using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -16,26 +17,31 @@ namespace Swabbr.Core.Services
     {
 
         private readonly ILivestreamService _livestreamingService;
+        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
         private readonly INotificationService _notificationService;
-
         private readonly IUserRepository _userRepository;
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IVlogRepository _vlogRepository;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public UserStreamingHandlingService(ILivestreamService livestreamingService,
+            ILivestreamPlaybackService livestreamPlaybackService,
             INotificationService notificationService,
             IUserRepository userRepository,
             ILivestreamRepository livestreamRepository,
-            IVlogRepository vlogRepository)
+            IVlogRepository vlogRepository,
+            ILoggerFactory loggerFactory)
         {
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
+            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(UserStreamingHandlingService)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -47,37 +53,57 @@ namespace Swabbr.Core.Services
         /// <returns>The created <see cref="Vlog"/></returns>
         public async Task<Vlog> OnUserStartStreaming(Guid userId, Guid livestreamId)
         {
-            userId.ThrowIfNullOrEmpty();
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                logger.LogTrace($"{nameof(OnUserStartStreaming)} - Attempting to push livestream {livestreamId} to user {userId}");
+                userId.ThrowIfNullOrEmpty();
+                livestreamId.ThrowIfNullOrEmpty();
 
-                // Throw if the user doesn't own the livestream
-                if (livestream.UserId != user.Id) { throw new InvalidOperationException("User doesn't own this livestream"); }
-
-                // Throw if a vlog already exists for this livestream
-                if (await _vlogRepository.ExistsForLivestreamAsync(livestreamId).ConfigureAwait(false)) { throw new InvalidOperationException("This livestream already contains a vlog."); }
-
-                // Create a new vlog for the livestream
-                var vlog = await _vlogRepository.CreateAsync(new Vlog
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    UserId = user.Id,
-                    LivestreamId = livestreamId,
-                }).ConfigureAwait(false);
+                    var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
+                    var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
-                // Process livestream itself
-                // This throws if the livestream isn't pending user
-                await _livestreamingService.OnUserStartStreamingAsync(livestream.Id, user.Id).ConfigureAwait(false);
+                    // Throw if the user doesn't own the livestream
+                    if (livestream.UserId != user.Id) { throw new InvalidOperationException("User doesn't own this livestream"); }
 
-                // Notify all followers
-                await _notificationService.NotifyFollowersProfileLiveAsync(user.Id, livestream.Id).ConfigureAwait(false);
+                    // Throw if a vlog already exists for this livestream
+                    if (await _vlogRepository.ExistsForLivestreamAsync(livestreamId).ConfigureAwait(false)) { throw new InvalidOperationException("This livestream already contains a vlog."); }
 
-                // Commit and return
-                scope.Complete();
-                return vlog;
+                    // Create a new vlog for the livestream
+                    var vlog = await _vlogRepository.CreateAsync(new Vlog
+                    {
+                        UserId = user.Id,
+                        LivestreamId = livestreamId,
+                    }).ConfigureAwait(false);
+
+                    // Process livestream itself
+                    // This throws if the livestream isn't pending user
+                    await _livestreamingService.OnUserStartStreamingAsync(livestream.Id, user.Id).ConfigureAwait(false);
+
+                    // Notify all followers
+                    var pars = await _livestreamPlaybackService.GetDownstreamParametersAsync(livestream.Id, user.Id).ConfigureAwait(false);
+                    await _notificationService.NotifyFollowersProfileLiveAsync(user.Id, livestream.Id, pars).ConfigureAwait(false);
+
+                    // Commit and return
+                    scope.Complete();
+
+                    // TODO Maybe remove this?
+                    logger.LogDebug($@"{nameof(OnUserStartStreaming)} - Parameters:
+                        \t Thing = {pars.EndpointUrl}
+                        \t LiveLivestreamId = {pars.LiveLivestreamId}
+                        \t LiveUserId = {pars.LiveUserId}
+                        \t LiveVlogId = {pars.LiveVlogId}
+                        \t Token = {pars.Token}");
+
+                    logger.LogTrace($"{nameof(OnUserStartStreaming)} - Successfully pushed livestream {livestreamId} to user {userId}");
+                    return vlog;
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(OnUserStartStreaming)} - Exception while calling ", e.Message);
+                throw;
             }
         }
 
@@ -89,28 +115,35 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="Task"/></returns>
         public async Task OnUserStopStreaming(Guid userId, Guid livestreamId)
         {
-            userId.ThrowIfNullOrEmpty();
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                logger.LogTrace($"{nameof(OnUserStopStreaming)} - Attempting to stop livestream {livestreamId} for user {userId}");
+                userId.ThrowIfNullOrEmpty();
+                livestreamId.ThrowIfNullOrEmpty();
 
-                // Throw if the user doesn't own the livestream
-                if (livestream.UserId != user.Id) { throw new InvalidOperationException("User doesn't own this livestream"); }
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
+                    var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
-                // Stop the livestream
-                // This throws if the livestream isn't live
-                // This throws if the user isn't actually connected at first
-                await _livestreamingService.OnUserStopStreamingAsync(livestream.Id, userId).ConfigureAwait(false);
+                    // Throw if the user doesn't own the livestream
+                    if (livestream.UserId != user.Id) { throw new InvalidOperationException("User doesn't own this livestream"); }
 
-                // Notify all followers
-                var vlog = await _vlogRepository.GetVlogFromLivestreamAsync(livestream.Id).ConfigureAwait(false);
-                // await _notificationService.SendNotificationToFollowersAsync(user.Id, vlog.Id).ConfigureAwait(false);
-                throw new NotImplementedException();
+                    // Stop the livestream
+                    // This throws if the livestream isn't live
+                    // This throws if the user isn't actually connected at first
+                    await _livestreamingService.OnUserStopStreamingAsync(livestream.Id, userId).ConfigureAwait(false);
 
-                scope.Complete();
+                    // TODO We might want to do something with cleanup or someohting?
+                    int i = 0;
+                    logger.LogTrace($"{nameof(OnUserStopStreaming)} - Successfully stopped livestream {livestreamId} for user {userId}");
+                    scope.Complete();
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(OnUserStopStreaming)} - Exception while calling ", e.Message);
+                throw;
             }
         }
 

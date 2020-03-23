@@ -1,7 +1,11 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Laixer.Utility.Exceptions;
+using Laixer.Utility.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
+using Swabbr.Core.Types;
+using Swabbr.Core.Utility;
 using System;
 using System.Threading.Tasks;
 
@@ -17,17 +21,26 @@ namespace Swabbr.Core.Services
         private readonly ILivestreamService _livestreamingService;
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
+        private readonly ILogger logger;
+        private readonly SwabbrConfiguration swabbrConfiguration;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public VlogTriggerService(ILivestreamService livestreamingService,
             IUserRepository userRepository,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ILoggerFactory loggerFactory,
+            IOptions<SwabbrConfiguration> options)
         {
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogTriggerService)) : throw new ArgumentNullException(nameof(loggerFactory));
+
+            if (options == null || options.Value == null) { throw new ConfigurationException($"{nameof(SwabbrConfiguration)} is not configured"); }
+            options.Value.ThrowIfInvalid();
+            swabbrConfiguration = options.Value;
         }
 
         /// <summary>
@@ -38,16 +51,41 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="Task"/></returns>
         public async Task ProcessVlogTriggerForUserAsync(Guid userId)
         {
-            userId.ThrowIfNullOrEmpty();
-            if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new InvalidOperationException("User doesn't exist"); }
+            try
+            {
+                logger.LogTrace($"{nameof(ProcessVlogTriggerForUserAsync)} - Attempting vlog trigger for user {userId}");
+                userId.ThrowIfNullOrEmpty();
+                if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new InvalidOperationException("User doesn't exist"); }
 
-            var livestream = await _livestreamingService.TryStartLivestreamForUserAsync(userId).ConfigureAwait(false);
+                var livestream = await _livestreamingService.TryStartLivestreamForUserAsync(userId).ConfigureAwait(false);
 
-            TriggerUserTimeoutFunction(); // TODO HOW?
-            TriggerLivestreamTimeoutFunction(); // TODO HOW?
+                TriggerUserTimeoutFunction(); // TODO HOW?
+                TriggerLivestreamTimeoutFunction(); // TODO HOW?
 
-            var parameters = await _livestreamingService.GetUpstreamParametersAsync(livestream.Id, userId).ConfigureAwait(false);
-            await _notificationService.VlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
+                var parameters = await _livestreamingService.GetUpstreamParametersAsync(livestream.Id, userId).ConfigureAwait(false);
+
+                // TODO This should poll after the request was received, 
+                // Then start the timer
+                int i = 0;
+                await _notificationService.VlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
+
+                // TODO Might want to remove this?
+                logger.LogDebug($@"{nameof(ProcessVlogTriggerForUserAsync)} - Parameters: 
+                    \tApplicationName = {parameters.ApplicationName}\n
+                    \tHostPort = {parameters.HostPort}\n
+                    \tHostServer = {parameters.HostServer}\n
+                    \tLivestreamId = {parameters.LivestreamId}\n
+                    \tPassword = {parameters.Password}\n,
+                    \tStreamKey = {parameters.StreamKey}\n
+                    \tUsername = {parameters.Username}\n");
+
+                logger.LogTrace($"{nameof(ProcessVlogTriggerForUserAsync)} - Completed vlog trigger for user {userId}");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(ProcessVlogTriggerForUserAsync)} - Exception while calling ", e.Message);
+                throw;
+            }
         }
 
         public Task ProcessVlogTriggerTimoutAsync(Guid userId)

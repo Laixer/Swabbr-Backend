@@ -30,10 +30,12 @@ namespace Swabbr.Core.Services
         /// Constructor for dependency injection.
         /// </summary>
         public FollowRequestService(IFollowRequestRepository followRequestRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            ILoggerFactory loggerFactory)
         {
             _followRequestRepository = followRequestRepository ?? throw new ArgumentNullException(nameof(followRequestRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(FollowRequestService)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>

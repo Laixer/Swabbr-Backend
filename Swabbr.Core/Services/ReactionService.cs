@@ -19,13 +19,16 @@ namespace Swabbr.Core.Services
     {
 
         private readonly IReactionRepository _reactionRepository;
+        private readonly IVlogRepository _vlogRepository;
 
         /// <summary>
         /// Constructor for dependency injeciton.
         /// </summary>
-        public ReactionService(IReactionRepository reactionRepository)
+        public ReactionService(IReactionRepository reactionRepository,
+            IVlogRepository vlogRepository)
         {
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
+            _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
         }
 
         /// <summary>
@@ -75,6 +78,22 @@ namespace Swabbr.Core.Services
         {
             vlogId.ThrowIfNullOrEmpty();
             return _reactionRepository.GetForVlogAsync(vlogId);
+        }
+
+        /// <summary>
+        /// Gets the amount of <see cref="Reaction"/>s for a given <paramref name="vlogId"/>.
+        /// </summary>
+        /// <remarks>
+        /// This throws a <see cref="EntityNotFoundException"/> if the <paramref name="vlogId"/>
+        /// does not exist in our data store.
+        /// </remarks>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="Reaction"/> count</returns>
+        public async Task<int> GetReactionCountForVlogAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+            if (!await _vlogRepository.ExistsAsync(vlogId).ConfigureAwait(false)) { throw new EntityNotFoundException(nameof(vlogId)); }
+            return await _reactionRepository.GetReactionCountForVlogAsync(vlogId).ConfigureAwait(false);
         }
 
         /// <summary>

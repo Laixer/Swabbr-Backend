@@ -184,6 +184,27 @@ namespace Swabbr.Core.Services
             }
         }
 
+        /// <summary>
+        /// Checks if a <see cref="Vlog"/> exists or not.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns>Boolean result</returns>
+        public Task<bool> ExistsAsync(Guid vlogId)
+        {
+            return _vlogRepository.ExistsAsync(vlogId);
+        }
+
+        /// <summary>
+        /// Gets a collection of recommended <see cref="Vlog"/>s for a given
+        /// <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="maxCount">Maximum result count</param>
+        /// <returns><see cref="Vlog"/> collection</returns>
+        public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount)
+        {
+            return _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
+        }
     }
 
 }
