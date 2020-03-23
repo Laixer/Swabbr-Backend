@@ -27,13 +27,13 @@ namespace Swabbr.Api.ViewModels
         /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
         [JsonProperty("dailyVlogRequestLimit")]
-        public uint DailyVlogRequestLimit { get; set; }
+        public int DailyVlogRequestLimit { get; set; }
 
         /// <summary>
         /// Determines how follow requests are processed for the user.
         /// </summary>
         [JsonProperty("followMode")]
-        public FollowModeModel FollowMode { get; set; }
+        public string FollowMode { get; set; }
 
     }
 
