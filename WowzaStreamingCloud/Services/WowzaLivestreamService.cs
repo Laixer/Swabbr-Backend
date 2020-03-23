@@ -108,8 +108,15 @@ namespace Swabbr.WowzaStreamingCloud.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false); // For update
-                if (livestream.UserId != userId) { throw new InvalidOperationException("Given user doesn't own livestream"); }
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUser) { throw new InvalidOperationException("Livestream must be marked as pending_user before going live"); }
+                if (livestream.UserId != userId) { throw new UserNotOwnerException(); }
+                if (livestream.LivestreamStatus != LivestreamStatus.PendingUser) { throw new LivestreamStateException(); }
+
+                // Throw if the Wowza livestream isn't actually live
+                if (!await _wowzaHttpClient.IsLivestreamStartedAsync(livestream.ExternalId).ConfigureAwait(false))
+                {
+                    // TODO Specify this exception more
+                    throw new InvalidOperationException("Livestream isn't in the started state on Wowza");
+                }
 
                 // Check if we aren't already streaming
                 if (await _wowzaHttpClient.IsStreamerConnected(livestream.ExternalId)) { throw new InvalidOperationException("A user already connected to the livestream in the Wowza cloud"); }
@@ -217,6 +224,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
             // Construct parameters
             return new ParametersRecordVlog
             {
+                LivestreamId = livestreamId,
                 ApplicationName = wscLivestream.Livestream.SourceConnectionInformation.Application,
                 HostPort = wscLivestream.Livestream.SourceConnectionInformation.HostPort,
                 HostServer = wscLivestream.Livestream.SourceConnectionInformation.PrimaryServer,

@@ -52,17 +52,29 @@ namespace Swabbr.WowzaStreamingCloud.Client
                 // TODO THOMAS I'm not sure if this is the correct method (could be), worth checking --> yorick: misschien de stream teruggeven, even uitzoeken
                 using (var stringContent = new StringContent(ConvertData(data), Encoding.UTF8, mediaType))
                 {
+
+                    // TODO remove
+                    var sendContent = await stringContent.ReadAsStringAsync();
+
                     requestMessage.Content = stringContent;
                     var result = await httpClient.SendAsync(requestMessage);
 
-                    result.EnsureSuccessStatusCode();
+                    // TODO REMOVE
+                    try
+                    {
+                        result.EnsureSuccessStatusCode();
+                    }
+                    catch (Exception)
+                    {
+                        var content = await result.Content.ReadAsStringAsync();
+                        throw;
+                    }
 
                     var resultString = await result.Content.ReadAsStringAsync();
                     return resultString;
                 }
             }
         }
-
 
     }
 

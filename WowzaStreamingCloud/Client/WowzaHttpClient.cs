@@ -9,6 +9,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Swabbr.WowzaStreamingCloud.Entities.Livestreams;
+using Swabbr.WowzaStreamingCloud.Utility;
 
 namespace Swabbr.WowzaStreamingCloud.Client
 {
@@ -54,6 +55,18 @@ namespace Swabbr.WowzaStreamingCloud.Client
         }
 
         /// <summary>
+        /// Checks if a wowza livestream is in the started state --> so we can
+        /// start streaming.
+        /// </summary>
+        /// <param name="id">Wowza livestream id</param>
+        /// <returns><see cref="true"/> if started</returns>
+        public async Task<bool> IsLivestreamStartedAsync(string id)
+        {
+            id.ThrowIfNullOrEmpty();
+            return await GetLivestreamStateAsync(id) == WscLivestreamState.Started;
+        }
+
+        /// <summary>
         /// Checks if a wowza livestream is streaming at this moment.
         /// </summary>
         /// <remarks>
@@ -65,6 +78,7 @@ namespace Swabbr.WowzaStreamingCloud.Client
         {
             id.ThrowIfNullOrEmpty();
 
+            if (await GetLivestreamStateAsync(id).ConfigureAwait(false) != WscLivestreamState.Started) { return false; }
             if (!await IsStreamerConnected(id).ConfigureAwait(false)) { return false; }
 
             var state = await GetLivestreamStateAsync(id).ConfigureAwait(false);
@@ -191,87 +205,6 @@ namespace Swabbr.WowzaStreamingCloud.Client
         }
 
         /// <summary>
-        /// Deletes all outputs for a given transcoder.
-        /// </summary>
-        /// <param name="transcoderId">Wowza transcoder id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task DeleteAllOutputsAsync(string transcoderId)
-        {
-            transcoderId.ThrowIfNullOrEmpty();
-
-            var outputWrapper = await GetOutputsAsync(transcoderId).ConfigureAwait(false);
-
-            foreach (var output in outputWrapper.Outputs)
-            {
-                var uriOutputDelete = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs/{output.Id}");
-                await SendHttpRequestAsync(HttpMethod.Delete, uriOutputDelete).ConfigureAwait(false);
-            }
-        }
-
-        /// <summary>
-        /// Creates a new Fastly stream target in the Wowza API.
-        /// </summary>
-        /// <returns>Wowza stream target id</returns>
-        public async Task<string> CreateFastlyStreamTargetAsync()
-        {
-            var body = new WscFastlyCreateRequest
-            {
-                StreamTargetFastly = new SubWscFastlyStreamTarget
-                {
-                    Name = "Swabbr Fastly Stream Target with SSL and Token Auth",
-                    ForceSslPlayback = true,
-                    TokenAuthEnabled = true
-                }
-            };
-            var uri = new Uri(ApiBase, "stream_targets/fastly");
-            var response = await SendHttpRequestAsync<WscFastlyCreateResponse>(HttpMethod.Post, uri, body).ConfigureAwait(false);
-            return response.StreamTargetFastly.Id;
-        }
-
-        /// <summary>
-        /// Creates a new transcoder output in the Wowza API.
-        /// </summary>
-        /// <param name="transcoderId">Wowza transcoder id</param>
-        /// <returns>Output id</returns>
-        public async Task<string> CreateOutputAsync(string transcoderId)
-        {
-            transcoderId.ThrowIfNullOrEmpty();
-
-            var uri = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs");
-            var body = new WscOutputRequest
-            {
-                Output = new SubWscTranscoderOutputRequest { /* Keep to defaults */ }
-            };
-            var response = await SendHttpRequestAsync<WscOutputResponse>(HttpMethod.Post, uri, body).ConfigureAwait(false);
-            return response.Output.Id;
-        }
-
-        /// <summary>
-        /// Creates a new stream output target for a given transcoder and links 
-        /// it to a Fastly stream target in the Wowza API.
-        /// </summary>
-        /// <param name="transcoderId">Wowza transcoder id</param>
-        /// <param name="outputId">Wowza transcoder output it</param>
-        /// <param name="fastlyId">Wowza fastly stream target id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task CreateOutputStreamTargetAsync(string transcoderId, string outputId, string fastlyId)
-        {
-            transcoderId.ThrowIfNullOrEmpty();
-            outputId.ThrowIfNullOrEmpty();
-            fastlyId.ThrowIfNullOrEmpty();
-
-            var uri = new Uri(ApiBase, $"transcoders/{transcoderId}/outputs/{outputId}/output_stream_targets");
-            var body = new WscOutputStreamTargetRequest
-            {
-                OutputStreamTarget = new SubWscOutputStreamTargetRequest
-                {
-                    StreamTargetId = fastlyId
-                }
-            };
-            await SendHttpRequestAsync(HttpMethod.Post, uri, body).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Retrieves the fastly shared secret from the Wowza API.
         /// </summary>
         /// <param name="fastlyId">Wowza Fastly id</param>
@@ -281,6 +214,30 @@ namespace Swabbr.WowzaStreamingCloud.Client
             fastlyId.ThrowIfNullOrEmpty();
             var uri = new Uri(ApiBase, $"stream_targets/fastly/{fastlyId}");
             return SendHttpRequestAsync<WscFastlyResponse>(HttpMethod.Get, uri);
+        }
+
+        /// <summary>
+        /// Sets up fastly authentication for a specified fastly 
+        /// </summary>
+        /// <param name="fastlyId">Wowza Fastly output stream target id</param>
+        /// <remarks>
+        /// TODO This does not check the correct output format. Is this required here?
+        /// </remarks>
+        /// <returns><see cref="Task"/></returns>
+        public Task SetupFastlyAuthenticationAsync(string fastlyId)
+        {
+            fastlyId.ThrowIfNullOrEmpty();
+            var body = new WscFastlyUpdateRequest
+            {
+                StreamTargetFastly = new SubWscFastlyStreamTargetUpdate
+                {
+                    ForceSslPlayback = true,
+                    Name = WowzaConstants.StreamTargetName,
+                    TokenAuthEnabled = true
+                }
+            };
+            var uri = new Uri(ApiBase, $"stream_targets/fastly/{fastlyId}");
+            return SendHttpRequestAsync<WscFastlyResponse>(new HttpMethod("PATCH"), uri, body);
         }
 
         /// <summary>

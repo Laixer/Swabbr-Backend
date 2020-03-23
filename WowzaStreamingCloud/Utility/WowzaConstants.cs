@@ -20,6 +20,14 @@
         internal const bool PlayerResponsive = true;
         internal const bool Recording = true;
 
+        // TODO Put these in a config file?
+        internal const string OutputName = "swabbr_output_fastly_with_auth";
+        internal const bool OutputPassthroughVideo = true;
+        internal const int OutputAspectRatioWidth = 1280;
+        internal const int OutputAspectRatioHeight = 720;
+        internal const string StreamTargetName = "swabbr_stream_target_fastly_with_auth";
+        internal const string StreamTargetType = "fastly";
+
     }
 
 }

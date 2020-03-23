@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Swabbr.WowzaStreamingCloud.Entities.StreamTargets
 {
@@ -27,7 +25,7 @@ namespace Swabbr.WowzaStreamingCloud.Entities.StreamTargets
         public string TokenAuthSharedSecret { get; set; }
 
         [JsonProperty("playback_url")]
-        public string PlaybackUrl { get; set; }
+        public Uri PlaybackUrl { get; set; }
 
     }
 

@@ -3,10 +3,12 @@ using Microsoft.Extensions.Options;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.WowzaStreamingCloud.Client;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Entities.StreamTargets;
 using Swabbr.WowzaStreamingCloud.Tokens;
+using Swabbr.WowzaStreamingCloud.Utility;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -45,11 +47,45 @@ namespace Swabbr.WowzaStreamingCloud.Services
         }
 
         /// <summary>
+        /// Generates <see cref="ParametersFollowedProfileLive"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Core.Entities.Livestream"/> id</param>
+        /// <param name="watchingUserId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <returns><see cref="ParametersFollowedProfileLive"/></returns>
+        public async Task<ParametersFollowedProfileLive> GetDownstreamParametersAsync(Guid livestreamId, Guid watchingUserId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            watchingUserId.ThrowIfNullOrEmpty();
+
+            await _userRepository.GetAsync(watchingUserId).ConfigureAwait(false); // Throws if user doesn't exist
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+
+            // TODO Do we need the vlog here?
+            var vlog = await _vlogRepository.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+
+            // TODO Maybe have some more livestream state checks in here?
+            if (!await _wowzaHttpClient.IsLivestreamStartedAsync(livestream.ExternalId))
+            {
+                throw new InvalidOperationException("Livestream isn't live"); // TODO Do we want this?
+            } 
+
+            // TODO DRY
+            return new ParametersFollowedProfileLive
+            {
+                EndpointUrl = await GetPlaybackUrlAsync(livestreamId).ConfigureAwait(false),
+                LiveLivestreamId = livestreamId,
+                LiveUserId = livestream.UserId,
+                LiveVlogId = vlog.Id,
+                Token = await GetTokenAsync(livestreamId, watchingUserId).ConfigureAwait(false)
+            };
+        }
+
+        /// <summary>
         /// Gets the playback url for a Wowza livestream through Fastly.
         /// </summary>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns></returns>
-        public async Task<string> GetPlaybackUrlAsync(Guid livestreamId)
+        public async Task<Uri> GetPlaybackUrlAsync(Guid livestreamId)
         {
             livestreamId.ThrowIfNullOrEmpty();
             var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
@@ -90,15 +126,17 @@ namespace Swabbr.WowzaStreamingCloud.Services
         {
             var wscOutputs = await _wowzaHttpClient.GetOutputsAsync(transcoderId).ConfigureAwait(false);
 
-            // Throw if the Wowza configuration is incorrect
-            if (!wscOutputs.Outputs.Any()) { throw new ExternalErrorException("Wowza Transcoder has no Outputs"); }
-            if (wscOutputs.Outputs.Count() > 1) { throw new ExternalErrorException("Wowza Transcoder has more than one Output"); }
-            var output = wscOutputs.Outputs.First();
-            if (!output.OutputStreamTargets.Any()) { throw new ExternalErrorException("Wowza Output has no Output Stream Targets"); }
-            if (output.OutputStreamTargets.Count() > 1) { throw new ExternalErrorException("Wowza Output has more than one Output Stream Target"); }
+            // Throws if the Wowza configuration is incorrect
+            var outputs = await _wowzaHttpClient.GetOutputsAsync(transcoderId).ConfigureAwait(false);
+            var matchingOutputs = outputs.Outputs.Where(x =>
+                x.PassthroughVideo == WowzaConstants.OutputPassthroughVideo &&
+                x.AspectRatioWidth == WowzaConstants.OutputAspectRatioWidth &&
+                x.AspectRatioHeight == WowzaConstants.OutputAspectRatioHeight);
+            if (!matchingOutputs.Any()) { throw new InvalidOperationException("Could not find correct Wowza Output (passthrough video, 1280x720)"); }
+            if (matchingOutputs.Count() > 1) { throw new InvalidOperationException("Found more than one correct Wowza Output (passthrough video, 1280x720)"); }
 
             // Get the fastly stream target and return the playback url
-            return await _wowzaHttpClient.GetFastlyAsync(output.OutputStreamTargets.First().StreamTargetId).ConfigureAwait(false);
+            return await _wowzaHttpClient.GetFastlyAsync(matchingOutputs.First().OutputStreamTargets.First().StreamTargetId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -108,20 +146,20 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// </summary>
         /// <param name="playbackUrl">Fastly stream target playback url</param>
         /// <returns>Fastly livestream id</returns>
-        private string ExtractFastlyStreamId(string playbackUrl)
+        private string ExtractFastlyStreamId(Uri playbackUrl)
         {
-            playbackUrl.ThrowIfNullOrEmpty();
+            playbackUrl.AbsoluteUri.ThrowIfNullOrEmpty();
 
             try
             {
                 var pattern = @"^https:\/\/.+\.wowza\.com\/\d\/.+\/.+\/hls\/live\/playlist\.m3u8$";
-                if (!Regex.IsMatch(playbackUrl, pattern))
+                if (!Regex.IsMatch(playbackUrl.AbsoluteUri, pattern))
                 {
                     throw new InvalidOperationException("Playback url does not match regex template");
                 }
 
                 // Split by wowza.com
-                var splitByCom = playbackUrl.Split(new string[] { ".wowza.com" }, StringSplitOptions.None);
+                var splitByCom = playbackUrl.AbsoluteUri.Split(new string[] { ".wowza.com" }, StringSplitOptions.None);
 
                 // Split by slash
                 var splitBySlash = splitByCom[1].Split('/');
@@ -132,6 +170,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
                 throw new InvalidOperationException("URL was malformed - unable to extract Fastly livestream id", e);
             }
         }
+
 
     }
 

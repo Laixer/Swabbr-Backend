@@ -30,7 +30,7 @@ namespace Swabbr.WowzaStreamingCloud.Tokens
             {
                 var hashMessage = hmac.ComputeHash(Encoding.ASCII.GetBytes(hashSource));
                 var hmacString = ToHexString(hashMessage);
-                return $"hdnts=exp={epochEnd}~hmac={hmacString}";
+                return $"exp={epochEnd}~hmac={hmacString}";
             }
         }
 

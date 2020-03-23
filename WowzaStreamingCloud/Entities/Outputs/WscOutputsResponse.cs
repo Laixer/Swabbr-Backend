@@ -28,6 +28,24 @@ namespace Swabbr.WowzaStreamingCloud.Entities.Outputs
         public string Id { get; set; }
 
         /// <summary>
+        /// Indicates passthrough of video.
+        /// </summary>
+        [JsonProperty("passthrough_video")]
+        public bool PassthroughVideo { get; set; }
+
+        /// <summary>
+        /// Video width
+        /// </summary>
+        [JsonProperty("aspect_ratio_width")]
+        public int AspectRatioWidth { get; set; }
+
+        /// <summary>
+        /// Video height.
+        /// </summary>
+        [JsonProperty("aspect_ratio_height")]
+        public int AspectRatioHeight { get; set; }
+
+        /// <summary>
         /// Collection of linked stream targets.
         /// </summary>
         [JsonProperty("output_stream_targets")]
@@ -53,6 +71,33 @@ namespace Swabbr.WowzaStreamingCloud.Entities.Outputs
         /// </summary>
         [JsonProperty("stream_target_id")]
         public string StreamTargetId { get; set; }
+
+        /// <summary>
+        /// Contains more details about the stream target.
+        /// </summary>
+        [JsonProperty("stream_target")]
+        public SubWscOutputStreamTargetItem StreamTarget { get; set; }
+
+    }
+
+
+    /// <summary>
+    /// Represents the specific details about a single stream target.
+    /// </summary>
+    public sealed class SubWscOutputStreamTargetItem
+    {
+
+        /// <summary>
+        /// Name of this stream target.
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Type of this stream target.
+        /// </summary>
+        [JsonProperty("type")]
+        public string Type { get; set; }
 
     }
 

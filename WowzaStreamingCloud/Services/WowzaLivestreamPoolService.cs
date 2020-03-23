@@ -6,8 +6,11 @@ using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.WowzaStreamingCloud.Client;
 using Swabbr.WowzaStreamingCloud.Configuration;
+using Swabbr.WowzaStreamingCloud.Entities.Outputs;
 using Swabbr.WowzaStreamingCloud.Utility;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -63,12 +66,28 @@ namespace Swabbr.WowzaStreamingCloud.Services
                         LivestreamStatus = LivestreamStatus.Created
                     }).ConfigureAwait(false);
 
-                    // Setup the proper outputs in Wowza
-                    var transcoderId = livestream.ExternalId;
-                    await _wowzaHttpClient.DeleteAllOutputsAsync(transcoderId).ConfigureAwait(false);
-                    var outputId = await _wowzaHttpClient.CreateOutputAsync(transcoderId).ConfigureAwait(false);
-                    var fastlyId = await _wowzaHttpClient.CreateFastlyStreamTargetAsync().ConfigureAwait(false);
-                    await _wowzaHttpClient.CreateOutputStreamTargetAsync(transcoderId, outputId, fastlyId).ConfigureAwait(false);
+                    // Grab the passthrough output and enable auth
+                    var outputs = await _wowzaHttpClient.GetOutputsAsync(livestream.ExternalId).ConfigureAwait(false);
+
+                    // TODO For some reason this didn't work with Linq
+                    var matchingOutputs = new List<SubWscOutput>();
+                    foreach (var x in outputs.Outputs)
+                    {
+                        if (x.PassthroughVideo == WowzaConstants.OutputPassthroughVideo &&
+                            x.AspectRatioWidth == WowzaConstants.OutputAspectRatioWidth &&
+                            x.AspectRatioHeight == WowzaConstants.OutputAspectRatioHeight &&
+                            x.OutputStreamTargets.Count() == 1 &&
+                            x.OutputStreamTargets.First().StreamTarget.Type.Equals(WowzaConstants.StreamTargetType))
+                        {
+                            matchingOutputs.Add(x);
+                        }
+                    }
+                    if (!matchingOutputs.Any()) { throw new InvalidOperationException("Could not find correct Wowza Output (passthrough video, 1280x720)"); }
+                    if (matchingOutputs.Count() > 1) { throw new InvalidOperationException("Found more than one correct Wowza Output (passthrough video, 1280x720)"); }
+
+                    // Setup authentication for the selected output
+                    var fastlyId = matchingOutputs.First().OutputStreamTargets.First().StreamTargetId;
+                    await _wowzaHttpClient.SetupFastlyAuthenticationAsync(fastlyId).ConfigureAwait(false);
 
                     scope.Complete();
                     return livestream;
@@ -82,17 +101,14 @@ namespace Swabbr.WowzaStreamingCloud.Services
         }
 
         /// <summary>
-        /// Attempts to get a <see cref="Livestream"/> from the pool.
+        /// At the moment this just returns <see cref="CreateLivestreamAsync"/>.
         /// </summary>
-        /// <remarks>
-        /// Throws a <see cref="NoLivestreamAvailableException"/> if none is
-        /// available.
-        /// TODO Implement.
-        /// </remarks>
         /// <returns><see cref="Livestream"/></returns>
         public Task<Livestream> TryGetLivestreamFromPoolAsync()
         {
             return CreateLivestreamAsync();
         }
+
     }
+
 }
