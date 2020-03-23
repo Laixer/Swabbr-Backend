@@ -95,6 +95,22 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Gets the amount of <see cref="Reaction"/>s for a given <paramref name="vlogId"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="Reaction"/> count</returns>
+        public async Task<int> GetReactionCountForVlogAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"SELECT COUNT(*) FROM {TableReaction} WHERE target_vlog_id = @VlogId";
+                return await connection.ExecuteScalarAsync<int>(sql, new { VlogID = vlogId }).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Updates a <see cref="Reaction"/> in our database.
         /// </summary>
         /// <param name="entity"><see cref="Reaction"/></param>

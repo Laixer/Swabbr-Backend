@@ -1,10 +1,14 @@
 ﻿using Dapper;
 using Laixer.Infra.Npgsql;
+using Laixer.Utility.Exceptions;
 using Laixer.Utility.Extensions;
+using Microsoft.Extensions.Options;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
+using Swabbr.Core.Utility;
+using Swabbr.Infrastructure.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +26,18 @@ namespace Swabbr.Infrastructure.Repositories
     {
 
         private readonly IDatabaseProvider _databaseProvider;
+        private readonly SwabbrConfiguration swabbrConfiguration;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public UserRepository(IDatabaseProvider databaseProvider)
+        public UserRepository(IDatabaseProvider databaseProvider,
+            IOptions<SwabbrConfiguration> options)
         {
             _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
+            if (options == null) { throw new ArgumentNullException(nameof(options)); }
+            options.Value.ThrowIfInvalid();
+            swabbrConfiguration = options.Value;
         }
 
         public Task<SwabbrUser> CreateAsync(SwabbrUser entity)
@@ -194,7 +203,7 @@ namespace Swabbr.Infrastructure.Repositories
             userId.ThrowIfNullOrEmpty();
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT * FROM {ViewUserSettings} WHERE id = '{userId}';";
+                var sql = $"SELECT *, id AS user_id FROM {ViewUserSettings} WHERE id = '{userId}';";
                 var result = await connection.QueryAsync<UserSettings>(sql).ConfigureAwait(false);
                 if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
                 else
@@ -218,15 +227,63 @@ namespace Swabbr.Infrastructure.Repositories
                 var sql = $"SELECT * FROM {ViewUserStatistics} WHERE id = @Id";
                 var result = await connection.QueryAsync<UserStatistics>(sql, new { Id = userId }).ConfigureAwait(false);
                 if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found multiple on single get"); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
                 return result.First();
             }
         }
 
-        public Task<IEnumerable<SwabbrUser>> SearchAsync(string query, uint offset, uint limit)
+        /// <summary>
+        /// Gets all <see cref="SwabbrUser"/>s that we can send a vlogrequest
+        /// at this very moment.
+        /// </summary>
+        /// <remarks>
+        /// This query is very complex and hard to optimize. This function might
+        /// have a long execution time.
+        /// TODO Optimize
+        /// </remarks>
+        /// <returns><see cref="SwabbrUser"/> collection</returns>
+        public async Task<IEnumerable<SwabbrUser>> GetVlogRequestableUsersAsync(DateTimeOffset from, TimeSpan timeSpan)
         {
-            // Do we ever need this? I don't think so? --> stats
-            throw new NotImplementedException();
+            if (from == null) { throw new ArgumentNullException(nameof(from)); }
+            if (timeSpan == null) { throw new ArgumentNullException(nameof(timeSpan)); }
+            if (swabbrConfiguration.DailyVlogRequestLimit < 0) { throw new ConfigurationRangeException(nameof(swabbrConfiguration.DailyVlogRequestLimit)); }
+
+            var to = from.AddTicks(timeSpan.Ticks);
+            var sqlFrom = SqlUtility.FormatDateTime(from);
+            var sqlTo = SqlUtility.FormatDateTime(to);
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT * FROM {TableUser}
+                    WHERE daily_vlog_request_limit > 0
+                    AND (
+                        id IN (
+                            SELECT u.id FROM {TableUser} AS u
+                            JOIN {TableRequest} AS r
+                            ON u.id = r.user_id
+                            WHERE r.create_date >= '{sqlFrom}'
+                            AND r.create_date <= '{sqlTo}'
+                            AND u.id IN (
+                                SELECT us.id
+                                FROM {TableUser} AS us
+                                JOIN {TableRequest} AS re
+                                ON us.id = re.user_id
+                                GROUP BY us.id
+                                HAVING COUNT(re.id) < LEAST(us.daily_vlog_request_limit, {swabbrConfiguration.DailyVlogRequestLimit})
+                            )
+                        )
+                        OR id NOT IN (
+                            SELECT u.id FROM {TableUser} AS u
+                            JOIN {TableRequest} AS r
+                            ON u.id = r.user_id
+                            WHERE r.create_date >= '{sqlFrom}'
+                            AND r.create_date <= '{sqlTo}'
+                        )
+                    )
+                    FOR UPDATE";
+                return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -260,7 +317,7 @@ namespace Swabbr.Infrastructure.Repositories
                         WHERE id = @Id";
                     int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
                     if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
-                    if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple results on single get"); }
+                    if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
 
                     var result = await GetAsync(entity.Id).ConfigureAwait(false);
                     scope.Complete();
@@ -269,9 +326,31 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-        public Task<UserSettings> UpdateUserSettingsAsync(UserSettings userSettings)
+        /// <summary>
+        /// Updates <see cref="UserSettings"/> in our database.
+        /// </summary>
+        /// <param name="entity"><see cref="UserSettings"/></param>
+        /// <returns>Updated and queried <see cref="UserSettings"/></returns>
+        public async Task UpdateUserSettingsAsync(UserSettings userSettings)
         {
-            throw new NotImplementedException();
+            if (userSettings == null) { throw new ArgumentNullException(nameof(userSettings)); }
+            if (userSettings.DailyVlogRequestLimit < 0) { throw new ArgumentOutOfRangeException(nameof(userSettings.DailyVlogRequestLimit)); }
+            userSettings.UserId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                // TODO SQL Injection
+                var sql = $@"
+                    UPDATE {TableUser} SET
+                        daily_vlog_request_limit = @DailyVlogRequestLimit,
+                        follow_mode = '{userSettings.FollowMode.GetEnumMemberAttribute()}',
+                        is_private = @IsPrivate
+                    WHERE id = @UserId";
+                var rowsAffected = await connection.ExecuteAsync(sql, userSettings).ConfigureAwait(false);
+                if (rowsAffected < 0 ) { throw new InvalidOperationException(); }
+                if (rowsAffected == 0) { throw new EntityNotFoundException(); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
+            }
         }
 
         /// <summary>

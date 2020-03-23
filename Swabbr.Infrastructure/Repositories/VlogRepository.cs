@@ -2,6 +2,7 @@
 using Laixer.Infra.Npgsql;
 using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
@@ -76,9 +77,15 @@ namespace Swabbr.Infrastructure.Repositories
             return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableVlog);
         }
 
+        /// <summary>
+        /// Checks if a given <see cref="Vlog"/> exists.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns>Bool result</returns>
         public Task<bool> ExistsAsync(Guid vlogId)
         {
-            throw new NotImplementedException();
+            vlogId.ThrowIfNullOrEmpty();
+            return SharedRepositoryFunctions.ExistsAsync(_databaseProvider, TableVlog, vlogId);
         }
 
         /// <summary>
@@ -116,9 +123,31 @@ namespace Swabbr.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Guid>> GetSharedUserIdsAsync(Guid vlogId)
+        /// <summary>
+        /// Returns a collection of <see cref="Vlog"/>s based on a users 
+        /// following.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="maxCount">Max result count</param>
+        /// <returns><see cref="Vlog"/> collection</returns>
+        public async Task<IEnumerable<Vlog>> GetMostRecentVlogsForUserAsync(Guid userId, uint maxCount)
         {
-            throw new NotImplementedException();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                // TODO SQL injection for enum
+                var sql = $@"
+                    SELECT v.* FROM {TableVlog} AS v
+                    JOIN {TableFollowRequest} AS f
+                    ON v.user_id = f.receiver_id
+                    WHERE f.requester_id = @UserId
+                    AND f.follow_request_status = '{FollowRequestStatus.Accepted.GetEnumMemberAttribute()}'
+                    ORDER BY v.start_date DESC
+                    LIMIT @MaxCount";
+                var pars = new { UserId = userId, MaxCount = (int)maxCount };
+                return await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
+            }
         }
 
         public Task<int> GetVlogCountForUserAsync(Guid userId)
@@ -162,11 +191,6 @@ namespace Swabbr.Infrastructure.Repositories
                 var sql = $"SELECT * FROM {TableVlog} WHERE user_id = @UserId";
                 return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
             }
-        }
-
-        public Task ShareWithUserAsync(Guid vlogId, Guid userId)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>

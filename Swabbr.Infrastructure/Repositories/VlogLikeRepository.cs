@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
@@ -139,6 +140,26 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Gets the amount of <see cref="VlogLike"/>s given to a certain
+        /// <see cref="Vlog"/>.
+        /// </summary>
+        /// <remarks>
+        /// This does NOT check for <see cref="Vlog"/> existence.
+        /// </remarks>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns>Count</returns>
+        public async Task<int> GetCountForVlogAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"SELECT COUNT(*) FROM {TableVlogLike} WHERE vlog_id = @VlogId";
+                return await connection.ExecuteScalarAsync<int>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Gets all <see cref="VlogLike"/> entities that belong to a given
         /// <see cref="Vlog"/>.
         /// </summary>
@@ -153,16 +174,6 @@ namespace Swabbr.Infrastructure.Repositories
                 var sql = $"SELECT * FROM {TableVlogLike} WHERE vlog_id = @VlogId";
                 return await connection.QueryAsync<VlogLike>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
             }
-        }
-
-        public Task<int> GetGivenCountForUserAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VlogLike> GetSingleForUserAsync(Guid vlogId, Guid userId)
-        {
-            throw new NotImplementedException();
         }
 
         public Task<VlogLike> UpdateAsync(VlogLike entity)

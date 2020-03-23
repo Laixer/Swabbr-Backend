@@ -62,21 +62,61 @@ namespace Swabbr.Infrastructure.Repositories
             searchString.ThrowIfNullOrEmpty();
             if (page < 1) { throw new ArgumentOutOfRangeException("Page number must be greater than one"); }
             if (itemsPerPage < 1) { throw new ArgumentOutOfRangeException("Items per page must be greater than one"); }
+            if (itemsPerPage > 100) { throw new ArgumentOutOfRangeException("Items per page must be smaller than 100"); }
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 var sql = $"SELECT * FROM {ViewUserWithStats}" +
-                    $" WHERE nickname LIKE '%{searchString}%'" +
+                    $" WHERE LOWER(nickname) LIKE LOWER('{searchString}%')" +
                     $" OFFSET {(page - 1) * itemsPerPage}" +
                     $" LIMIT {itemsPerPage};"; // TODO Query builder or something
                 return await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
             }
         }
 
-        public Task<IEnumerable<SwabbrUserWithStats>> ListFollowersAsync(Guid id, int page, int itemsPerPage) => throw new NotImplementedException();
+        public Task<IEnumerable<SwabbrUserWithStats>> ListFollowersAsync(Guid id, int page, int itemsPerPage)
+        {
+            throw new NotImplementedException();
+        }
 
-        public Task<IEnumerable<SwabbrUserWithStats>> ListFollowingAsync(Guid id, int page, int itemsPerPage) => throw new NotImplementedException();
+        public Task<IEnumerable<SwabbrUserWithStats>> ListFollowingAsync(Guid id, int page, int itemsPerPage)
+        {
+            throw new NotImplementedException();
+        }
 
+        /// <summary>
+        /// Gets a collection of <see cref="SwabbrUser"/>s based on a collection
+        /// of ids.
+        /// </summary>
+        /// <param name="userIds">Internal <see cref="SwabbrUser"/> ids</param>
+        /// <returns><see cref="SwabbrUserWithStats"/> collection</returns>
+        public async Task<IEnumerable<SwabbrUserWithStats>> GetFromIdsAsync(IEnumerable<Guid> userIds)
+        {
+            if (userIds == null) { throw new ArgumentNullException(nameof(userIds)); }
+            if (!userIds.Any()) { return new List<SwabbrUserWithStats>(); }
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                // TODO Clean this mess up
+                var userIdArray = userIds.ToArray();
+                var sql = $"SELECT * FROM {ViewUserWithStats} WHERE id IN ";
+                sql += "(";
+                for (int i = 0; i < userIds.Count(); i++)
+                {
+                    sql += $"'{userIdArray[i]}'";
+                    if (i < userIds.Count() - 1)
+                    {
+                        sql += ",";
+                    }
+                }
+                sql += ");";
+
+                var result = await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
+                if (result == null) { throw new InvalidOperationException(); }
+                if (result.Count() != userIds.Count()) { throw new EntityNotFoundException(); }
+                return result;
+            }
+        }
     }
 
 }
