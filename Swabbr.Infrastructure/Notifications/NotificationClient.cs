@@ -1,5 +1,6 @@
 ﻿using Laixer.Utility.Extensions;
 using Microsoft.Azure.NotificationHubs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -41,13 +42,21 @@ namespace Swabbr.Infrastructure.Notifications
         /// Constructor for dependency injection.
         /// </summary>
         public NotificationClient(IOptions<NotificationHubConfiguration> options,
+            IConfiguration configuration,
             ILoggerFactory loggerFactory,
             INotificationJsonExtractor notificationJsonExtractor)
         {
             if (options == null) { throw new ArgumentNullException(nameof(options)); }
             if (options.Value == null) { throw new ArgumentNullException(nameof(options)); }
+            if (options.Value.ConnectionStringName.IsNullOrEmpty()) { throw new ConfigurationException("ANH Connection string name is not specified"); }
+            if (options.Value.HubName.IsNullOrEmpty()) { throw new ConfigurationException("ANH hub name is not specified"); }
             _hubConfiguration = options.Value;
-            _hubClient = NotificationHubClient.CreateClientFromConnectionString(_hubConfiguration.ConnectionString, _hubConfiguration.HubName);
+
+            var connectionString = configuration.GetConnectionString(options.Value.ConnectionStringName);
+            if (connectionString.IsNullOrEmpty()) { throw new InvalidOperationException($"IConfiguration does not contain ANH connection string with name {options.Value.ConnectionStringName}"); }
+
+
+            _hubClient = NotificationHubClient.CreateClientFromConnectionString(connectionString, _hubConfiguration.HubName);
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationClient)) : throw new ArgumentNullException(nameof(loggerFactory));
             _notificationJsonExtractor = notificationJsonExtractor ?? throw new ArgumentNullException(nameof(notificationJsonExtractor));
         }
