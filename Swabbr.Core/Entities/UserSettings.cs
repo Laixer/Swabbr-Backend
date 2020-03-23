@@ -7,7 +7,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Personal settings and preferences for a user.
     /// </summary>
-    public class UserSettings : EntityBase<Guid>
+    public class UserSettings
     {
 
         /// <summary>
@@ -18,7 +18,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
-        public uint DailyVlogRequestLimit { get; set; }
+        public int DailyVlogRequestLimit { get; set; }
 
         /// <summary>
         /// Determines how follow requests are processed for the user.
