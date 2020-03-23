@@ -11,6 +11,8 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<IEnumerable<Reaction>> GetForVlogAsync(Guid vlogId);
 
+        Task<int> GetReactionCountForVlogAsync(Guid vlogId);
+
     }
 
 }

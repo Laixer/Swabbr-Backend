@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core.Notifications.JsonWrappers;
+using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
@@ -25,7 +26,9 @@ namespace Swabbr.Core.Interfaces.Services
         /// </remarks>
         /// <param name="livestreamId">Internal <see cref="Entities.Livestream"/> id</param>
         /// <returns>External <see cref="Entities.Livestream"/> playback url</returns>
-        Task<string> GetPlaybackUrlAsync(Guid livestreamId);
+        Task<Uri> GetPlaybackUrlAsync(Guid livestreamId);
+
+        Task<ParametersFollowedProfileLive> GetDownstreamParametersAsync(Guid livestreamId, Guid watchingUserId);
 
     }
 

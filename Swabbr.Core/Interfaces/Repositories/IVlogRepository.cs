@@ -29,21 +29,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<bool> ExistsAsync(Guid vlogId);
 
         /// <summary>
-        /// Returns the id's of the users the specified vlog is currently shared with.
-        /// </summary>
-        /// <param name="vlogId">Unique identifier of the vlog.</param>
-        /// <returns></returns>
-        Task<IEnumerable<Guid>> GetSharedUserIdsAsync(Guid vlogId);
-
-        /// <summary>
-        /// Adds the specified user as a shared user for the specified vlog.
-        /// </summary>
-        /// <param name="vlogId">Unique identifier of the vlog.</param>
-        /// <param name="userId">Unique identifier of the user to share the vlog with.</param>
-        /// <returns></returns>
-        Task ShareWithUserAsync(Guid vlogId, Guid userId);
-
-        /// <summary>
         /// Returns the amount of vlogs that a user has created.
         /// </summary>
         /// <param name="userId">Unique identifier of the user to check the amount of vlogs for.</param>
@@ -59,6 +44,8 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<bool> ExistsForLivestreamAsync(Guid livestreamId);
 
         Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId);
+
+        Task<IEnumerable<Vlog>> GetMostRecentVlogsForUserAsync(Guid userId, uint maxCount);
 
     }
 }

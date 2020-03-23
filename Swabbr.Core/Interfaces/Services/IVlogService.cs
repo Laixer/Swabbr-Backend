@@ -14,6 +14,7 @@ namespace Swabbr.Core.Interfaces.Services
     {
 
         Task<Vlog> GetAsync(Guid vlogId);
+        Task<bool> ExistsAsync(Guid vlogId);
 
         Task<IEnumerable<VlogLike>> GetVlogLikesForVlogAsync(Guid vlogId);
 
@@ -26,6 +27,8 @@ namespace Swabbr.Core.Interfaces.Services
         Task LikeAsync(Guid vlogId, Guid userId);
 
         Task UnlikeAsync(Guid vlogId, Guid userId);
+
+        Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount);
 
     }
 

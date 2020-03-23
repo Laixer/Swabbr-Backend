@@ -15,7 +15,7 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task VlogRecordRequestAsync(Guid userId, Guid livesteamId, ParametersRecordVlog pars);
 
-        Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId);
+        Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars);
 
     }
 

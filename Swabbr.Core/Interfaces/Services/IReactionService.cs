@@ -21,6 +21,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId);
 
+        Task<int> GetReactionCountForVlogAsync(Guid vlogId);
+
         Task DeleteReactionAsync(Guid userId, Guid reactionId);
 
     }

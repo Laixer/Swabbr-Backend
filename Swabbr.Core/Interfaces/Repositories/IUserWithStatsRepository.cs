@@ -18,6 +18,8 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<IEnumerable<SwabbrUserWithStats>> ListFollowersAsync(Guid id, int page, int itemsPerPage);
 
+        Task<IEnumerable<SwabbrUserWithStats>> GetFromIdsAsync(IEnumerable<Guid> userIds);
+
     }
 
 }
