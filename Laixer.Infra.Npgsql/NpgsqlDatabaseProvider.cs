@@ -30,7 +30,7 @@ namespace Laixer.Infra.Npgsql
             if (string.IsNullOrEmpty(options.Value.ConnectionStringName)) { throw new InvalidOperationException(nameof(options.Value.ConnectionStringName)); }
 
             connectionString = configuration.GetConnectionString(options.Value.ConnectionStringName);
-            if (string.IsNullOrEmpty(connectionString)) { throw new InvalidOperationException($"IConfiguration does not contains connection string with name {options.Value.ConnectionStringName}"); }
+            if (string.IsNullOrEmpty(connectionString)) { throw new InvalidOperationException($"IConfiguration does not contain Npgsql connection string with name {options.Value.ConnectionStringName}"); }
         }
 
         /// <summary>
