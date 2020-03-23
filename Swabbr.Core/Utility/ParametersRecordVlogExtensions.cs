@@ -25,6 +25,7 @@ namespace Swabbr.Core.Utility
             if (pars.HostServer == null) { throw new ArgumentNullException(nameof(pars.HostServer)); }
             pars.StreamKey.ThrowIfNullOrEmpty();
             pars.Username.ThrowIfNullOrEmpty();
+            pars.LivestreamId.ThrowIfNullOrEmpty();
         }
 
     }

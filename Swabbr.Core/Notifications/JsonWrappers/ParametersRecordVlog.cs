@@ -10,6 +10,11 @@ namespace Swabbr.Core.Notifications.JsonWrappers
     {
 
         /// <summary>
+        /// Internal <see cref="Entities.Livestream"/> id.
+        /// </summary>
+        public Guid LivestreamId { get; set; }
+
+        /// <summary>
         /// Upstream endpoint url.
         /// </summary>
         public Uri HostServer { get; set; }
