@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +14,9 @@ using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Options;
 using Swabbr.Api.Services;
+using Swabbr.Api.Utility;
+using Swabbr.AzureMediaServices.Configuration;
+using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
@@ -29,6 +33,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace Swabbr
 {
@@ -55,10 +61,25 @@ namespace Swabbr
                 options.LowercaseUrls = true;
             });
 
+            // Add mvc for anty forgery token usage
+            services.AddMvc();
+
+            // Add filters
+            //services.AddScoped<DisableFormValueModelBindingAttribute>();
+            //services.AddScoped<GenerateAntiforgeryTokenCookieAttribute>();
+            //services.AddScoped<ValidateAntiForgeryTokenAttribute>();
+            //services.AddScoped<Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter>();
+            //services.AddScoped<ValidateAntiforgeryTokenAuthorizationFilter>();
+
             // Add configurations
             services.Configure<JwtConfiguration>(Configuration.GetSection("Jwt"));
-            services.Configure<NotificationHubConfiguration>(Configuration.GetSection("NotificationHub"));
+            services.Configure<NotificationHubConfiguration>(options =>
+            {
+                Configuration.GetSection("NotificationHub").Bind(options);
+                options.ConnectionString = Configuration.GetConnectionString("AzureNotificationHub");
+            });
             services.Configure<WowzaStreamingCloudConfiguration>(Configuration.GetSection("WowzaStreamingCloud"));
+            services.Configure<AMSConfiguration>(Configuration.GetSection("AzureMediaServices"));
 
             // Add OpenAPI definition
             services.AddSwaggerGen(c =>
@@ -86,36 +107,39 @@ namespace Swabbr
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
-            SqlMapper.AddTypeHandler(new UriHandler());
-            SqlMapper.AddTypeHandler(new FollowRequestStatusHandler()); // TODO Look at this
+            // SqlMapper.AddTypeHandler(new FollowRequestStatusHandler()); // TODO Look at this
             services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
-            services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionStringName = "DatabaseInternal"; });
+            services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionString = Configuration.GetConnectionString("DatabaseInternal"); });
 
             // Configure DI for data repositories
-            services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
             services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
-            services.AddTransient<IVlogRepository, VlogRepository>();
-            services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
-            services.AddTransient<IReactionRepository, ReactionRepository>();
             services.AddTransient<ILivestreamRepository, LivestreamRepository>();
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
+            services.AddTransient<IReactionRepository, ReactionRepository>();
+            services.AddTransient<IRequestRepository, RequestRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
+            services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
+            services.AddTransient<IVlogRepository, VlogRepository>();
 
             // Configure DI for services
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IUserWithStatsService, UserWithStatsService>();
+            services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
+            services.AddTransient<IFollowRequestService, FollowRequestService>();
+            services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
+            services.AddTransient<ILivestreamPlaybackService, WowzaLivestreamPlaybackService>();
+            services.AddTransient<ILivestreamPoolService, WowzaLivestreamPoolService>();
+            services.AddTransient<ILivestreamService, WowzaLivestreamService>();
+            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<IReactionService, ReactionService>();
+            services.AddTransient<IReactionUploadService, ReactionUploadService>();
+            services.AddTransient<IStorageService, AMSStorageService>();
+            services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<ITranscodingService, AMSTranscodingService>();
             services.AddTransient<IVlogService, VlogService>();
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
-            services.AddTransient<IReactionService, ReactionService>();
-            services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<ILivestreamService, WowzaLivestreamService>();
-            services.AddTransient<ILivestreamPoolService, WowzaLivestreamPoolService>();
-            services.AddTransient<ILivestreamPlaybackService, WowzaLivestreamPlaybackService>();
-            services.AddTransient<ITokenService, TokenService>();
-            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
-            services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
-            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
+            services.AddTransient<IUserWithStatsService, UserWithStatsService>();
 
             // Configure DI for client services
             services.AddTransient<INotificationClient, NotificationClient>();
