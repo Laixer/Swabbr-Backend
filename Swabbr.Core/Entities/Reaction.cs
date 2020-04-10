@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core.Enums;
+using System;
 
 namespace Swabbr.Core.Entities
 {
@@ -35,9 +36,14 @@ namespace Swabbr.Core.Entities
         public bool IsPrivate { get; set; }
 
         /// <summary>
-        /// Download location for the content of this <see cref="Reaction"/> video.
+        /// Represents the length in seconds for this reaction.
         /// </summary>
-        public Uri DownloadUrl { get; set; }
+        public int LengthInSeconds { get; set; }
+
+        /// <summary>
+        /// Indicates the processing state of this reaction.
+        /// </summary>
+        public ReactionProcessingState ReactionProcessingState { get; set; }
 
     }
 

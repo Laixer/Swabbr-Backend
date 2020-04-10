@@ -50,6 +50,11 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public LivestreamStatus LivestreamStatus { get; set; }
 
+        /// <summary>
+        /// Represents the trigger minute at which this livestream was created.
+        /// </summary>
+        public int UserTriggerMinute { get; set; }
+
     }
 
 }
