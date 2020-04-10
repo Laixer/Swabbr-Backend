@@ -11,7 +11,7 @@ namespace Swabbr.Api.Parsing
     internal static class TimeZoneInfoParser
     {
 
-        internal static string pattern => @"^UTC(\+|-)\d\d:\d\d$";
+        private static string pattern => @"^UTC(\+|-)\d\d:\d\d$";
 
         internal static TimeZoneInfo Parse(string userInput)
         {

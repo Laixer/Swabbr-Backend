@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos.Table;
-using Swabbr.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;

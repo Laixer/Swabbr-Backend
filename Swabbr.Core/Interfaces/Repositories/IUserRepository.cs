@@ -40,6 +40,10 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId);
 
+        Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
+
+        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
+
     }
 
 }

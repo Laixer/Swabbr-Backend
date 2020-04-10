@@ -159,7 +159,6 @@ namespace Swabbr.Api.Controllers
                     user.LastName = input.LastName;
                     user.Nickname = input.Nickname;
                     user.ProfileImageUrl = input.ProfileImageUrl;
-                    user.Timezone = TimeZoneInfoParser.Parse(input.Timezone);
 
                     // Update
                     var updatedUser = await _userRepository.UpdateAsync(user).ConfigureAwait(false);

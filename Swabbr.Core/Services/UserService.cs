@@ -74,6 +74,19 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
+        /// Update the user location.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="longitude"></param>
+        /// <param name="latitude"></param>
+        /// <returns></returns>
+        public Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
+        {
+            userId.ThrowIfNullOrEmpty();
+            return _userRepository.UpdateLocationAsync(userId, longitude, latitude);
+        }
+
+        /// <summary>
         /// Updates the <see cref="UserSettings"/> for a <paramref name="userId"/>.
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
@@ -89,6 +102,18 @@ namespace Swabbr.Core.Services
             return _userRepository.UpdateUserSettingsAsync(userSettings);
         }
 
+        /// <summary>
+        /// Update the user timezone.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="newTimeZone"></param>
+        /// <returns></returns>
+        public Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
+        {
+            userId.ThrowIfNullOrEmpty();
+            if (newTimeZone == null) { throw new ArgumentNullException(nameof(newTimeZone)); }
+            return _userRepository.UpdateTimeZoneAsync(userId, newTimeZone);
+        }
     }
 
 }

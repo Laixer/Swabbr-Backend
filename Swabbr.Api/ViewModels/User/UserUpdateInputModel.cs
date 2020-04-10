@@ -49,13 +49,6 @@ namespace Swabbr.Api.ViewModels.User
         public DateTime BirthDate { get; set; }
 
         /// <summary>
-        /// The specified timezone of the user
-        /// </summary>
-        [JsonProperty("timezone")]
-        //[RegularExpression(@"^UTC(\+|\-)\d{2}:\d{2}$", ErrorMessage = "Timezone must be in format UTC+xx:xx")]
-        public string Timezone { get; set; }
-
-        /// <summary>
         /// Nickname to display for the user.
         /// </summary>
         [Required(AllowEmptyStrings = false)]

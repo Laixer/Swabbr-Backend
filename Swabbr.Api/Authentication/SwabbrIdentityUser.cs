@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using Swabbr.Infrastructure.Data.Entities;
 using System;
 
 namespace Swabbr.Api.Authentication

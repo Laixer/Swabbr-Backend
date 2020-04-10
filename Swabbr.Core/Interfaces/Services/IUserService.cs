@@ -27,6 +27,10 @@ namespace Swabbr.Core.Interfaces.Services
         /// </summary>
         Task<SwabbrUser> UpdateAsync(SwabbrUser user);
 
+        Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
+
+        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
+
         /// <summary>
         /// Get a single user entity by its email address.
         /// </summary>

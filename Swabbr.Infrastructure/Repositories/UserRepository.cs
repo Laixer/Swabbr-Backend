@@ -377,6 +377,64 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Update the user location.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="longitude"></param>
+        /// <param name="latitude"></param>
+        /// <returns></returns>
+        public async Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    UPDATE {TableUser}
+                    SET 
+                        longitude = @Longitude,
+                        latitude = @Latitude
+                    WHERE id = @Id";
+                var pars = new
+                {
+                    Id = userId,
+                    Longitude = longitude,
+                    Latitude = latitude
+                };
+                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
+            }
+        }
+
+        /// <summary>
+        /// Update the user timezone.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="newTimeZone"></param>
+        /// <returns></returns>
+        public async Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    UPDATE {TableUser}
+                    SET timezone = @TimeZone
+                    WHERE id = @Id";
+                var pars = new
+                {
+                    Id = userId,
+                    TimeZone = newTimeZone
+                };
+                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
+            }
+        }
+
+        /// <summary>
         /// Updates <see cref="UserSettings"/> in our database.
         /// </summary>
         /// <param name="entity"><see cref="UserSettings"/></param>

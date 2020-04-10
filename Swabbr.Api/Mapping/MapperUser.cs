@@ -72,8 +72,7 @@ namespace Swabbr.Api.Mapping
                 //Latitude = ??
                 //Longitude = ??
                 Nickname = input.Nickname,
-                ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = TimeZoneInfoParser.Parse(input.Timezone)
+                ProfileImageUrl = input.ProfileImageUrl
             };
         }
 
