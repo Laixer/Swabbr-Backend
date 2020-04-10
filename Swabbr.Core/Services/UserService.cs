@@ -6,6 +6,7 @@ using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
@@ -35,6 +36,15 @@ namespace Swabbr.Core.Services
         public Task<bool> ExistsAsync(Guid userId)
         {
             return _userRepository.UserExistsAsync(userId);
+        }
+
+        /// <summary>
+        /// Gets all vloggable users.
+        /// </summary>
+        /// <returns><see cref="SwabbrUserMinified"/> collection</returns>
+        public Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync()
+        {
+            return _userRepository.GetAllVloggableUserMinifiedAsync();
         }
 
         public Task<SwabbrUser> GetAsync(Guid userId)

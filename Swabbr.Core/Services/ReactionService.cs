@@ -19,16 +19,22 @@ namespace Swabbr.Core.Services
     {
 
         private readonly IReactionRepository _reactionRepository;
+        private readonly IStorageService _storageService;
         private readonly IVlogRepository _vlogRepository;
+        private readonly IUserRepository _userRepository;
 
         /// <summary>
         /// Constructor for dependency injeciton.
         /// </summary>
         public ReactionService(IReactionRepository reactionRepository,
-            IVlogRepository vlogRepository)
+            IStorageService storageService,
+            IVlogRepository vlogRepository,
+            IUserRepository userRepository)
         {
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
+            _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         /// <summary>
@@ -62,10 +68,14 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
         /// <returns><see cref="Reaction"/></returns>
-        public Task<Reaction> GetReactionAsync(Guid reactionId)
+        public async Task<ReactionWithDownload> GetReactionAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
-            return _reactionRepository.GetAsync(reactionId);
+            var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
+            var result = (ReactionWithDownload)reaction;
+            result.VideoAccessUri = await _storageService.GetDownloadAccessUriForReactionVideoAsync(reactionId).ConfigureAwait(false);
+            result.ThumbnailAccessUri = await _storageService.GetDownloadAccessUriForReactionThumbnailAsync(reactionId).ConfigureAwait(false);
+            return result;
         }
 
         /// <summary>
@@ -138,6 +148,26 @@ namespace Swabbr.Core.Services
                 reaction = await _reactionRepository.UpdateAsync(reaction).ConfigureAwait(false);
                 scope.Complete();
                 return reaction;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="SwabbrUser"/> owner of a <see cref="Vlog"/> to
+        /// which a given <see cref="Reaction"/> was placed.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="SwabbrUser"/></returns>
+        public async Task<SwabbrUser> GetOwnerOfVlogByReactionAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // TODO This could be a single query, but in this way we have clearer error checking.
+                var vlog = await _vlogRepository.GetVlogFromReactionAsync(reactionId).ConfigureAwait(false);
+                var user = await _userRepository.GetUserFromVlogAsync(vlog.Id).ConfigureAwait(false);
+                scope.Complete();
+                return user;
             }
         }
 

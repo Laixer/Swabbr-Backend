@@ -1,7 +1,6 @@
 ﻿using Laixer.Utility.Extensions;
 using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
@@ -10,8 +9,8 @@ using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Utility;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
@@ -23,6 +22,8 @@ namespace Swabbr.Core.Services
     {
 
         private readonly IUserRepository _userRepository;
+        private readonly IVlogRepository _vlogRepository;
+        private readonly IReactionService _reactionService;
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly ILivestreamService _livestreamingService;
         private readonly INotificationClient _notificationClient;
@@ -33,6 +34,8 @@ namespace Swabbr.Core.Services
         /// Constructor for dependency injection.
         /// </summary>
         public NotificationService(IUserRepository userRepository,
+            IVlogRepository vlogRepository,
+            IReactionService reactionService,
             ILivestreamRepository livestreamRepository,
             ILivestreamService livestreamingService,
             INotificationClient notificationClient,
@@ -40,6 +43,8 @@ namespace Swabbr.Core.Services
             ILoggerFactory loggerFactory)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
+            _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
@@ -96,35 +101,17 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        /// DEBUG FUNCTION
-        /// </summary>
-        public async Task TestNotifationAsync(Guid userId, string message)
-        {
-            userId.ThrowIfNullOrEmpty();
-            message.ThrowIfNullOrEmpty();
-            var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
-            if (!registrations.Any()) { throw new DeviceNotRegisteredException(); }
-            await _notificationClient.SendNotificationAsync(userId, PushNotificationPlatform.FCM,
-                new SwabbrNotification(NotificationAction.VlogRecordRequest)
-                {
-                    Body = "This is my body",
-                    CreatedAt = DateTimeOffset.Now,
-                    Title = message,
-                }).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Sends a notification to a <see cref="SwabbrUser"/> when we have decided
         /// that the user should start streaming.
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/>id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task VlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
+        public async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
         {
             try
             {
-                logger.LogTrace($"{nameof(VlogRecordRequestAsync)} - Attempting vlog record request for livestream {livestreamId} to user {userId}");
+                logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request for livestream {livestreamId} to user {userId}");
                 userId.ThrowIfNullOrEmpty();
                 livestreamId.ThrowIfNullOrEmpty();
                 pars.Validate();
@@ -140,14 +127,68 @@ namespace Swabbr.Core.Services
 
                 var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
                 await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
-                logger.LogTrace($"{nameof(VlogRecordRequestAsync)} - Completed vlog record request for livestream {livestreamId} to user {userId}");
+                logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request for livestream {livestreamId} to user {userId}");
             }
             catch (Exception e)
             {
-                logger.LogError($"{nameof(VlogRecordRequestAsync)} - Exception in method ", e.Message);
+                logger.LogError($"{nameof(NotifyVlogRecordRequestAsync)} - Exception in method ", e.Message);
                 throw;
             }
         }
+
+        public Task NotifyVlogRecordTimeoutAsync(Guid userId)
+        {
+            logger.LogError($"Implement {nameof(NotifyVlogRecordTimeoutAsync)} - called for user {userId}");
+            throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
+        }
+
+        /// <summary>
+        /// Notifies the owner of the vlog to which a reaction is placed that
+        /// a reaction was placed.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task NotifyReactionPlacedAsync(Guid reactionId)
+        {
+            try
+            {
+                logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
+
+                reactionId.ThrowIfNullOrEmpty();
+
+                // TODO Is this the right way to do this? Maybe some other service should handle the details extraction
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var vlog = await _vlogRepository.GetVlogFromReactionAsync(reactionId).ConfigureAwait(false);
+                    var user = await _userRepository.GetUserFromVlogAsync(vlog.Id).ConfigureAwait(false);
+                    var userPushDetails = await _userRepository.GetPushDetailsAsync(user.Id).ConfigureAwait(false);
+
+                    var pars = new ParametersVlogNewReaction
+                    {
+                        ReactionId = reactionId,
+                        VlogId = vlog.Id
+                    };
+                    var notification = new SwabbrNotification(NotificationAction.VlogNewReaction)
+                    {
+                        Body = "TODO CENTRALIZE A livestream is ready to stream whatever you want!",
+                        Title = "TODO CENTRALIZE Time to record a vlog!",
+                        Pars = pars
+                    };
+
+                    await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
+
+                    scope.Complete();
+                }
+
+                logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(NotifyReactionPlacedAsync)} - Exception in method ", e.Message);
+                throw;
+            }
+        }
+
     }
 
 }
