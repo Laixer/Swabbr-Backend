@@ -10,7 +10,7 @@
         /// <summary>
         /// The name of the connection string in the IConfigurations file.
         /// </summary>
-        public string ConnectionStringName { get; set; }
+        public string ConnectionString { get; set; }
 
     }
 

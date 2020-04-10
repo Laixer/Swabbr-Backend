@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using System;
+using System.Configuration;
 using System.Data;
 
 namespace Laixer.Infra.Npgsql
@@ -22,15 +23,10 @@ namespace Laixer.Infra.Npgsql
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public NpgsqlDatabaseProvider(IOptions<NpgsqlDatabaseProviderOptions> options,
-            IConfiguration configuration, ILoggerFactory loggerFactory)
+        public NpgsqlDatabaseProvider(IOptions<NpgsqlDatabaseProviderOptions> options)
         {
-            if (configuration == null) { throw new ArgumentNullException(nameof(configuration)); }
-            if (options.Value == null) { throw new ArgumentNullException(nameof(options.Value)); }
-            if (string.IsNullOrEmpty(options.Value.ConnectionStringName)) { throw new InvalidOperationException(nameof(options.Value.ConnectionStringName)); }
-
-            connectionString = configuration.GetConnectionString(options.Value.ConnectionStringName);
-            if (string.IsNullOrEmpty(connectionString)) { throw new InvalidOperationException($"IConfiguration does not contain Npgsql connection string with name {options.Value.ConnectionStringName}"); }
+            if (options == null) { throw new ArgumentNullException(nameof(options)); }
+            connectionString = options.Value.ConnectionString ?? throw new ConfigurationException("Missing Npgsql connection string");
         }
 
         /// <summary>
