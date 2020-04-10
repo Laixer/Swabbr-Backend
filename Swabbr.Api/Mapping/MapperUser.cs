@@ -1,4 +1,5 @@
 ﻿using Laixer.Utility.Extensions;
+using Swabbr.Api.Parsing;
 using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
@@ -28,7 +29,7 @@ namespace Swabbr.Api.Mapping
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
                 ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = input.Timezone,
+                Timezone = input.Timezone.ToString(),
                 TotalFollowers = input.TotalFollowers,
                 TotalFollowing = input.TotalFollowing,
                 TotalVlogs = input.TotalVlogs
@@ -50,7 +51,7 @@ namespace Swabbr.Api.Mapping
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
                 ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = input.Timezone
+                Timezone = input.Timezone.ToString()
             };
         }
 
@@ -72,7 +73,7 @@ namespace Swabbr.Api.Mapping
                 //Longitude = ??
                 Nickname = input.Nickname,
                 ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = input.Timezone
+                Timezone = TimeZoneInfoParser.Parse(input.Timezone)
             };
         }
 
@@ -88,7 +89,7 @@ namespace Swabbr.Api.Mapping
             };
         }
 
-        internal static UserStatisticsOutputModel Map (UserStatistics userStatistics)
+        internal static UserStatisticsOutputModel Map(UserStatistics userStatistics)
         {
             if (userStatistics == null) { throw new ArgumentNullException(nameof(userStatistics)); }
             return new UserStatisticsOutputModel
