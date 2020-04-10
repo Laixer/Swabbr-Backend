@@ -22,17 +22,20 @@ namespace Swabbr.Core.Services
         private readonly IVlogRepository _vlogRepository;
         private readonly IVlogLikeRepository _vlogLikeRepository;
         private readonly IUserRepository _userRepository;
+        private readonly INotificationService _notificationService;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public VlogService(IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            INotificationService notificationService)
         {
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         /// <summary>
@@ -100,9 +103,9 @@ namespace Swabbr.Core.Services
             vlogId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
+            var vlogLikeId = new VlogLikeId { VlogId = vlogId, UserId = userId };
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var vlogLikeId = new VlogLikeId { VlogId = vlogId, UserId = userId };
                 if (await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new OperationAlreadyExecutedException("User already liked given vlog"); }
                 if ((await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false)).UserId == userId) { throw new NotAllowedException("Can't like your own vlog"); }
 
@@ -110,9 +113,11 @@ namespace Swabbr.Core.Services
                 {
                     Id = vlogLikeId
                 }).ConfigureAwait(false);
-                 
+
                 scope.Complete();
             }
+
+            await _notificationService.NotificationVlogLikedAsync(vlogLikeId).ConfigureAwait(false);
         }
 
         /// <summary>

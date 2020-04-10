@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Types;
 using System;
 using System.Threading.Tasks;
 
@@ -18,6 +19,8 @@ namespace Swabbr.Core.Interfaces.Services
         Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars);
 
         Task NotifyReactionPlacedAsync(Guid reactionId);
+
+        Task NotificationVlogLikedAsync(VlogLikeId vlogLikeId);
 
     }
 
