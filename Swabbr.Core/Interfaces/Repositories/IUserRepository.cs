@@ -36,6 +36,10 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<IEnumerable<SwabbrUser>> GetVlogRequestableUsersAsync(DateTimeOffset from, TimeSpan timeSpan);
 
+        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
+
+        Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId);
+
     }
 
 }

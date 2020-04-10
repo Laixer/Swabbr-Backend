@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
@@ -34,6 +35,8 @@ namespace Swabbr.Core.Interfaces.Services
         Task<UserSettings> GetSettingsAsync(Guid userId);
 
         Task UpdateSettingsAsync(UserSettings userSettings);
+
+        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
 
     }
 

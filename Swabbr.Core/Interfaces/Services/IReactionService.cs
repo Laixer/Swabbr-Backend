@@ -12,7 +12,7 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IReactionService
     {
 
-        Task<Reaction> GetReactionAsync(Guid reactionId);
+        Task<ReactionWithDownload> GetReactionAsync(Guid reactionId);
 
         // TODO This needs to incorperate the actual file sending as well!
         Task<Reaction> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate);
@@ -24,6 +24,8 @@ namespace Swabbr.Core.Interfaces.Services
         Task<int> GetReactionCountForVlogAsync(Guid vlogId);
 
         Task DeleteReactionAsync(Guid userId, Guid reactionId);
+
+        Task<SwabbrUser> GetOwnerOfVlogByReactionAsync(Guid reactionId);
 
     }
 

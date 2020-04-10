@@ -12,6 +12,8 @@ namespace Swabbr.Core.Interfaces.Repositories
     public interface IRequestRepository : ICudFunctionality<Request, Guid>
     {
 
+        Task<bool> ExistsAsync(Guid requestId);
+
         Task<RequestRecordVlog> GetAsync(Guid requestId);
 
         Task<Request> MarkAsync(Guid requestId, RequestState state);

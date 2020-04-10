@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<IEnumerable<Reaction>> GetForVlogAsync(Guid vlogId);
 
         Task<int> GetReactionCountForVlogAsync(Guid vlogId);
+
+        Task UpdateStatusAsync(Guid id, ReactionProcessingState state);
 
     }
 

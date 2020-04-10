@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
+
     /// <summary>
     /// Repository for Vlog entities.
     /// </summary>
     public interface IVlogRepository : IRepository<Vlog, Guid>, ICudFunctionality<Vlog, Guid>
     {
+
         /// <summary>
         /// Returns a collection of vlogs that are owned by the specified user.
         /// </summary>
@@ -45,7 +47,10 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId);
 
+        Task<Vlog> GetVlogFromReactionAsync(Guid reactionId);
+
         Task<IEnumerable<Vlog>> GetMostRecentVlogsForUserAsync(Guid userId, uint maxCount);
 
     }
+
 }

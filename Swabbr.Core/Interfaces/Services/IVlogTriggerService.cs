@@ -11,14 +11,13 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IVlogTriggerService
     {
 
-        /// <summary>
-        /// Called when a user is selected by our algorithm to start vlogging.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        Task ProcessVlogTriggerForUserAsync(Guid userId);
+        Task ProcessVlogTriggersAsync(DateTimeOffset time);
 
-        Task ProcessVlogTriggerTimoutAsync(Guid userId);
+        Task ProcessVlogTriggerForUserAsync(Guid userId, DateTimeOffset triggerMinute);
+
+        Task ProcessVlogTimeoutsAsync(DateTimeOffset time);
+
+        Task ProcessVlogTimeoutForUserAsync(Guid userId, DateTimeOffset triggerMinute);
 
     }
 

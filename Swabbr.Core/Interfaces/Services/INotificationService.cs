@@ -11,11 +11,13 @@ namespace Swabbr.Core.Interfaces.Services
     public interface INotificationService
     {
 
-        Task TestNotifationAsync(Guid userId, string message);
+        Task NotifyVlogRecordRequestAsync(Guid userId, Guid livesteamId, ParametersRecordVlog pars);
 
-        Task VlogRecordRequestAsync(Guid userId, Guid livesteamId, ParametersRecordVlog pars);
+        Task NotifyVlogRecordTimeoutAsync(Guid userId);
 
         Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars);
+
+        Task NotifyReactionPlacedAsync(Guid reactionId);
 
     }
 

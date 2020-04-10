@@ -12,13 +12,15 @@ namespace Swabbr.Core.Interfaces.Services
     public interface ILivestreamService
     {
 
-        Task<Livestream> TryStartLivestreamForUserAsync(Guid userId);
+        Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
+
+        Task<Livestream> TryStartLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute);
 
         Task OnUserStartStreamingAsync(Guid livestreamId, Guid userId);
 
         Task OnUserStopStreamingAsync(Guid livestreamId, Guid userId);
 
-        Task AbortLivestreamAsync(Guid livestreamId);
+        Task ProcessTimeoutAsync(Guid userId, Guid livestreamId);
 
         Task<bool> IsLivestreamValidForFollowersAsync(Guid livestreamId, Guid userId);
 
