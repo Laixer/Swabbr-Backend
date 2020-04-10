@@ -56,9 +56,10 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// </remarks>
         /// <param name="userId">Internal user id</param>
         /// <returns><see cref="Livestream"/></returns>
-        public async Task<Livestream> TryStartLivestreamForUserAsync(Guid userId)
+        public async Task<Livestream> TryStartLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute)
         {
             userId.ThrowIfNullOrEmpty();
+            if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
 
             // TODO Determine broadcast location based on user location?
             try
@@ -67,7 +68,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
 
                 // Now start the livestream, update status afterwards.
                 await _wowzaHttpClient.StartLivestreamAsync(livestream.ExternalId).ConfigureAwait(false);
-                await _livestreamRepository.MarkPendingUserAsync(livestream.Id, userId).ConfigureAwait(false);
+                await _livestreamRepository.MarkPendingUserAsync(livestream.Id, userId, triggerMinute).ConfigureAwait(false);
 
                 return livestream;
             }
@@ -239,7 +240,8 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// are null, empty or invalid.
         /// </summary>
         /// <param name="wscLivestreamResponse"><see cref="WscLivestreamResponse"/></param>
-        private void ValidateWscLivestream(WscLivestreamResponse wscLivestreamResponse) {
+        private void ValidateWscLivestream(WscLivestreamResponse wscLivestreamResponse)
+        {
             if (wscLivestreamResponse == null) { throw new ArgumentNullException(nameof(wscLivestreamResponse)); }
             if (wscLivestreamResponse.Livestream == null) { throw new ArgumentNullException(nameof(wscLivestreamResponse.Livestream)); }
             if (wscLivestreamResponse.Livestream.Id == null) { throw new ArgumentNullException(nameof(wscLivestreamResponse.Livestream.Id)); }
@@ -253,6 +255,45 @@ namespace Swabbr.WowzaStreamingCloud.Services
             connection.Username.ThrowIfNullOrEmpty();
         }
 
+        /// <summary>
+        /// Gets a livestream based on a trigger minute.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="triggerMinute"><see cref="DateTimeOffset"/></param>
+        /// <returns><see cref="Livestream"/></returns>
+        public Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute)
+        {
+            return _livestreamRepository.GetLivestreamFromTriggerMinute(userId, triggerMinute);
+        }
+
+        /// <summary>
+        /// Closes a livestream.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task ProcessTimeoutAsync(Guid userId, Guid livestreamId)
+        {
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                if (livestream.LivestreamStatus != LivestreamStatus.UserNoResponseTimeout) { throw new InvalidOperationException("Livestream status is not set to timeout!"); }
+                if (livestream.UserId != userId) { throw new UserNotOwnerException(); }
+
+                // First mark
+                await _livestreamRepository.UpdateLivestreamStatusAsync(livestreamId, LivestreamStatus.UserNoResponseTimeout).ConfigureAwait(false);
+
+                // Then stop
+                await _wowzaHttpClient.StopLivestreamAsync(livestream.ExternalId).ConfigureAwait(false);
+
+                // TODO What else?
+
+                scope.Complete();
+            }
+        }
     }
 
 }
