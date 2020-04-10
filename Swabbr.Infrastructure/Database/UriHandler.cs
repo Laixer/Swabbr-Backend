@@ -7,9 +7,8 @@ namespace Swabbr.Infrastructure.Database
 
     /// <summary>
     /// Implements custom type handling functionality for Dapper regarding <see cref="Uri"/> objects.
-    /// TODO This should NOTTTTT BE IN HERE!
     /// </summary>
-    public class UriHandler : SqlMapper.TypeHandler<Uri>
+    public sealed class UriHandler : SqlMapper.TypeHandler<Uri>
     {
 
         public override Uri Parse(object value)

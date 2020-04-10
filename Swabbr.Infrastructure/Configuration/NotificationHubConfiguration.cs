@@ -8,9 +8,9 @@
     {
 
         /// <summary>
-        /// Name of the connection string in the ConnectionString section in our configuration file.
+        /// Connection string.
         /// </summary>
-        public string ConnectionStringName { get; set; }
+        public string ConnectionString { get; set; }
 
         /// <summary>
         /// Name of the Hub in ANH.

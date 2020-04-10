@@ -63,6 +63,17 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Checks if a given <see cref="Request"/> exists in our database.
+        /// </summary>
+        /// <param name="requestId">Internal <see cref="Request"/> id</param>
+        /// <returns>Bool result</returns>
+        public Task<bool> ExistsAsync(Guid requestId)
+        {
+            requestId.ThrowIfNullOrEmpty();
+            return SharedRepositoryFunctions.ExistsAsync(_databaseProvider, TableRequest, requestId);
+        }
+
+        /// <summary>
         /// Gets a single <see cref="RequestRecordVlog"/> from our database.
         /// </summary>
         /// <param name="id">Internal <see cref="Request"/> id</param>

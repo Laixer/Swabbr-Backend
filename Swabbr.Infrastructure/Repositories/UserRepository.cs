@@ -52,6 +52,29 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Gets all <see cref="SwabbrUserMinified"/> from the database.
+        /// </summary>
+        /// <remarks>
+        /// This ignores all users that have <see cref="SwabbrUser.DailyVlogRequestLimit"/>
+        /// set to 0.
+        /// </remarks>
+        /// <returns><see cref="SwabbrUserMinified"/> colletion</returns>
+        public async Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync()
+        {
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT 
+                        id, 
+                        daily_vlog_request_limit AS DailyVlogRequestLimit,
+                        timezone
+                    FROM {TableUser} 
+                    WHERE daily_vlog_request_limit > 0";
+                return await connection.QueryAsync<SwabbrUserMinified>(sql).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Gets a single <see cref="SwabbrUser"/> from the database based on its internal id.
         /// </summary>
         /// <remarks>
@@ -185,10 +208,37 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT * FROM {ViewUserPushNotificationDetails} WHERE user_id = @UserId";
+                // TODO Mapping doesn't work for some reason
+                var sql = $"SELECT push_notification_platform AS PushNotificationPlatform, user_id as UserId FROM {ViewUserPushNotificationDetails} WHERE user_id = @UserId";
                 var result = await connection.QueryAsync<UserPushNotificationDetails>(sql, new { UserId = userId }).ConfigureAwait(false);
                 if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
                 if (result.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); } // TODO Is this correct?
+                return result.First();
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="SwabbrUser"/> to which a given <see cref="Vlog"/>
+        /// belongs.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="SwabbrUser"/></returns>
+        public async Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT u.* 
+                    FROM {TableVlog} AS v
+                    JOIN {TableUser} AS u
+                    ON v.user_id = u.id
+                    WHERE v.id = @VlogId
+                    FOR UPDATE";
+                var result = await connection.QueryAsync<SwabbrUser>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
                 return result.First();
             }
         }

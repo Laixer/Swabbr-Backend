@@ -14,6 +14,7 @@ using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -33,7 +34,6 @@ namespace Swabbr.Infrastructure.Notifications
     public class NotificationClient : INotificationClient
     {
 
-        private readonly NotificationHubConfiguration _hubConfiguration;
         private readonly NotificationHubClient _hubClient;
         private readonly INotificationJsonExtractor _notificationJsonExtractor;
         private readonly ILogger logger;
@@ -42,21 +42,14 @@ namespace Swabbr.Infrastructure.Notifications
         /// Constructor for dependency injection.
         /// </summary>
         public NotificationClient(IOptions<NotificationHubConfiguration> options,
-            IConfiguration configuration,
             ILoggerFactory loggerFactory,
             INotificationJsonExtractor notificationJsonExtractor)
         {
-            if (options == null) { throw new ArgumentNullException(nameof(options)); }
-            if (options.Value == null) { throw new ArgumentNullException(nameof(options)); }
-            if (options.Value.ConnectionStringName.IsNullOrEmpty()) { throw new ConfigurationException("ANH Connection string name is not specified"); }
-            if (options.Value.HubName.IsNullOrEmpty()) { throw new ConfigurationException("ANH hub name is not specified"); }
-            _hubConfiguration = options.Value;
+            if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
+            if (options.Value.ConnectionString.IsNullOrEmpty()) { throw new Laixer.Utility.Exceptions.ConfigurationException("ANH Connection string is not specified"); }
+            if (options.Value.HubName.IsNullOrEmpty()) { throw new Laixer.Utility.Exceptions.ConfigurationException("ANH hub name is not specified"); }
 
-            var connectionString = configuration.GetConnectionString(options.Value.ConnectionStringName);
-            if (connectionString.IsNullOrEmpty()) { throw new InvalidOperationException($"IConfiguration does not contain ANH connection string with name {options.Value.ConnectionStringName}"); }
-
-
-            _hubClient = NotificationHubClient.CreateClientFromConnectionString(connectionString, _hubConfiguration.HubName);
+            _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationClient)) : throw new ArgumentNullException(nameof(loggerFactory));
             _notificationJsonExtractor = notificationJsonExtractor ?? throw new ArgumentNullException(nameof(notificationJsonExtractor));
         }

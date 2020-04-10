@@ -170,8 +170,33 @@ namespace Swabbr.Infrastructure.Repositories
                 var sql = $"SELECT * FROM public.vlog WHERE livestream_id = @Id";
                 var pars = new { Id = livestreamId };
                 var result = await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntryPointNotFoundException(); }
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
                 if (result.Count() > 1) { throw new InvalidOperationException("Found multiple result for single get"); }
+                return result.First();
+            }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="Vlog"/> based on a <see cref="Reaction"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Vlog"/></returns>
+        public async Task<Vlog> GetVlogFromReactionAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT v.* 
+                    FROM {TableReaction} AS r
+                    JOIN {TableVlog} AS v
+                    ON r.target_vlog_id = v.id
+                    WHERE r.id = @ReactionId
+                    FOR UPDATE";
+                var result = await connection.QueryAsync<Vlog>(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
                 return result.First();
             }
         }

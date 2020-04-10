@@ -6,6 +6,7 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Utility;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,8 +42,20 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                // TODO For some weird reason dapper doesn't map ExternalId...
-                var sql = $"SELECT *, external_id AS ExternalId FROM {TableLivestream} WHERE id = @Id FOR UPDATE";
+                // TODO For some weird reason dapper broke
+                var sql = $@"
+                    SELECT 
+                        id AS Id, 
+                        broadcast_location AS BroadcastLocation,
+                        create_date AS CreateDate,
+                        name AS Name,
+                        update_date AS UpdateDate,
+                        user_id AS UserId, 
+                        external_id AS ExternalId,
+                        livestream_status AS LivestreamStatus,
+                        user_trigger_minute AS UserTriggerMinute
+                    FROM {TableLivestream} 
+                    WHERE id = @Id FOR UPDATE";
                 var result = await connection.QueryAsync<Livestream>(sql, new { Id = id }).ConfigureAwait(false);
 
                 if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
@@ -64,18 +77,23 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                // TODO Skipping user id and vlog id --> might be bug-sensitive
+                // TODO Skipping vlog id --> might be bug-sensitive
+                // TODO This inserts null as the user minute and user id explicitly. Might be bug-sensitive
                 var sql = $@"
                     INSERT INTO {TableLivestream} (
                         broadcast_location,
                         create_date,
                         external_id,
-                        name
+                        name,
+                        user_id,
+                        user_trigger_minute
                     ) VALUES (
                         @BroadcastLocation,
                         @CreateDate,
                         @ExternalId,
-                        @Name
+                        @Name,
+                        null,
+                        null
                     ) RETURNING id";
                 var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
                 id.ThrowIfNullOrEmpty();
@@ -138,20 +156,16 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task UpdateLivestreamStatusAsync(Guid id, LivestreamStatus status)
         {
             id.ThrowIfNullOrEmpty();
-            if (status == LivestreamStatus.PendingUser) { throw new InvalidOperationException($"Use {nameof(MarkPendingUserAsync)} instead"); }
+            if (status == LivestreamStatus.PendingUser) { throw new InvalidOperationException($"Use {nameof(MarkPendingUserAsync)} instead for {status.GetEnumMemberAttribute()}"); }
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                // TODO This is unsafe because we cast to NpgsqlConnection!
-                connection.Open();
-                var sql = $"UPDATE {TableLivestream} SET livestream_status = @Status WHERE id = @Id";
-                using (var command = new NpgsqlCommand(sql, connection as NpgsqlConnection))
-                {
-                    command.Parameters.AddWithValue("Id", id);
-                    command.Parameters.AddWithValue("Status", status);
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
-
+                // TODO SQL injection
+                var sql = $"UPDATE {TableLivestream} SET livestream_status = '{status.GetEnumMemberAttribute()}' WHERE id = @Id";
+                var pars = new { Id = id};
+                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+                if (rowsAffected == 0) { throw new EntityNotFoundException(); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
             }
         }
 
@@ -161,21 +175,55 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task MarkPendingUserAsync(Guid livestreamId, Guid userId)
+        public async Task MarkPendingUserAsync(Guid livestreamId, Guid userId, DateTimeOffset triggerMinute)
         {
             livestreamId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
+            if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 var sql = $@"
                     UPDATE {TableLivestream} SET
                         user_id = @UserId,
-                        livestream_status = '{LivestreamStatus.PendingUser.GetEnumMemberAttribute()}'    
+                        livestream_status = '{LivestreamStatus.PendingUser.GetEnumMemberAttribute()}',
+                        user_trigger_minute = @UserTriggerMinute
                     WHERE id = @Id";
-                await connection.ExecuteAsync(sql, new { Id = livestreamId, UserId = userId }).ConfigureAwait(false);
+                var pars = new { Id = livestreamId, UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes()};
+                await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
             }
         }
+
+        /// <summary>
+        /// Gets a livestream based on a trigger minute.
+        /// </summary>
+        /// <remarks>
+        /// TODO For some reason the dapper mapping does not work at all for this livestream, hence the call to <see cref="GetAsync(Guid)"/>.
+        /// </remarks>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="triggerMinute"><see cref="DateTimeOffset"/></param>
+        /// <returns><see cref="Livestream"/></returns>
+        public async Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute)
+        {
+            userId.ThrowIfNullOrEmpty();
+            if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT id FROM {TableLivestream}
+                    WHERE user_id = @UserId
+                    AND user_trigger_minute = @UserTriggerMinute";
+                // TODO FOR UPDATE
+                var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
+                var result = await connection.QueryAsync<Guid>(sql, pars).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
+                var actual = await GetAsync(result.First()).ConfigureAwait(false);
+                return actual;
+            }
+        }
+
     }
 
 }

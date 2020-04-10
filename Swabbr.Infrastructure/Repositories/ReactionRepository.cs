@@ -2,11 +2,13 @@
 using Laixer.Infra.Npgsql;
 using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
@@ -40,6 +42,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
+                // State is done automatically
                 var sql = $@"
                     INSERT INTO {TableReaction} (
                         is_private,
@@ -113,6 +116,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Updates a <see cref="Reaction"/> in our database.
         /// </summary>
+        /// <remarks>
+        /// This can't update the <see cref="Reaction.ReactionProcessingState"/>.
+        /// </remarks>
         /// <param name="entity"><see cref="Reaction"/></param>
         /// <returns>Updated and queried <see cref="Reaction"/></returns>
         public async Task<Reaction> UpdateAsync(Reaction entity)
@@ -131,6 +137,28 @@ namespace Swabbr.Infrastructure.Repositories
                 if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple items on single get"); }
 
                 return await GetAsync(entity.Id).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Updates the <see cref="ReactionProcessingState"/> of a <see cref="Reaction"/>.
+        /// </summary>
+        /// <param name="state">New <see cref="ReactionProcessingState"/></param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task UpdateStatusAsync(Guid id, ReactionProcessingState state)
+        {
+            id.ThrowIfNullOrEmpty();
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                // TODO SQL injection
+                var sql = $@"
+                    UPDATE {TableReaction} 
+                    SET reaction_processing_state = '{state.GetEnumMemberAttribute()}'
+                    WHERE id = @Id";
+                var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
+                if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Reaction)); }
+                if (rowsAffected < 0) { throw new InvalidOperationException(nameof(rowsAffected)); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
             }
         }
     }
