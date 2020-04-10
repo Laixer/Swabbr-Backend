@@ -7,6 +7,7 @@ using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
+using Swabbr.Api.Parsing;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
@@ -159,6 +160,7 @@ namespace Swabbr.Api.Controllers
                     user.Nickname = input.Nickname;
                     user.ProfileImageUrl = input.ProfileImageUrl;
                     user.Timezone = input.Timezone;
+                    user.Timezone = TimeZoneInfoParser.Parse(input.Timezone);
 
                     // Update
                     var updatedUser = await _userRepository.UpdateAsync(user).ConfigureAwait(false);
