@@ -126,9 +126,9 @@ namespace Swabbr
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
-            services.AddTransient<ILivestreamPlaybackService, WowzaLivestreamPlaybackService>();
-            services.AddTransient<ILivestreamPoolService, WowzaLivestreamPoolService>();
-            services.AddTransient<ILivestreamService, WowzaLivestreamService>();
+            services.AddTransient<ILivestreamPlaybackService, AMSLivestreamPlaybackService>();
+            services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
+            services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<IReactionService, ReactionService>();
             services.AddTransient<IReactionUploadService, ReactionUploadService>();
@@ -144,6 +144,9 @@ namespace Swabbr
             // Configure DI for client services
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
+
+            // TODO Debug remove
+            services.AddTransient<AMSDebugService>();
 
             // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
