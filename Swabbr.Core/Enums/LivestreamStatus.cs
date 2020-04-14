@@ -13,22 +13,25 @@ namespace Swabbr.Core.Enums
         /// <summary>
         /// The livestream is created, but that's all.
         /// </summary>
+        [EnumMember(Value = "created_internal")]
+        CreatedInternal,
+
+        /// <summary>
+        /// The livestream is created, but that's all.
+        /// </summary>
         [EnumMember(Value = "created")]
-        [PgName("created")]
         Created,
 
         /// <summary>
         /// The user was notified and we are waiting for the user to respond.
         /// </summary>
         [EnumMember(Value = "pending_user")]
-        [PgName("pending_user")]
         PendingUser,
 
         /// <summary>
         /// The user is streaming.
         /// </summary>
         [EnumMember(Value = "live")]
-        [PgName("live")]
         Live,
 
         /// <summary>
@@ -36,7 +39,6 @@ namespace Swabbr.Core.Enums
         /// to close the stream.
         /// </summary>
         [EnumMember(Value = "pending_closure")]
-        [PgName("pending_closure")]
         PendingClosure,
 
         /// <summary>
@@ -50,7 +52,6 @@ namespace Swabbr.Core.Enums
         /// The user never responded.
         /// </summary>
         [EnumMember(Value = "user_no_response_timeout")]
-        [PgName("user_no_response_timeout")]
         UserNoResponseTimeout,
 
     }
