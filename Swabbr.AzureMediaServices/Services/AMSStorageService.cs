@@ -74,7 +74,7 @@ namespace Swabbr.AzureMediaServices.Services
             // Then delete the job as well
             // TODO Do we want this?
             var jobName = AMSNameGenerator.JobName(reactionId);
-            var transformName = AMSNameGenerator.TransformName;
+            var transformName = AMSNameGenerator.ReactionTransformName;
             var jobResponse = await amsClient.Jobs.DeleteWithHttpMessagesAsync(config.ResourceGroup, config.AccountName, transformName, jobName).ConfigureAwait(false);
             switch (jobResponse.Response.StatusCode)
             {

@@ -10,6 +10,16 @@ namespace Swabbr.AzureMediaServices.Utility
     internal static class AMSNameGenerator
     {
 
+        internal static string LivestreamTransformName => "SwabbrLivestreamTransform";
+
+        internal static string LivestreamTransformDescription => "Transform used for Swabbr Livestreams";
+
+        internal static string ReactionTransformName => "SwabbrReactionTransform";
+
+        internal static string ReactionTransformDescription => "Transform used for Swabbr Reactions";
+
+        internal static string LivestreamDefaultName => "Swabbr Livestream";
+
         internal static string InputAssetName(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
@@ -22,13 +32,22 @@ namespace Swabbr.AzureMediaServices.Utility
             return $"reaction-output-{reactionId}";
         }
 
+        internal static string LiveEventName()
+        {
+            return $"live-event-{GenerateRandomId()}";
+        }
+
+        internal static string StreamingLocatorName(Guid livestreamId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            return $"streaming-locator-{livestreamId}";
+        }
+
         internal static string JobName(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
             return $"reaction-job-{reactionId}";
         }
-
-        internal static string TransformName => "MyDebugTransform";
 
         internal static string VideoFileName(Guid reactionId)
         {
@@ -49,6 +68,13 @@ namespace Swabbr.AzureMediaServices.Utility
         }
 
         internal static string OutputContainerMetadataFileNameRegex => @"^.+_metadata\.json$";
+
+        private static string GenerateRandomId()
+        {
+            return Nanoid.Nanoid.Generate(
+                alphabet: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                size: 15);
+        }
 
     }
 

@@ -86,8 +86,12 @@ namespace Swabbr.AzureMediaServices.Services
             var assetOutputName = AMSNameGenerator.OutputAssetName(reactionId);
             var assetOutput = await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, assetOutputName, new Asset(container: assetOutputName)).ConfigureAwait(false);
 
+            // TODO Maybe we can name the metadata file? Would be great!
+            // Apparently the asset can just return the metadata
+            // https://stackoverflow.com/questions/29296205/how-to-get-the-duration-of-a-video-from-the-azure-media-services
+
             // Get the transform
-            var transformName = AMSNameGenerator.TransformName;
+            var transformName = AMSNameGenerator.ReactionTransformName;
             await EnsureTransformAsync(amsClient, transformName).ConfigureAwait(false);
 
             // Create a new job
@@ -242,8 +246,7 @@ namespace Swabbr.AzureMediaServices.Services
                 )
             };
 
-            string description = "Swabbr debug transform";
-            await amsClient.Transforms.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, transformName, outputs, description);
+            await amsClient.Transforms.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, transformName, outputs, AMSNameGenerator.ReactionTransformDescription);
         }
 
     }
