@@ -1,4 +1,6 @@
-﻿namespace Swabbr.Api.ViewModels.Enums
+﻿using System.Runtime.Serialization;
+
+namespace Swabbr.Api.ViewModels.Enums
 {
 
     /// <summary>
@@ -10,16 +12,19 @@
         /// <summary>
         /// The follow request is waiting for approval.
         /// </summary>
+        [EnumMember(Value = "pending")]
         Pending,
 
         /// <summary>
         /// The follow request has been accepted.
         /// </summary>
+        [EnumMember(Value = "accepted")]
         Accepted,
 
         /// <summary>
         /// The follow request has been declined.
         /// </summary>
+        [EnumMember(Value = "declined")]
         Declined
 
     }

@@ -1,4 +1,6 @@
-﻿namespace Swabbr.Api.ViewModels.Enums
+﻿using System.Runtime.Serialization;
+
+namespace Swabbr.Api.ViewModels.Enums
 {
 
     /// <summary>
@@ -10,11 +12,13 @@
         /// <summary>
         /// Apple Push Notification Service (iOS)
         /// </summary>
+        [EnumMember(Value = "apns")]
         APNS,
 
         /// <summary>
         /// Firebase Cloud Messaging (Android)
         /// </summary>
+        [EnumMember(Value = "fcm")]
         FCM
 
     }
