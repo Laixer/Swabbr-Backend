@@ -28,7 +28,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Selected gender of the user.
         /// </summary>
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
 
         /// <summary>
         /// Selected country.
@@ -39,7 +39,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Date of birth for the given user.
         /// </summary>
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
         /// <summary>
         /// The specified timezone of the user.
@@ -52,19 +52,19 @@ namespace Swabbr.Core.Entities
         public string Nickname { get; set; }
 
         /// <summary>
-        /// URL containing the uploaded profile image of the user.
+        /// Base64 encoded string containing the uploaded profile image of the user.
         /// </summary>
-        public Uri ProfileImageUrl { get; set; }
+        public string ProfileImageBase64Encoded { get; set; }
 
         /// <summary>
         /// Angular longitude coordinate.
         /// </summary>
-        public double Longitude { get; set; }
+        public double? Longitude { get; set; }
 
         /// <summary>
         /// Angular latitude coordinate.
         /// </summary>
-        public double Latitude { get; set; }
+        public double? Latitude { get; set; }
 
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.

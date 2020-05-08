@@ -10,6 +10,13 @@ namespace Swabbr.Core.Enums
     public enum LivestreamStatus
     {
 
+
+        /// <summary>
+        /// The user never responded.
+        /// </summary>
+        [EnumMember(Value = "user_no_response_timeout")]
+        UserNoResponseTimeout,
+
         /// <summary>
         /// The livestream is created, but that's all.
         /// </summary>
@@ -49,10 +56,17 @@ namespace Swabbr.Core.Enums
         Closed,
 
         /// <summary>
-        /// The user never responded.
+        /// The user has received the credentials and we are waiting for first connect.
         /// </summary>
-        [EnumMember(Value = "user_no_response_timeout")]
-        UserNoResponseTimeout,
+        [EnumMember(Value = "pending_user_connect")]
+        [PgName("pending_user_connect")]
+        PendingUserConnect,
+
+        ///// <summary>
+        ///// The user never responded.
+        ///// </summary>
+        //[EnumMember(Value = "user_no_response_timeout")]
+        //UserNoResponseTimeout,
 
     }
 
