@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Options;
 using Swabbr.Api.Services;
 using Swabbr.Api.Utility;
 using Swabbr.AzureMediaServices.Configuration;
@@ -35,9 +34,23 @@ using System.Reflection;
 using System.Text;
 
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Swabbr.AzureMediaServices.Clients;
+using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Microsoft.Extensions.Logging;
+using System.Linq;
+using Swabbr.Api.Configuration;
+using Swabbr.Core.Types;
+using Microsoft.Extensions.Options;
+using Swabbr.Core.Utility;
+using Swabbr.Infrastructure.Utility;
+using Swabbr.AzureMediaServices.Extensions;
 
 namespace Swabbr
 {
+
+    /// <summary>
+    /// TODO Clean this mess up
+    /// </summary>
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -51,37 +64,19 @@ namespace Swabbr
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddControllers(c =>
-            {
-            }).AddNewtonsoftJson();
+            services.AddControllers(c => { }).AddNewtonsoftJson();
+            services.AddRouting(options => { options.LowercaseUrls = true; });
 
-            // Add routing options
-            services.AddRouting(options =>
-            {
-                options.LowercaseUrls = true;
-            });
-
-            // Add mvc for anty forgery token usage
+            // Add mvc for antiforgery token usage
             services.AddMvc();
 
-            // Add filters
-            //services.AddScoped<DisableFormValueModelBindingAttribute>();
-            //services.AddScoped<GenerateAntiforgeryTokenCookieAttribute>();
-            //services.AddScoped<ValidateAntiForgeryTokenAttribute>();
-            //services.AddScoped<Microsoft.AspNetCore.Mvc.ViewFeatures.Filters.ValidateAntiforgeryTokenAuthorizationFilter>();
-            //services.AddScoped<ValidateAntiforgeryTokenAuthorizationFilter>();
-
-            // Add configurations
-            services.Configure<JwtConfiguration>(Configuration.GetSection("Jwt"));
-            services.Configure<NotificationHubConfiguration>(options =>
+            // Setup logging explicitly
+            services.AddLogging((config) =>
             {
-                Configuration.GetSection("NotificationHub").Bind(options);
-                options.ConnectionString = Configuration.GetConnectionString("AzureNotificationHub");
+                config.AddAzureWebAppDiagnostics();
             });
-            services.Configure<WowzaStreamingCloudConfiguration>(Configuration.GetSection("WowzaStreamingCloud"));
-            services.Configure<AMSConfiguration>(Configuration.GetSection("AzureMediaServices"));
 
-            // Add OpenAPI definition
+            // Add Swagger
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swabbr", Version = "v1" });
@@ -104,6 +99,22 @@ namespace Swabbr
                         Array.Empty<string>() } }
                 );
             });
+
+            // Add configurations
+            services.Configure<JwtConfiguration>(Configuration.GetSection("Jwt"));
+            services.Configure<NotificationHubConfiguration>(options =>
+            {
+                Configuration.GetSection("NotificationHub").Bind(options);
+                options.ConnectionString = Configuration.GetConnectionString("AzureNotificationHub");
+            });
+            services.Configure<AMSConfiguration>(Configuration.GetSection("AzureMediaServices"));
+            services.Configure<SwabbrConfiguration>(Configuration.GetSection("SwabbrConfiguration"));
+
+            // Check configuration
+            var servicesBuilt = services.BuildServiceProvider();
+            servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
@@ -144,6 +155,7 @@ namespace Swabbr
             // Configure DI for client services
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
+            services.AddTransient<IAMSClient, AMSClient>();
 
             // TODO Debug remove
             services.AddTransient<AMSDebugService>();
@@ -166,6 +178,18 @@ namespace Swabbr
                 options.UseNpgsql<IdentityQueryRepository>(Configuration.GetConnectionString("DatabaseInternal"));
             })
             .AddDefaultTokenProviders();
+
+            // TODO Remove all this debug stuff
+            //var logger = services.BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger("startup logger");
+            //logger.LogError("REMOVE THIS CONFIG PRINTER!");
+            //logger.LogError($"Existing config items: {Configuration.AsEnumerable().Count()}");
+            //logger.LogError($"DailyVlogRequestLimit = {Configuration.GetSection("SwabbrConfiguration").GetValue<int>("DailyVlogRequestLimit")}");
+            //foreach (var pair in Configuration.AsEnumerable())
+            //{
+            //    logger.LogError($"Configuration pair exists for key: {pair.Key}");
+            //}
+            //logger.LogError("FINISHED CONFIG PRINTING");
+            //var swabbrConfiguration = Configuration.GetSection("SwabbrConfiguration");
 
             // Add authentication middleware
             // TODO Double get
