@@ -40,6 +40,16 @@ namespace Laixer.Utility.Extensions
             return guid == null || guid == Guid.Empty;
         }
 
+        /// <summary>
+        /// Checks if a <see cref="Guid"/> is not <see cref="null"/> or <see cref="Guid.Empty"/>.
+        /// </summary>
+        /// <param name="guid"><see cref="Guid"/></param>
+        /// <returns><see cref="true"/> if not null or empty</returns>
+        public static bool IsNotNullOrEmpty(this Guid guid)
+        {
+            return !IsNullOrEmpty(guid);
+        }
+
     }
 
 }

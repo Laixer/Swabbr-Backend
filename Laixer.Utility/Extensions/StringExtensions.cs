@@ -15,7 +15,7 @@ namespace Laixer.Utility.Extensions
         /// <param name="s"><see cref="string"/></param>
         public static void ThrowIfNullOrEmpty(this string s)
         {
-            if (string.IsNullOrEmpty(s)) { throw new ArgumentNullException("String is be null or empty"); }
+            if (string.IsNullOrEmpty(s)) { throw new ArgumentNullException("String is null or empty"); }
         }
 
         public static bool IsNullOrEmpty(this string s)
