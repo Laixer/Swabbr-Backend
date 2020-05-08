@@ -23,6 +23,7 @@ namespace Swabbr.Core.Services
         private readonly IVlogLikeRepository _vlogLikeRepository;
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
+        private readonly IStorageService _storageService;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -30,19 +31,21 @@ namespace Swabbr.Core.Services
         public VlogService(IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
             IUserRepository userRepository,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IStorageService storageService)
         {
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
         }
 
         /// <summary>
-        /// Deletes a <see cref="Vlog"/> from our data store.
+        /// Deletes a <see cref="Vlog"/> from our data store and external storage.
         /// </summary>
         /// <remarks>
-        /// Throws a <see cref="NotAllowedException"/> if our <paramref name="userId"/>
+        /// Throws a <see cref="UserNotOwnerException"/> if our <paramref name="userId"/>
         /// does not own the <paramref name="vlogId"/>.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
@@ -55,10 +58,10 @@ namespace Swabbr.Core.Services
 
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
                 var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
-                if (vlog.UserId != user.Id) { throw new NotAllowedException("User does not own vlog"); }
+                if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
 
+                await _storageService.CleanupVlogStorageOnDeleteAsync(vlogId).ConfigureAwait(false);
                 await _vlogRepository.DeleteAsync(vlogId).ConfigureAwait(false);
                 scope.Complete();
             }
@@ -117,7 +120,7 @@ namespace Swabbr.Core.Services
                 scope.Complete();
             }
 
-            await _notificationService.NotificationVlogLikedAsync(vlogLikeId).ConfigureAwait(false);
+            await _notificationService.NotifyVlogLikedAsync(vlogLikeId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -210,6 +213,22 @@ namespace Swabbr.Core.Services
         {
             return _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
         }
+
+        /// <summary>
+        /// Gets a <see cref="Vlog"/> that belongs to a <see cref="Livestream"/>.
+        /// </summary>
+        /// <remarks>
+        /// This returns <see cref="EntityNotFoundException"/> if no <see cref="Vlog"/>
+        /// is currently bound to the specified <see cref="Livestream"/>.
+        /// </remarks>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Vlog"/></returns>
+        public Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            return _vlogRepository.GetVlogFromLivestreamAsync(livestreamId);
+        }
+
     }
 
 }

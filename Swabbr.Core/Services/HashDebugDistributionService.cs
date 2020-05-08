@@ -18,11 +18,6 @@ namespace Swabbr.Core.Services
         private static DateTimeOffset? firstMinute = null;
         private static readonly object lockObject = new object();
 
-        public IEnumerable<KeyValuePair<SwabbrUserMinified, int>> DebugGetAllForDate(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<SwabbrUserMinified> GetForMinute(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
         {
             var asMinute = new DateTimeOffset(time.Year, time.Month, time.Day, time.Hour, time.Minute, 0, TimeSpan.Zero);

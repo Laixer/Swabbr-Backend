@@ -18,6 +18,7 @@ namespace Swabbr.Core.Services
 
     /// <summary>
     /// Contains functionality to handle notification operations.
+    /// TODO This used to contain a circular dependency for the livestream service. Implement boundary checks here!
     /// </summary>
     public sealed class NotificationService : INotificationService
     {
@@ -26,8 +27,6 @@ namespace Swabbr.Core.Services
         private readonly IVlogRepository _vlogRepository;
         private readonly IVlogLikeRepository _vlogLikeRepository;
         private readonly IReactionService _reactionService;
-        private readonly ILivestreamRepository _livestreamRepository;
-        private readonly ILivestreamService _livestreamingService;
         private readonly INotificationClient _notificationClient;
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
         private readonly ILogger logger;
@@ -39,8 +38,6 @@ namespace Swabbr.Core.Services
             IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
             IReactionService reactionService,
-            ILivestreamRepository livestreamRepository,
-            ILivestreamService livestreamingService,
             INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
             ILoggerFactory loggerFactory)
@@ -49,8 +46,6 @@ namespace Swabbr.Core.Services
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
             _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
-            _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
-            _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationService)) : throw new ArgumentNullException(nameof(loggerFactory));
@@ -60,6 +55,9 @@ namespace Swabbr.Core.Services
         /// Sends a <see cref="SwabbrNotification"/> to each follower of the 
         /// specified <paramref name="userId"/>.
         /// </summary>
+        /// <remarks>
+        /// TODO This does no checking for the livestream state.
+        /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="Task"/></returns>
@@ -72,24 +70,15 @@ namespace Swabbr.Core.Services
                 livestreamId.ThrowIfNullOrEmpty();
 
                 if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
-                if (await _livestreamingService.IsLivestreamValidForFollowersAsync(livestreamId, userId).ConfigureAwait(false))
-                {
-                    throw new InvalidOperationException("First contact backend, then start streaming!");
-                }
 
                 var notification = new SwabbrNotification(NotificationAction.FollowedProfileLive)
                 {
-                    Body = "TODO CENTRALIZE Your following user profile is live!",
-                    Title = "TODO CENTRALIZE User is live!",
+                    Body = "Your following user profile is live!",
+                    Title = "User is live!",
                     Pars = pars
                 };
 
                 var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
-
-                // TODO Future optimization
-                // var detailsAndroid = new List<UserPushNotificationDetails>();
-                // var detailsIos = new List<UserPushNotificationDetails>();
-
                 foreach (var item in pushDetails)
                 {
                     await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification).ConfigureAwait(false);
@@ -100,6 +89,51 @@ namespace Swabbr.Core.Services
             catch (Exception e)
             {
                 logger.LogError($"{nameof(NotifyFollowersProfileLiveAsync)} - Exception in method ", e.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Notifies all <see cref="SwabbrUser"/> followers that a new
+        /// <see cref="Vlog"/> was posted.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
+        {
+            try
+            {
+                logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Attempting notifying followers for posted vlog {vlogId} from user {userId}");
+                userId.ThrowIfNullOrEmpty();
+                vlogId.ThrowIfNullOrEmpty();
+
+                // TODO State checks
+                if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
+                if (!(await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false)).LivestreamId.IsNullOrEmpty()) { throw new LivestreamStateException("Vlog was still linked to livestream"); }
+
+                var notification = new SwabbrNotification(NotificationAction.FollowedProfileVlogPosted)
+                {
+                    Body = "Vlog posted!",
+                    Title = "Vlog posted",
+                    Pars = new ParametersFollowedProfileVlogPosted
+                    {
+                        VlogId = vlogId,
+                        VlogOwnerUserId = userId
+                    }
+                };
+
+                var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
+                foreach (var item in pushDetails)
+                {
+                    await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification).ConfigureAwait(false);
+                    logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Notified user {item.UserId}");
+                }
+                logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Completed notifying followers for posted vlog {vlogId} from user {userId}");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{nameof(NotifyFollowersVlogPostedAsync)} - Exception in method ", e.Message);
                 throw;
             }
         }
@@ -138,12 +172,6 @@ namespace Swabbr.Core.Services
                 logger.LogError($"{nameof(NotifyVlogRecordRequestAsync)} - Exception in method ", e.Message);
                 throw;
             }
-        }
-
-        public Task NotifyVlogRecordTimeoutAsync(Guid userId)
-        {
-            logger.LogError($"Implement {nameof(NotifyVlogRecordTimeoutAsync)} - called for user {userId}");
-            throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
         }
 
         /// <summary>
@@ -199,11 +227,11 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogLikeId">Internal <see cref="VlogLike"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task NotificationVlogLikedAsync(VlogLikeId vlogLikeId)
+        public async Task NotifyVlogLikedAsync(VlogLikeId vlogLikeId)
         {
             try
             {
-                logger.LogTrace($"{nameof(NotificationVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
+                logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
 
                 if (vlogLikeId == null) { throw new ArgumentNullException(nameof(vlogLikeId)); }
                 vlogLikeId.UserId.ThrowIfNullOrEmpty();
@@ -234,13 +262,19 @@ namespace Swabbr.Core.Services
                     await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
                 }
 
-                logger.LogTrace($"{nameof(NotificationVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
+                logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
             }
             catch (Exception e)
             {
-                logger.LogError($"{nameof(NotificationVlogLikedAsync)} - Exception in method ", e.Message);
+                logger.LogError($"{nameof(NotifyVlogLikedAsync)} - Exception in method ", e.Message);
                 throw;
             }
+        }
+
+        public Task NotifyVlogRecordTimeoutAsync(Guid userId)
+        {
+            logger.LogError($"Implement {nameof(NotifyVlogRecordTimeoutAsync)} - called for user {userId}");
+            throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
         }
 
     }

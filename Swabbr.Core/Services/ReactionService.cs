@@ -1,4 +1,5 @@
 ﻿using Laixer.Utility.Extensions;
+using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces;
@@ -22,6 +23,7 @@ namespace Swabbr.Core.Services
         private readonly IStorageService _storageService;
         private readonly IVlogRepository _vlogRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Constructor for dependency injeciton.
@@ -29,12 +31,14 @@ namespace Swabbr.Core.Services
         public ReactionService(IReactionRepository reactionRepository,
             IStorageService storageService,
             IVlogRepository vlogRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            ILoggerFactory loggerFactory)
         {
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(ReactionService)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -57,6 +61,9 @@ namespace Swabbr.Core.Services
                 // TODO Would we want to check user existence here? It is not required, could be useful for quicker debug feedback though?
                 var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
                 if (reaction.UserId != userId) { throw new NotAllowedException("User does not own reaction"); }
+
+                // TODO This should also be removed in AMS
+                logger.LogError("Reaction Service should also remove the resources in AMS & storage!");
 
                 await _reactionRepository.DeleteAsync(reactionId).ConfigureAwait(false);
                 scope.Complete();
