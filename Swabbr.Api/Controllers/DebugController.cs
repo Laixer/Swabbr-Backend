@@ -1,18 +1,22 @@
 ﻿using Laixer.Utility.Extensions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Utility;
+using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -20,8 +24,10 @@ namespace Swabbr.Api.Controllers
 {
 
     /// <summary>
-    /// Debug functionality.
-    /// TODO Indicate this debug functionality for the final product!
+    /// Debug functionality. This is only accessible from the local development
+    /// machine. Sending requests to these endpoints will result in a conflict
+    /// result.
+    /// TODO Remove in final product in a non-beun way
     /// </summary>
     [Authorize]
     [ApiController]
@@ -41,6 +47,8 @@ namespace Swabbr.Api.Controllers
         private readonly IStorageService _storageService;
         private readonly IReactionRepository _reactionRepository;
         private readonly AMSDebugService _amsDebugService;
+        private readonly IAMSClient _amsClient;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -56,7 +64,9 @@ namespace Swabbr.Api.Controllers
             IReactionUploadService reactionUploadService,
             IStorageService storageService,
             IReactionRepository reactionRepository,
-            AMSDebugService debugService)
+            AMSDebugService debugService,
+            IAMSClient amsClient,
+            IHostingEnvironment hostingEnvironment)
         {
             _vlogTriggerService = vlogTriggerService ?? throw new ArgumentNullException(nameof(vlogTriggerService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
@@ -70,32 +80,8 @@ namespace Swabbr.Api.Controllers
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _amsDebugService = debugService ?? throw new ArgumentNullException(nameof(debugService));
-        }
-
-        [HttpGet("fastly_token_test")]
-        public async Task<IActionResult> FastlyTokenTest(Guid livestreamId)
-        {
-            try
-            {
-                livestreamId.ThrowIfNullOrEmpty();
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var token = await _livestreamPlaybackService.GetTokenAsync(livestreamId, user.Id).ConfigureAwait(false);
-                return Ok(token);
-            }
-            catch (Exception e)
-            {
-                return Conflict(e.Message); // TODO UNSAFE, change
-            }
-        }
-
-        [HttpPost("register_device_for_user")]
-        public async Task<IActionResult> RegisterDeviceForUser(Guid userId, string deviceHandle)
-        {
-            userId.ThrowIfNullOrEmpty();
-            deviceHandle.ThrowIfNullOrEmpty();
-
-            await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(userId, PushNotificationPlatform.FCM, deviceHandle).ConfigureAwait(false);
-            return Ok();
+            _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
+            _hostingEnvironment = hostingEnvironment ?? throw new ArgumentNullException(nameof(hostingEnvironment));
         }
 
         [HttpPost("upload_test/{targetVlogId}")]
@@ -103,6 +89,8 @@ namespace Swabbr.Api.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadPhysical([FromRoute] Guid targetVlogId)
         {
+            if (!_hostingEnvironment.IsDevelopment()) { return Conflict($"Can only access {nameof(DebugController)} in development environment"); }
+
             try
             {
                 if (targetVlogId.IsNullOrEmpty()) { return BadRequest("target vlog id empty"); }
@@ -164,6 +152,8 @@ namespace Swabbr.Api.Controllers
         [HttpPost("amsstoragetest")]
         public async Task<IActionResult> AmsStorageTest(Guid reactionId)
         {
+            if (!_hostingEnvironment.IsDevelopment()) { return Conflict($"Can only access {nameof(DebugController)} in development environment"); }
+
             try
             {
                 var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
@@ -185,9 +175,58 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var livestream = await _livestreamPoolService.TryGetLivestreamFromPoolAsync().ConfigureAwait(false);
-                return Ok(livestream);
+                await _amsDebugService.DoThingAsync().ConfigureAwait(false);
+
+                //livestreamId = new Guid("f2192d61-ce08-4bb8-b955-60197ea2c507");
+                //var liveEvent = await _amsClient.CreateLiveEventAsync(livestreamId).ConfigureAwait(false);
+                //await _amsClient.StartLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
+
+                //liveEvent = await _amsDebugService.GetLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
+                //var accessUrl = liveEvent.Input.Endpoints.Where(x => x.Url.StartsWith("rtmps")).First().Url;
+                //var accessToken = liveEvent.Input.AccessToken;
+
+                //var liveEventManuallyCreated = await _amsDebugService.GetLiveEventAsync("live-event-manual").ConfigureAwait(false);
+                //var accessUrlManual = liveEventManuallyCreated.Input.Endpoints.Where(x => x.Url.StartsWith("rtmps")).First().Url;
+                //var accessTokenManual = liveEventManuallyCreated.Input.AccessToken;
+
+                //await _amsClient.StopLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
+                //await _amsDebugService.DeleteLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return Conflict(e.Message);
+            }
+        }
+
+        [HttpPost("trigger_vlog")]
+        public async Task<IActionResult> VlogTrigger(Guid userId)
+        {
+            try
+            {
+                var hours = (int)755 / 60;
+                var minutes = 755 - (60 * hours);
+                var triggerMinute = new DateTimeOffset(2020, 05, 05, hours, minutes, 0, TimeSpan.Zero);
+                await _vlogTriggerService.ProcessVlogTriggerForUserAsync(userId, triggerMinute);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return Conflict(e.Message);
+            }
+        }
+
+        [HttpPost("trigger_timeout")]
+        public async Task<IActionResult> TriggerTimeout(Guid userId)
+        {
+            try
+            {
+                var hours = (int)755 / 60;
+                var minutes = 755 - (60 * hours);
+                var triggerMinute = new DateTimeOffset(2020, 05, 05, hours, minutes, 0, TimeSpan.Zero);
+                await _vlogTriggerService.ProcessVlogTimeoutForUserAsync(userId, triggerMinute);
+                return Ok();
             }
             catch (Exception e)
             {
@@ -196,8 +235,5 @@ namespace Swabbr.Api.Controllers
         }
 
     }
+
 }
-
-
-
-

@@ -32,6 +32,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILivestreamService _livestreamingService;
+        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
         private readonly ILivestreamRepository _livestreamRepository; // TODO Is this really the controllers job? (used for checks only)
         private readonly IUserStreamingHandlingService _userStreamingHandlingService;
         private readonly ILogger logger;
@@ -41,12 +42,14 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public LivestreamsController(UserManager<SwabbrIdentityUser> userManager,
             ILivestreamService livestreamingService,
+            ILivestreamPlaybackService livestreamPlaybackService,
             ILivestreamRepository livestreamRepository,
             ILoggerFactory loggerFactory,
             IUserStreamingHandlingService userStreamingHandlingService)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
+            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(LivestreamsController)) : throw new ArgumentNullException(nameof(loggerFactory));
             _userStreamingHandlingService = userStreamingHandlingService ?? throw new ArgumentNullException(nameof(userStreamingHandlingService));
@@ -59,7 +62,8 @@ namespace Swabbr.Api.Controllers
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="LivestreamStartStreamingResponseModel"/></returns>
         [HttpPost("{livestreamId}/start_streaming")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamStartStreamingResponseModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> StartStreamingAsync([FromRoute]Guid livestreamId)
         {
             try
@@ -67,13 +71,20 @@ namespace Swabbr.Api.Controllers
                 livestreamId.ThrowIfNullOrEmpty();
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
-                // Await service 
-                var vlog = await _userStreamingHandlingService.OnUserStartStreaming(user.Id, livestreamId).ConfigureAwait(false);
-
-                // Commit and return
-                return Ok(new LivestreamStartStreamingResponseModel { VlogId = vlog.Id });
+                // Await service and return results
+                var upstreamDetails = await _userStreamingHandlingService.OnUserStartStreaming(user.Id, livestreamId).ConfigureAwait(false);
+                return Ok(new LivestreamStartStreamingResponseModel
+                {
+                    ApplicationName = upstreamDetails.ApplicationName,
+                    HostPort = upstreamDetails.HostPort,
+                    HostServer = upstreamDetails.HostServer,
+                    Username = upstreamDetails.Username,
+                    LivestreamId = upstreamDetails.LivestreamId,
+                    Password = upstreamDetails.Password,
+                    StreamKey = upstreamDetails.StreamKey,
+                    VlogId = upstreamDetails.VlogId
+                });
             }
             catch (UserNotOwnerException e)
             {
@@ -84,6 +95,11 @@ namespace Swabbr.Api.Controllers
             {
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Livestream could not be found"));
             }
             catch (Exception e)
             {
@@ -100,8 +116,11 @@ namespace Swabbr.Api.Controllers
         /// <returns><see cref="OkResult"/> or <see cref="ConflictResult"/></returns>
         [HttpPost("{livestreamId}/stop_streaming")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> StopStreamingAsync([FromRoute]Guid livestreamId)
         {
+            return Conflict(this.Error(ErrorCodes.InvalidOperation, "There is no need to call this function anymore, it was done using events. This will be removed shortly."));
+
             try
             {
                 livestreamId.ThrowIfNullOrEmpty();
@@ -132,11 +151,48 @@ namespace Swabbr.Api.Controllers
             }
         }
 
-        [HttpPost("{livestreamId}/publish")]
-        public Task<IActionResult> PublishLivestream([FromRoute]Guid livestreamId)
+        /// <summary>
+        /// Indicates that a user is going to start streaming to the given 
+        /// <see cref="Livestream"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="LivestreamStartStreamingResponseModel"/></returns>
+        [HttpGet("{livestreamId}/watch")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamPlaybackOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
+        public async Task<IActionResult> RequestDownstreamDetailsAsync([FromRoute]Guid livestreamId)
         {
-            // TODO Public or private
-            throw new NotImplementedException();
+            try
+            {
+                livestreamId.ThrowIfNullOrEmpty();
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                var pars = await _livestreamPlaybackService.GetLivestreamDownstreamParametersAsync(livestreamId, user.Id).ConfigureAwait(false);
+                return Ok(new LivestreamPlaybackOutputModel
+                {
+                    EndpointUrl = pars.EndpointUrl,
+                    LiveLivestreamId = pars.LiveLivestreamId,
+                    LiveUserId = pars.LiveUserId,
+                    LiveVlogId = pars.LiveVlogId,
+                    Token = pars.Token
+                });
+            }
+            catch (LivestreamStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Livestream could not be found"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get downstream token for livestream"));
+            }
         }
 
     }

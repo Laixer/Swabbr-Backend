@@ -18,6 +18,9 @@ using Laixer.Utility.Extensions;
 using Swabbr.Api.Mapping;
 using Microsoft.Extensions.Logging;
 using Swabbr.Core.Types;
+using Swabbr.Api.ViewModels.FollowRequest;
+using System.Linq;
+using Swabbr.Api.ViewModels.Enums;
 
 namespace Swabbr.Api.Controllers
 {
@@ -58,17 +61,25 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("incoming")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestCollectionOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> IncomingAsync()
         {
-            return Conflict("Not yet implemeneted");
-            //var user = await _userManager.GetUserAsync(User);
-
-            //// Retrieve all pending incoming requests for the authenticated user.
-            //var incomingRequests = (await _followRequestService.GetPendingIncomingForUserAsync(user.Id))
-            //    .Select(request => FollowRequestOutputModel.Parse(request));
-
-            //return Ok(incomingRequests);
+            try
+            {
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var incoming = await _followRequestService.GetPendingIncomingForUserAsync(user.Id).ConfigureAwait(false);
+                return Ok(new FollowRequestCollectionOutputModel
+                    {
+                        FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
+                    }
+                );
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Could not get follow request status", e);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get status for follow request"));
+            }
         }
 
         /// <summary>
@@ -77,17 +88,25 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("outgoing")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<FollowRequestOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestCollectionOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> OutgoingAsync()
         {
-            return Conflict("Not yet implemeneted");
-            //var user = await _userManager.GetUserAsync(User);
-
-            //// Retrieve all pending outgoing requests for the authenticated user.
-            //var outgoingRequests = (await _followRequestService.GetPendingOutgoingForUserAsync(user.Id))
-            //    .Select(request => FollowRequestOutputModel.Parse(request));
-
-            //return Ok(outgoingRequests);
+            try
+            {
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(user.Id).ConfigureAwait(false);
+                return Ok(new FollowRequestCollectionOutputModel
+                    {
+                        FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
+                    }
+                );
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Could not get follow request status", e);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get status for follow request"));
+            }
         }
 
         /// <summary>
@@ -98,7 +117,7 @@ namespace Swabbr.Api.Controllers
         /// <returns><see cref="OkResult"/> or <see cref="ConflictResult"/></returns>
         [Authorize]
         [HttpGet("outgoing/status")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatus))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatusOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> GetStatusAsync(Guid receiverId)
         {
@@ -108,15 +127,25 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
-                if (user.Id == receiverId) { throw new InvalidOperationException("Can't request follow request between user and itself"); }
+                if (user.Id == receiverId) { return Conflict(this.Error(ErrorCodes.InvalidOperation, "Can't request follow request between user and himself")); }
+
+                if (!await _userRepository.UserExistsAsync(receiverId).ConfigureAwait(false))
+                {
+                    return Conflict(this.Error(ErrorCodes.EntityNotFound, "Receiving user id does not exist"));
+                }
 
                 var id = new FollowRequestId { RequesterId = user.Id, ReceiverId = receiverId };
-                return Ok(await _followRequestService.GetStatusAsync(id).ConfigureAwait(false));
+                return Ok(new FollowRequestStatusOutputModel
+                {
+                    Status = MapperEnum.Map(await _followRequestService.GetStatusAsync(id).ConfigureAwait(false)).GetEnumMemberAttribute()
+                });
             }
             catch (EntityNotFoundException e)
             {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find follow request"));
+                return Ok(new FollowRequestStatusOutputModel
+                {
+                    Status = FollowRequestStatusModel.DoesNotExist.GetEnumMemberAttribute()
+                });
             }
             catch (Exception e)
             {
@@ -149,7 +178,7 @@ namespace Swabbr.Api.Controllers
                 // We can't follow a user that doesn't exist
                 if (!await _userRepository.UserExistsAsync(receiverId).ConfigureAwait(false))
                 {
-                    return NotFound(this.Error(ErrorCodes.EntityNotFound, "Specified user does not exist"));
+                    return Conflict(this.Error(ErrorCodes.EntityNotFound, "Specified user does not exist"));
                 }
 
                 // Try to perform the request
@@ -219,7 +248,7 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException e)
             {
                 logger.LogError(e.Message);
-                return NotFound(this.Error(ErrorCodes.EntityNotFound, "Relationship could not be found."));
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Relationship could not be found."));
             }
             catch (Exception e)
             {
@@ -249,7 +278,7 @@ namespace Swabbr.Api.Controllers
             }
             catch (EntityNotFoundException)
             {
-                return NotFound(this.Error(ErrorCodes.EntityNotFound, "Follow request was not found."));
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Follow request was not found."));
             }
             catch (Exception e)
             {
@@ -279,7 +308,7 @@ namespace Swabbr.Api.Controllers
             }
             catch (EntityNotFoundException)
             {
-                return NotFound(this.Error(ErrorCodes.EntityNotFound, "Follow request was not found."));
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Follow request was not found."));
             }
             catch (Exception e)
             {

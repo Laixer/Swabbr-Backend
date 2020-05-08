@@ -8,11 +8,14 @@ using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.Parsing;
+using Swabbr.Api.Utility;
+using Swabbr.Api.ViewModels.Enums;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +37,6 @@ namespace Swabbr.Api.Controllers
     public class UsersController : ControllerBase
     {
 
-        private readonly IUserRepository _userRepository;
         private readonly IUserWithStatsRepository _userWithStatsRepository;
         private readonly IUserService _userService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
@@ -43,13 +45,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public UsersController(IUserRepository userRepository,
-            IUserWithStatsRepository userWithStatsRepository,
+        public UsersController(IUserWithStatsRepository userWithStatsRepository,
             IUserService userService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
@@ -138,6 +138,8 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPost("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateInputModel input)
         {
             try
@@ -145,29 +147,30 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is null")); }
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
                 {
-                    var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                    var user = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
+                    UserId = identityUser.Id,
+                    BirthDate = input.BirthDate,
+                    Country = input.Country,
+                    FirstName = input.FirstName,
+                    Gender = MapperEnum.Map(input.Gender),
+                    IsPrivate = input.IsPrivate,
+                    LastName = input.LastName,
+                    Nickname = input.Nickname,
+                    ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
+                }).ConfigureAwait(false);
 
-                    // Copy properties
-                    user.BirthDate = input.BirthDate;
-                    user.Country = input.Country;
-                    user.FirstName = input.FirstName;
-                    user.Gender = MapperEnum.Map(input.Gender);
-                    user.IsPrivate = input.IsPrivate;
-                    user.LastName = input.LastName;
-                    user.Nickname = input.Nickname;
-                    user.ProfileImageUrl = input.ProfileImageUrl;
-
-                    // Update
-                    var updatedUser = await _userRepository.UpdateAsync(user).ConfigureAwait(false);
-
-                    // Return updated values
-                    // TODO Separate output model for this maybe?
-                    scope.Complete();
-                    return Ok(MapperUser.Map(updatedUser));
-                }
+                // Return updated values
+                return Ok(MapperUser.Map(updatedUser));
+            }
+            catch (InvalidProfileImageStringException)
+            {
+                return BadRequest(this.Error(ErrorCodes.InvalidInput, "Profile image is invalid or not properly base64 encoded"));
+            }
+            catch (NicknameExistsException)
+            {
+                return Conflict(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname is taken"));
             }
             catch (Exception e)
             {
@@ -189,7 +192,7 @@ namespace Swabbr.Api.Controllers
 
                 return Ok(new FollowingOutputModel
                 {
-                    Following = (await _userRepository.GetFollowingAsync(userId)
+                    Following = (await _userService.GetFollowingAsync(userId)
                         .ConfigureAwait(false))
                         .Select(x => MapperUser.Map(x))
                 });
@@ -214,7 +217,7 @@ namespace Swabbr.Api.Controllers
 
                 return Ok(new FollowersOutputModel
                 {
-                    Followers = (await _userRepository.GetFollowersAsync(userId)
+                    Followers = (await _userService.GetFollowersAsync(userId)
                         .ConfigureAwait(false))
                         .Select(x => MapperUser.Map(x))
                 });
@@ -238,7 +241,7 @@ namespace Swabbr.Api.Controllers
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 return Ok(MapperUser.Map(
-                    await _userRepository.GetUserStatisticsAsync(userId)
+                    await _userService.GetUserStatisticsAsync(userId)
                     .ConfigureAwait(false)));
             }
             catch (Exception e)
@@ -270,4 +273,5 @@ namespace Swabbr.Api.Controllers
         }
 
     }
+
 }

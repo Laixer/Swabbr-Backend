@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents.SystemFunctions;
 using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
@@ -8,19 +9,22 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.Services;
 using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.Enums;
 using Swabbr.Api.ViewModels.User;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Types;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
 
     /// <summary>
     /// Controller for handling requests related to authentication.
-    /// TODO Refresh method
     /// </summary>
     [Authorize]
     [ApiController]
@@ -28,7 +32,7 @@ namespace Swabbr.Api.Controllers
     public class AuthenticationController : ControllerBase
     {
 
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly IUserWithStatsRepository _userWithStatsRepository; // TODO Double functionality? Clean this up
         private readonly ITokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
@@ -39,7 +43,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public AuthenticationController(IUserRepository userRepository,
+        public AuthenticationController(IUserService userService,
             IUserWithStatsRepository userWithStatsRepository,
             ITokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
@@ -47,7 +51,7 @@ namespace Swabbr.Api.Controllers
             IDeviceRegistrationService deviceRegistrationService,
             ILoggerFactory loggerFactory)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
@@ -60,7 +64,8 @@ namespace Swabbr.Api.Controllers
         /// Create a new user account.
         /// </summary>
         /// <remarks>
-        /// TODO THOMAS The input should be 100% validated, never trust user input
+        /// TODO THOMAS The input should be 100% validated, never trust user input.
+        /// TODO This should not be possible if we are already logged in.
         /// </remarks>
         /// <param name="input"><see cref="UserRegisterInputModel"/></param>
         /// <returns><see cref="OkResult"/> or <see cref="BadRequestResult"/></returns>
@@ -71,58 +76,61 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterInputModel input)
         {
             if (input == null) { return BadRequest("Form body can't be null"); }
-            if (!ModelState.IsValid) { throw new InvalidOperationException("Input model is not valid"); }
-            if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
+            if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
+
+            try
             {
-                return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User already exists."));
-            }
+                // Edge cases
+                // TODO Re-enable
+                //if (User.Identity.IsAuthenticated) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "User is already logged in")); }
+                if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
+                {
+                    return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
+                }
 
-            // TODO This should not be possible if we are already logged in
+                // Construct a new identity user for a new user based on the given input
+                // TODO Make this a service
+                var identityUser = new SwabbrIdentityUser
+                {
+                    Email = input.Email,
+                    Nickname = input.Nickname
+                };
 
-            // Construct a new identity user for a new user based on the given input
-            // TODO Make sure we copy all that we need here
-            // TODO Check all properties here
-            // TODO Shouldn't the mapper do this? Probably!
-            var identityUser = new SwabbrIdentityUser
-            {
-                Email = input.Email,
-                FirstName = input.FirstName,
-                LastName = input.LastName,
-                BirthDate = input.BirthDate,
-                Country = input.Country,
-                Gender = MapperEnum.Map(input.Gender),
-                IsPrivate = input.IsPrivate,
-                Nickname = input.Nickname,
-                Timezone = input.Timezone,
-                ProfileImageUrl = input.ProfileImageUrl,
-            };
+                var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
+                if (!user.Succeeded) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator")); }
 
-            // Create the user
-            var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
+                // Update all other properties (if present)
+                var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
+                {
+                    UserId = identityUser.Id,
+                    BirthDate = input.BirthDate,
+                    Country = input.Country,
+                    FirstName = input.FirstName,
+                    Gender = MapperEnum.Map(input.Gender),
+                    IsPrivate = input.IsPrivate,
+                    LastName = input.LastName,
+                    //Nickname = input.Nickname, Done in creation call
+                    ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
+                }).ConfigureAwait(false);
 
-            // Sign in and return
-            if (user.Succeeded)
-            {
-                // TODO This bugs out and can't sign in the first try. The exception says id is null, but the identityUser id gets set anyways!
-                await _signInManager.SignInAsync(identityUser, isPersistent: true).ConfigureAwait(false);
-                var token = _tokenService.GenerateToken(identityUser);
-                var userOutput = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false));
-
-                // Manage the device registration
-                await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(input.PushNotificationPlatform), input.Handle).ConfigureAwait(false);
-
+                // Map and return
                 return Ok(new UserAuthenticationOutputModel
                 {
-                    Token = token,
-                    Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
-                    Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
-                    User = userOutput,
-                    UserSettings = MapperUser.Map(await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false)) // TODO User also contains settings, do we want this? How to handle?
+                    User = MapperUser.Map(updatedUser)
                 });
             }
-
-            // Something went wrong
-            return BadRequest();
+            catch (InvalidProfileImageStringException)
+            {
+                return BadRequest(this.Error(ErrorCodes.InvalidInput, "Profile image is invalid or not properly base64 encoded"));
+            }
+            catch (NicknameExistsException)
+            {
+                return Conflict(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname is taken"));
+            }
+            catch (Exception e)
+            {
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Something went wrong, contact your administrator for further assistance"));
+            }
         }
 
         /// <summary>
@@ -162,7 +170,8 @@ namespace Swabbr.Api.Controllers
                     var token = _tokenService.GenerateToken(identityUser);
 
                     // Manage device registration
-                    await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(input.PushNotificationPlatform), input.Handle).ConfigureAwait(false);
+                    var pnp = (PushNotificationPlatformModel)input.PushNotificationPlatform;
+                    await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(pnp), input.Handle).ConfigureAwait(false);
 
                     return Ok(new UserAuthenticationOutputModel
                     {
@@ -170,7 +179,7 @@ namespace Swabbr.Api.Controllers
                         Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
                         Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
                         User = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
-                        UserSettings = MapperUser.Map(await _userRepository.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
+                        UserSettings = MapperUser.Map(await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
                     });
                 }
 
@@ -185,8 +194,37 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
+        /// Used to update the user password.
+        /// </summary>
+        /// <param name="input"><see cref="UserChangePasswordInputModel"/></param>
+        /// <returns><see cref="OkResult"/></returns>
+        [HttpPost("change_password")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] UserChangePasswordInputModel input)
+        {
+            try
+            {
+                if (input == null) { return BadRequest("Form body can't be null"); }
+                if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
+
+                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                return Conflict("Not yet implemented");
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not log in"));
+            }
+        }
+
+        /// <summary>
         /// Deauthorizes the authenticated user.
         /// </summary>
+        /// <remarks>
+        /// TODO Try Catch bulletproof
+        /// </remarks>
         /// <returns><see cref="NoContentResult"/></returns>
         [Authorize]
         [HttpPost("logout")]

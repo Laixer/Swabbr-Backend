@@ -33,6 +33,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly IVlogService _vlogService;
         private readonly IUserWithStatsService _userWithStatsService;
+        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
 
@@ -41,11 +42,13 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public VlogsController(IVlogService vlogService,
             IUserWithStatsService userWithStatsService,
+            ILivestreamPlaybackService livestreamPlaybackService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             _userWithStatsService = userWithStatsService ?? throw new ArgumentNullException(nameof(userWithStatsService));
+            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogsController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
@@ -269,7 +272,8 @@ namespace Swabbr.Api.Controllers
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikesWithUsersOutputModel"/></returns>
         [HttpGet("{vlogId}/vlog_likes")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogLikesWithUsersOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId)
         {
             try
@@ -298,11 +302,14 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Gets a collection of recommended <see cref="Vlog"/>s for the logged in user.
-        /// </summary>
+        /// Gets a collection of recommended <see cref="Vlog"/>s for the logged in 
+        /// <see cref="SwabbrUser"/>. This currently gets a list of most recent 
+        /// <see cref="Vlog"/>s posted by <see cref="SwabbrUser"/>s that are being
+        /// followed by the currently logged in <see cref="SwabbrUser"/>.
         /// <returns><see cref="VlogCollectionOutputModel"/></returns>
         [HttpGet("recommended")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogCollectionOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> GetRecommendedVlogsAsync()
         {
             try
@@ -319,6 +326,43 @@ namespace Swabbr.Api.Controllers
             {
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get recommended vlogs for user"));
+            }
+        }
+
+        /// <summary>
+        /// Gets downstream parameters, including token, for playback of a specified
+        /// <see cref="Core.Entities.Vlog"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Core.Entities.Vlog"/> id</param>
+        /// <returns><see cref="VlogPlaybackDetailsOutputModel"/></returns>
+        [HttpGet("{vlogId}/watch")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogPlaybackDetailsOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
+        public async Task<IActionResult> GetPlayackDetailsAsync([FromRoute]Guid vlogId)
+        {
+            try
+            {
+                if (vlogId.IsNullOrEmpty()) { Conflict(this.Error(ErrorCodes.InvalidInput, "Vlog id is invalid or missing")); }
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                var pars = await _livestreamPlaybackService.GetVlogDownstreamParametersAsync(vlogId, user.Id).ConfigureAwait(false);
+                return Ok(new VlogPlaybackDetailsOutputModel
+                {
+                    EndpointUrl = pars.EndpointUrl,
+                    Token = pars.Token,
+                    VlogId = pars.VlogId
+                });
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get playback details for vlog"));
             }
         }
 

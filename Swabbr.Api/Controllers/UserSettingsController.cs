@@ -55,7 +55,7 @@ namespace Swabbr.Api.Controllers
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 if (identityUser == null) { throw new InvalidOperationException("Can't get user settings when no user is logged in"); }
 
-                var result = await _userService.GetSettingsAsync(identityUser.Id).ConfigureAwait(false);
+                var result = await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false);
                 return Ok(new UserSettingsOutputModel
                 {
                     DailyVlogRequestLimit = result.DailyVlogRequestLimit,
@@ -96,7 +96,8 @@ namespace Swabbr.Api.Controllers
                     IsPrivate = input.IsPrivate
                 };
                 await _userService.UpdateSettingsAsync(settings).ConfigureAwait(false);
-                return Ok();
+
+                return Ok(MapperUser.Map(await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false)));
             }
             catch (Exception e)
             {
