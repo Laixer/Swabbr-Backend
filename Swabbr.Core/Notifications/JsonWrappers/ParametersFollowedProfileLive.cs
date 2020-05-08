@@ -25,16 +25,6 @@ namespace Swabbr.Core.Notifications.JsonWrappers
         /// </summary>
         public Guid LiveVlogId { get; set; }
 
-        /// <summary>
-        /// Endpoint to connect to.
-        /// </summary>
-        public Uri EndpointUrl { get; set; }
-
-        /// <summary>
-        /// Authentication token.
-        /// </summary>
-        public string Token { get; set; }
-
     }
 
 }

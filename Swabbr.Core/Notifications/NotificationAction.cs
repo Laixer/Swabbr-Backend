@@ -9,6 +9,8 @@
 
         FollowedProfileLive,
 
+        FollowedProfileVlogPosted,
+
         InactiveUserMotivate,
 
         InactiveUnwatchedVlogs,

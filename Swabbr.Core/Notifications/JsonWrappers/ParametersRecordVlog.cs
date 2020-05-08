@@ -10,39 +10,25 @@ namespace Swabbr.Core.Notifications.JsonWrappers
     {
 
         /// <summary>
+        /// Moment when the request was sent.
+        /// </summary>
+        public DateTimeOffset RequestMoment { get; set; }
+
+        /// <summary>
+        /// Indicates how long the request is valid.
+        /// </summary>
+        public TimeSpan RequestTimeout { get; set; }
+
+        /// <summary>
         /// Internal <see cref="Entities.Livestream"/> id.
         /// </summary>
         public Guid LivestreamId { get; set; }
 
         /// <summary>
-        /// Upstream endpoint url.
+        /// Internal <see cref="Entities.Vlog"/> id.
         /// </summary>
-        public Uri HostServer { get; set; }
-
-        /// <summary>
-        /// Upstream endpoint port.
-        /// </summary>
-        public int HostPort { get; set; }
-
-        /// <summary>
-        /// Upstream endpoint application name.
-        /// </summary>
-        public string ApplicationName { get; set; }
-
-        /// <summary>
-        /// Upstream stream key.
-        /// </summary>
-        public string StreamKey { get; set; }
-
-        /// <summary>
-        /// Upstream authentication username.
-        /// </summary>
-        public string Username { get; set; }
-
-        /// <summary>
-        /// Upstream authentication password.
-        /// </summary>
-        public string Password { get; set; }
+        public Guid VlogId { get; set; }
 
     }
+
 }
