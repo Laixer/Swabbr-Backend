@@ -18,9 +18,11 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars);
 
+        Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId);
+
         Task NotifyReactionPlacedAsync(Guid reactionId);
 
-        Task NotificationVlogLikedAsync(VlogLikeId vlogLikeId);
+        Task NotifyVlogLikedAsync(VlogLikeId vlogLikeId);
 
     }
 

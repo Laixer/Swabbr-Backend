@@ -1,7 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Types;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
@@ -14,6 +12,10 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IUserStreamingHandlingService
     {
 
+        Task OnUserConnectedToLivestreamAsync(Guid userId, Guid livestreamId);
+
+        Task OnUserDisconnectedFromLivestreamAsync(Guid userId, Guid livestreamId);
+
         /// <summary>
         /// Creates a vlog for the user
         /// Notifies all followers
@@ -22,7 +24,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="userId"></param>
         /// <param name="livestreamId"></param>
         /// <returns></returns>
-        Task<Vlog> OnUserStartStreaming(Guid userId, Guid livestreamId);
+        Task<LivestreamUpstreamDetails> OnUserStartStreaming(Guid userId, Guid livestreamId);
 
         /// <summary>
         /// Does db markings

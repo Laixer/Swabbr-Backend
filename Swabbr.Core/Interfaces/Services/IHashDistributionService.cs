@@ -13,8 +13,6 @@ namespace Swabbr.Core.Interfaces.Services
 
         IEnumerable<SwabbrUserMinified> GetForMinute(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null);
 
-        // TODO Debug
-        IEnumerable<KeyValuePair<SwabbrUserMinified, int>> DebugGetAllForDate(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null);
-
     }
+
 }

@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Types;
 using System;
 using System.Threading.Tasks;
 
@@ -12,9 +13,11 @@ namespace Swabbr.Core.Interfaces.Services
     public interface ILivestreamService
     {
 
+        Task<Livestream> GetLivestreamFromExternalIdAsync(string externalId);
+
         Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
 
-        Task<Livestream> TryStartLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute);
+        Task<Livestream> TryClaimLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute);
 
         Task OnUserStartStreamingAsync(Guid livestreamId, Guid userId);
 
@@ -22,9 +25,13 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task ProcessTimeoutAsync(Guid userId, Guid livestreamId);
 
-        Task<bool> IsLivestreamValidForFollowersAsync(Guid livestreamId, Guid userId);
+        Task<ParametersRecordVlog> GetParametersRecordVlogAsync(Guid livestreamId, DateTimeOffset triggerMinute);
 
-        Task<ParametersRecordVlog> GetUpstreamParametersAsync(Guid livestreamId, Guid userId);
+        Task<LivestreamUpstreamDetails> GetUpstreamDetailsAsync(Guid livestreamId, Guid userId);
+
+        Task OnUserConnectedToLivestreamAsync(Guid livestreamId, Guid userId);
+
+        Task OnUserDisconnectedFromLivestreamAsync(Guid livestreamId, Guid userId);
 
     }
 

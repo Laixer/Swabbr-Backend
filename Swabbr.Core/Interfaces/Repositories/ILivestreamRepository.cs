@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,19 +16,27 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task DeleteAsync(Guid id);
 
+        Task<IEnumerable<Livestream>> GetAvailableLivestreamsAsync();
+
+        Task<Livestream> GetByExternalIdAsync(string externalId);
+
         Task<string> GetExternalIdAsync(Guid id);
 
-        Task UpdateLivestreamStatusAsync(Guid id, LivestreamStatus status);
+        Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
+
+        Task MarkClosedAsync(Guid livestreamId);
 
         Task MarkCreatedAsync(Guid id, string externalId, string broadcastLocation);
 
         Task MarkLiveAsync(Guid id);
 
+        Task MarkPendingClosureAsync(Guid livestreamId);
+
         Task MarkPendingUserAsync(Guid livestreamId, Guid userId, DateTimeOffset triggerMinute);
 
-        Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
+        Task MarkPendingUserConnectAsync(Guid livestreamId);
 
-        Task<IEnumerable<Livestream>> GetAvailableLivestreamsAsync();
+        Task MarkUserNoResponseTimeoutAsync(Guid livestreamId);
 
     }
 

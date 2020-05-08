@@ -19,6 +19,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task<IEnumerable<VlogLike>> GetVlogLikesForVlogAsync(Guid vlogId);
 
+        Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId);
+
         Task<Vlog> UpdateAsync(Guid vlogId, Guid userId, bool isPrivate);
 
         Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId);

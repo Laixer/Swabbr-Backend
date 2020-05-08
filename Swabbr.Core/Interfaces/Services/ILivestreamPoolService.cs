@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
@@ -14,6 +15,10 @@ namespace Swabbr.Core.Interfaces.Services
         Task<Livestream> TryGetLivestreamFromPoolAsync();
 
         Task<Livestream> CreateLivestreamAsync();
+
+        Task CleanupLivestreamAsync(Guid livestreamId);
+
+        Task CleanupTimedOutLivestreamAsync(Guid livestreamId);
 
     }
 

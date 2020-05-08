@@ -24,6 +24,8 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<bool> UserExistsAsync(Guid userId);
 
+        Task<bool> NicknameExistsAsync(string nickname);
+
         // TODO Move to withstats
         Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
 

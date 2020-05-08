@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Entities;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
@@ -11,11 +10,7 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IVlogTriggerService
     {
 
-        Task ProcessVlogTriggersAsync(DateTimeOffset time);
-
         Task ProcessVlogTriggerForUserAsync(Guid userId, DateTimeOffset triggerMinute);
-
-        Task ProcessVlogTimeoutsAsync(DateTimeOffset time);
 
         Task ProcessVlogTimeoutForUserAsync(Guid userId, DateTimeOffset triggerMinute);
 

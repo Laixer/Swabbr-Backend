@@ -12,6 +12,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task CleanupReactionStorageAsync(Guid reactionId);
 
+        Task CleanupVlogStorageOnDeleteAsync(Guid vlogId);
+
         Task<Uri> GetDownloadAccessUriForReactionContainerAsync(Guid reactionId);
 
         Task<Uri> GetDownloadAccessUriForReactionVideoAsync(Guid reactionId);

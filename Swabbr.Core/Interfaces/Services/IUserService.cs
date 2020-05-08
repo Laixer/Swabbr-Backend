@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,35 +13,31 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IUserService
     {
 
-        /// <summary>
-        /// Checks if a user with the given id exists.
-        /// </summary>
         Task<bool> ExistsAsync(Guid userId);
 
-        /// <summary>
-        /// Get a single user entity by id.
-        /// </summary>
+        Task<bool> ExistsNicknameAsync(string nickname);
+
+        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
+
         Task<SwabbrUser> GetAsync(Guid userId);
 
-        /// <summary>
-        /// Update a user entity.
-        /// </summary>
-        Task<SwabbrUser> UpdateAsync(SwabbrUser user);
+        Task<SwabbrUser> GetByEmailAsync(string email);
+
+        Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId);
+
+        Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
+
+        Task<UserSettings> GetUserSettingsAsync(Guid userId);
+
+        Task<UserStatistics> GetUserStatisticsAsync(Guid userId);
+
+        Task<SwabbrUser> UpdateAsync(UserUpdateWrapper user);
 
         Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
 
-        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
-
-        /// <summary>
-        /// Get a single user entity by its email address.
-        /// </summary>
-        Task<SwabbrUser> GetByEmailAsync(string email);
-
-        Task<UserSettings> GetSettingsAsync(Guid userId);
-
         Task UpdateSettingsAsync(UserSettings userSettings);
 
-        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
+        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
 
     }
 

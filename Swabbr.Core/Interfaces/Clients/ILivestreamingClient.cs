@@ -56,7 +56,7 @@ namespace Swabbr.Core.Interfaces.Clients
         /// Fetch the playback of a livestream.
         /// </summary>
         /// <param name="livestreamId">Id of the livestream.</param>
-        Task<LivestreamPlaybackDetails> GetStreamPlaybackAsync(string livestreamId);
+        Task<LivestreamDownstreamDetails> GetStreamPlaybackAsync(string livestreamId);
 
         /// <summary>
         /// Fetches the thumbnail URL of the given stream.
