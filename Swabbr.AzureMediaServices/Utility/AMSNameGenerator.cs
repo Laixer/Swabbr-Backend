@@ -1,5 +1,4 @@
-﻿using Laixer.Utility.Extensions;
-using System;
+﻿using System;
 
 namespace Swabbr.AzureMediaServices.Utility
 {
@@ -10,71 +9,31 @@ namespace Swabbr.AzureMediaServices.Utility
     internal static class AMSNameGenerator
     {
 
-        internal static string LivestreamTransformName => "SwabbrLivestreamTransform";
+        internal static string LiveEventName() => $"live-event-{GenerateRandomId()}";
 
-        internal static string LivestreamTransformDescription => "Transform used for Swabbr Livestreams";
+        internal static string VlogLiveOutputName(Guid correspondingVlogId) => $"vlog-live-output-{correspondingVlogId}";
 
-        internal static string ReactionTransformName => "SwabbrReactionTransform";
+        internal static string VlogLiveOutputAssetName(Guid correspondingVlogId) => $"vlog-asset-{correspondingVlogId}";
 
-        internal static string ReactionTransformDescription => "Transform used for Swabbr Reactions";
+        internal static string VlogStreamingLocatorName(Guid correspondingVlogId) => $"vlog-streaming-locator-{correspondingVlogId}";
 
-        internal static string LivestreamDefaultName => "Swabbr Livestream";
+        internal static string ReactionInputAssetName(Guid reactionId) => $"reaction-input-{reactionId}";
 
-        internal static string InputAssetName(Guid reactionId)
-        {
-            reactionId.ThrowIfNullOrEmpty();
-            return $"reaction-input-{reactionId}";
-        }
+        internal static string ReactionOutputAssetName(Guid reactionId) => $"reaction-asset-{reactionId}";
 
-        internal static string OutputAssetName(Guid reactionId)
-        {
-            reactionId.ThrowIfNullOrEmpty();
-            return $"reaction-output-{reactionId}";
-        }
+        internal static string ReactionJobName(Guid reactionId) => $"reaction-job-{reactionId}";
 
-        internal static string LiveEventName()
-        {
-            return $"live-event-{GenerateRandomId()}";
-        }
+        internal static string ReactionVideoFileName(Guid reactionId) => $"reaction-{reactionId}";
 
-        internal static string StreamingLocatorName(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-            return $"streaming-locator-{livestreamId}";
-        }
+        internal static string ReactionOutputContainerVideoFileName(Guid reactionId) => $"video-{ReactionVideoFileName(reactionId)}.mp4";
 
-        internal static string JobName(Guid reactionId)
-        {
-            reactionId.ThrowIfNullOrEmpty();
-            return $"reaction-job-{reactionId}";
-        }
-
-        internal static string VideoFileName(Guid reactionId)
-        {
-            reactionId.ThrowIfNullOrEmpty();
-            return $"reaction-{reactionId}";
-        }
-
-        internal static string OutputContainerVideoFileName(Guid reactionId)
-        {
-            reactionId.ThrowIfNullOrEmpty();
-            return $"video-{VideoFileName(reactionId)}.mp4";
-        }
-
-        internal static string OutputContainerThumbnailFileName(Guid reactionId)
-        {
-            reactionId.ThrowIfNullOrEmpty();
-            return $"thumbnail-{VideoFileName(reactionId)}-000001.png";
-        }
+        internal static string ReactionOutputContainerThumbnailFileName(Guid reactionId) => $"thumbnail-{ReactionVideoFileName(reactionId)}-000001.png"; // TODO Fix
 
         internal static string OutputContainerMetadataFileNameRegex => @"^.+_metadata\.json$";
 
-        private static string GenerateRandomId()
-        {
-            return Nanoid.Nanoid.Generate(
+        private static string GenerateRandomId() => Nanoid.Nanoid.Generate(
                 alphabet: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
                 size: 15);
-        }
 
     }
 

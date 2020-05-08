@@ -1,18 +1,16 @@
 ﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.Management.Media;
-using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
+using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -27,16 +25,82 @@ namespace Swabbr.AzureMediaServices.Services
 
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly AMSConfiguration _config;
+        private readonly IAMSClient _amsClient;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public AMSLivestreamPoolService(ILivestreamRepository livestreamRepository,
-            IOptions<AMSConfiguration> config)
+            IOptions<AMSConfiguration> config,
+            IAMSClient amsClient)
         {
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
+            _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
+        }
+
+        /// <summary>
+        /// Cleans up a <see cref="Livestream"/> <see cref="LiveEvent"/> for 
+        /// re-usage, both internally and externally. This should be used after
+        /// a graceful <see cref="Livestream"/> and <see cref="Vlog"/> process.
+        /// </summary>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CleanupLivestreamAsync(Guid livestreamId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // Internal checks
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                if (livestream.LivestreamStatus != LivestreamStatus.PendingClosure) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.PendingClosure.GetEnumMemberAttribute()} state"); }
+
+                // External checks
+                // TODO Implement
+
+                // External operations
+                // TODO What do we need to do here?
+
+                // Internal operations
+                // TODO This just resets the livestream, check this
+                await _livestreamRepository.MarkClosedAsync(livestream.Id).ConfigureAwait(false);
+                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+
+                scope.Complete();
+            }
+        }
+
+        /// <summary>
+        /// Cleans up a <see cref="Livestream"/> <see cref="LiveEvent"/> for 
+        /// re-usage, both internally and externally. This should be called after
+        /// thie <see cref="SwabbrUser"/> vlog request timed out.
+        /// </summary>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CleanupTimedOutLivestreamAsync(Guid livestreamId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // Internal checks
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                if (livestream.LivestreamStatus != LivestreamStatus.UserNoResponseTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.UserNoResponseTimeout.GetEnumMemberAttribute()} state"); }
+
+                // External checks
+                // TODO Implement
+
+                // External operations
+                // TODO What do we need to do here?
+
+                // Internal operations
+                // TODO This just resets the livestream, check this
+                await _livestreamRepository.MarkPendingClosureAsync(livestream.Id).ConfigureAwait(false);
+                await _livestreamRepository.MarkClosedAsync(livestream.Id).ConfigureAwait(false);
+                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+
+                scope.Complete();
+            }
         }
 
         /// <summary>
@@ -49,26 +113,23 @@ namespace Swabbr.AzureMediaServices.Services
         /// <returns><see cref="Livestream"/></returns>
         public async Task<Livestream> CreateLivestreamAsync()
         {
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            // First create internally (state will be created_internal)
+            var livestream = await _livestreamRepository.CreateAsync(new Livestream
             {
-                // First create internally (state will be created_internal)
-                var livestream = await _livestreamRepository.CreateAsync(new Livestream
-                {
-                    Name = AMSNameGenerator.LivestreamDefaultName
-                }).ConfigureAwait(false);
+                Name = AMSNameConstants.LivestreamDefaultName
+            }).ConfigureAwait(false);
 
-                // Go through external creation process
-                await EnsureLivestreamTransformExistsAsync().ConfigureAwait(false);
-                var liveEvent = await CreateLiveEventAsync(livestream.Id).ConfigureAwait(false);
+            // Create externally
+            await _amsClient.EnsureLivestreamTransformExistsAsync().ConfigureAwait(false);
+            await _amsClient.EnsureStreamingEndpointRunningAsync().ConfigureAwait(false);
+            var liveEvent = await _amsClient.CreateLiveEventAsync(livestream.Id).ConfigureAwait(false);
 
-                // Update internally
-                livestream.ExternalId = liveEvent.Name;
-                livestream.BroadcastLocation = liveEvent.Location;
-                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation);
+            // Update internally
+            livestream.ExternalId = liveEvent.Name;
+            livestream.BroadcastLocation = liveEvent.Location;
+            await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation);
 
-                scope.Complete();
-                return livestream;
-            };
+            return await _livestreamRepository.GetAsync(livestream.Id).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -81,120 +142,18 @@ namespace Swabbr.AzureMediaServices.Services
         /// <returns><see cref="Livestream"/></returns>
         public async Task<Livestream> TryGetLivestreamFromPoolAsync()
         {
-
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var livestreams = await _livestreamRepository.GetAvailableLivestreamsAsync().ConfigureAwait(false);
-                if (!livestreams.Any())
-                {
-                    // First release FOR UPDATE locks, then attempt new create
-                    scope.Complete();
-                    return await CreateLivestreamAsync().ConfigureAwait(false);
-                }
-                else
+                if (livestreams.Any())
                 {
                     var livestream = livestreams.First();
                     scope.Complete();
                     return livestream;
                 }
             }
-        }
 
-        /// <summary>
-        /// Makes sure that the <see cref="Livestream"/> transform exists on
-        /// the Azure Media Services side.
-        /// </summary>
-        /// <remarks>
-        /// TODO This can be optimized, shouldn't need to run every single time.
-        /// </remarks>
-        /// <returns><see cref="Task"/></returns>
-        private async Task EnsureLivestreamTransformExistsAsync()
-        {
-            var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
-            var livestreamTransformName = AMSNameGenerator.LivestreamTransformName;
-
-            var outputs = new TransformOutput[]
-            {
-                new TransformOutput(
-                    new StandardEncoderPreset(
-                        codecs: new Codec[]
-                        {
-                            // Audio codec for video file
-                            new AacAudio(
-                                channels: 2,
-                                samplingRate: 48000,
-                                bitrate: 128000,
-                                profile: AacAudioProfile.AacLc
-                            ),
-
-                            // Video file
-                            new H264Video (
-                                keyFrameInterval:TimeSpan.FromSeconds(2),
-                                layers:  new H264Layer[]
-                                {
-                                    new H264Layer (
-                                        bitrate: 1000000,
-                                        width: "1280",
-                                        height: "720",
-                                        label: "HD"
-                                    )
-                                }
-                            ),
-
-                            // Thumbnails
-                            new PngImage(
-                                start: "25%",
-                                layers: new PngLayer[]{
-                                    new PngLayer(
-                                        width: "50%",
-                                        height: "50%"
-                                    )
-                                }
-                            )
-                        },
-
-                        // Name formatting
-                        formats: new Format[]
-                        {
-                            new Mp4Format(
-                                filenamePattern:"video-{Basename}{Extension}"
-                            ),
-                            new PngFormat(
-                                filenamePattern:"thumbnail-{Basename}-{Index}{Extension}"
-                            )
-                        }
-                    ),
-                    onError: OnErrorType.StopProcessingJob,
-                    relativePriority: Priority.Normal
-                )
-            };
-
-            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameGenerator.LivestreamTransformDescription);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="LiveEvent"/> in AMS.
-        /// </summary>
-        /// <remarks>
-        /// TODO Maybe centralize these livestream parameters
-        /// </remarks>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="LiveEvent"/></returns>
-        private async Task<LiveEvent> CreateLiveEventAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
-            var liveEventName = AMSNameGenerator.LiveEventName();
-            var liveEventRequest = new LiveEvent
-            {
-                Location = _config.Location,
-                Input = new LiveEventInput
-                {
-                    StreamingProtocol = "RTMP" 
-                }
-            };
-            return await amsClient.LiveEvents.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveEventRequest);
+            return await CreateLivestreamAsync().ConfigureAwait(false);
         }
 
     }

@@ -53,7 +53,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             // Create input asset
             var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-            var assetInputName = AMSNameGenerator.InputAssetName(reactionId);
+            var assetInputName = AMSNameGenerator.ReactionInputAssetName(reactionId);
             var assetParams = new Asset(container: assetInputName);
             var assetInput = await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, assetInputName, assetParams).ConfigureAwait(false);
 
@@ -66,7 +66,7 @@ namespace Swabbr.AzureMediaServices.Services
                 expiryTime: DateTime.UtcNow.AddHours(4).ToUniversalTime()).ConfigureAwait(false);
             var sasUri = new Uri(response.AssetContainerSasUrls.First()); // First means AMS access key 1 is used
             var container = new CloudBlobContainer(sasUri);
-            var blob = container.GetBlockBlobReference(AMSNameGenerator.VideoFileName(reactionId));
+            var blob = container.GetBlockBlobReference(AMSNameGenerator.ReactionVideoFileName(reactionId));
 
             // TODO Is this safe? It's captured in a using block, but this is bug sensitive!
             return new StreamWithEntityIdWrapper(await blob.OpenWriteAsync().ConfigureAwait(false), reactionId);
@@ -83,21 +83,21 @@ namespace Swabbr.AzureMediaServices.Services
 
             // Create output asset
             var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-            var assetOutputName = AMSNameGenerator.OutputAssetName(reactionId);
+            var assetOutputName = AMSNameGenerator.ReactionOutputAssetName(reactionId);
             var assetOutput = await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, assetOutputName, new Asset(container: assetOutputName)).ConfigureAwait(false);
 
             // TODO Maybe we can name the metadata file? Would be great!
-            // Apparently the asset can just return the metadata
+            // TODO Apparently the asset can just return the metadata
             // https://stackoverflow.com/questions/29296205/how-to-get-the-duration-of-a-video-from-the-azure-media-services
 
             // Get the transform
-            var transformName = AMSNameGenerator.ReactionTransformName;
+            var transformName = AMSNameConstants.ReactionTransformName;
             await EnsureTransformAsync(amsClient, transformName).ConfigureAwait(false);
 
             // Create a new job
-            var jobInput = new JobInputAsset(assetName: AMSNameGenerator.InputAssetName(reactionId));
+            var jobInput = new JobInputAsset(assetName: AMSNameGenerator.ReactionInputAssetName(reactionId));
             var jobOutputs = new JobOutput[] { new JobOutputAsset(assetOutputName), };
-            var jobName = AMSNameGenerator.JobName(reactionId);
+            var jobName = AMSNameGenerator.ReactionJobName(reactionId);
             var job = await amsClient.Jobs.CreateAsync(config.ResourceGroup, config.AccountName, transformName, jobName, new Job()
             {
                 Input = jobInput,
@@ -127,7 +127,7 @@ namespace Swabbr.AzureMediaServices.Services
         public async Task<int> ExtractVideoLengthInSecondsAsync(Guid reactionId)
         {
             var client = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-            var outputAssetName = AMSNameGenerator.OutputAssetName(reactionId);
+            var outputAssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId);
             var outputAsset = await client.Assets.GetAsync(config.ResourceGroup, config.AccountName, outputAssetName).ConfigureAwait(false);
 
             var sas = await _storageService.GetDownloadAccessUriForReactionContainerAsync(reactionId).ConfigureAwait(false);
@@ -246,7 +246,7 @@ namespace Swabbr.AzureMediaServices.Services
                 )
             };
 
-            await amsClient.Transforms.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, transformName, outputs, AMSNameGenerator.ReactionTransformDescription);
+            await amsClient.Transforms.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, transformName, outputs, AMSNameConstants.ReactionTransformDescription);
         }
 
     }

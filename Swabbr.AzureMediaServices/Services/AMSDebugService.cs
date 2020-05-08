@@ -1,11 +1,14 @@
-﻿using Microsoft.Azure.Management.Media;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
+using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
@@ -43,19 +46,53 @@ namespace Swabbr.AzureMediaServices.Services
             try
             {
                 var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-                var liveEvent = await amsClient.LiveEvents.GetAsync(config.ResourceGroup, config.AccountName, liveEventName);
-                liveEvent.Input.AccessToken = "my-access-token";
-
-                var inputs = await amsClient.LiveEvents.ListAsync(config.ResourceGroup, config.AccountName).ConfigureAwait(false);
-
-                await amsClient.LiveEvents.UpdateAsync(config.ResourceGroup, config.AccountName, liveEventName, liveEvent).ConfigureAwait(false);
-
-                var updatedLiveEvent = await amsClient.LiveEvents.GetAsync(config.ResourceGroup, config.AccountName, liveEventName);
+                var liveEvent = await amsClient.LiveEvents.GetAsync(config.ResourceGroup, config.AccountName, "live-event-RHSlLRPVbklIbd7").ConfigureAwait(false);
+                var liveEvent2 = await amsClient.LiveEvents.GetAsync(config.ResourceGroup, config.AccountName, "614b691783964cee8e3c45028f9e749a").ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 throw;
             }
+        }
+
+        public async Task DeleteAllAssetsAsync()
+        {
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            var assets = await amsClient.Assets.ListAsync(config.ResourceGroup, config.AccountName).ConfigureAwait(false);
+            foreach (var asset in assets)
+            {
+                await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, asset.Name).ConfigureAwait(false);
+            }
+        }
+
+        public async Task<LiveEvent> GetLiveEventAsync(string liveEventName)
+        {
+            liveEventName.ThrowIfNullOrEmpty();
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            return await amsClient.LiveEvents.GetAsync(config.ResourceGroup, config.AccountName, liveEventName).ConfigureAwait(false);
+        }        
+        
+        public async Task<LiveOutput> GetLiveOutputAsync(string liveEventName, Guid correspondingVlogId)
+        {
+            liveEventName.ThrowIfNullOrEmpty();
+            correspondingVlogId.ThrowIfNullOrEmpty();
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            var liveOutputName = AMSNameGenerator.VlogLiveOutputName(correspondingVlogId);
+            return await amsClient.LiveOutputs.GetAsync(config.ResourceGroup, config.AccountName, liveEventName, liveOutputName).ConfigureAwait(false);
+        }
+
+        public async Task DeleteLiveEventAsync(string liveEventName)
+        {
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            await amsClient.LiveEvents.DeleteAsync(config.ResourceGroup, config.AccountName, liveEventName).ConfigureAwait(false);
+        }
+
+        public async Task DeleteLiveOutputAsync(string liveEventName, Guid correspondingVlogId)
+        {
+            liveEventName.ThrowIfNullOrEmpty();
+            correspondingVlogId.ThrowIfNullOrEmpty();
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            await amsClient.LiveOutputs.DeleteAsync(config.ResourceGroup, config.AccountName, liveEventName, AMSNameGenerator.VlogLiveOutputName(correspondingVlogId)).ConfigureAwait(false);
         }
 
     }

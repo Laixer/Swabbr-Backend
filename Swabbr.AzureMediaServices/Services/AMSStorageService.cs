@@ -2,16 +2,12 @@
 using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
 using Swabbr.AzureMediaServices.Configuration;
-using Swabbr.AzureMediaServices.Entities;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Services;
 using System;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -21,6 +17,7 @@ namespace Swabbr.AzureMediaServices.Services
 
     /// <summary>
     /// Handles assets and cleanups for Azure Media Services.
+    /// TODO Move AMS stuff to <see cref="Interfaces.Clients.IAMSClient"/>.
     /// </summary>
     public sealed class AMSStorageService : IStorageService
     {
@@ -34,7 +31,7 @@ namespace Swabbr.AzureMediaServices.Services
         {
             if (options == null) { throw new ArgumentNullException(nameof(options)); }
             options.Value.ThrowIfInvalid();
-            config = options.Value;
+            config = options.Value; 
         }
 
         /// <summary>
@@ -57,7 +54,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             // First delete the input asset in AMS
             // This will also delete the storage container
-            var inputAssetName = AMSNameGenerator.InputAssetName(reactionId);
+            var inputAssetName = AMSNameGenerator.ReactionInputAssetName(reactionId);
             var inputAssetResponse = await amsClient.Assets.DeleteWithHttpMessagesAsync(config.ResourceGroup, config.AccountName, inputAssetName).ConfigureAwait(false);
             switch (inputAssetResponse.Response.StatusCode)
             {
@@ -73,8 +70,8 @@ namespace Swabbr.AzureMediaServices.Services
 
             // Then delete the job as well
             // TODO Do we want this?
-            var jobName = AMSNameGenerator.JobName(reactionId);
-            var transformName = AMSNameGenerator.ReactionTransformName;
+            var jobName = AMSNameGenerator.ReactionJobName(reactionId);
+            var transformName = AMSNameConstants.ReactionTransformName;
             var jobResponse = await amsClient.Jobs.DeleteWithHttpMessagesAsync(config.ResourceGroup, config.AccountName, transformName, jobName).ConfigureAwait(false);
             switch (jobResponse.Response.StatusCode)
             {
@@ -130,7 +127,7 @@ namespace Swabbr.AzureMediaServices.Services
             reactionId.ThrowIfNullOrEmpty();
 
             var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-            var outputAssetName = AMSNameGenerator.OutputAssetName(reactionId);
+            var outputAssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId);
             var assetContainerSas = await amsClient.Assets.ListContainerSasAsync(
                     config.ResourceGroup,
                     config.AccountName,
@@ -142,6 +139,23 @@ namespace Swabbr.AzureMediaServices.Services
             if (!assetContainerSas.AssetContainerSasUrls.Any()) { throw new ExternalErrorException($"Could not find output asset with name {outputAssetName} in Azure Media Services"); }
 
             return new Uri(assetContainerSas.AssetContainerSasUrls.FirstOrDefault()); // First access key
+        }
+
+        /// <summary>
+        /// Cleans up the storage for a <see cref="Core.Entities.Vlog"/>.
+        /// </summary>
+        /// <remarks>
+        /// This does not delete the <see cref="Core.Entities.Vlog"/>.
+        /// </remarks>
+        /// <param name="vlogId">Internal <see cref="Core.Entities.Vlog"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CleanupVlogStorageOnDeleteAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            var vlogAssetName = AMSNameGenerator.VlogLiveOutputAssetName(vlogId);
+            await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, vlogAssetName).ConfigureAwait(false);
         }
 
     }
