@@ -14,25 +14,21 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Id of the user that initiated the follow request.
         /// </summary>
-        [JsonProperty("requesterId")]
         public Guid RequesterId { get; set; }
 
         /// <summary>
         /// Id of the user that should receive the follow request.
         /// </summary>
-        [JsonProperty("receiverId")]
         public Guid ReceiverId { get; set; }
 
         /// <summary>
         /// Current status of the follow request.
         /// </summary>
-        [JsonProperty("status")]
-        public FollowRequestStatusModel Status { get; set; }
+        public string Status { get; set; }
 
         /// <summary>
         /// Timestamp of when the request was initiated.
         /// </summary>
-        [JsonProperty("timeCreated")]
         public DateTimeOffset TimeCreated { get; set; }
 
     }

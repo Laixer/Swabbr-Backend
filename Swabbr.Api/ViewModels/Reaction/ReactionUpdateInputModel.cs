@@ -14,7 +14,6 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Indicates whether this reaction is public or private.
         /// </summary>
-        [JsonProperty("isPrivate")]
         [Required]
         public bool IsPrivate { get; set; }
 

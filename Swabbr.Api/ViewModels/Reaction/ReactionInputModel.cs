@@ -14,14 +14,12 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Id of the <see cref="Core.Entities.Vlog"/> the reaction responds to.
         /// </summary>
-        [JsonProperty("targetVlogId")]
         [Required]
         public Guid TargetVlogId { get; set; }
 
         /// <summary>
         /// Indicates whether this reaction is public or private.
         /// </summary>
-        [JsonProperty("isPrivate")]
         public bool IsPrivate { get; set; }
 
     }

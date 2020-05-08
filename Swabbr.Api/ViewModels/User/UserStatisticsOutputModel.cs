@@ -1,4 +1,6 @@
-﻿namespace Swabbr.Api.ViewModels.User
+﻿using System;
+
+namespace Swabbr.Api.ViewModels.User
 {
 
     /// <summary>
@@ -6,6 +8,11 @@
     /// </summary>
     public class UserStatisticsOutputModel
     {
+
+        /// <summary>
+        /// Represents the id of this user.
+        /// </summary>
+        public Guid UserId { get; set; }
 
         /// <summary>
         /// The total amount of accumulated likes for the vlogs of this user.

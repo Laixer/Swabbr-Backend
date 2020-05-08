@@ -14,14 +14,12 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
-        [JsonProperty("isPrivate")]
         [Required]
         public bool IsPrivate { get; set; }
 
         /// <summary>
         /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
-        [JsonProperty("dailyVlogRequestLimit")]
         [Required]
         [Range(0, 100)]
         public uint DailyVlogRequestLimit { get; set; }
@@ -29,7 +27,6 @@ namespace Swabbr.Api.ViewModels
         /// <summary>
         /// Determines how follow requests are processed for the user.
         /// </summary>
-        [JsonProperty("followMode")]
         [Required]
         public FollowModeModel FollowMode { get; set; }
 

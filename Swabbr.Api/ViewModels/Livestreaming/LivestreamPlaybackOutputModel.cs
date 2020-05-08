@@ -7,14 +7,34 @@ namespace Swabbr.Api.ViewModels
     /// <summary>
     /// Represents a livestream playback entity.
     /// </summary>
-    public class LivestreamPlaybackOutputModel
+    public sealed class LivestreamPlaybackOutputModel
     {
 
         /// <summary>
-        /// Playback URL for streaming video
+        /// Internal <see cref="Core.Entities.SwabbrUser"/> id of the person that is
+        /// live.
         /// </summary>
-        [JsonProperty("playbackUrl")]
-        public Uri PlaybackUrl { get; set; }
+        public Guid LiveUserId { get; set; }
+
+        /// <summary>
+        /// Internal <see cref="Core.Entities.Livestream"/> id.
+        /// </summary>
+        public Guid LiveLivestreamId { get; set; }
+
+        /// <summary>
+        /// Internal <see cref="Core.Entities.Vlog"/> id.
+        /// </summary>
+        public Guid LiveVlogId { get; set; }
+
+        /// <summary>
+        /// Endpoint to connect to.
+        /// </summary>
+        public Uri EndpointUrl { get; set; }
+
+        /// <summary>
+        /// Authentication token.
+        /// </summary>
+        public string Token { get; set; }
 
     }
 

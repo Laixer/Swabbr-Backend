@@ -15,7 +15,6 @@ namespace Swabbr.Api.ViewModels.User
         /// Email address input.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("email", Required = Required.DisallowNull)]
         [EmailAddress, DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
@@ -23,21 +22,19 @@ namespace Swabbr.Api.ViewModels.User
         /// Password input.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        [JsonProperty("password", Required = Required.DisallowNull)]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
         /// <summary>
         /// Remember login option.
         /// </summary>
-        [JsonProperty("rememberMe")]
         public bool RememberMe { get; set; } = false;
 
         /// <summary>
         /// Indicates which <see cref="PushNotificationPlatform"/> we are on.
         /// </summary>
         [Required]
-        public PushNotificationPlatformModel PushNotificationPlatform { get; set; }
+        public PushNotificationPlatformModel? PushNotificationPlatform { get; set; }
 
         /// <summary>
         /// PNS handle.

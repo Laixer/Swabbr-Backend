@@ -25,7 +25,13 @@ namespace Swabbr.Api.ViewModels.Enums
         /// The follow request has been declined.
         /// </summary>
         [EnumMember(Value = "declined")]
-        Declined
+        Declined,
+
+        /// <summary>
+        /// The follow request relation does not exist in the data store.
+        /// </summary>
+        [EnumMember(Value = "does_not_exist")]
+        DoesNotExist
 
     }
 }
