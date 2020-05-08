@@ -13,26 +13,26 @@ namespace Swabbr.Core.Types
         /// <summary>
         /// Minimum vlog length.
         /// </summary>
-        public int VlogLengthMinSeconds { get; set; } = 10;
+        public int VlogLengthMinSeconds { get; set; }
 
         /// <summary>
         /// Maximum vlog length.
         /// </summary>
-        public int VlogLengthMaxSeconds { get; set; } = 600;
+        public int VlogLengthMaxSeconds { get; set; }
 
         /// <summary>
         /// Timeout in seconds before a vlog record request times out.
         /// </summary>
-        public int VlogRequestTimeoutMinutes { get; set; } = 5;
-        
+        public int VlogRequestTimeoutMinutes { get; set; }
+
         /// <summary>
         /// Maximum daily vlog request count.
         /// </summary>
-        public int DailyVlogRequestLimit { get; set; } = 3;
+        public int DailyVlogRequestLimit { get; set; }
 
-        public int VlogRequestStartTimeMinutes { get; set; } = (int)TimeSpan.FromHours(9).TotalMinutes;
+        public int VlogRequestStartTimeMinutes { get; set; }
 
-        public int VlogRequestEndTimeMinutes { get; set; } = (int)TimeSpan.FromHours(22).TotalMinutes;
+        public int VlogRequestEndTimeMinutes { get; set; }
 
     }
 
