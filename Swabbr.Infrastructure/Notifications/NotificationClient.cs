@@ -12,6 +12,7 @@ using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
+using Swabbr.Infrastructure.Utility;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -46,8 +47,7 @@ namespace Swabbr.Infrastructure.Notifications
             INotificationJsonExtractor notificationJsonExtractor)
         {
             if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
-            if (options.Value.ConnectionString.IsNullOrEmpty()) { throw new Laixer.Utility.Exceptions.ConfigurationException("ANH Connection string is not specified"); }
-            if (options.Value.HubName.IsNullOrEmpty()) { throw new Laixer.Utility.Exceptions.ConfigurationException("ANH hub name is not specified"); }
+            options.Value.ThrowIfInvalid();
 
             _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationClient)) : throw new ArgumentNullException(nameof(loggerFactory));
@@ -116,7 +116,10 @@ namespace Swabbr.Infrastructure.Notifications
             var externalRegistrations = new List<RegistrationDescription>(
                 await _hubClient.GetRegistrationsByTagAsync(internalRegistration.UserId.ToString(), 0)
                 .ConfigureAwait(false));
-            if (!externalRegistrations.Any()) { throw new DeviceNotRegisteredException("User is not registered in Azure Notification Hub"); }
+            if (!externalRegistrations.Any())
+            {
+                logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, cleaning all up before making new registration");
+            }
             if (externalRegistrations.Count > 1) { logger.LogWarning("User is registered multiple times in Azure Notification Hub, cleaning up all of them before making new registration"); }
 
             // Remove the registrations
