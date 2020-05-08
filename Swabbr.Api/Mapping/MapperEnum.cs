@@ -14,8 +14,9 @@ namespace Swabbr.Api.Mapping
     internal static class MapperEnum
     {
 
-        internal static Gender Map(GenderModel gender)
+        internal static Gender? Map(GenderModel? gender)
         {
+            if (gender == null) { return null; }
             switch (gender)
             {
                 case GenderModel.Female:
@@ -29,8 +30,9 @@ namespace Swabbr.Api.Mapping
             throw new InvalidOperationException(nameof(gender));
         }
 
-        internal static GenderModel Map(Gender gender)
+        internal static GenderModel? Map(Gender? gender)
         {
+            if (gender == null) { return null; }
             switch (gender)
             {
                 case Gender.Female:

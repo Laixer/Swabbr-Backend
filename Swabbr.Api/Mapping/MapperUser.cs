@@ -1,6 +1,7 @@
 ﻿using Laixer.Utility.Extensions;
 using Swabbr.Api.Parsing;
 using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.Enums;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
 using System;
@@ -25,11 +26,11 @@ namespace Swabbr.Api.Mapping
                 Email = input.Email,
                 BirthDate = input.BirthDate,
                 Country = input.Country,
-                Gender = MapperEnum.Map(input.Gender),
+                Gender = MapperEnum.Map(input.Gender)?.GetEnumMemberAttribute(),
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
-                ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = input.Timezone.ToString(),
+                ProfileImageBase64Encoded = input.ProfileImageBase64Encoded,
+                Timezone = input.Timezone?.ToString(),
                 TotalFollowers = input.TotalFollowers,
                 TotalFollowing = input.TotalFollowing,
                 TotalVlogs = input.TotalVlogs
@@ -47,32 +48,11 @@ namespace Swabbr.Api.Mapping
                 Email = input.Email,
                 BirthDate = input.BirthDate,
                 Country = input.Country,
-                Gender = MapperEnum.Map(input.Gender),
+                Gender = MapperEnum.Map(input.Gender)?.GetEnumMemberAttribute(),
                 IsPrivate = input.IsPrivate,
                 Nickname = input.Nickname,
-                ProfileImageUrl = input.ProfileImageUrl,
-                Timezone = input.Timezone.ToString()
-            };
-        }
-
-        internal static SwabbrUser Map(UserUpdateInputModel input)
-        {
-            if (input == null) { throw new ArgumentNullException(nameof(input)); }
-            return new SwabbrUser
-            {
-                BirthDate = input.BirthDate,
-                Country = input.Country,
-                //DailyVlogRequestLimit = ??
-                //Email = ??,
-                FirstName = input.FirstName,
-                //FollowMode = ??
-                Gender = MapperEnum.Map(input.Gender),
-                LastName = input.LastName,
-                IsPrivate = input.IsPrivate,
-                //Latitude = ??
-                //Longitude = ??
-                Nickname = input.Nickname,
-                ProfileImageUrl = input.ProfileImageUrl
+                ProfileImageBase64Encoded = input.ProfileImageBase64Encoded,
+                Timezone = input.Timezone?.ToString()
             };
         }
 
@@ -93,6 +73,7 @@ namespace Swabbr.Api.Mapping
             if (userStatistics == null) { throw new ArgumentNullException(nameof(userStatistics)); }
             return new UserStatisticsOutputModel
             {
+                UserId = userStatistics.Id,
                 TotalFollowers = userStatistics.TotalFollowers,
                 TotalFollowing = userStatistics.TotalFollowing,
                 TotalLikes = userStatistics.TotalLikes,

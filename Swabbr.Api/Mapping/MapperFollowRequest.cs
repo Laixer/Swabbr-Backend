@@ -1,4 +1,5 @@
-﻿using Swabbr.Api.ViewModels;
+﻿using Laixer.Utility.Extensions;
+using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using System;
 
@@ -18,7 +19,7 @@ namespace Swabbr.Api.Mapping
             {
                 ReceiverId = followRequest.Id.ReceiverId,
                 RequesterId = followRequest.Id.RequesterId,
-                Status = MapperEnum.Map(followRequest.FollowRequestStatus),
+                Status = MapperEnum.Map(followRequest.FollowRequestStatus).GetEnumMemberAttribute(),
                 TimeCreated = followRequest.TimeCreated
             };
         }
