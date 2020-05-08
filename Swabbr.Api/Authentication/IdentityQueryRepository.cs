@@ -28,15 +28,7 @@ namespace Swabbr.Api.Authentication
                     security_stamp,
                     phone_number,
                     lockout_end,
-                    first_name,
-                    last_name,
-                    nickname,
-                    is_private,
-                    profile_image_url,
-                    gender,
-                    timezone,
-                    birth_date,
-                    country
+                    nickname
                 ) VALUES (
                     @Email,
                     @NormalizedEmail,
@@ -45,15 +37,7 @@ namespace Swabbr.Api.Authentication
                     @SecurityStamp,
                     @PhoneNumber,
                     @LockoutEnd,
-                    @FirstName,
-                    @LastName,
-                    @Nickname,
-                    @IsPrivate,
-                    @ProfileImageUrl,
-                    CAST (@GenderText AS gender),
-                    @Timezone,
-                    @BirthDate,
-                    @Country
+                    @Nickname
                 ) RETURNING id";
 
             queryRepository.FindByNameAsync = @"
@@ -66,9 +50,6 @@ namespace Swabbr.Api.Authentication
                 SET    email = @Email,
                        normalized_email = @NormalizedEmail,
                        email_confirmed = @EmailConfirmed,
-                       given_name = @GivenName,
-                       last_name = @LastName,
-                       profile_image_url = @ProfileImageUrl,
                        job_title = @JobTitle,
                        password_hash = @PasswordHash,
                        phone_number = @PhoneNumber,
@@ -76,9 +57,7 @@ namespace Swabbr.Api.Authentication
                        two_factor_enabled = @TwoFactorEnabled,
                        lockout_end = @LockoutEnd,
                        lockout_enabled = @LockoutEnabled,
-                       access_failed_count = @AccessFailedCount,
-                       given_name = @GivenName,
-                       last_name = @LastName,
+                       access_failed_count = @AccessFailedCount
                 WHERE  id = @Id";
 
             queryRepository.FindByIdAsync = $@"
