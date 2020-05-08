@@ -4,6 +4,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Types;
 using Swabbr.WowzaStreamingCloud.Client;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Entities.StreamTargets;
@@ -67,17 +68,18 @@ namespace Swabbr.WowzaStreamingCloud.Services
             if (!await _wowzaHttpClient.IsLivestreamStartedAsync(livestream.ExternalId))
             {
                 throw new InvalidOperationException("Livestream isn't live"); // TODO Do we want this?
-            } 
+            }
 
             // TODO DRY
-            return new ParametersFollowedProfileLive
-            {
-                EndpointUrl = await GetPlaybackUrlAsync(livestreamId).ConfigureAwait(false),
-                LiveLivestreamId = livestreamId,
-                LiveUserId = livestream.UserId,
-                LiveVlogId = vlog.Id,
-                Token = await GetTokenAsync(livestreamId, watchingUserId).ConfigureAwait(false)
-            };
+            //return new ParametersFollowedProfileLive
+            //{
+            //    EndpointUrl = await GetPlaybackUrlAsync(livestreamId).ConfigureAwait(false),
+            //    LiveLivestreamId = livestreamId,
+            //    LiveUserId = livestream.UserId,
+            //    LiveVlogId = vlog.Id,
+            //    Token = await GetTokenAsync(livestreamId, watchingUserId).ConfigureAwait(false)
+            //};
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -99,7 +101,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// <param name="livestreamId">Internal <see cref="Core.Entities.Livestream"/> id</param>
         /// <param name="watchingUserId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
         /// <returns>Token</returns>
-        public async Task<string> GetTokenAsync(Guid livestreamId, Guid watchingUserId)
+        public async Task<string> GetVlogTokenAsync(Guid livestreamId, Guid watchingUserId)
         {
             livestreamId.ThrowIfNullOrEmpty();
             watchingUserId.ThrowIfNullOrEmpty();
@@ -171,7 +173,15 @@ namespace Swabbr.WowzaStreamingCloud.Services
             }
         }
 
+        Task<LivestreamDownstreamDetails> ILivestreamPlaybackService.GetLivestreamDownstreamParametersAsync(Guid livestreamId, Guid watchingUserId)
+        {
+            throw new NotImplementedException();
+        }
 
+        public Task<VlogPlaybackDetails> GetVlogDownstreamParametersAsync(Guid vlogId, Guid watchingUserId)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

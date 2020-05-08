@@ -20,7 +20,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
     /// <summary>
     /// Manages a Wowza <see cref="Livestream"/> pool.
     /// </summary>
-    public sealed class WowzaLivestreamPoolService : ILivestreamPoolService
+    public sealed class WowzaLivestreamPoolService
     {
 
         // TODO DRY client
@@ -38,6 +38,21 @@ namespace Swabbr.WowzaStreamingCloud.Services
             if (wscOptions == null || wscOptions.Value == null) { throw new ArgumentNullException(nameof(wscOptions)); }
             _wscOptions = wscOptions.Value;
             _wowzaHttpClient = new WowzaHttpClient(_wscOptions);
+        }
+
+        public Task CleanupLivestreamAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CleanupLivestreamAsync(Guid livestreamId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CleanupTimedOutLivestreamAsync(Guid livestreamId)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

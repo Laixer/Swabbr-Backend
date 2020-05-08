@@ -6,6 +6,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Types;
 using Swabbr.WowzaStreamingCloud.Client;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Entities.Livestreams;
@@ -56,7 +57,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// </remarks>
         /// <param name="userId">Internal user id</param>
         /// <returns><see cref="Livestream"/></returns>
-        public async Task<Livestream> TryStartLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute)
+        public async Task<Livestream> TryClaimLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute)
         {
             userId.ThrowIfNullOrEmpty();
             if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
@@ -122,7 +123,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
                 // Check if we aren't already streaming
                 if (await _wowzaHttpClient.IsStreamerConnected(livestream.ExternalId)) { throw new InvalidOperationException("A user already connected to the livestream in the Wowza cloud"); }
 
-                await _livestreamRepository.UpdateLivestreamStatusAsync(livestream.Id, LivestreamStatus.Live).ConfigureAwait(false);
+                //await _livestreamRepository.UpdateLivestreamStatusAsync(livestream.Id, LivestreamStatus.Live).ConfigureAwait(false);
 
                 scope.Complete();
             }
@@ -151,11 +152,11 @@ namespace Swabbr.WowzaStreamingCloud.Services
                 if (await _wowzaHttpClient.IsStreamerConnected(livestream.ExternalId)) { throw new InvalidOperationException("User still connected to the livestream in the Wowza cloud"); }
 
                 // First set the livestream to pending closure
-                await _livestreamRepository.UpdateLivestreamStatusAsync(livestream.Id, LivestreamStatus.PendingClosure).ConfigureAwait(false);
+                //await _livestreamRepository.UpdateLivestreamStatusAsync(livestream.Id, LivestreamStatus.PendingClosure).ConfigureAwait(false);
 
                 // Now stop it externally as well, then notify the database
                 await _wowzaHttpClient.StopLivestreamAsync(livestream.ExternalId);
-                await _livestreamRepository.UpdateLivestreamStatusAsync(livestream.Id, LivestreamStatus.Closed).ConfigureAwait(false);
+                //await _livestreamRepository.UpdateLivestreamStatusAsync(livestream.Id, LivestreamStatus.Closed).ConfigureAwait(false);
 
                 scope.Complete();
             }
@@ -211,7 +212,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="ParametersRecordVlog"/></returns>
-        public async Task<ParametersRecordVlog> GetUpstreamParametersAsync(Guid livestreamId, Guid userId)
+        public async Task<ParametersRecordVlog> GetParametersRecordVlogAsync(Guid livestreamId, Guid userId)
         {
             livestreamId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
@@ -223,16 +224,17 @@ namespace Swabbr.WowzaStreamingCloud.Services
             ValidateWscLivestream(wscLivestream);
 
             // Construct parameters
-            return new ParametersRecordVlog
-            {
-                LivestreamId = livestreamId,
-                ApplicationName = wscLivestream.Livestream.SourceConnectionInformation.Application,
-                HostPort = wscLivestream.Livestream.SourceConnectionInformation.HostPort,
-                HostServer = wscLivestream.Livestream.SourceConnectionInformation.PrimaryServer,
-                Password = wscLivestream.Livestream.SourceConnectionInformation.Password,
-                StreamKey = wscLivestream.Livestream.SourceConnectionInformation.StreamName,
-                Username = wscLivestream.Livestream.SourceConnectionInformation.Username
-            };
+            //return new ParametersRecordVlog
+            //{
+            //    LivestreamId = livestreamId,
+            //    ApplicationName = wscLivestream.Livestream.SourceConnectionInformation.Application,
+            //    HostPort = wscLivestream.Livestream.SourceConnectionInformation.HostPort,
+            //    HostServer = wscLivestream.Livestream.SourceConnectionInformation.PrimaryServer,
+            //    Password = wscLivestream.Livestream.SourceConnectionInformation.Password,
+            //    StreamKey = wscLivestream.Livestream.SourceConnectionInformation.StreamName,
+            //    Username = wscLivestream.Livestream.SourceConnectionInformation.Username
+            //};
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -284,7 +286,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(); }
 
                 // First mark
-                await _livestreamRepository.UpdateLivestreamStatusAsync(livestreamId, LivestreamStatus.UserNoResponseTimeout).ConfigureAwait(false);
+                //await _livestreamRepository.UpdateLivestreamStatusAsync(livestreamId, LivestreamStatus.UserNoResponseTimeout).ConfigureAwait(false);
 
                 // Then stop
                 await _wowzaHttpClient.StopLivestreamAsync(livestream.ExternalId).ConfigureAwait(false);
@@ -293,6 +295,31 @@ namespace Swabbr.WowzaStreamingCloud.Services
 
                 scope.Complete();
             }
+        }
+
+        public Task<ParametersRecordVlog> GetParametersRecordVlogAsync(Guid livestreamId, DateTimeOffset triggerMinute)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<LivestreamUpstreamDetails> GetUpstreamDetailsAsync(Guid livestreamId, Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Livestream> GetLivestreamFromExternalIdAsync(string externalId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OnUserConnectedToLivestreamAsync(Guid livestreamId, Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OnUserDisconnectedFromLivestreamAsync(Guid livestreamId, Guid userId)
+        {
+            throw new NotImplementedException();
         }
     }
 
