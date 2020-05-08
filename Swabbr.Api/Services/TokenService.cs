@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Options;
+using Swabbr.Api.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,13 +17,18 @@ namespace Swabbr.Api.Services
         string GenerateToken(SwabbrIdentityUser user);
     }
 
+    /// <summary>
+    /// TODO Clean up
+    /// </summary>
     public class TokenService : ITokenService
     {
         private readonly JwtConfiguration _jwtConfig;
 
-        public TokenService(IOptions<JwtConfiguration> jwtConfigOptions)
+        public TokenService(IOptions<JwtConfiguration> config)
         {
-            _jwtConfig = jwtConfigOptions.Value;
+            if (config == null || config.Value == null) { throw new ArgumentNullException(nameof(config)); }
+            _jwtConfig = config.Value;
+            _jwtConfig.ThrowIfInvalid();
         }
 
         // TODO THOMAS I don't know if this is correct (could be), worth checking --> yorick heeft gecheckt, technisch klopt het (moet eigenlijk met identity server)
