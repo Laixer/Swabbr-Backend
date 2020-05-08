@@ -9,6 +9,7 @@ namespace Swabbr.Core.Utility
 
         /// <summary>
         /// Validates a <see cref="SwabbrConfiguration"/>.
+        /// TODO These values are defaulted to 0, which doesn't always trigger an exception.
         /// </summary>
         /// <param name="config"><see cref="SwabbrConfiguration"/></param>
         public static void ThrowIfInvalid(this SwabbrConfiguration config)

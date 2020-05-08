@@ -19,13 +19,10 @@ namespace Swabbr.Core.Utility
         public static void Validate(this ParametersRecordVlog pars)
         {
             if (pars == null) { throw new ArgumentNullException(nameof(pars)); }
-            pars.ApplicationName.ThrowIfNullOrEmpty();
-            if (pars.HostPort == 0) { throw new ArgumentNullException(nameof(pars.HostPort)); }
-            pars.Password.ThrowIfNullOrEmpty();
-            if (pars.HostServer == null) { throw new ArgumentNullException(nameof(pars.HostServer)); }
-            pars.StreamKey.ThrowIfNullOrEmpty();
-            pars.Username.ThrowIfNullOrEmpty();
             pars.LivestreamId.ThrowIfNullOrEmpty();
+            if (pars.RequestMoment == null) { throw new ArgumentNullException(nameof(pars.RequestMoment)); }
+            if (pars.RequestTimeout == null) { throw new ArgumentNullException(nameof(pars.RequestTimeout)); }
+            pars.VlogId.ThrowIfNullOrEmpty();
         }
 
     }
