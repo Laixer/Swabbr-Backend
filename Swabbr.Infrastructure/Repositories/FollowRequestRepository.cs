@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using Laixer.Infra.Npgsql;
 using Laixer.Utility.Extensions;
-using Npgsql;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
@@ -12,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
@@ -88,14 +88,44 @@ namespace Swabbr.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
+        /// <summary>
+        /// Lists incoming <see cref="FollowRequest"/>s.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="FollowRequest"/> collection</returns>
+        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
         {
-            throw new NotImplementedException();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT * FROM {TableFollowRequest}
+                    WHERE receiver_id = @UserId
+                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'
+                    FOR UPDATE";
+                return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
+            }
         }
 
-        public Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
+        /// <summary>
+        /// Lists outgoing <see cref="FollowRequest"/>s.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="FollowRequest"/> collection</returns>
+        public async Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
         {
-            throw new NotImplementedException();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT * FROM {TableFollowRequest}
+                    WHERE requester_id = @UserId
+                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'
+                    FOR UPDATE";
+                return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
+            }
         }
 
         /// <summary>
@@ -159,7 +189,9 @@ namespace Swabbr.Infrastructure.Repositories
                     DELETE FROM {TableFollowRequest} 
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-                await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
+                var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
+                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(FollowRequest)); }
             }
         }
 

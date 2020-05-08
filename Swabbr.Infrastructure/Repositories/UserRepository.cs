@@ -337,6 +337,23 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Checks if a given <see cref="SwabbrUser.Nickname"/> exists.
+        /// </summary>
+        /// <param name="nickname"><see cref="SwabbrUser.Nickname"/></param>
+        /// <returns><see cref="bool"/></returns>
+        public async Task<bool> NicknameExistsAsync(string nickname)
+        {
+            nickname.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"SELECT 1 FROM {TableUser} WHERE nickname = @Nickname";
+                var result = await connection.QueryAsync<int>(sql, new { Nickname = nickname }).ConfigureAwait(false);
+                return result.Any();
+            }
+        }
+
+        /// <summary>
         /// Updates a <see cref="SwabbrUser"/> in our database.
         /// </summary>
         /// <param name="entity"><see cref="SwabbrUser"/></param>
@@ -352,18 +369,23 @@ namespace Swabbr.Infrastructure.Repositories
                 {
                     await GetAsync(entity.Id).ConfigureAwait(false); // FOR UPATE
 
-                    // TODO Enum injection
+                    // TODO Enum injection, also ugly
                     var sql = $@"
                         UPDATE {TableUser} SET
-                            birth_date = @BirthDate,
-                            country = @Country,
-                            first_name = @FirstName,
-                            gender = '{entity.Gender.GetEnumMemberAttribute()}', 
-                            is_private = @IsPrivate,
-                            last_name = @LastName,
-                            nickname = @NickName,
-                            profile_image_url = @ProfileImageUrl,
-                            timezone = @Timezone
+                            birth_date = COALESCE(@BirthDate, birth_date),
+                            country = COALESCE(@Country, country),
+                            first_name = COALESCE(@FirstName, first_name),
+                            {(
+                                (entity.Gender == null) ?
+                                "" :
+                                $"gender = COALESCE('{entity.Gender?.GetEnumMemberAttribute()}', gender),"
+                            )}
+                            is_private = COALESCE(@IsPrivate, is_private),
+                            last_name = COALESCE(@LastName, last_name),
+                            nickname = COALESCE(@NickName, nickname),
+                            profile_image_base64_encoded = COALESCE(@ProfileImageBase64Encoded, profile_image_base64_encoded),
+                            follow_mode = COALESCE('{entity.FollowMode.GetEnumMemberAttribute()}', follow_mode),
+
                         WHERE id = @Id";
                     int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
                     if (rowsAffected <= 0) { throw new EntityNotFoundException(); }

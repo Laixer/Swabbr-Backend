@@ -167,11 +167,11 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT * FROM public.vlog WHERE livestream_id = @Id";
-                var pars = new { Id = livestreamId };
+                var sql = $"SELECT * FROM {TableVlog} WHERE livestream_id = @LivestreamId FOR UPDATE";
+                var pars = new { LivestreamId = livestreamId };
                 var result = await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found multiple result for single get"); }
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
                 return result.First();
             }
         }
