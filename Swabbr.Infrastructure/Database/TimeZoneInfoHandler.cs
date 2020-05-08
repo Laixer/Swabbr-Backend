@@ -9,7 +9,7 @@ namespace Swabbr.Infrastructure.Database
     /// <summary>
     /// Tells our sql mapper how to handle <see cref="TimeZoneInfo"/> objects.
     /// </summary>
-    public sealed class TimeZoneHandler : SqlMapper.TypeHandler<TimeZoneInfo>
+    public sealed class TimeZoneInfoHandler : SqlMapper.TypeHandler<TimeZoneInfo>
     {
 
         /// <summary>

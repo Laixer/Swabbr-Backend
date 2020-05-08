@@ -20,7 +20,8 @@ namespace Swabbr.Infrastructure.Database
             // Setup custom mappers
             SqlMapper.AddTypeHandler(new UriHandler());
             SqlMapper.AddTypeHandler(new FollowRequestStatusHandler()); // TODO Look at this
-            SqlMapper.AddTypeHandler(new TimeZoneHandler());
+            SqlMapper.AddTypeHandler(new TimeZoneInfoHandler());
+            SqlMapper.AddTypeHandler(new GenderHandler());
 
             // Setup (Dapper) enums
             NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowMode>("follow_mode");
