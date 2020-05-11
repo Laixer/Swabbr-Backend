@@ -25,7 +25,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
     /// 
     /// TODO At the moment this doesn't check the user repository. I think that's ok, since we have a foreign key in the database.
     /// </summary>
-    public sealed class WowzaLivestreamService : ILivestreamService, IDisposable
+    public sealed class WowzaLivestreamService : IDisposable
     {
 
         private readonly WowzaHttpClient _wowzaHttpClient;
