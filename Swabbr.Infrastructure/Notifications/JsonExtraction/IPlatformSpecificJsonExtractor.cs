@@ -11,7 +11,7 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
     internal interface IPlatformSpecificJsonExtractor
     {
 
-        NotificationJsonBase Extract(NotificationPayloadJsonWrapper payloadJsonWrapper);
+        NotificationJsonBase Extract(SwabbrNotification swabbrNotification);
 
     }
 

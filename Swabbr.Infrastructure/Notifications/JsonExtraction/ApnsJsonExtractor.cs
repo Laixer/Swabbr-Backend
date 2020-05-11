@@ -13,17 +13,10 @@ namespace Swabbr.Core.Notifications.JsonExtraction
     internal sealed class ApnsJsonExtractor : IPlatformSpecificJsonExtractor
     {
 
-        /// <summary>
-        /// Formats a <see cref="NotificationJsonBase"/> for Apple Push Notification 
-        /// Services based on a given <paramref name="notification"/>.
-        /// </summary>
-        /// <param name="notification"><see cref="SwabbrNotification"/></param>
-        /// <returns><see cref="ApnsContentWrapper"/></returns>
-        public NotificationJsonBase Extract(NotificationPayloadJsonWrapper payloadJsonWrapper)
+        public NotificationJsonBase Extract(SwabbrNotification swabbrNotification)
         {
             throw new NotImplementedException();
         }
-
     }
 
 }

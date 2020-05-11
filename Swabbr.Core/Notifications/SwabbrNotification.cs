@@ -14,24 +14,47 @@ namespace Swabbr.Core.Notifications
         /// Constructor to force us to always initialize <see cref="NotificationAction"/>.
         /// </summary>
         /// <param name="notificationAction"><see cref="NotificationAction"/></param>
-        public SwabbrNotification(NotificationAction notificationAction)
+        public SwabbrNotification(NotificationAction notificationAction,
+            ParametersJsonBase data,
+            string title = null,
+            string message = null,
+            string protocol = "swabbr",
+            string protocolVersion = "1.0")
         {
-            NotificationAction = notificationAction;
-            CreatedAt = DateTimeOffset.Now;
+            if (data == null) { throw new ArgumentNullException(nameof(data)); }
+
+            ClickAction = NotificationActionTranslator.Translate(notificationAction);
+            Timestamp = DateTimeOffset.Now;
+            Protocol = protocol;
+            ProtocolVersion = protocolVersion;
+            DataType = "notification";
+            DataTypeVersion = "1.0";
+            ContentType = "application/json";
+
+            Data = data;
+            Data.Title = title;
+            Data.Message = message;
+
+            UserAgent = "swabbr-backend"; // TODO What to do with this?
         }
 
-        public string Title { get; set; }
+        public string Protocol { get; }
 
-        public string Body { get; set; }
+        public string ProtocolVersion { get; }
 
-        public NotificationAction NotificationAction { get; } // TODO Is this allowed? Is this correct?
+        public string DataType { get; }
 
-        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now; // TODO Is this correct?
+        public string DataTypeVersion { get; }
 
-        /// <summary>
-        /// Contains action specific values.
-        /// </summary>
-        public ParametersJsonBase Pars { get; set; }
+        public string ClickAction { get; }
+
+        public string ContentType { get; }
+
+        public DateTimeOffset Timestamp { get; }
+
+        public string UserAgent { get; set; }
+
+        public ParametersJsonBase Data { get; set; }
 
     }
 

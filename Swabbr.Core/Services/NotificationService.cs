@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
@@ -19,6 +20,7 @@ namespace Swabbr.Core.Services
     /// <summary>
     /// Contains functionality to handle notification operations.
     /// TODO This used to contain a circular dependency for the livestream service. Implement boundary checks here!
+    /// TODO Single responsibility! Inconsistent atm
     /// </summary>
     public sealed class NotificationService : INotificationService
     {
@@ -29,6 +31,7 @@ namespace Swabbr.Core.Services
         private readonly IReactionService _reactionService;
         private readonly INotificationClient _notificationClient;
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        private readonly INotificationBuilder _notificationBuilder;
         private readonly ILogger logger;
 
         /// <summary>
@@ -40,6 +43,7 @@ namespace Swabbr.Core.Services
             IReactionService reactionService,
             INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
+            INotificationBuilder notificationBuilder,
             ILoggerFactory loggerFactory)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -48,6 +52,7 @@ namespace Swabbr.Core.Services
             _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
+            _notificationBuilder = notificationBuilder ?? throw new ArgumentNullException(nameof(notificationBuilder));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationService)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -68,16 +73,11 @@ namespace Swabbr.Core.Services
                 logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Attempting notifying followers for livestream {livestreamId} from user {userId}");
                 userId.ThrowIfNullOrEmpty();
                 livestreamId.ThrowIfNullOrEmpty();
+                if (pars == null) { throw new ArgumentNullException(nameof(pars)); }
 
                 if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
 
-                var notification = new SwabbrNotification(NotificationAction.FollowedProfileLive)
-                {
-                    Body = "Your following user profile is live!",
-                    Title = "User is live!",
-                    Pars = pars
-                };
-
+                var notification = _notificationBuilder.BuildFollowedProfileLive(pars.LiveUserId, pars.LiveLivestreamId, pars.LiveVlogId);
                 var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
                 foreach (var item in pushDetails)
                 {
@@ -112,17 +112,7 @@ namespace Swabbr.Core.Services
                 if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
                 if (!(await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false)).LivestreamId.IsNullOrEmpty()) { throw new LivestreamStateException("Vlog was still linked to livestream"); }
 
-                var notification = new SwabbrNotification(NotificationAction.FollowedProfileVlogPosted)
-                {
-                    Body = "Vlog posted!",
-                    Title = "Vlog posted",
-                    Pars = new ParametersFollowedProfileVlogPosted
-                    {
-                        VlogId = vlogId,
-                        VlogOwnerUserId = userId
-                    }
-                };
-
+                var notification = _notificationBuilder.BuildFollowedProfileVlogPosted(vlogId, userId);
                 var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
                 foreach (var item in pushDetails)
                 {
@@ -156,13 +146,7 @@ namespace Swabbr.Core.Services
 
                 if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
 
-                var notification = new SwabbrNotification(NotificationAction.VlogRecordRequest)
-                {
-                    Body = "TODO CENTRALIZE A livestream is ready to stream whatever you want!",
-                    Title = "TODO CENTRALIZE Time to record a vlog!",
-                    Pars = pars
-                };
-
+                var notification = _notificationBuilder.BuildRecordVlog(livestreamId, pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
                 var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
                 await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
                 logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request for livestream {livestreamId} to user {userId}");
@@ -195,20 +179,10 @@ namespace Swabbr.Core.Services
                     var user = await _userRepository.GetUserFromVlogAsync(vlog.Id).ConfigureAwait(false);
                     var userPushDetails = await _userRepository.GetPushDetailsAsync(user.Id).ConfigureAwait(false);
 
-                    var pars = new ParametersVlogNewReaction
-                    {
-                        ReactionId = reactionId,
-                        VlogId = vlog.Id
-                    };
-                    var notification = new SwabbrNotification(NotificationAction.VlogNewReaction)
-                    {
-                        Body = "TODO CENTRALIZE",
-                        Title = "TODO CENTRALIZE",
-                        Pars = pars
-                    };
-
                     // First release, then push
                     scope.Complete();
+
+                    var notification = _notificationBuilder.BuildVlogNewReaction(vlog.Id, reactionId);
                     await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
                 }
 
@@ -245,20 +219,10 @@ namespace Swabbr.Core.Services
                     var user = await _userRepository.GetUserFromVlogAsync(vlogLikeId.VlogId).ConfigureAwait(false);
                     var userPushDetails = await _userRepository.GetPushDetailsAsync(user.Id).ConfigureAwait(false);
 
-                    var pars = new ParametersVlogGainedLike
-                    {
-                        UserThatLikedId = vlogLikeId.UserId,
-                        VlogId = vlogLikeId.VlogId
-                    };
-                    var notification = new SwabbrNotification(NotificationAction.VlogGainedLikes)
-                    {
-                        Body = "TODO CENTRALIZE",
-                        Title = "TODO CENTRALIZE",
-                        Pars = pars
-                    };
-
                     // First release, then push
                     scope.Complete();
+
+                    var notification = _notificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLike.UserId);
                     await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
                 }
 

@@ -1,27 +1,31 @@
 ﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Notifications;
 using System;
 
 namespace Swabbr.Core.Utility
 {
-    public static class NotificationPayloadJsonWrapperExtensions
+
+    /// <summary>
+    /// Contains extension functionality for <see cref="SwabbrNotification"/>.
+    /// </summary>
+    public static class SwabbrNotificationExtensions
     {
 
         /// <summary>
         /// Throws if the given <paramref name="wrapper"/> is invalid.
         /// </summary>
         /// <param name="wrapper"></param>
-        public static void ThrowIfInvalid(this NotificationPayloadJsonWrapper wrapper)
+        public static void ThrowIfInvalid(this SwabbrNotification wrapper)
         {
             if (wrapper == null) { throw new ArgumentNullException(nameof(wrapper)); }
-            wrapper.Body.ThrowIfNullOrEmpty();
-            if (wrapper.CreatedAt == null) { throw new ArgumentNullException("No create time"); }
+            if (wrapper.Timestamp == null) { throw new ArgumentNullException("No create time"); }
             wrapper.DataType.ThrowIfNullOrEmpty();
             wrapper.DataTypeVersion.ThrowIfNullOrEmpty();
-            wrapper.NotificationAction.ThrowIfNullOrEmpty();
+            wrapper.ClickAction.ThrowIfNullOrEmpty();
             wrapper.Protocol.ThrowIfNullOrEmpty();
             wrapper.ProtocolVersion.ThrowIfNullOrEmpty();
-            wrapper.Title.ThrowIfNullOrEmpty();
+            wrapper.ContentType.ThrowIfNullOrEmpty();
+            if (wrapper.Data == null) { throw new ArgumentNullException(nameof(wrapper.Data)); }
         }
 
     }

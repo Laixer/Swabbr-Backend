@@ -4,14 +4,13 @@ namespace Swabbr.Core.Notifications.JsonWrappers
 {
 
     /// <summary>
-    /// Contains values for watching a currently live profile.
+    /// JSON wrapper for a notification of a currently live profile.
     /// </summary>
     public sealed class ParametersFollowedProfileLive : ParametersJsonBase
     {
 
         /// <summary>
-        /// Internal <see cref="Entities.SwabbrUser"/> id of the person that is
-        /// live.
+        /// Internal <see cref="Entities.SwabbrUser"/> id of the person that is live.
         /// </summary>
         public Guid LiveUserId { get; set; }
 

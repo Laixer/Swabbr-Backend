@@ -14,21 +14,21 @@ namespace Swabbr.Core.Notifications.JsonExtraction
     {
 
         /// <summary>
-        /// Formats a <see cref="NotificationJsonBase"/> for Google Firebase based
-        /// on a given <paramref name="payloadJsonWrapper"/>.
+        /// Formats a <see cref="FcmContentWrapper"/> for Google Firebase based
+        /// on a given <paramref name="swabbrNotification"/>.
         /// </summary>
-        /// <param name="payloadJsonWrapper"><see cref="NotificationPayloadJsonWrapper"/></param>
+        /// <param name="swabbrNotification"><see cref="SwabbrNotification"/></param>
         /// <returns><see cref="FcmContentWrapper"/></returns>
-        public NotificationJsonBase Extract(NotificationPayloadJsonWrapper payloadJsonWrapper)
+        public NotificationJsonBase Extract(SwabbrNotification swabbrNotification)
         {
-            if (payloadJsonWrapper == null) { throw new ArgumentNullException(nameof(payloadJsonWrapper)); }
-            payloadJsonWrapper.ThrowIfInvalid();
+            if (swabbrNotification == null) { throw new ArgumentNullException(nameof(swabbrNotification)); }
+            swabbrNotification.ThrowIfInvalid();
 
             return new FcmContentWrapper
             {
                 Data = new SubData
                 {
-                    Payload = payloadJsonWrapper
+                    Payload = swabbrNotification
                 }
             };
         }

@@ -26,7 +26,7 @@
 
     internal sealed class SubData
     {
-        public NotificationPayloadJsonWrapper Payload { get; set; }
+        public SwabbrNotification Payload { get; set; }
     }
 
 }

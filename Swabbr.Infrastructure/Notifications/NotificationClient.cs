@@ -1,6 +1,5 @@
 ﻿using Laixer.Utility.Extensions;
 using Microsoft.Azure.NotificationHubs;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -15,7 +14,6 @@ using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Utility;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -140,8 +138,7 @@ namespace Swabbr.Infrastructure.Notifications
             userId.ThrowIfNullOrEmpty();
 
             if (notification == null) { throw new ArgumentNullException(nameof(notification)); }
-            notification.Title.ThrowIfNullOrEmpty();
-            notification.Body.ThrowIfNullOrEmpty();
+            // TODO Validate
 
             switch (platform)
             {

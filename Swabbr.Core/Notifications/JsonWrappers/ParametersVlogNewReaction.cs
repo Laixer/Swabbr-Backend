@@ -4,7 +4,7 @@ namespace Swabbr.Core.Notifications.JsonWrappers
 {
 
     /// <summary>
-    /// Parameters for a <see cref="Notifications.NotificationAction.VlogNewReaction"/> request.
+    /// Parameters for a <see cref="NotificationAction.VlogNewReaction"/> request.
     /// </summary>
     public sealed class ParametersVlogNewReaction : ParametersJsonBase
     {
