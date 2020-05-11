@@ -24,7 +24,6 @@ using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
-using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Services;
@@ -44,6 +43,8 @@ using Microsoft.Extensions.Options;
 using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Utility;
 using Swabbr.AzureMediaServices.Extensions;
+using Swabbr.Core.Notifications;
+using Swabbr.Infrastructure.Notifications.JsonExtraction;
 
 namespace Swabbr
 {
@@ -141,6 +142,7 @@ namespace Swabbr
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<INotificationTestingService, NotificationTestingService>(); // TODO Remove
             services.AddTransient<IReactionService, ReactionService>();
             services.AddTransient<IReactionUploadService, ReactionUploadService>();
             services.AddTransient<IStorageService, AMSStorageService>();
@@ -155,6 +157,7 @@ namespace Swabbr
             // Configure DI for client services
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
+            services.AddTransient<INotificationBuilder, NotificationBuilder>();
             services.AddTransient<IAMSClient, AMSClient>();
 
             // TODO Debug remove
