@@ -14,7 +14,7 @@ namespace Swabbr.Core.Services
     public sealed class HashDebugEvenDistributionService : IHashDistributionService
     {
 
-        private const int MinutesInterval = 2;
+        private const int MinutesInterval = 6;
 
         public IEnumerable<SwabbrUserMinified> GetForMinute(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
         {

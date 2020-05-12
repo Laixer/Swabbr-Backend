@@ -85,6 +85,16 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
+        /// Gets the notification details for a user.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="UserPushNotificationDetails"/></returns>
+        public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId)
+        {
+            return _userRepository.GetPushDetailsAsync(userId);
+        }
+
+        /// <summary>
         /// Gets the <see cref="UserSettings"/> for a <paramref name="userId"/>.
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>

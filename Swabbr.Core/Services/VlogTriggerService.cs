@@ -111,7 +111,10 @@ namespace Swabbr.Core.Services
 
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var livestream = await _livestreamingService.GetLivestreamFromTriggerMinute(userId, triggerMinute).ConfigureAwait(false) as Livestream;
+                    // Only process if the livestream is still linked to our user.
+                    if (!await _livestreamingService.ExistsLivestreamForTriggerMinute(userId, triggerMinute).ConfigureAwait(false)) { return; }
+
+                    var livestream = await _livestreamingService.GetLivestreamFromTriggerMinute(userId, triggerMinute).ConfigureAwait(false);
 
                     switch (livestream.LivestreamStatus)
                     {
@@ -124,7 +127,12 @@ namespace Swabbr.Core.Services
                             return;
 
                         // No need for request timeout processing
-                        case LivestreamStatus.Created | LivestreamStatus.PendingUserConnect | LivestreamStatus.Live | LivestreamStatus.PendingClosure | LivestreamStatus.Closed:
+                        case LivestreamStatus.Closed |
+                            LivestreamStatus.Created |
+                            LivestreamStatus.Live |
+                            LivestreamStatus.PendingClosure |
+                            LivestreamStatus.PendingUserConnect |
+                            LivestreamStatus.UserNeverConnectedTimeout:
                             logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - No vlog timeout actions required for for user {userId}");
                             return;
 
@@ -137,7 +145,7 @@ namespace Swabbr.Core.Services
                             throw new LivestreamStateException($"Timeout trigger found livestream marked as {LivestreamStatus.CreatedInternal.GetEnumMemberAttribute()}");
                     }
 
-                    throw new InvalidOperationException(nameof(livestream.LivestreamStatus));
+                    throw new InvalidOperationException($"Unable to process livestream state {livestream.LivestreamStatus.GetEnumMemberAttribute()}");
                 }
             }
             catch (Exception e)
