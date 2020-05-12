@@ -49,7 +49,7 @@ namespace Swabbr.AzureFunctions.Functions
             var wrapper = JsonConvert.DeserializeObject<TriggerMinuteWrapper>(await new StreamReader(req.Body).ReadToEndAsync());
             if (wrapper.TriggerMinute.IsNullOrEmpty()) { throw new ArgumentNullException("Missing trigger minute"); }
 
-            if (wrapper.TriggerMinute.GetMinutes() % 10 == 0)
+            if (wrapper.TriggerMinute.GetMinutes() % 2 == 0)
             {
                 return new OkObjectResult(new List<Guid> { new Guid("e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee") });
             }
