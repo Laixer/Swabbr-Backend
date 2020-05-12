@@ -72,6 +72,36 @@ namespace Swabbr.AzureMediaServices.Services
         }
 
         /// <summary>
+        /// Cleans up a livestream in the <see cref="LivestreamStatus.UserNeverConnectedTimeout"/>
+        /// state.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CleanupNeverConnectedLivestreamAsync(Guid livestreamId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // Internal checks
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                if (livestream.LivestreamStatus != LivestreamStatus.UserNeverConnectedTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.UserNeverConnectedTimeout.GetEnumMemberAttribute()} state"); }
+
+                // External checks
+                // TODO Implement
+
+                // External operations
+                // TODO What do we need to do here?
+
+                // Internal operations
+                // TODO This just resets the livestream, check this
+                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+
+                scope.Complete();
+            }
+        }
+
+        /// <summary>
         /// Cleans up a <see cref="Livestream"/> <see cref="LiveEvent"/> for 
         /// re-usage, both internally and externally. This should be called after
         /// thie <see cref="SwabbrUser"/> vlog request timed out.

@@ -53,6 +53,17 @@ namespace Swabbr.AzureMediaServices.Services
         }
 
         /// <summary>
+        /// Checks if a livestream exists for a user-triggerminute combination.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="triggerMinute"><see cref="DateTimeOffset"/></param>
+        /// <returns><see cref="bool"/> result</returns>
+        public Task<bool> ExistsLivestreamForTriggerMinute(Guid userId, DateTimeOffset triggerMinute)
+        {
+            return _livestreamRepository.ExistsLivestreamForTriggerMinute(userId, triggerMinute);
+        }
+
+        /// <summary>
         /// Gets a <see cref="Livestream"/> by its external id.
         /// </summary>
         /// <param name="externalId">External <see cref="Livestream"/> id</param>
@@ -162,9 +173,6 @@ namespace Swabbr.AzureMediaServices.Services
         /// <summary>
         /// Called when the user disconnects from the actual <see cref="Livestream"/>.
         /// </summary>
-        /// <remarks>
-        /// TODO Do we need this?
-        /// </remarks>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="Task"/></returns>
@@ -198,6 +206,43 @@ namespace Swabbr.AzureMediaServices.Services
 
             // TODO Is this correct, outside tscope from this class?
             await _livestreamPoolService.CleanupLivestreamAsync(livestreamId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Called when the user said he would start livestreaming but never
+        /// connected to the actual livestream itself.
+        /// </summary>
+        /// <param name="livestreamId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task OnUserNeverConnectedToLivestreamAsync(Guid livestreamId, Guid userId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // Internal checks
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+                if (livestream.LivestreamStatus != LivestreamStatus.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.PendingUserConnect.GetEnumMemberAttribute()} state"); }
+
+                // External checks
+                // TODO Implement
+
+                // External operations
+                var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+                await _amsClient.StopLiveOutputAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
+                await _amsClient.StopLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
+
+                // Internal operations
+                await _livestreamRepository.MarkUserNeverConnectedTimeoutAsync(livestreamId).ConfigureAwait(false);
+
+                scope.Complete();
+            }
+
+            // TODO Correct to call this here?
+            await _livestreamPoolService.CleanupNeverConnectedLivestreamAsync(livestreamId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -263,6 +308,46 @@ namespace Swabbr.AzureMediaServices.Services
             }
 
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Processes the event where a user has been vlogging for too long. This
+        /// assumes the livestream to be in state <see cref="LivestreamStatus.Live"/>.
+        /// </summary>
+        /// <remarks>
+        /// TODO DRY with <see cref="OnUserDisconnectedFromLivestreamAsync(Guid, Guid)"/>.
+        /// </remarks>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task OnUserVlogTimeExpiredAsync(Guid livestreamId, Guid userId)
+        {
+            livestreamId.ThrowIfNullOrEmpty();
+            userId.ThrowIfNullOrEmpty();
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // Internal checks
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+                var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+                if (livestream.LivestreamStatus != LivestreamStatus.Live) { throw new LivestreamStateException($"Livestream was not in {LivestreamStatus.Live.GetEnumMemberAttribute()} state"); }
+
+                // External checks
+                // TODO Implement
+
+                // External operations
+                await _amsClient.StopLiveOutputAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
+                await _amsClient.StopLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
+
+                // Internal operations
+                await _livestreamRepository.MarkPendingClosureAsync(livestreamId).ConfigureAwait(false);
+
+                scope.Complete();
+            }
+
+            // TODO Is this correct, outside tscope from this class?
+            await _livestreamPoolService.CleanupLivestreamAsync(livestreamId).ConfigureAwait(false);
         }
 
         /// <summary>
