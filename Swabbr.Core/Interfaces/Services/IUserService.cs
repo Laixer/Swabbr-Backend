@@ -27,6 +27,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
 
+        Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId);
+
         Task<UserSettings> GetUserSettingsAsync(Guid userId);
 
         Task<UserStatistics> GetUserStatisticsAsync(Guid userId);

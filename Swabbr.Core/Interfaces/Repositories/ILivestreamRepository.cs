@@ -16,6 +16,8 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task DeleteAsync(Guid id);
 
+        Task<bool> ExistsLivestreamForTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
+
         Task<IEnumerable<Livestream>> GetAvailableLivestreamsAsync();
 
         Task<Livestream> GetByExternalIdAsync(string externalId);
@@ -37,6 +39,8 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task MarkPendingUserConnectAsync(Guid livestreamId);
 
         Task MarkUserNoResponseTimeoutAsync(Guid livestreamId);
+
+        Task MarkUserNeverConnectedTimeoutAsync(Guid livestreamId);
 
     }
 

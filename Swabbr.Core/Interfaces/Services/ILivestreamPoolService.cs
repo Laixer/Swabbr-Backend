@@ -20,6 +20,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task CleanupTimedOutLivestreamAsync(Guid livestreamId);
 
+        Task CleanupNeverConnectedLivestreamAsync(Guid livestreamId);
+
     }
 
 }
