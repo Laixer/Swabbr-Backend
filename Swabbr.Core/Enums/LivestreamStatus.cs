@@ -52,21 +52,19 @@ namespace Swabbr.Core.Enums
         /// The stream is closed.
         /// </summary>
         [EnumMember(Value = "closed")]
-        [PgName("closed")]
         Closed,
 
         /// <summary>
         /// The user has received the credentials and we are waiting for first connect.
         /// </summary>
         [EnumMember(Value = "pending_user_connect")]
-        [PgName("pending_user_connect")]
         PendingUserConnect,
 
-        ///// <summary>
-        ///// The user never responded.
-        ///// </summary>
-        //[EnumMember(Value = "user_no_response_timeout")]
-        //UserNoResponseTimeout,
+        /// <summary>
+        /// The user has received the credentials and we are waiting for first connect.
+        /// </summary>
+        [EnumMember(Value = "user_never_connected_timeout")]
+        UserNeverConnectedTimeout,
 
     }
 
