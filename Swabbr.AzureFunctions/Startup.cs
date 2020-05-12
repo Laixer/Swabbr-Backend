@@ -9,10 +9,14 @@ using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
+using Swabbr.Core.Configuration;
+using Swabbr.Core.Factories;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
 using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
@@ -82,12 +86,17 @@ namespace Swabbr.AzureFunctions
             {
                 configuration.GetSection("AzureMediaServices").Bind(settings);
             });
+            builder.Services.AddOptions<LogicAppsConfiguration>().Configure<IConfiguration>((settings, configuration) =>
+            {
+                configuration.GetSection("LogicAppsConfiguration").Bind(settings);
+            });
 
             // Check configuration
             var servicesBuilt = builder.Services.BuildServiceProvider();
             servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
@@ -121,8 +130,10 @@ namespace Swabbr.AzureFunctions
 
             // Configure DI for client services
             builder.Services.AddTransient<INotificationClient, NotificationClient>();
+            builder.Services.AddTransient<INotificationBuilder, NotificationBuilder>();
             builder.Services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             builder.Services.AddTransient<IAMSClient, AMSClient>();
+            builder.Services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
         }
 
     }
