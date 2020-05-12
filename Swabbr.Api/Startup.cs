@@ -7,44 +7,46 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Configuration;
 using Swabbr.Api.Services;
 using Swabbr.Api.Utility;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
+using Swabbr.AzureMediaServices.Extensions;
+using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
+using Swabbr.Core.Configuration;
+using Swabbr.Core.Factories;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
+using Swabbr.Core.Types;
+using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
+using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
+using Swabbr.Infrastructure.Utility;
 using Swabbr.WowzaStreamingCloud.Configuration;
 using Swabbr.WowzaStreamingCloud.Services;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Swabbr.AzureMediaServices.Clients;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
-using Microsoft.Extensions.Logging;
-using System.Linq;
-using Swabbr.Api.Configuration;
-using Swabbr.Core.Types;
-using Microsoft.Extensions.Options;
-using Swabbr.Core.Utility;
-using Swabbr.Infrastructure.Utility;
-using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.Core.Notifications;
-using Swabbr.Infrastructure.Notifications.JsonExtraction;
 
 namespace Swabbr
 {
@@ -110,12 +112,14 @@ namespace Swabbr
             });
             services.Configure<AMSConfiguration>(Configuration.GetSection("AzureMediaServices"));
             services.Configure<SwabbrConfiguration>(Configuration.GetSection("SwabbrConfiguration"));
+            services.Configure<LogicAppsConfiguration>(Configuration.GetSection("LogicAppsConfiguration"));
 
             // Check configuration
             var servicesBuilt = services.BuildServiceProvider();
             servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
@@ -159,6 +163,7 @@ namespace Swabbr
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             services.AddTransient<INotificationBuilder, NotificationBuilder>();
             services.AddTransient<IAMSClient, AMSClient>();
+            services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
 
             // TODO Debug remove
             services.AddTransient<AMSDebugService>();

@@ -1,5 +1,6 @@
 ﻿using Laixer.Utility.Extensions;
 using Microsoft.Extensions.Logging;
+using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -25,6 +26,8 @@ namespace Swabbr.Core.Services
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IVlogService _vlogService;
         private readonly ILogger logger;
+        private readonly LogicAppsConfiguration logicAppsConfiguration;
+        private readonly SwabbrConfiguration swabbrConfiguration;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -36,6 +39,8 @@ namespace Swabbr.Core.Services
             ILivestreamRepository livestreamRepository,
             IVlogService vlogService,
             ILoggerFactory loggerFactory)
+            IOptions<LogicAppsConfiguration> optionsLogicApps,
+            IOptions<SwabbrConfiguration> optionsSwabbr,
         {
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
@@ -44,6 +49,14 @@ namespace Swabbr.Core.Services
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(UserStreamingHandlingService)) : throw new ArgumentNullException(nameof(loggerFactory));
+
+            if (optionsLogicApps == null || optionsLogicApps.Value == null) { throw new ArgumentNullException(nameof(optionsLogicApps)); }
+            logicAppsConfiguration = optionsLogicApps.Value;
+            logicAppsConfiguration.ThrowIfInvalid();
+
+            if (optionsSwabbr == null || optionsSwabbr.Value == null) { throw new ArgumentNullException(nameof(optionsSwabbr)); }
+            swabbrConfiguration = optionsSwabbr.Value;
+            swabbrConfiguration.ThrowIfInvalid();
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using Laixer.Utility.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;

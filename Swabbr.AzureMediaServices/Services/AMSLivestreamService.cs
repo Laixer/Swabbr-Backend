@@ -2,6 +2,7 @@
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;

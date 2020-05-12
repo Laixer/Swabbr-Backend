@@ -1,5 +1,5 @@
 ﻿using Laixer.Utility.Exceptions;
-using Swabbr.Core.Types;
+using Swabbr.Core.Configuration;
 using System;
 
 namespace Swabbr.Core.Utility
@@ -17,14 +17,15 @@ namespace Swabbr.Core.Utility
             if (config == null) { throw new ConfigurationException(nameof(config)); }
 
             if (config.DailyVlogRequestLimit < 0) { throw new ConfigurationRangeException(nameof(config.DailyVlogRequestLimit)); }
-            if (config.VlogLengthMaxSeconds < 0) { throw new ConfigurationRangeException(nameof(config.VlogLengthMaxSeconds)); }
+            if (config.VlogLengthMaxSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.VlogLengthMaxSeconds)); }
             if (config.VlogLengthMinSeconds < 0) { throw new ConfigurationRangeException(nameof(config.VlogLengthMinSeconds)); }
-            if (config.VlogRequestTimeoutMinutes < 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestTimeoutMinutes)); }
-            if (config.VlogRequestStartTimeMinutes < 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestStartTimeMinutes)); }
+            if (config.VlogRequestTimeoutMinutes <= 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestTimeoutMinutes)); }
+            if (config.VlogRequestStartTimeMinutes <= 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestStartTimeMinutes)); }
             if (config.VlogRequestStartTimeMinutes >= TimeSpan.FromHours(24).TotalMinutes) { throw new ConfigurationRangeException(nameof(config.VlogRequestStartTimeMinutes)); }
-            if (config.VlogRequestEndTimeMinutes < 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestEndTimeMinutes)); }
+            if (config.VlogRequestEndTimeMinutes <= 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestEndTimeMinutes)); }
             if (config.VlogRequestEndTimeMinutes >= TimeSpan.FromHours(24).TotalMinutes) { throw new ConfigurationRangeException(nameof(config.VlogRequestEndTimeMinutes)); }
             if (config.VlogRequestStartTimeMinutes >= config.VlogRequestEndTimeMinutes) { throw new ConfigurationException("Start time must be < end time"); }
+            if (config.UserConnectTimeoutSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.UserConnectTimeoutSeconds)); }
         }
 
     }

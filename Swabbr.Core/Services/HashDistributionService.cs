@@ -1,5 +1,6 @@
 ﻿using Laixer.Utility.Exceptions;
 using Microsoft.Extensions.Options;
+using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;

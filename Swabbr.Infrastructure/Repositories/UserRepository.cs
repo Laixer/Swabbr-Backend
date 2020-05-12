@@ -3,6 +3,7 @@ using Laixer.Infra.Npgsql;
 using Laixer.Utility.Exceptions;
 using Laixer.Utility.Extensions;
 using Microsoft.Extensions.Options;
+using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
