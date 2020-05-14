@@ -20,10 +20,10 @@ namespace Swabbr.Api.Mapping
             return new VlogOutputModel
             {
                 DateStarted = vlog.StartDate,
-                DownloadUrl = vlog.DownloadUrl,
                 Id = vlog.Id,
                 IsPrivate = vlog.IsPrivate,
-                UserId = vlog.UserId
+                UserId = vlog.UserId,
+                Views = vlog.Views
             };
         }
 

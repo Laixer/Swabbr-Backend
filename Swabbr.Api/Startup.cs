@@ -142,16 +142,14 @@ namespace Swabbr
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
-            services.AddTransient<ILivestreamPlaybackService, AMSLivestreamPlaybackService>();
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<INotificationTestingService, NotificationTestingService>(); // TODO Remove
-            services.AddTransient<IReactionService, ReactionService>();
-            services.AddTransient<IReactionUploadService, ReactionUploadService>();
+            services.AddTransient<IPlaybackService, AMSPlaybackService>();
+            services.AddTransient<IReactionService, AMSReactionService>();
             services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
-            services.AddTransient<ITranscodingService, AMSTranscodingService>();
             services.AddTransient<IVlogService, VlogService>();
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
             services.AddTransient<IUserService, UserService>();

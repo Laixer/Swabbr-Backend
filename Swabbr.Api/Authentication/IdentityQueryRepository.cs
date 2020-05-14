@@ -50,7 +50,6 @@ namespace Swabbr.Api.Authentication
                 SET    email = @Email,
                        normalized_email = @NormalizedEmail,
                        email_confirmed = @EmailConfirmed,
-                       job_title = @JobTitle,
                        password_hash = @PasswordHash,
                        phone_number = @PhoneNumber,
                        phone_number_confirmed = @PhoneNumberConfirmed,
