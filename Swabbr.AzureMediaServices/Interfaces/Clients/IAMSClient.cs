@@ -18,6 +18,8 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
 
         Task<LiveOutput> CreateLiveOutputAsync(Guid correspondingVlogId, string liveEventName);
 
+        Task CreateReactionStreamingLocatorAsync(Guid reactionId);
+
         Task<StreamingLocator> CreateLivestreamVlogStreamingLocatorAsync(Guid correspondingVlogId, string liveEventName);
 
         Task EnsureReactionTransformExistsAsync();
@@ -32,9 +34,11 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
 
         Task<string> GetVlogStreamingLocatorKeyIdentifierAsync(Guid livestreamId);
 
+        Task<string> GetReactionStreamingLocatorKeyIdentifierAsync(Guid livestreamId);
+
         Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid correspondingVlogId);
 
-        Task<StreamingLocator> GetStreamingLocatorForReactionAsync(Guid reactionId);
+        Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId);
 
         Task<string> GetStreamingEndpointHostNameAsync();
 

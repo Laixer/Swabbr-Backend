@@ -54,7 +54,7 @@ namespace Swabbr.AzureMediaServices.Services
             {
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingClosure) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.PendingClosure.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.PendingClosure) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingClosure.GetEnumMemberAttribute()} state"); }
 
                 // External checks
                 // TODO Implement
@@ -72,7 +72,7 @@ namespace Swabbr.AzureMediaServices.Services
         }
 
         /// <summary>
-        /// Cleans up a livestream in the <see cref="LivestreamStatus.UserNeverConnectedTimeout"/>
+        /// Cleans up a livestream in the <see cref="LivestreamState.UserNeverConnectedTimeout"/>
         /// state.
         /// </summary>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
@@ -85,7 +85,7 @@ namespace Swabbr.AzureMediaServices.Services
             {
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus != LivestreamStatus.UserNeverConnectedTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.UserNeverConnectedTimeout.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.UserNeverConnectedTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamState.UserNeverConnectedTimeout.GetEnumMemberAttribute()} state"); }
 
                 // External checks
                 // TODO Implement
@@ -115,7 +115,7 @@ namespace Swabbr.AzureMediaServices.Services
             {
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus != LivestreamStatus.UserNoResponseTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.UserNoResponseTimeout.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.UserNoResponseTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamState.UserNoResponseTimeout.GetEnumMemberAttribute()} state"); }
 
                 // External checks
                 // TODO Implement

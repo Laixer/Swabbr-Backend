@@ -128,7 +128,7 @@ namespace Swabbr.AzureMediaServices.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUserConnect) { throw new LivestreamStateException(LivestreamStatus.PendingUserConnect.GetEnumMemberAttribute()); }
+                if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException(LivestreamState.PendingUserConnect.GetEnumMemberAttribute()); }
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
                 // TODO User trigger minute validation?
 
@@ -137,6 +137,16 @@ namespace Swabbr.AzureMediaServices.Services
                 scope.Complete();
                 return await _amsClient.GetUpstreamDetailsAsync(livestreamId, vlog.Id, livestream.ExternalId).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Checks if a <see cref="SwabbrUser"/> is in a livestream cycle.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="bool"/> result</returns>
+        public Task<bool> IsUserInLivestreamCycleAsync(Guid userId)
+        {
+            return _livestreamRepository.IsUserInLivestreamCycleAsync(userId);
         }
 
         /// <summary>
@@ -155,7 +165,7 @@ namespace Swabbr.AzureMediaServices.Services
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.PendingUserConnect.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUserConnect.GetEnumMemberAttribute()} state"); }
 
                 var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
                 if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
@@ -186,7 +196,7 @@ namespace Swabbr.AzureMediaServices.Services
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamStatus != LivestreamStatus.Live) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.Live.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.Live) { throw new LivestreamStateException($"Livestream not in {LivestreamState.Live.GetEnumMemberAttribute()} state"); }
 
                 var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
                 if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
@@ -225,7 +235,7 @@ namespace Swabbr.AzureMediaServices.Services
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.PendingUserConnect.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUserConnect.GetEnumMemberAttribute()} state"); }
 
                 // External checks
                 // TODO Implement
@@ -265,7 +275,7 @@ namespace Swabbr.AzureMediaServices.Services
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUser) { throw new LivestreamStateException(livestream.LivestreamStatus.GetEnumMemberAttribute()); }
+                if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException(livestream.LivestreamState.GetEnumMemberAttribute()); }
 
                 var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
                 if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
@@ -312,7 +322,7 @@ namespace Swabbr.AzureMediaServices.Services
 
         /// <summary>
         /// Processes the event where a user has been vlogging for too long. This
-        /// assumes the livestream to be in state <see cref="LivestreamStatus.Live"/>.
+        /// assumes the livestream to be in state <see cref="LivestreamState.Live"/>.
         /// </summary>
         /// <remarks>
         /// TODO DRY with <see cref="OnUserDisconnectedFromLivestreamAsync(Guid, Guid)"/>.
@@ -331,7 +341,7 @@ namespace Swabbr.AzureMediaServices.Services
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
                 var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamStatus != LivestreamStatus.Live) { throw new LivestreamStateException($"Livestream was not in {LivestreamStatus.Live.GetEnumMemberAttribute()} state"); }
+                if (livestream.LivestreamState != LivestreamState.Live) { throw new LivestreamStateException($"Livestream was not in {LivestreamState.Live.GetEnumMemberAttribute()} state"); }
 
                 // External checks
                 // TODO Implement
@@ -368,7 +378,7 @@ namespace Swabbr.AzureMediaServices.Services
             {
                 // Internal checks
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUser) { throw new LivestreamStateException($"Livestream not in {LivestreamStatus.PendingUser.GetEnumMemberAttribute()} during timeout processing"); }
+                if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUser.GetEnumMemberAttribute()} during timeout processing"); }
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
 
                 // External checks
@@ -406,10 +416,10 @@ namespace Swabbr.AzureMediaServices.Services
         public async Task<Livestream> TryClaimLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute)
         {
             userId.ThrowIfNullOrEmpty();
-            if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); } // TODO DTO is not nullable
+            if (triggerMinute.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(triggerMinute)); }
 
             var livestream = await _livestreamPoolService.TryGetLivestreamFromPoolAsync().ConfigureAwait(false);
-            if (livestream.LivestreamStatus != LivestreamStatus.Created) { throw new LivestreamStateException(livestream.LivestreamStatus.GetEnumMemberAttribute()); }
+            if (livestream.LivestreamState != LivestreamState.Created) { throw new LivestreamStateException(livestream.LivestreamState.GetEnumMemberAttribute()); }
 
             await _livestreamRepository.MarkPendingUserAsync(livestream.Id, userId, triggerMinute).ConfigureAwait(false);
 

@@ -11,6 +11,7 @@ using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -110,6 +111,24 @@ namespace Swabbr.AzureMediaServices.Clients
         }
 
         /// <summary>
+        /// Creates a new <see cref="StreamingLocator"/> for a <see cref="Core.Entities.Reaction"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CreateReactionStreamingLocatorAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
+            await amsClient.StreamingLocators.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionStreamingLocatorName(reactionId), new StreamingLocator
+            {
+                AssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId),
+                StreamingPolicyName = PredefinedStreamingPolicy.ClearKey,
+                DefaultContentKeyPolicyName = AMSNameConstants.ContentKeyPolicyName
+            }).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Creates a new <see cref="StreamingLocator"/> in AMS.
         /// </summary>
         /// <param name="correspondingVlogId">Internal <see cref="Vlog"/> id</param>
@@ -205,9 +224,75 @@ namespace Swabbr.AzureMediaServices.Clients
             await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.LivestreamTransformDescription);
         }
 
-        public Task EnsureReactionTransformExistsAsync()
+        /// <summary>
+        /// Make sure that the <see cref="Core.Entities.Reaction"/> <see cref="Transform"/> exists.
+        /// </summary>
+        /// <remarks>
+        /// TODO This doesn't always have to run
+        /// </remarks>
+        /// <returns><see cref="Task"/></returns>
+        public async Task EnsureReactionTransformExistsAsync()
         {
-            throw new NotImplementedException();
+            var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
+            var livestreamTransformName = AMSNameConstants.ReactionTransformName;
+
+            var outputs = new TransformOutput[]
+            {
+                new TransformOutput(
+                    new StandardEncoderPreset(
+                        codecs: new Codec[]
+                        {
+                            // Audio codec for video file
+                            new AacAudio(
+                                channels: 2,
+                                samplingRate: 48000,
+                                bitrate: 128000,
+                                profile: AacAudioProfile.AacLc
+                            ),
+
+                            // Video file
+                            new H264Video (
+                                keyFrameInterval:TimeSpan.FromSeconds(2),
+                                layers:  new H264Layer[]
+                                {
+                                    new H264Layer (
+                                        bitrate: 1000000,
+                                        width: "1280",
+                                        height: "720",
+                                        label: "HD"
+                                    )
+                                }
+                            ),
+
+                            // Thumbnails
+                            new PngImage(
+                                start: "25%",
+                                layers: new PngLayer[]{
+                                    new PngLayer(
+                                        width: "50%",
+                                        height: "50%"
+                                    )
+                                }
+                            )
+                        },
+
+                        // Name formatting
+                        formats: new Format[]
+                        {
+                            new Mp4Format(
+                                filenamePattern:"video-{Basename}{Extension}"
+                            ),
+                            new PngFormat(
+                                filenamePattern:"thumbnail-{Basename}-{Index}{Extension}"
+                            )
+                        }
+                    ),
+                    onError: OnErrorType.StopProcessingJob,
+                    relativePriority: Priority.Normal
+                )
+            };
+
+            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.ReactionTransformDescription);
         }
 
         /// <summary>
@@ -326,11 +411,29 @@ namespace Swabbr.AzureMediaServices.Clients
         }
 
         /// <summary>
-        /// Gets a <see cref="StreamingLocator"/> for a vlog.
+        /// Gets the <see cref="StreamingLocator"/> identifier key for a <see cref="Core.Entities.Reaction"/>.
+        /// </summary>
+        /// <remarks>
+        /// TODO DRY
+        /// </remarks>
+        /// <param name="reaction">Internal <see cref="Core.Entities.Reaction"/> id</param>
+        /// <returns>Key</returns>
+        public async Task<string> GetReactionStreamingLocatorKeyIdentifierAsync(Guid reaction)
+        {
+            reaction.ThrowIfNullOrEmpty();
+
+            var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
+            var streamingLocatorName = AMSNameGenerator.ReactionStreamingLocatorName(reaction);
+            var streamingLocator = await amsClient.StreamingLocators.GetAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
+            return streamingLocator.ContentKeys.First().Id.ToString();
+        }
+
+        /// <summary>
+        /// Gets <see cref="StreamingLocator"/> paths for a vlog.
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id (can belong
-        /// to a <see cref="Livestream"/>)</param>
-        /// <returns><see cref="StreamingLocator"/></returns>
+        /// to a <see cref="Core.Entities.Livestream"/>)</param>
+        /// <returns><see cref="StreamingLocator"/> paths</returns>
         public async Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
@@ -351,9 +454,32 @@ namespace Swabbr.AzureMediaServices.Clients
             return result;
         }
 
-        public Task<StreamingLocator> GetStreamingLocatorForReactionAsync(Guid reactionId)
+        /// <summary>
+        /// Gets <see cref="StreamingLocator"/> paths for a reaction.
+        /// </summary>
+        /// <remarks>
+        /// TODO DRY
+        /// </remarks>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
+        /// <returns><see cref="StreamingLocator"/> paths</returns>
+        public async Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId)
         {
-            throw new NotImplementedException();
+            reactionId.ThrowIfNullOrEmpty();
+
+            var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
+            var streamingLocatorName = AMSNameGenerator.ReactionStreamingLocatorName(reactionId);
+            var paths = await amsClient.StreamingLocators.ListPathsAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
+
+            // TODO This just returns EVERYTHING at the moment, doesn't consider protocols or anything
+            var result = new Collection<string>();
+            foreach (var streamingPath in paths.StreamingPaths)
+            {
+                foreach (var path in streamingPath.Paths)
+                {
+                    result.Add(path);
+                }
+            }
+            return result;
         }
 
         /// <summary>

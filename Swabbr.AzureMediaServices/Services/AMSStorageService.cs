@@ -46,44 +46,60 @@ namespace Swabbr.AzureMediaServices.Services
         /// </remarks>
         /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task CleanupReactionStorageAsync(Guid reactionId)
+        public async Task CleanupReactionStorageOnSuccessAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
 
             var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
 
-            // First delete the input asset in AMS
-            // This will also delete the storage container
-            var inputAssetName = AMSNameGenerator.ReactionInputAssetName(reactionId);
-            var inputAssetResponse = await amsClient.Assets.DeleteWithHttpMessagesAsync(config.ResourceGroup, config.AccountName, inputAssetName).ConfigureAwait(false);
-            switch (inputAssetResponse.Response.StatusCode)
-            {
-                // Actually deleted
-                case HttpStatusCode.OK:
-                    break;
-                // Could not find input asset
-                case HttpStatusCode.NoContent:
-                    throw new ExternalErrorException($"Could not find input asset with name {inputAssetName} in Azure Media Services");
-                default:
-                    throw new InvalidOperationException($"Unable to process AMS request with statuscode {inputAssetResponse.Response.StatusCode}");
-            }
+            // Delete input asset
+            // TODO Delete or not? Depends on our codec choice
+            await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false);
 
-            // Then delete the job as well
-            // TODO Do we want this?
-            var jobName = AMSNameGenerator.ReactionJobName(reactionId);
-            var transformName = AMSNameConstants.ReactionTransformName;
-            var jobResponse = await amsClient.Jobs.DeleteWithHttpMessagesAsync(config.ResourceGroup, config.AccountName, transformName, jobName).ConfigureAwait(false);
-            switch (jobResponse.Response.StatusCode)
-            {
-                // Actually deleted
-                case HttpStatusCode.OK:
-                    break;
-                // Could not find job
-                case HttpStatusCode.NoContent:
-                    throw new ExternalErrorException($"Could not find job with name {jobName} in Azure Media Services");
-                default:
-                    throw new InvalidOperationException($"Unable to process AMS request with statuscode {jobResponse.Response.StatusCode}");
-            }
+            // Delete job
+            await amsClient.Jobs.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName,
+                AMSNameGenerator.ReactionJobName(reactionId)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Cleans up the remains of a reaction transcoding process in Azure
+        /// Media Services after we failed.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task CleanupReactionStorageOnFailureAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+
+            // Delete assets
+
+            // We don't want to delete the input asset (keep the data)
+            //await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false);
+            await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reactionId)).ConfigureAwait(false);
+
+            // Delete job
+            await amsClient.Jobs.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName,
+                AMSNameGenerator.ReactionJobName(reactionId)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Cleans up the storage for a <see cref="Core.Entities.Vlog"/>.
+        /// </summary>
+        /// <remarks>
+        /// This does not delete the <see cref="Core.Entities.Vlog"/>.
+        /// At the moment this does nothing, because we want to keep our data.
+        /// </remarks>
+        /// <param name="vlogId">Internal <see cref="Core.Entities.Vlog"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task CleanupVlogStorageOnDeleteAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+            return Task.CompletedTask;
+            //var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            //var vlogAssetName = AMSNameGenerator.VlogLiveOutputAssetName(vlogId);
+            //await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, vlogAssetName).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -139,23 +155,6 @@ namespace Swabbr.AzureMediaServices.Services
             if (!assetContainerSas.AssetContainerSasUrls.Any()) { throw new ExternalErrorException($"Could not find output asset with name {outputAssetName} in Azure Media Services"); }
 
             return new Uri(assetContainerSas.AssetContainerSasUrls.FirstOrDefault()); // First access key
-        }
-
-        /// <summary>
-        /// Cleans up the storage for a <see cref="Core.Entities.Vlog"/>.
-        /// </summary>
-        /// <remarks>
-        /// This does not delete the <see cref="Core.Entities.Vlog"/>.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Core.Entities.Vlog"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task CleanupVlogStorageOnDeleteAsync(Guid vlogId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-            var vlogAssetName = AMSNameGenerator.VlogLiveOutputAssetName(vlogId);
-            await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, vlogAssetName).ConfigureAwait(false);
         }
 
     }
