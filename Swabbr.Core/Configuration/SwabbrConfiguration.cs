@@ -9,6 +9,11 @@
     {
 
         /// <summary>
+        /// Maximum reaction length.
+        /// </summary>
+        public int ReactionLengthMaxInSeconds { get; set; }
+
+        /// <summary>
         /// Minimum vlog length.
         /// </summary>
         public int VlogLengthMinSeconds { get; set; }
