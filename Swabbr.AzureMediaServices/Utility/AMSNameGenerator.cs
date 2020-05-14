@@ -21,6 +21,8 @@ namespace Swabbr.AzureMediaServices.Utility
 
         internal static string ReactionOutputAssetName(Guid reactionId) => $"reaction-asset-{reactionId}";
 
+        internal static string ReactionStreamingLocatorName(Guid reactionId) => $"reaction-streaming-locator-{reactionId}";
+
         internal static string ReactionJobName(Guid reactionId) => $"reaction-job-{reactionId}";
 
         internal static string ReactionVideoFileName(Guid reactionId) => $"reaction-{reactionId}";
