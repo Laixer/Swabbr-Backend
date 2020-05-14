@@ -25,11 +25,6 @@ namespace Swabbr.Api.ViewModels.Vlog
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Download URL of the recording of the livestream.
-        /// </summary>
-        public Uri DownloadUrl { get; set; }
-
-        /// <summary>
         /// Indicates if the vlog should be publicly available to other users.
         /// </summary>
         public bool IsPrivate { get; set; }
@@ -38,6 +33,11 @@ namespace Swabbr.Api.ViewModels.Vlog
         /// The date at which the recording of the vlog started.
         /// </summary>
         public DateTimeOffset DateStarted { get; set; }
+
+        /// <summary>
+        /// The amount of views that this vlog has.
+        /// </summary>
+        public int Views { get; set; }
 
     }
 
