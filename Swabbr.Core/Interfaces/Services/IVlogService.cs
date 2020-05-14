@@ -13,6 +13,8 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IVlogService
     {
 
+        Task AddView(Guid vlogId);
+
         Task<Vlog> GetAsync(Guid vlogId);
 
         Task<bool> ExistsAsync(Guid vlogId);

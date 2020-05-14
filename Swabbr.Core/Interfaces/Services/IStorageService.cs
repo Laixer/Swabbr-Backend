@@ -10,7 +10,9 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IStorageService
     {
 
-        Task CleanupReactionStorageAsync(Guid reactionId);
+        Task CleanupReactionStorageOnSuccessAsync(Guid reactionId);
+
+        Task CleanupReactionStorageOnFailureAsync(Guid reactionId);
 
         Task CleanupVlogStorageOnDeleteAsync(Guid vlogId);
 

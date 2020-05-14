@@ -35,6 +35,8 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task<LivestreamUpstreamDetails> GetUpstreamDetailsAsync(Guid livestreamId, Guid userId);
 
+        Task<bool> IsUserInLivestreamCycleAsync(Guid userId);
+
         Task OnUserConnectedToLivestreamAsync(Guid livestreamId, Guid userId);
 
         Task OnUserDisconnectedFromLivestreamAsync(Guid livestreamId, Guid userId);

@@ -14,6 +14,8 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<IEnumerable<SwabbrUserWithStats>> SearchAsync(string searchString, int page, int itemsPerPage);
 
+        Task<IEnumerable<SwabbrUserWithStats>> SearchAsync(string searchString, Guid excludeUserId, int page, int itemsPerPage);
+
         Task<IEnumerable<SwabbrUserWithStats>> ListFollowingAsync(Guid id, int page, int itemsPerPage);
 
         Task<IEnumerable<SwabbrUserWithStats>> ListFollowersAsync(Guid id, int page, int itemsPerPage);

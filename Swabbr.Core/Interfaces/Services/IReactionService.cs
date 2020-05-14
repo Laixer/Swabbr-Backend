@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,20 +13,45 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IReactionService
     {
 
-        Task<ReactionWithDownload> GetReactionAsync(Guid reactionId);
+        Task DeleteReactionAsync(Guid userId, Guid reactionId);
 
-        // TODO This needs to incorperate the actual file sending as well!
-        Task<Reaction> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate);
+        /// <summary>
+        /// Gets a new uploading uri for a <see cref="Reaction"/> upload.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Uri"/></returns>
+        Task<Uri> GetNewUploadUriAsync(Guid userId, Guid reactionId);
 
-        Task<Reaction> UpdateReactionAsync(Guid userId, Guid reactionId, bool isPrivate);
+        Task<SwabbrUser> GetOwnerOfVlogByReactionAsync(Guid reactionId);
 
-        Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId);
+        Task<Reaction> GetReactionAsync(Guid reactionId);
 
         Task<int> GetReactionCountForVlogAsync(Guid vlogId);
 
-        Task DeleteReactionAsync(Guid userId, Guid reactionId);
+        Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId);
 
-        Task<SwabbrUser> GetOwnerOfVlogByReactionAsync(Guid reactionId);
+        /// <summary>
+        /// Called when a <see cref="Reaction"/> is uploaded.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        Task OnFinishedUploadingReactionAsync(Guid reactionId);
+
+        Task OnTranscodingReactionFailedAsync(Guid reactionId);
+
+        Task OnTranscodingReactionSucceededAsync(Guid reactionId);
+
+        /// <summary>
+        /// Called when we want to upload a reaction.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="targetVlogId">Internal <see cref="Vlog"/> id</param>
+        /// <param name="isPrivate">Indicates vlog private or not</param>
+        /// <returns><see cref="ReactionUploadWrapper"/></returns>
+        Task<ReactionUploadWrapper> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate);
+
+        Task<Reaction> UpdateReactionAsync(Guid userId, Guid reactionId, bool isPrivate);
 
     }
 
