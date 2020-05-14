@@ -23,7 +23,7 @@ namespace Swabbr.Api.Controllers
 {
 
     /// <summary>
-    /// Controller for handling requests related to vlog <see cref="Reaction"/>s.
+    /// Controller for handling requests related to <see cref="Vlog"/> <see cref="Reaction"/>s.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -32,6 +32,7 @@ namespace Swabbr.Api.Controllers
     {
 
         private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly IPlaybackService _livestreamPlaybackService;
         private readonly IReactionService _reactionService;
         private readonly IVlogService _vlogService;
         private readonly ILogger logger;
@@ -40,11 +41,13 @@ namespace Swabbr.Api.Controllers
         /// Constructor for dependency injection.
         /// </summary>
         public ReactionsController(UserManager<SwabbrIdentityUser> userManager,
+            IPlaybackService livestreamPlaybackService,
             IReactionService reactionService,
             IVlogService vlogService,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(ReactionsController)) : throw new ArgumentNullException(nameof(loggerFactory));
@@ -185,6 +188,8 @@ namespace Swabbr.Api.Controllers
         /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
         [HttpPost("new")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> Post([FromBody] ReactionInputModel model)
         {
             try
@@ -194,9 +199,86 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reaction = await _reactionService.PostReactionAsync(user.Id, model.TargetVlogId, model.IsPrivate).ConfigureAwait(false);
+                return Ok(await _reactionService.PostReactionAsync(user.Id, model.TargetVlogId, model.IsPrivate).ConfigureAwait(false));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find target vlog"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not post new reaction"));
+            }
+        }
 
-                return Ok(MapperReaction.Map(reaction));
+        /// <summary>
+        /// Refreshes the <see cref="Reaction"/> upload uri.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="OkObjectResult"/></returns>
+        [HttpGet("refresh_upload_url")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionUploadUrlOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
+        public async Task<IActionResult> RefreshUploadUrlAsync(Guid reactionId)
+        {
+            if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null")); }
+
+            try
+            {
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                return Ok(new ReactionUploadUrlOutputModel
+                {
+                    UploadUri = await _reactionService.GetNewUploadUriAsync(user.Id, reactionId).ConfigureAwait(false)
+                });
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find reaction"));
+            }
+            catch (ReactionStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Reaction not in upload awaiting state"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not post new reaction"));
+            }
+        }
+
+        /// <summary>
+        /// Should be called when the user finishes uploading a <see cref="Reaction"/>.
+        /// </summary>
+        /// <param name="model"><see cref="ReactionInputModel"/></param>
+        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
+        [HttpPost("finished_uploading")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
+        public async Task<IActionResult> OnFinishedUploading(Guid reactionId)
+        {
+            if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null")); }
+
+            try
+            {
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                await _reactionService.OnFinishedUploadingReactionAsync(reactionId).ConfigureAwait(false);
+                return Ok();
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find reaction"));
+            }
+            catch (ReactionStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Reaction not in upload awaiting state"));
             }
             catch (Exception e)
             {
@@ -235,6 +317,48 @@ namespace Swabbr.Api.Controllers
             {
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update reaction"));
+            }
+        }
+
+        /// <summary>
+        /// Gets downstream parameters, including token, for playback of a specified
+        /// <see cref="Core.Entities.Reaction"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
+        /// <returns><see cref="ReactionPlaybackDetailsOutputModel"/></returns>
+        [HttpGet("{reactionId}/watch")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionPlaybackDetailsOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict)]
+        public async Task<IActionResult> GetPlayackDetailsAsync([FromRoute]Guid reactionId)
+        {
+            try
+            {
+                if (reactionId.IsNullOrEmpty()) { Conflict(this.Error(ErrorCodes.InvalidInput, "Vlog id is invalid or missing")); }
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                var pars = await _livestreamPlaybackService.GetReactionDownstreamParametersAsync(reactionId, user.Id).ConfigureAwait(false);
+                return Ok(new ReactionPlaybackDetailsOutputModel
+                {
+                    EndpointUrl = pars.EndpointUrl,
+                    Token = pars.Token,
+                    ReactionId = pars.ReactionId
+                });
+            }
+            catch (ReactionStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Reaction is not yet ready for playback"));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find reaction"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get playback details for reaction"));
             }
         }
 

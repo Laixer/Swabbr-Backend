@@ -32,7 +32,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILivestreamService _livestreamingService;
-        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
+        private readonly IPlaybackService _livestreamPlaybackService;
         private readonly ILivestreamRepository _livestreamRepository; // TODO Is this really the controllers job? (used for checks only)
         private readonly IUserStreamingHandlingService _userStreamingHandlingService;
         private readonly ILogger logger;
@@ -42,7 +42,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public LivestreamsController(UserManager<SwabbrIdentityUser> userManager,
             ILivestreamService livestreamingService,
-            ILivestreamPlaybackService livestreamPlaybackService,
+            IPlaybackService livestreamPlaybackService,
             ILivestreamRepository livestreamRepository,
             ILoggerFactory loggerFactory,
             IUserStreamingHandlingService userStreamingHandlingService)

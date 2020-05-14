@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Utility;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
@@ -38,12 +39,10 @@ namespace Swabbr.Api.Controllers
         private readonly IVlogTriggerService _vlogTriggerService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly INotificationService _notificationService;
-        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
+        private readonly IPlaybackService _livestreamPlaybackService;
         private readonly ILivestreamPoolService _livestreamPoolService;
         private readonly ILivestreamService _livestreamService;
         private readonly IDeviceRegistrationService _deviceRegistrationService;
-        private readonly ITranscodingService _transcodingService;
-        private readonly IReactionUploadService _reactionUploadService;
         private readonly IStorageService _storageService;
         private readonly IReactionRepository _reactionRepository;
         private readonly AMSDebugService _amsDebugService;
@@ -57,11 +56,9 @@ namespace Swabbr.Api.Controllers
             IVlogTriggerService vlogTriggerService,
             INotificationService notificationService,
             ILivestreamPoolService livestreamPoolService,
-            ILivestreamPlaybackService livestreamPlaybackService,
+            IPlaybackService livestreamPlaybackService,
             ILivestreamService livestreamService,
             IDeviceRegistrationService deviceRegistrationService,
-            ITranscodingService transcodingService,
-            IReactionUploadService reactionUploadService,
             IStorageService storageService,
             IReactionRepository reactionRepository,
             AMSDebugService debugService,
@@ -75,8 +72,6 @@ namespace Swabbr.Api.Controllers
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _livestreamService = livestreamService ?? throw new ArgumentNullException(nameof(livestreamService));
             _deviceRegistrationService = deviceRegistrationService ?? throw new ArgumentNullException(nameof(deviceRegistrationService));
-            _transcodingService = transcodingService ?? throw new ArgumentNullException(nameof(transcodingService));
-            _reactionUploadService = reactionUploadService ?? throw new ArgumentNullException(nameof(reactionUploadService));
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _amsDebugService = debugService ?? throw new ArgumentNullException(nameof(debugService));
@@ -84,85 +79,18 @@ namespace Swabbr.Api.Controllers
             _hostingEnvironment = hostingEnvironment ?? throw new ArgumentNullException(nameof(hostingEnvironment));
         }
 
-        [HttpPost("upload_test/{targetVlogId}")]
-        [DisableFormValueModelBinding]
-        //[ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadPhysical([FromRoute] Guid targetVlogId)
+        [HttpPost("upload_reaction_video")]
+        public async Task<IActionResult> AmsStorageTest(Guid reactionId, Uri sasUri)
         {
             if (!_hostingEnvironment.IsDevelopment()) { return Conflict($"Can only access {nameof(DebugController)} in development environment"); }
 
             try
             {
-                if (targetVlogId.IsNullOrEmpty()) { return BadRequest("target vlog id empty"); }
-                if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType)) { return BadRequest("No multipart"); }
-
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-
-                var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(Request.ContentType), lengthLimit: 70);
-                var reader = new MultipartReader(boundary, HttpContext.Request.Body);
-                var section = await reader.ReadNextSectionAsync();
-
-                // This creates a new reaction in the DB and gets an upload stream
-                var reactionId = Guid.Empty; // TODO Kind of a beunfix
-                using (var streamWrapper = await _reactionUploadService.GetReactionUploadStreamAsync(user.Id, targetVlogId).ConfigureAwait(false))
-                {
-                    reactionId = streamWrapper.EntityId;
-                    while (section != null)
-                    {
-                        if (ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition))
-                        {
-                            // This check assumes that there's a file
-                            // present without form data. If form data
-                            // is present, this method immediately fails
-                            // and returns the model error.
-                            if (!MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
-                            {
-                                ModelState.AddModelError("File", $"The request couldn't be processed (Error 2).");
-                                return BadRequest(ModelState);
-                            }
-                            else
-                            {
-                                var streamedFileContent = await FileHelpers.ProcessStreamedFile(
-                                    section, contentDisposition, ModelState,
-                                    permittedExtensions: new string[] { ".mp4" },
-                                    sizeLimit: 9999999999); // TODO Size limit
-
-                                // The filehelpers.processstreamedfile adds errors to the model state if something's off
-                                if (!ModelState.IsValid) { return BadRequest(ModelState); }
-
-                                await streamWrapper.Stream.WriteAsync(streamedFileContent);
-                            }
-                        }
-
-                        section = await reader.ReadNextSectionAsync();
-                    }
-                }
-
-                // This triggers the upload to be finished
-                await _reactionUploadService.OnFinishedUploadingReactionAsync(user.Id, reactionId).ConfigureAwait(false);
-
+                var fileToUpload = @"C:\Users\thoma\Videos\Dora and Friends _ Doggie Day! _ Nick Jr. UK.mp4";
+                var container = new CloudBlobContainer(sasUri);
+                var blob = container.GetBlockBlobReference(Path.GetFileName(fileToUpload));
+                await blob.UploadFromFileAsync(fileToUpload);
                 return Ok();
-            }
-            catch (Exception e)
-            {
-                return Conflict(e.Message);
-            }
-        }
-
-        [HttpPost("amsstoragetest")]
-        public async Task<IActionResult> AmsStorageTest(Guid reactionId)
-        {
-            if (!_hostingEnvironment.IsDevelopment()) { return Conflict($"Can only access {nameof(DebugController)} in development environment"); }
-
-            try
-            {
-                var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
-
-                reactionId.ThrowIfNullOrEmpty();
-                var length = await _transcodingService.ExtractVideoLengthInSecondsAsync(reactionId).ConfigureAwait(false);
-                return Ok(length);
-                // await _reactionUploadService.OnFinishedTranscodingReactionAsync(reactionId).ConfigureAwait(false);
-                // return Ok();
             }
             catch (Exception e)
             {
@@ -175,22 +103,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                await _amsDebugService.DoThingAsync().ConfigureAwait(false);
-
-                //livestreamId = new Guid("f2192d61-ce08-4bb8-b955-60197ea2c507");
-                //var liveEvent = await _amsClient.CreateLiveEventAsync(livestreamId).ConfigureAwait(false);
-                //await _amsClient.StartLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
-
-                //liveEvent = await _amsDebugService.GetLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
-                //var accessUrl = liveEvent.Input.Endpoints.Where(x => x.Url.StartsWith("rtmps")).First().Url;
-                //var accessToken = liveEvent.Input.AccessToken;
-
-                //var liveEventManuallyCreated = await _amsDebugService.GetLiveEventAsync("live-event-manual").ConfigureAwait(false);
-                //var accessUrlManual = liveEventManuallyCreated.Input.Endpoints.Where(x => x.Url.StartsWith("rtmps")).First().Url;
-                //var accessTokenManual = liveEventManuallyCreated.Input.AccessToken;
-
-                //await _amsClient.StopLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
-                //await _amsDebugService.DeleteLiveEventAsync(liveEvent.Name).ConfigureAwait(false);
+                await _livestreamPoolService.CleanupLivestreamAsync(livestreamId);
 
                 return Ok();
             }

@@ -102,7 +102,8 @@ namespace Swabbr.Api.Controllers
                 if (page < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Page number must be greater than one")); }
                 if (itemsPerPage < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Items per page must be greater than one")); }
 
-                var users = await _userWithStatsRepository.SearchAsync(query, page, itemsPerPage).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var users = await _userWithStatsRepository.SearchAsync(query, user.Id, page, itemsPerPage).ConfigureAwait(false);
                 return Ok(users.Select(x => MapperUser.Map(x)));
             }
             catch (Exception e)

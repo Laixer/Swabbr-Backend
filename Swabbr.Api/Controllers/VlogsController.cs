@@ -33,7 +33,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly IVlogService _vlogService;
         private readonly IUserWithStatsService _userWithStatsService;
-        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
+        private readonly IPlaybackService _livestreamPlaybackService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
 
@@ -42,7 +42,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public VlogsController(IVlogService vlogService,
             IUserWithStatsService userWithStatsService,
-            ILivestreamPlaybackService livestreamPlaybackService,
+            IPlaybackService livestreamPlaybackService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {

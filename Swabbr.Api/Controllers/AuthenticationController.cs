@@ -209,13 +209,25 @@ namespace Swabbr.Api.Controllers
                 if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
 
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-
-                return Conflict("Not yet implemented");
+                var result = await _userManager.ChangePasswordAsync(identityUser, input.CurrentPassword, input.NewPassword).ConfigureAwait(false);
+                if (result.Succeeded)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    var message = "Could not update password.";
+                    foreach (var error in result.Errors)
+                    {
+                        message += $"\n\t{error.Description}";
+                    }
+                    return Conflict(this.Error(ErrorCodes.InvalidOperation, message));
+                }
             }
             catch (Exception e)
             {
                 logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not log in"));
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update password"));
             }
         }
 
