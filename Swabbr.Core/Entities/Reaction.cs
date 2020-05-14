@@ -41,9 +41,9 @@ namespace Swabbr.Core.Entities
         public int LengthInSeconds { get; set; }
 
         /// <summary>
-        /// Indicates the processing state of this reaction.
+        /// Indicates the state of this reaction.
         /// </summary>
-        public ReactionProcessingState ReactionProcessingState { get; set; }
+        public ReactionState ReactionState { get; set; }
 
     }
 

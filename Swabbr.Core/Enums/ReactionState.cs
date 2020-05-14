@@ -6,11 +6,8 @@ namespace Swabbr.Core.Enums
     /// <summary>
     /// Represents the processing state of a reaction.
     /// </summary>
-    public enum ReactionProcessingState
+    public enum ReactionState
     {
-
-        // TODO Remove this, used for debug
-        Undefined,
 
         [EnumMember(Value = "created")]
         Created,
@@ -22,7 +19,10 @@ namespace Swabbr.Core.Enums
         Finished,
 
         [EnumMember(Value = "failed")]
-        Failed
+        Failed,
+
+        [EnumMember(Value = "deleted")]
+        Deleted
 
     }
 

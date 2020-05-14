@@ -11,11 +11,6 @@ namespace Swabbr.Core.Entities
     {
 
         /// <summary>
-        /// Download url of the recording.
-        /// </summary>
-        public Uri DownloadUrl { get; set; }
-
-        /// <summary>
         /// Id of the user who created the vlog.
         /// </summary>
         public Guid UserId { get; set; }
@@ -35,10 +30,10 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public DateTimeOffset StartDate { get; set; }
 
-        ///// <summary>
-        ///// Metadata from the Media Service.
-        ///// </summary>
-        //public string MediaServiceData { get; set; }
+        /// <summary>
+        /// Total amount of views for this vlog.
+        /// </summary>
+        public int Views { get; set; }
 
     }
 

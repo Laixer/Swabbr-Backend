@@ -48,7 +48,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Indicates the current status of the livestream on our external platform.
         /// </summary>
-        public LivestreamStatus LivestreamStatus { get; set; }
+        public LivestreamState LivestreamState { get; set; }
 
         /// <summary>
         /// Represents the trigger minute at which this livestream was created.

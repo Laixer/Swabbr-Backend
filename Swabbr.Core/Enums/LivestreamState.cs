@@ -7,7 +7,7 @@ namespace Swabbr.Core.Enums
     /// <summary>
     /// Indicates the status of a <see cref="Entities.Livestream"/>.
     /// </summary>
-    public enum LivestreamStatus
+    public enum LivestreamState
     {
 
 
