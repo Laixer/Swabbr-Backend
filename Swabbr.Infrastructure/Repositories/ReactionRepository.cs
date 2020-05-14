@@ -7,6 +7,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
@@ -60,25 +61,27 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// Deletes a <see cref="Reaction"/> from our database.
-        /// </summary>
-        /// <param name="id">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task DeleteAsync(Guid id)
-        {
-            id.ThrowIfNullOrEmpty();
-            return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableReaction);
-        }
-
-        /// <summary>
         /// Gets a <see cref="Reaction"/> from our database.
         /// </summary>
         /// <param name="id">Internal <see cref="Reaction"/> id</param>
         /// <returns><see cref="Reaction"/></returns>
-        public Task<Reaction> GetAsync(Guid id)
+        public async Task<Reaction> GetAsync(Guid id)
         {
             id.ThrowIfNullOrEmpty();
-            return SharedRepositoryFunctions.GetAsync<Reaction>(_databaseProvider, id, TableReaction);
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT *
+                    FROM {TableReaction} 
+                    WHERE id = @Id
+                    AND reaction_state != '{ReactionState.Deleted.GetEnumMemberAttribute()}'
+                    FOR UPDATE";
+                var result = await connection.QueryAsync<Reaction>(sql, new { Id = id }).ConfigureAwait(false);
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Reaction)); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
+                return result.First();
+            }
         }
 
         /// <summary>
@@ -92,7 +95,11 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT * FROM {TableReaction} WHERE target_vlog_id = @VlogId FOR UPDATE";
+                var sql = $@"
+                    SELECT * FROM {TableReaction} 
+                    WHERE target_vlog_id = @VlogId 
+                    AND reaction_state = '{ReactionState.Finished.GetEnumMemberAttribute()}'
+                    FOR UPDATE";
                 return await connection.QueryAsync<Reaction>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
             }
         }
@@ -108,16 +115,81 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT COUNT(*) FROM {TableReaction} WHERE target_vlog_id = @VlogId";
+                var sql = $@"
+                    SELECT COUNT(*) 
+                    FROM {TableReaction} 
+                    WHERE target_vlog_id = @VlogId
+                    AND reaction_state = '{ReactionState.Finished.GetEnumMemberAttribute()}'";
                 return await connection.ExecuteScalarAsync<int>(sql, new { VlogID = vlogId }).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Hard deletes a <see cref="Reaction"/> from the data store. This should
+        /// be used to clean up failed uploads and such.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public async Task HardDeleteAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $"DELETE FROM {TableReaction} WHERE id = @Id";
+                var rowsAffected = await connection.ExecuteAsync(sql, new { Id = reactionId }).ConfigureAwait(false);
+                if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Reaction)); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
+            }
+        }
+
+        /// <summary>
+        /// Marks a <see cref="Reaction"/> as <see cref="ReactionState.Failed"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkFailedAsync(Guid reactionId)
+        {
+            return MarkAsStatusAsync(reactionId, ReactionState.Failed);
+        }
+
+        /// <summary>
+        /// Marks a <see cref="Reaction"/> as <see cref="ReactionState.Finished"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkFinishedAsync(Guid reactionId)
+        {
+            return MarkAsStatusAsync(reactionId, ReactionState.Finished);
+        }
+
+        /// <summary>
+        /// Marks a <see cref="Reaction"/> as <see cref="ReactionState.Processing"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkProcessingAsync(Guid reactionId)
+        {
+            return MarkAsStatusAsync(reactionId, ReactionState.Processing);
+        }
+
+        /// <summary>
+        /// Soft deletes a <see cref="Reaction"/> from our database. The reaction
+        /// will be marked as <see cref="ReactionState.Deleted"/>.
+        /// </summary>
+        /// <param name="reactionId"></param>
+        /// <returns></returns>
+        public Task SoftDeleteAsync(Guid reactionId)
+        {
+            return MarkAsStatusAsync(reactionId, ReactionState.Deleted);
         }
 
         /// <summary>
         /// Updates a <see cref="Reaction"/> in our database.
         /// </summary>
         /// <remarks>
-        /// This can't update the <see cref="Reaction.ReactionProcessingState"/>.
+        /// This can't update the <see cref="Reaction.ReactionState"/>.
+        /// TODO This should never be able to update a reaction in <see cref="ReactionState.Deleted"/>.
         /// </remarks>
         /// <param name="entity"><see cref="Reaction"/></param>
         /// <returns>Updated and queried <see cref="Reaction"/></returns>
@@ -141,25 +213,31 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// Updates the <see cref="ReactionProcessingState"/> of a <see cref="Reaction"/>.
+        /// Marks a <see cref="Reaction"/> as <paramref name="state"/>.
         /// </summary>
-        /// <param name="state">New <see cref="ReactionProcessingState"/></param>
+        /// <remarks>
+        /// This will throw if the database determines an invalid state change.
+        /// </remarks>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <param name="state"><see cref="ReactionState"/></param>
         /// <returns><see cref="Task"/></returns>
-        public async Task UpdateStatusAsync(Guid id, ReactionProcessingState state)
+        private async Task MarkAsStatusAsync(Guid reactionId, ReactionState state)
         {
-            id.ThrowIfNullOrEmpty();
+            reactionId.ThrowIfNullOrEmpty();
+
             using (var connection = _databaseProvider.GetConnectionScope())
             {
                 // TODO SQL injection
                 var sql = $@"
                     UPDATE {TableReaction} 
-                    SET reaction_processing_state = '{state.GetEnumMemberAttribute()}'
-                    WHERE id = @Id";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
-                if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Reaction)); }
-                if (rowsAffected < 0) { throw new InvalidOperationException(nameof(rowsAffected)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
+                    SET reaction_state = '{state.GetEnumMemberAttribute()}'
+                    WHERE id = @ReactionId";
+                var rowsAffected = await connection.ExecuteAsync(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
+                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
+                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
             }
         }
+
     }
+
 }

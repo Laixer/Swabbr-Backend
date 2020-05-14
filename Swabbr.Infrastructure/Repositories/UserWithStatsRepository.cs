@@ -57,7 +57,20 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="page">Page number, default is 1</param>
         /// <param name="itemsPerPage">Items per page, default is 50</param>
         /// <returns><see cref="IEnumerable{SwabbrUserWithStats}"/></returns>
-        public async Task<IEnumerable<SwabbrUserWithStats>> SearchAsync(string searchString, int page = 1, int itemsPerPage = 50)
+        public Task<IEnumerable<SwabbrUserWithStats>> SearchAsync(string searchString, int page = 1, int itemsPerPage = 50)
+        {
+            return SearchAsync(searchString, Guid.Empty, page, itemsPerPage);
+        }
+
+        /// <summary>
+        /// Searches for <see cref="SwabbrUserWithStats"/> in the database.
+        /// </summary>
+        /// <param name="searchString">Search string</param>
+        /// <param name="excludeUserId">Exclude this <see cref="SwabbrUser"/> from the results</param>
+        /// <param name="page">Page number, default is 1</param>
+        /// <param name="itemsPerPage">Items per page, default is 50</param>
+        /// <returns><see cref="IEnumerable{SwabbrUserWithStats}"/></returns>
+        public async Task<IEnumerable<SwabbrUserWithStats>> SearchAsync(string searchString, Guid excludeUserId, int page = 1, int itemsPerPage = 50)
         {
             searchString.ThrowIfNullOrEmpty();
             if (page < 1) { throw new ArgumentOutOfRangeException("Page number must be greater than one"); }
@@ -66,11 +79,13 @@ namespace Swabbr.Infrastructure.Repositories
 
             using (var connection = _databaseProvider.GetConnectionScope())
             {
-                var sql = $"SELECT * FROM {ViewUserWithStats}" +
-                    $" WHERE LOWER(nickname) LIKE LOWER('{searchString}%')" +
-                    $" OFFSET {(page - 1) * itemsPerPage}" +
-                    $" LIMIT {itemsPerPage};"; // TODO Query builder or something
-                return await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
+                var sql = $@"
+                    SELECT * FROM {ViewUserWithStats} 
+                    WHERE LOWER(nickname) LIKE LOWER('{searchString}%') 
+                    {(excludeUserId.IsNullOrEmpty() ? "" : "AND id != @ExcludeUserId")}
+                    OFFSET {(page - 1) * itemsPerPage} 
+                    LIMIT {itemsPerPage}";
+                return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { ExcludeUserId = excludeUserId }).ConfigureAwait(false);
             }
         }
 

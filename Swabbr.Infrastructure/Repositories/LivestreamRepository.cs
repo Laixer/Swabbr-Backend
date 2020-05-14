@@ -2,7 +2,6 @@
 using Laixer.Infra.Npgsql;
 using Laixer.Utility.Extensions;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
@@ -92,6 +91,33 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        /// Checks if a livestream exists for a user-triggerminute combination.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="triggerMinute"><see cref="DateTimeOffset"/></param>
+        /// <returns><see cref="bool"/> result</returns>
+        public async Task<bool> ExistsLivestreamForTriggerMinute(Guid userId, DateTimeOffset triggerMinute)
+        {
+            userId.ThrowIfNullOrEmpty();
+            if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT 1 FROM {TableLivestream}
+                    WHERE user_id = @UserId
+                    AND user_trigger_minute = @UserTriggerMinute
+                    FOR UPDATE";
+                var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
+
+                var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
+
+                return result.Count() == 1;
+            }
+        }
+
+        /// <summary>
         /// Gets a <see cref="Livestream"/> from our database.
         /// </summary>
         /// <param name="id">Internal <see cref="Livestream"/> id</param>
@@ -112,7 +138,7 @@ namespace Swabbr.Infrastructure.Repositories
                         update_date AS UpdateDate,
                         user_id AS UserId, 
                         external_id AS ExternalId,
-                        livestream_status AS LivestreamStatus,
+                        livestream_state AS LivestreamState,
                         user_trigger_minute AS UserTriggerMinute
                     FROM {TableLivestream} 
                     WHERE id = @Id FOR UPDATE";
@@ -145,10 +171,10 @@ namespace Swabbr.Infrastructure.Repositories
                         update_date AS UpdateDate,
                         user_id AS UserId, 
                         external_id AS ExternalId,
-                        livestream_status AS LivestreamStatus,
+                        livestream_state AS LivestreamState,
                         user_trigger_minute AS UserTriggerMinute
                     FROM {TableLivestream}
-                    WHERE livestream_status = '{LivestreamStatus.Created.GetEnumMemberAttribute()}'
+                    WHERE livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'
                     FOR UPDATE";
                 return await connection.QueryAsync<Livestream>(sql).ConfigureAwait(false);
             }
@@ -190,32 +216,10 @@ namespace Swabbr.Infrastructure.Repositories
                     FOR UPDATE";
                 var pars = new { Id = id };
                 var result = await connection.QueryAsync<string>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found multiple result for single get"); }
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
                 result.First().ThrowIfNullOrEmpty();
                 return result.First();
-            }
-        }
-
-        /// <summary>
-        /// Sets the <see cref="Livestream.LivestreamStatus"/> property in our database.
-        /// </summary>
-        /// <param name="id">Internal <see cref="Livestream"/> id</param>
-        /// <param name="status">New <see cref="LivestreamStatus"/></param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task UpdateLivestreamStatusAsync(Guid id, LivestreamStatus status)
-        {
-            id.ThrowIfNullOrEmpty();
-            if (status == LivestreamStatus.PendingUser) { throw new InvalidOperationException($"Use {nameof(MarkPendingUserAsync)} instead for {status.GetEnumMemberAttribute()}"); }
-
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO SQL injection
-                var sql = $"UPDATE {TableLivestream} SET livestream_status = '{status.GetEnumMemberAttribute()}' WHERE id = @Id";
-                var pars = new { Id = id };
-                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-                if (rowsAffected == 0) { throw new EntityNotFoundException(); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
             }
         }
 
@@ -243,11 +247,42 @@ namespace Swabbr.Infrastructure.Repositories
                 var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
 
                 var result = await connection.QueryAsync<Guid>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
+                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
+                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
                 var actual = await GetAsync(result.First()).ConfigureAwait(false);
                 return actual;
             }
+        }
+
+        /// <summary>
+        /// Checks if a <see cref="SwabbrUser"/> is in a livestream cycle.
+        /// </summary>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <returns><see cref="bool"/> result</returns>
+        public async Task<bool> IsUserInLivestreamCycleAsync(Guid userId)
+        {
+            userId.ThrowIfNullOrEmpty();
+
+            using (var connection = _databaseProvider.GetConnectionScope())
+            {
+                var sql = $@"
+                    SELECT 1 FROM {TableLivestream}
+                    WHERE user_id = @UserId
+                    FOR UPDATE";
+                var count = await connection.QueryAsync<int>(sql, new { UserId = userId }).ConfigureAwait(false);
+                if (count.Count() > 1) { throw new InvalidOperationException("Found multiple livestreams with the same user_id"); }
+                return count.Any();
+            }
+        }
+
+        /// <summary>
+        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.Closed"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkClosedAsync(Guid livestreamId)
+        {
+            return MarkAsStateAsync(livestreamId, LivestreamState.Closed);
         }
 
         /// <summary>
@@ -269,7 +304,7 @@ namespace Swabbr.Infrastructure.Repositories
                     UPDATE {TableLivestream} SET
                         broadcast_location = @BroadcastLocation,
                         external_id = @ExternalId,
-                        livestream_status = '{LivestreamStatus.Created.GetEnumMemberAttribute()}'
+                        livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'
                     WHERE id = @Id";
                 var pars = new { Id = livestreamId, BroadcastLocation = broadcastLocation, ExternalId = externalId };
                 var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
@@ -279,24 +314,23 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamStatus.Live"/>.
+        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.Live"/>.
         /// </summary>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task MarkLiveAsync(Guid livestreamId)
+        public Task MarkLiveAsync(Guid livestreamId)
         {
-            livestreamId.ThrowIfNullOrEmpty();
+            return MarkAsStateAsync(livestreamId, LivestreamState.Live);
+        }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
-                    UPDATE {TableLivestream} 
-                    SET livestream_status = '{LivestreamStatus.Live.GetEnumMemberAttribute()}'
-                    WHERE id = @LivestreamId";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
+        /// <summary>
+        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.PendingClosure"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkPendingClosureAsync(Guid livestreamId)
+        {
+            return MarkAsStateAsync(livestreamId, LivestreamState.PendingClosure);
         }
 
         /// <summary>
@@ -316,7 +350,7 @@ namespace Swabbr.Infrastructure.Repositories
                 var sql = $@"
                     UPDATE {TableLivestream} SET
                         user_id = @UserId,
-                        livestream_status = '{LivestreamStatus.PendingUser.GetEnumMemberAttribute()}',
+                        livestream_state = '{LivestreamState.PendingUser.GetEnumMemberAttribute()}',
                         user_trigger_minute = @UserTriggerMinute
                     WHERE id = @Id";
                 var pars = new { Id = livestreamId, UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
@@ -327,11 +361,45 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamStatus.PendingClosure"/>.
+        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.PendingUserConnect"/>.
         /// </summary>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task MarkPendingClosureAsync(Guid livestreamId)
+        public Task MarkPendingUserConnectAsync(Guid livestreamId)
+        {
+            return MarkAsStateAsync(livestreamId, LivestreamState.PendingUserConnect);
+        }
+
+        /// <summary>
+        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.UserNeverConnectedTimeout"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkUserNeverConnectedTimeoutAsync(Guid livestreamId)
+        {
+            return MarkAsStateAsync(livestreamId, LivestreamState.UserNeverConnectedTimeout);
+        }
+
+        /// <summary>
+        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.UserNoResponseTimeout"/>.
+        /// </summary>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task MarkUserNoResponseTimeoutAsync(Guid livestreamId)
+        {
+            return MarkAsStateAsync(livestreamId, LivestreamState.UserNoResponseTimeout);
+        }
+
+        /// <summary>
+        /// Sets a given <see cref="Livestream"/> as <paramref name="state"/>.
+        /// </summary>
+        /// <remarks>
+        /// This throws if the database doesn't allow the state change.
+        /// </remarks>
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="state">New <see cref="LivestreamState"/></param>
+        /// <returns><see cref="Task"/></returns>
+        private async Task MarkAsStateAsync(Guid livestreamId, LivestreamState state)
         {
             livestreamId.ThrowIfNullOrEmpty();
 
@@ -339,118 +407,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 var sql = $@"
                     UPDATE {TableLivestream} 
-                    SET livestream_status = '{LivestreamStatus.PendingClosure.GetEnumMemberAttribute()}'
-                    WHERE id = @LivestreamId";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamStatus.Closed"/>.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task MarkClosedAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
-                    UPDATE {TableLivestream} 
-                    SET livestream_status = '{LivestreamStatus.Closed.GetEnumMemberAttribute()}'
-                    WHERE id = @LivestreamId";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamStatus.PendingUserConnect"/>.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task MarkPendingUserConnectAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
-                    UPDATE {TableLivestream} 
-                    SET livestream_status = '{LivestreamStatus.PendingUserConnect.GetEnumMemberAttribute()}'
-                    WHERE id = @LivestreamId";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamStatus.UserNoResponseTimeout"/>.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task MarkUserNoResponseTimeoutAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
-                    UPDATE {TableLivestream} 
-                    SET livestream_status = '{LivestreamStatus.UserNoResponseTimeout.GetEnumMemberAttribute()}'
-                    WHERE id = @LivestreamId";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
-        }
-
-        /// <summary>
-        /// Checks if a livestream exists for a user-triggerminute combination.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="triggerMinute"><see cref="DateTimeOffset"/></param>
-        /// <returns><see cref="bool"/> result</returns>
-        public async Task<bool> ExistsLivestreamForTriggerMinute(Guid userId, DateTimeOffset triggerMinute)
-        {
-            userId.ThrowIfNullOrEmpty();
-            if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
-
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
-                    SELECT 1 FROM {TableLivestream}
-                    WHERE user_id = @UserId
-                    AND user_trigger_minute = @UserTriggerMinute
-                    FOR UPDATE";
-                var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
-
-                var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
-
-                return result.Count() == 1;
-            }
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Livestream"/> as <see cref="LivestreamStatus.UserNeverConnectedTimeout"/>.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task MarkUserNeverConnectedTimeoutAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
-                    UPDATE {TableLivestream} 
-                    SET livestream_status = '{LivestreamStatus.UserNeverConnectedTimeout.GetEnumMemberAttribute()}'
+                    SET livestream_state = '{state.GetEnumMemberAttribute()}'
                     WHERE id = @LivestreamId";
                 var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
                 if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
