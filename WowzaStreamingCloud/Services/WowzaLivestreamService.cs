@@ -96,8 +96,8 @@ namespace Swabbr.WowzaStreamingCloud.Services
         /// </summary>
         /// <remarks>
         /// This throws an <see cref="InvalidOperationException"/> if the 
-        /// <see cref="Livestream.LivestreamStatus"/> property isn't set to 
-        /// <see cref="LivestreamStatus.PendingUser"/> in our data store.
+        /// <see cref="Livestream.LivestreamState"/> property isn't set to 
+        /// <see cref="LivestreamState.PendingUser"/> in our data store.
         /// </remarks>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
@@ -111,7 +111,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
             {
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false); // For update
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(); }
-                if (livestream.LivestreamStatus != LivestreamStatus.PendingUser) { throw new LivestreamStateException(); }
+                if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException(); }
 
                 // Throw if the Wowza livestream isn't actually live
                 if (!await _wowzaHttpClient.IsLivestreamStartedAsync(livestream.ExternalId).ConfigureAwait(false))
@@ -146,7 +146,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
                 livestream.ExternalId.ThrowIfNullOrEmpty();
                 livestream.UserId.ThrowIfNullOrEmpty();
                 if (livestream.UserId != userId) { throw new InvalidOperationException("User doesn't own livestream"); }
-                if (livestream.LivestreamStatus != LivestreamStatus.Live) { throw new InvalidOperationException("Can't close a non-live livestream"); }
+                if (livestream.LivestreamState != LivestreamState.Live) { throw new InvalidOperationException("Can't close a non-live livestream"); }
 
                 // Check if Wowza actually has someone that's connected
                 if (await _wowzaHttpClient.IsStreamerConnected(livestream.ExternalId)) { throw new InvalidOperationException("User still connected to the livestream in the Wowza cloud"); }
@@ -282,7 +282,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus != LivestreamStatus.UserNoResponseTimeout) { throw new InvalidOperationException("Livestream status is not set to timeout!"); }
+                if (livestream.LivestreamState != LivestreamState.UserNoResponseTimeout) { throw new InvalidOperationException("Livestream status is not set to timeout!"); }
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(); }
 
                 // First mark

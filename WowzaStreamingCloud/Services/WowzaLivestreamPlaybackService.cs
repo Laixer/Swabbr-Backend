@@ -21,7 +21,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
     /// <summary>
     /// Manages playback for Wowza <see cref="Livestream"/>s.
     /// </summary>
-    public sealed class WowzaLivestreamPlaybackService : ILivestreamPlaybackService
+    public sealed class WowzaLivestreamPlaybackService
     {
 
         private readonly WowzaHttpClient _wowzaHttpClient;
@@ -173,7 +173,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
             }
         }
 
-        Task<LivestreamDownstreamDetails> ILivestreamPlaybackService.GetLivestreamDownstreamParametersAsync(Guid livestreamId, Guid watchingUserId)
+        Task<LivestreamDownstreamDetails> GetLivestreamDownstreamParametersAsync(Guid livestreamId, Guid watchingUserId)
         {
             throw new NotImplementedException();
         }

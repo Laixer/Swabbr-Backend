@@ -78,7 +78,7 @@ namespace Swabbr.WowzaStreamingCloud.Services
                         BroadcastLocation = response.Livestream.BroadcastLocation,
                         CreateDate = response.Livestream.CreatedAt,
                         Name = response.Livestream.Name,
-                        LivestreamStatus = LivestreamStatus.Created
+                        LivestreamState = LivestreamState.Created
                     }).ConfigureAwait(false);
 
                     // Grab the passthrough output and enable auth
