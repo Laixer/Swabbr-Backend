@@ -28,7 +28,6 @@ namespace Swabbr.Core.Services
         private readonly IUserRepository _userRepository;
         private readonly IVlogRepository _vlogRepository;
         private readonly IVlogLikeRepository _vlogLikeRepository;
-        private readonly IReactionService _reactionService;
         private readonly INotificationClient _notificationClient;
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
         private readonly INotificationBuilder _notificationBuilder;
@@ -40,7 +39,6 @@ namespace Swabbr.Core.Services
         public NotificationService(IUserRepository userRepository,
             IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
-            IReactionService reactionService,
             INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
             INotificationBuilder notificationBuilder,
@@ -49,7 +47,6 @@ namespace Swabbr.Core.Services
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
-            _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
             _notificationBuilder = notificationBuilder ?? throw new ArgumentNullException(nameof(notificationBuilder));

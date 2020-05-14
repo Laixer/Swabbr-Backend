@@ -42,7 +42,17 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        /// Deletes a <see cref="Vlog"/> from our data store and external storage.
+        /// Adds a single view to a <see cref="Vlog"/>.
+        /// </summary>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        public Task AddView(Guid vlogId)
+        {
+            return _vlogRepository.AddView(vlogId);
+        }
+
+        /// <summary>
+        /// Soft deletes a <see cref="Vlog"/> in our data store.
         /// </summary>
         /// <remarks>
         /// Throws a <see cref="UserNotOwnerException"/> if our <paramref name="userId"/>
@@ -61,8 +71,7 @@ namespace Swabbr.Core.Services
                 var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
                 if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
 
-                await _storageService.CleanupVlogStorageOnDeleteAsync(vlogId).ConfigureAwait(false);
-                await _vlogRepository.DeleteAsync(vlogId).ConfigureAwait(false);
+                await _vlogRepository.SoftDeleteAsync(vlogId).ConfigureAwait(false);
                 scope.Complete();
             }
         }

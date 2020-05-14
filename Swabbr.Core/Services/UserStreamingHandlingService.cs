@@ -29,7 +29,7 @@ namespace Swabbr.Core.Services
     {
 
         private readonly ILivestreamService _livestreamingService;
-        private readonly ILivestreamPlaybackService _livestreamPlaybackService;
+        private readonly IPlaybackService _livestreamPlaybackService;
         private readonly INotificationService _notificationService;
         private readonly IUserRepository _userRepository;
         private readonly ILivestreamRepository _livestreamRepository;
@@ -43,7 +43,7 @@ namespace Swabbr.Core.Services
         /// Constructor for dependency injection.
         /// </summary>
         public UserStreamingHandlingService(ILivestreamService livestreamingService,
-            ILivestreamPlaybackService livestreamPlaybackService,
+            IPlaybackService livestreamPlaybackService,
             INotificationService notificationService,
             IUserRepository userRepository,
             ILivestreamRepository livestreamRepository,
@@ -107,7 +107,7 @@ namespace Swabbr.Core.Services
         /// Called when the user disconnected from the <see cref="Livestream"/>.
         /// </summary>
         /// <remarks>
-        /// This does nothing if the livestream is not in state <see cref="LivestreamStatus.Live"/>.
+        /// This does nothing if the livestream is not in state <see cref="LivestreamState.Live"/>.
         /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
@@ -122,7 +122,7 @@ namespace Swabbr.Core.Services
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                    if (livestream.LivestreamStatus != LivestreamStatus.Live) { return; }
+                    if (livestream.LivestreamState != LivestreamState.Live) { return; }
 
                     // Grab the vlog, this gets demarked in the livestream processing functions
                     // var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
@@ -162,7 +162,7 @@ namespace Swabbr.Core.Services
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
                 // Only do something if we are in the pending user connect state
-                if (livestream.LivestreamStatus == LivestreamStatus.PendingUserConnect)
+                if (livestream.LivestreamState == LivestreamState.PendingUserConnect)
                 {
                     await _livestreamingService.OnUserNeverConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
                 }
@@ -264,7 +264,7 @@ namespace Swabbr.Core.Services
         /// <remarks>
         /// This gets called even when the user has alreayd stopped vlogging.
         /// In this case, the function will just exit gracefully. This will only
-        /// process if the livestream is in state <see cref="LivestreamStatus.PendingUserConnect"/>.
+        /// process if the livestream is in state <see cref="LivestreamState.PendingUserConnect"/>.
         /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
@@ -277,7 +277,7 @@ namespace Swabbr.Core.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamStatus == LivestreamStatus.Live)
+                if (livestream.LivestreamState == LivestreamState.Live)
                 {
                     if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
                     await _livestreamingService.OnUserVlogTimeExpiredAsync(livestreamId, userId).ConfigureAwait(false);
