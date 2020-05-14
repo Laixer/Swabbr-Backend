@@ -11,6 +11,7 @@ using Swabbr.AzureFunctions.Types;
 using Laixer.Utility.Extensions;
 using Swabbr.Core.Utility;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Exceptions;
 
 namespace Swabbr.AzureFunctions.Functions
 {
@@ -50,8 +51,17 @@ namespace Swabbr.AzureFunctions.Functions
             log.LogInformation($@"{nameof(LogicAppVlogTriggerFunction)} - 
                 Starting vlog trigger for user {wrapper.UserId} 
                 trigger minute {wrapper.UserTriggerMinute}");
-
-            await _vlogTriggerService.ProcessVlogTriggerForUserAsync(wrapper.UserId, wrapper.UserTriggerMinute).ConfigureAwait(false);
+            try
+            {
+                await _vlogTriggerService.ProcessVlogTriggerForUserAsync(wrapper.UserId, wrapper.UserTriggerMinute).ConfigureAwait(false);
+            }
+            catch (UserAlreadyInLivestreamCycleException e)
+            {
+                log.LogError($@"{nameof(LogicAppVlogTimeoutFunction)} -
+                    User {wrapper.UserId} is already in a livestream cycle,
+                    aborting request and returning Conflict");
+                return new ConflictObjectResult(nameof(UserAlreadyInLivestreamCycleException));
+            }
 
             log.LogInformation($@"{nameof(LogicAppVlogTriggerFunction)} - 
                 Finished vlog trigger for user {wrapper.UserId} 

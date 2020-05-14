@@ -48,9 +48,9 @@ namespace Swabbr.AzureFunctions.Functions
                 var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(liveEventExternalId).ConfigureAwait(false);
 
                 // State race condition where the livestream is already decoupled from the user
-                if (livestream.LivestreamStatus != LivestreamStatus.Live)
+                if (livestream.LivestreamState != LivestreamState.Live)
                 {
-                    log.LogInformation($"No need to call {nameof(EncoderDisconnectedFunction)}, livestream not in {LivestreamStatus.Live.GetEnumMemberAttribute()} state");
+                    log.LogInformation($"No need to call {nameof(EncoderDisconnectedFunction)}, livestream not in {LivestreamState.Live.GetEnumMemberAttribute()} state");
                     return;
                 }
 

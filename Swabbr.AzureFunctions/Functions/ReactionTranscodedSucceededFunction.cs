@@ -14,19 +14,19 @@ namespace Swabbr.AzureFunctions.Functions
 {
 
     /// <summary>
-    /// Triggers when a <see cref="Reaction"/> transcoding job is finished.
+    /// Triggers when a <see cref="Core.Entities.Reaction"/> transcoding job succeeded.
     /// </summary>
     public sealed class ReactionTranscodedSucceededFunction
     {
 
-        private readonly IReactionUploadService _reactionUploadService;
+        private readonly IReactionService _reactionService;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public ReactionTranscodedSucceededFunction(IReactionUploadService reactionUploadService)
+        public ReactionTranscodedSucceededFunction(IReactionService reactionService)
         {
-            _reactionUploadService = reactionUploadService ?? throw new ArgumentNullException(nameof(reactionUploadService));
+            _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Swabbr.AzureFunctions.Functions
         /// <param name="eventGridEvent"><see cref="EventGridEvent"/></param>
         /// <param name="log"><see cref="ILogger"/></param>
         /// <returns><see cref="Task"/></returns>
-        [FunctionName("ReactionTranscodedSucceededFunction")]
+        [FunctionName(nameof(ReactionTranscodedSucceededFunction))]
         public async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
             // First extract the data
@@ -47,13 +47,15 @@ namespace Swabbr.AzureFunctions.Functions
             if (data.Outputs.Count() > 1) { throw new ArgumentException("Event grid data object contained more than one AMS output"); }
 
             // Extract the reaction id
+            log.LogTrace($"########## data.outputs.first.assetname = {data.Outputs.First().AssetName}");
             var reactionId = AMSAssetNameIdExtractor.GetId(data.Outputs.First().AssetName);
 
             // Log and process
             log.LogInformation($"Triggered {nameof(ReactionTranscodedSucceededFunction)} for reaction {reactionId} at { eventGridEvent.EventTime}");
-            await _reactionUploadService.OnFinishedTranscodingReactionAsync(reactionId).ConfigureAwait(false);
+            await _reactionService.OnTranscodingReactionSucceededAsync(reactionId).ConfigureAwait(false);
             log.LogInformation($"Finished {nameof(ReactionTranscodedSucceededFunction)} for reaction {reactionId} at { eventGridEvent.EventTime}");
         }
+
     }
 
 }

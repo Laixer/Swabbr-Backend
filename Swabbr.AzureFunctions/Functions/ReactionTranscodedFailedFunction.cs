@@ -14,19 +14,19 @@ namespace Swabbr.AzureFunctions.Functions
 {
 
     /// <summary>
-    /// Triggers when a <see cref="Reaction"/> transcoding job is finished.
+    /// Triggers when a <see cref="Core.Entities.Reaction"/> transcoding job failed.
     /// </summary>
     public sealed class ReactionTranscodedFailedFunction
     {
 
-        private readonly IReactionUploadService _reactionUploadService;
+        private readonly IReactionService _reactionService;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public ReactionTranscodedFailedFunction(IReactionUploadService reactionUploadService)
+        public ReactionTranscodedFailedFunction(IReactionService reactionService)
         {
-            _reactionUploadService = reactionUploadService ?? throw new ArgumentNullException(nameof(reactionUploadService));
+            _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Swabbr.AzureFunctions.Functions
         /// <param name="eventGridEvent"><see cref="EventGridEvent"/></param>
         /// <param name="log"><see cref="ILogger"/></param>
         /// <returns><see cref="Task"/></returns>
-        [FunctionName("ReactionTranscodedFailedFunction")]
+        [FunctionName(nameof(ReactionTranscodedFailedFunction))]
         public async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
             // First extract the data
@@ -51,9 +51,10 @@ namespace Swabbr.AzureFunctions.Functions
 
             // Log and process
             log.LogInformation($"Triggered {nameof(ReactionTranscodedSucceededFunction)} for reaction {reactionId} at { eventGridEvent.EventTime}");
-            await _reactionUploadService.OnFailedTranscodingReactionAsync(reactionId).ConfigureAwait(false);
+            await _reactionService.OnTranscodingReactionFailedAsync(reactionId).ConfigureAwait(false);
             log.LogInformation($"Finished {nameof(ReactionTranscodedSucceededFunction)} for reaction {reactionId} at { eventGridEvent.EventTime}");
         }
+
     }
 
 }

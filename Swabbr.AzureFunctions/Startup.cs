@@ -117,13 +117,11 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<IHashDistributionService, HashDebugEvenDistributionService>(); // TODO FIX
             builder.Services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             builder.Services.AddTransient<ILivestreamService, AMSLivestreamService>();
-            builder.Services.AddTransient<ILivestreamPlaybackService, AMSLivestreamPlaybackService>();
+            builder.Services.AddTransient<IPlaybackService, AMSPlaybackService>();
             builder.Services.AddTransient<INotificationService, NotificationService>();
-            builder.Services.AddTransient<IReactionService, ReactionService>();
-            builder.Services.AddTransient<IReactionUploadService, ReactionUploadService>();
+            builder.Services.AddTransient<IReactionService, AMSReactionService>();
             builder.Services.AddTransient<IStorageService, AMSStorageService>();
             builder.Services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
-            builder.Services.AddTransient<ITranscodingService, AMSTranscodingService>();
             builder.Services.AddTransient<IUserService, UserService>();
             builder.Services.AddTransient<IVlogService, VlogService>();
             builder.Services.AddTransient<IVlogTriggerService, VlogTriggerService>();

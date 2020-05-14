@@ -66,11 +66,11 @@ namespace Swabbr.AzureFunctions.Functions
 
                     // This prevents a race condition where the livestream is already marked as another state
                     // This will remove the user id from the livestream in the data store
-                    if (livestream.LivestreamStatus != LivestreamStatus.Live)
+                    if (livestream.LivestreamState != LivestreamState.Live)
                     {
                         log.LogInformation($@"{nameof(LogicAppVlogTimeExpiredFunction)} - 
                             No need for processing vlogging time expired event for livestream {livestream.Id},
-                            livestream is not in state {LivestreamStatus.Live.GetEnumMemberAttribute()}");
+                            livestream is not in state {LivestreamState.Live.GetEnumMemberAttribute()}");
                         return new NoContentResult();
                     }
 
