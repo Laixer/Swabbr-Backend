@@ -6,7 +6,7 @@ namespace Swabbr.Api.ViewModels.Notifications.JsonWrappers
 
     /// <summary>
     /// Wrapper for our own notification data.
-    /// TODO Copypasted to ignore weird <see cref="DateTimeOffset"/> display
+    /// This was copypasted to ignore weird <see cref="DateTimeOffset"/> display
     /// in swagger doc.
     /// </summary>
     public sealed class NotificationPayloadJsonWrapperModel

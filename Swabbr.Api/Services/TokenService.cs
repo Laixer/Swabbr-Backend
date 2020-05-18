@@ -11,19 +11,17 @@ using System.Text;
 namespace Swabbr.Api.Services
 {
 
-    // TODO THOMAS Separate file
-    public interface ITokenService
-    {
-        string GenerateToken(SwabbrIdentityUser user);
-    }
-
     /// <summary>
-    /// TODO Clean up
+    /// Generates user access tokens.
     /// </summary>
     public class TokenService : ITokenService
     {
+
         private readonly JwtConfiguration _jwtConfig;
 
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
         public TokenService(IOptions<JwtConfiguration> config)
         {
             if (config == null || config.Value == null) { throw new ArgumentNullException(nameof(config)); }
@@ -31,8 +29,12 @@ namespace Swabbr.Api.Services
             _jwtConfig.ThrowIfInvalid();
         }
 
-        // TODO THOMAS I don't know if this is correct (could be), worth checking --> yorick heeft gecheckt, technisch klopt het (moet eigenlijk met identity server)
-        public string GenerateToken(SwabbrIdentityUser user)
+        /// <summary>
+        /// Generates a token for a user.
+        /// </summary>
+        /// <param name="user"><see cref="SwabbrIdentityUser"/></param>
+        /// <returns><see cref="TokenWrapper"/></returns>
+        public TokenWrapper GenerateToken(SwabbrIdentityUser user)
         {
             // Add claims
             var claims = new List<Claim>
@@ -54,7 +56,13 @@ namespace Swabbr.Api.Services
                 signingCredentials: credentials
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new TokenWrapper{
+                CreateDate = DateTimeOffset.Now,
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                TokenExpirationTimespan = TimeSpan.FromDays(_jwtConfig.ExpireDays)
+            };
         }
+
     }
+
 }

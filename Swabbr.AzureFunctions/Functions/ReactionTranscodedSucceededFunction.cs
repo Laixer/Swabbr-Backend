@@ -32,9 +32,6 @@ namespace Swabbr.AzureFunctions.Functions
         /// <summary>
         /// Triggers when a <see cref="Reaction"/> is transcoded in Azure Media Services.
         /// </summary>
-        /// <remarks>
-        /// TODO Can we put custom data in event grid messages?
-        /// </remarks>
         /// <param name="eventGridEvent"><see cref="EventGridEvent"/></param>
         /// <param name="log"><see cref="ILogger"/></param>
         /// <returns><see cref="Task"/></returns>

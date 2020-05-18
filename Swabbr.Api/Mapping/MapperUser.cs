@@ -15,10 +15,10 @@ namespace Swabbr.Api.Mapping
     internal static class MapperUser
     {
 
-        internal static UserOutputModel Map(SwabbrUserWithStats input)
+        internal static UserWithStatsOutputModel Map(SwabbrUserWithStats input)
         {
             if (input == null) { throw new ArgumentNullException(nameof(input)); }
-            return new UserOutputModel
+            return new UserWithStatsOutputModel
             {
                 Id = input.Id,
                 FirstName = input.FirstName,

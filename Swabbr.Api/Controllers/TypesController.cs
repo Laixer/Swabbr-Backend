@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Utility;
 using Swabbr.Api.ViewModels.Notifications.JsonWrappers;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
@@ -29,7 +28,6 @@ namespace Swabbr.Api.Controllers
 
     /// <summary>
     /// This contains information about the API types.
-    /// TODO This exposes the core.
     /// </summary>
     [Authorize]
     [ApiController]

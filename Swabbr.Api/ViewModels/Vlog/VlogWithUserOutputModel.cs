@@ -17,7 +17,7 @@ namespace Swabbr.Api.ViewModels.Vlog
         /// <summary>
         /// The user that owns the vlog.
         /// </summary>
-        public UserOutputModel User { get; set; }
+        public UserWithStatsOutputModel User { get; set; }
 
     }
 

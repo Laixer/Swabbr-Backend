@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 
@@ -17,10 +18,14 @@ namespace Swabbr.Api.ViewModels.User
         public string Token { get; set; }
 
         /// <summary>
-        /// The amount of seconds the token is valid.
-        /// TODO Implement
+        /// The time the token is valid.
         /// </summary>
-        public int TokenValid { get; set; }
+        public TimeSpan TokenExpirationTimespan { get; set; }
+
+        /// <summary>
+        /// The moment this token was generated.
+        /// </summary>
+        public DateTimeOffset TokenCreationDate { get; set; }
 
         /// <summary>
         /// Claims of the authenticated user.
@@ -29,7 +34,6 @@ namespace Swabbr.Api.ViewModels.User
 
         /// <summary>
         /// Application roles of the user.
-        /// TODO This can be hard typed
         /// </summary>
         public IEnumerable<string> Roles { get; set; }
 

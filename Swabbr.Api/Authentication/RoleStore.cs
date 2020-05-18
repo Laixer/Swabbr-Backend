@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    //TODO: Hardcoded for now, not yet able to create, update or delete roles.
-    // TODO THOMAS This entire thing has to be redone (as specified by Beau)
+
+    /// <summary>
+    /// Contains our role stores for identity.
+    /// </summary>
     public class RoleStore : IRoleStore<SwabbrIdentityRole>
     {
+
         protected static readonly List<SwabbrIdentityRole> Roles = new List<SwabbrIdentityRole>
         {
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "User", NormalizedName = "USER" },
@@ -19,7 +22,6 @@ namespace Swabbr.Api.Authentication
 
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            //! Not implemented
             // TODO THOMAS This should throw! I suspect this is to enable endpoint calling for iOS and Android? --> yorick: kan met de user manager te maken hebben
             return IdentityResult.Success;
         }

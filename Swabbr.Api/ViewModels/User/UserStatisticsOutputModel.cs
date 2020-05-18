@@ -4,7 +4,7 @@ namespace Swabbr.Api.ViewModels.User
 {
 
     /// <summary>
-    /// Represents all statistics belonging to a single <see cref="UserOutputModel"/>.
+    /// Represents all statistics belonging to a single <see cref="UserWithStatsOutputModel"/>.
     /// </summary>
     public class UserStatisticsOutputModel
     {

@@ -27,8 +27,6 @@ namespace Swabbr.Api.Controllers
 
     /// <summary>
     /// Controller for handling requests related to <see cref="FollowRequest"/> entities.
-    /// TODO Error codes more specific to our exceptions?
-    /// TODO All response codes specified?
     /// </summary>
     [Authorize]
     [ApiController]
@@ -59,7 +57,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a collection of <see cref="FollowRequest"/> models for the authenticated user
         /// that are pending.
         /// </summary>
-        [Authorize]
+        /// <returns><see cref="FollowRequestCollectionOutputModel"/></returns>
         [HttpGet("incoming")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestCollectionOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
@@ -86,7 +84,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a collection of <see cref="FollowRequest"/> models sent by the authenticated
         /// user that are pending.
         /// </summary>
-        [Authorize]
+        /// <returns><see cref="FollowRequestCollectionOutputModel"/></returns>
         [HttpGet("outgoing")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestCollectionOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
@@ -114,8 +112,7 @@ namespace Swabbr.Api.Controllers
         /// user with the specified id.
         /// </summary>
         /// <param name="receiverId">Internal receiver id</param>
-        /// <returns><see cref="OkResult"/> or <see cref="ConflictResult"/></returns>
-        [Authorize]
+        /// <returns><see cref="FollowRequestStatusOutputModel"/></returns>
         [HttpGet("outgoing/status")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestStatusOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
@@ -157,11 +154,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Send a follow request from the authenticated user to the specified user.
         /// </summary>
-        /// <param name="receiverId">Internal receiving user id"/></param>
-        /// <returns><see cref="IActionResult"/></returns>
-        [Authorize]
+        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <returns><see cref="FollowRequestOutputModel"/></returns>
         [HttpPost("send")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> SendAsync(Guid receiverId)
         {
             try
@@ -203,9 +200,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Cancel a pending follow request from the authenticated user sent to the specified user.
         /// </summary>
-        [Authorize]
+        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <remarks><see cref="IActionResult"/></remarks>
         [HttpPost("cancel")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> CancelAsync(Guid receiverId)
         {
             try
@@ -218,7 +217,6 @@ namespace Swabbr.Api.Controllers
                 await _followRequestService.CancelAsync(id).ConfigureAwait(false);
                 return Ok();
             }
-            // TODO More explicit error messages maybe
             catch (Exception e)
             {
                 logger.LogError("Error while canceling follow request", e);
@@ -229,9 +227,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Deletes the follow relationship from the authorized user to the specified user.
         /// </summary>
-        [Authorize]
+        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <remarks><see cref="IActionResult"/></remarks>
         [HttpPost("unfollow")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> UnfollowAsync(Guid receiverId)
         {
             try
@@ -260,9 +260,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Accept a pending follow request for the authenticated user.
         /// </summary>
-        [Authorize]
+        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <remarks><see cref="IActionResult"/></remarks>
         [HttpPost("accept")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> AcceptAsync(Guid requesterId)
         {
             try
@@ -273,7 +275,7 @@ namespace Swabbr.Api.Controllers
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = user.Id };
-                await _followRequestService.AcceptAsync(id).ConfigureAwait(false); // TODO We need the user id to check! This is error prone
+                await _followRequestService.AcceptAsync(id).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException)
@@ -290,9 +292,11 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Decline a follow request for the authenticated user.
         /// </summary>
-        [Authorize]
+        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <remarks><see cref="FollowRequestOutputModel"/></remarks>
         [HttpPost("decline")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
         public async Task<IActionResult> DeclineAsync(Guid requesterId)
         {
             try
@@ -303,7 +307,7 @@ namespace Swabbr.Api.Controllers
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = user.Id };
-                await _followRequestService.DeclineAsync(id).ConfigureAwait(false); // TODO We need the user id to check! This is error prone
+                await _followRequestService.DeclineAsync(id).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException)

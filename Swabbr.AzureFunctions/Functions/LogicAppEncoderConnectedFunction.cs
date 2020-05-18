@@ -56,7 +56,6 @@ namespace Swabbr.AzureFunctions.Functions
             }
 
             // Log and process
-            // TODO Better logs
             log.LogInformation($"Triggered {nameof(LogicAppEncoderConnectedFunction)}");
 
             var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(wrapper.LivestreamExternalId).ConfigureAwait(false);

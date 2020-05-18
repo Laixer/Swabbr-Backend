@@ -33,7 +33,6 @@ namespace Swabbr.Api.Controllers
     {
 
         private readonly IUserService _userService;
-        private readonly IUserWithStatsRepository _userWithStatsRepository; // TODO Double functionality? Clean this up
         private readonly ITokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
@@ -52,7 +51,6 @@ namespace Swabbr.Api.Controllers
             ILoggerFactory loggerFactory)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
@@ -63,10 +61,6 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Create a new user account.
         /// </summary>
-        /// <remarks>
-        /// TODO THOMAS The input should be 100% validated, never trust user input.
-        /// TODO This should not be possible if we are already logged in.
-        /// </remarks>
         /// <param name="input"><see cref="UserRegisterInputModel"/></param>
         /// <returns><see cref="OkResult"/> or <see cref="BadRequestResult"/></returns>
         [AllowAnonymous]
@@ -81,15 +75,12 @@ namespace Swabbr.Api.Controllers
             try
             {
                 // Edge cases
-                // TODO Re-enable
-                //if (User.Identity.IsAuthenticated) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "User is already logged in")); }
                 if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
                 {
                     return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
                 }
 
                 // Construct a new identity user for a new user based on the given input
-                // TODO Make this a service
                 var identityUser = new SwabbrIdentityUser
                 {
                     Email = input.Email,
@@ -136,9 +127,6 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Sign in an already registered user.
         /// </summary>
-        /// <remarks>
-        /// TODO THOMAS Validate user input! Null checks, format checks, etc
-        /// </remarks>
         /// <param name="input"><see cref="UserLoginInputModel"/></param>
         /// <returns><see cref="IActionResult"/></returns>
         [AllowAnonymous]
@@ -152,10 +140,6 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { return BadRequest("Form body can't be null"); }
                 if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
 
-                // Throw a bad request if we are already logged in
-                // TODO Implement
-                // if (_signInManager.IsSignedIn()) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Already logged in")); }
-
                 var identityUser = await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false);
                 if (identityUser == null) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Invalid credentials")); }
 
@@ -167,7 +151,7 @@ namespace Swabbr.Api.Controllers
                 if (result.Succeeded)
                 {
                     // Login succeeded, generate and return access token
-                    var token = _tokenService.GenerateToken(identityUser);
+                    var tokenWrapper = _tokenService.GenerateToken(identityUser);
 
                     // Manage device registration
                     var pnp = (PushNotificationPlatformModel)input.PushNotificationPlatform;
@@ -175,10 +159,12 @@ namespace Swabbr.Api.Controllers
 
                     return Ok(new UserAuthenticationOutputModel
                     {
-                        Token = token,
+                        Token = tokenWrapper.Token,
+                        TokenCreationDate = tokenWrapper.CreateDate,
+                        TokenExpirationTimespan = tokenWrapper.TokenExpirationTimespan,
                         Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
                         Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
-                        User = MapperUser.Map(await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false)),
+                        User = MapperUser.Map(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false)),
                         UserSettings = MapperUser.Map(await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
                     });
                 }
@@ -234,22 +220,30 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Deauthorizes the authenticated user.
         /// </summary>
-        /// <remarks>
-        /// TODO Try Catch bulletproof
-        /// </remarks>
         /// <returns><see cref="NoContentResult"/></returns>
         [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> LogoutAsync()
         {
-            // Unregister device
-            var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-            await _deviceRegistrationService.UnregisterAsync(user.Id).ConfigureAwait(false);
+            try
+            {
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    // Unregister device
+                    var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                    await _deviceRegistrationService.UnregisterAsync(user.Id).ConfigureAwait(false);
+                    scope.Complete();
+                }
 
-            // TODO What happens if we aren't signed in in the first place? --> BadRequest
-            await _signInManager.SignOutAsync().ConfigureAwait(false);
-            return NoContent();
+                await _signInManager.SignOutAsync().ConfigureAwait(false);
+                return NoContent();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Error while logging out"));
+            }
         }
 
     }

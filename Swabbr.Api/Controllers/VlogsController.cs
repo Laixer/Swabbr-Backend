@@ -23,7 +23,6 @@ namespace Swabbr.Api.Controllers
 
     /// <summary>
     /// Controller for handling requests related to <see cref="Vlog"/> entities.
-    /// TODO Private functionality for vlogs
     /// </summary>
     [Authorize]
     [ApiController]
@@ -129,7 +128,6 @@ namespace Swabbr.Api.Controllers
 
         /// <summary>
         /// Gets all vlogs for a given <see cref="SwabbrUser"/>.
-        /// TODO This ignores <see cref="Vlog.IsPrivate"/>.
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="OkObjectResult"/> with <see cref="VlogCollectionOutputModel"/></returns>
@@ -152,7 +150,7 @@ namespace Swabbr.Api.Controllers
             catch (EntityNotFoundException e)
             {
                 logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find object")); // TODO Specify
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find object"));
             }
             catch (Exception e)
             {

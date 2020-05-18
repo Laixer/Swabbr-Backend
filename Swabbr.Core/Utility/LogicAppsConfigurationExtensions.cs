@@ -21,7 +21,6 @@ namespace Swabbr.Core.Utility
             if (config == null) { throw new ArgumentNullException(nameof(config)); }
 
             if (config.EndpointUserConnectTimeout.IsNullOrEmpty()) { throw new ConfigurationException(nameof(config.EndpointUserConnectTimeout)); }
-            // TODO
         }
 
     }

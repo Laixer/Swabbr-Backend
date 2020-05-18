@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Utility;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Entities;
@@ -21,6 +20,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
+#if DEBUG
+
 namespace Swabbr.Api.Controllers
 {
 
@@ -28,7 +29,6 @@ namespace Swabbr.Api.Controllers
     /// Debug functionality. This is only accessible from the local development
     /// machine. Sending requests to these endpoints will result in a conflict
     /// result.
-    /// TODO Remove in final product in a non-beun way
     /// </summary>
     [Authorize]
     [ApiController]
@@ -82,8 +82,6 @@ namespace Swabbr.Api.Controllers
         [HttpPost("upload_reaction_video")]
         public async Task<IActionResult> AmsStorageTest(Guid reactionId, Uri sasUri)
         {
-            if (!_hostingEnvironment.IsDevelopment()) { return Conflict($"Can only access {nameof(DebugController)} in development environment"); }
-
             try
             {
                 var fileToUpload = @"C:\Users\thoma\Videos\Dora and Friends _ Doggie Day! _ Nick Jr. UK.mp4";
@@ -150,3 +148,5 @@ namespace Swabbr.Api.Controllers
     }
 
 }
+
+#endif

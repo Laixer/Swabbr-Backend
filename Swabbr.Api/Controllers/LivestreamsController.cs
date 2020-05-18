@@ -33,7 +33,6 @@ namespace Swabbr.Api.Controllers
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILivestreamService _livestreamingService;
         private readonly IPlaybackService _livestreamPlaybackService;
-        private readonly ILivestreamRepository _livestreamRepository; // TODO Is this really the controllers job? (used for checks only)
         private readonly IUserStreamingHandlingService _userStreamingHandlingService;
         private readonly ILogger logger;
 
@@ -43,14 +42,12 @@ namespace Swabbr.Api.Controllers
         public LivestreamsController(UserManager<SwabbrIdentityUser> userManager,
             ILivestreamService livestreamingService,
             IPlaybackService livestreamPlaybackService,
-            ILivestreamRepository livestreamRepository,
             ILoggerFactory loggerFactory,
             IUserStreamingHandlingService userStreamingHandlingService)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
-            _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(LivestreamsController)) : throw new ArgumentNullException(nameof(loggerFactory));
             _userStreamingHandlingService = userStreamingHandlingService ?? throw new ArgumentNullException(nameof(userStreamingHandlingService));
         }
@@ -108,6 +105,9 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        #region userstopstreaming
+        // TODO This is a beun way to disable this piece of code
+        #if ((DEBUG == true) && (DEBUG == false))
         /// <summary>
         /// This gets called when a <see cref="SwabbrUser"/> is finished streaming
         /// on a specified <see cref="Livestream"/>. The vlog will always be published.
@@ -126,7 +126,6 @@ namespace Swabbr.Api.Controllers
                 livestreamId.ThrowIfNullOrEmpty();
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
 
                 // Await service
                 await _userStreamingHandlingService.OnUserStopStreaming(user.Id, livestreamId).ConfigureAwait(false);
@@ -145,11 +144,12 @@ namespace Swabbr.Api.Controllers
             }
             catch (Exception e)
             {
-                // TODO If we reach this, the livestream might not be closed. How to handle this resource leak?
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not stop livestream"));
             }
         }
+        #endif
+        #endregion
 
         /// <summary>
         /// Indicates that a user is going to start streaming to the given 

@@ -8,7 +8,6 @@ using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.Parsing;
-using Swabbr.Api.Utility;
 using Swabbr.Api.ViewModels.Enums;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
@@ -29,7 +28,6 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Controller for handling requests related to users. This is NOT used for
     /// processing any requests regarding the identity side of the users.
-    /// TODO Proper conflict return for null input
     /// </summary>
     [Authorize]
     [ApiController]
@@ -62,7 +60,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="userId">The internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="OkObjectResult"/> or <see cref="NotFoundObjectResult"/></returns>
         [HttpGet("{userId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserWithStatsOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetAsync([FromRoute]Guid userId)
         {
@@ -93,7 +91,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="itemsPerPage">Items per page display</param>
         /// <returns><see cref="OkObjectResult"/></returns>
         [HttpGet("search")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserWithStatsOutputModel>))]
         public async Task<IActionResult> SearchAsync([FromQuery]string query, [FromQuery]int page = 1, [FromQuery]int itemsPerPage = 50)
         {
             try
@@ -118,7 +116,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <returns><see cref="OkObjectResult"/></returns>
         [HttpGet("self")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserWithStatsOutputModel))]
         public async Task<IActionResult> SelfAsync()
         {
             try
@@ -138,7 +136,7 @@ namespace Swabbr.Api.Controllers
         /// Updates the authenticated user.
         /// </summary>
         [HttpPost("update")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserWithStatsOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [ProducesResponseType((int)HttpStatusCode.Conflict)]
         public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateInputModel input)
@@ -184,7 +182,7 @@ namespace Swabbr.Api.Controllers
         /// Returns a collection of users that the specified user is following.
         /// </summary>
         [HttpGet("{userId}/following")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowingOutputModel))]
         public async Task<IActionResult> ListFollowingAsync([FromRoute] Guid userId)
         {
             try
@@ -209,7 +207,7 @@ namespace Swabbr.Api.Controllers
         /// Get the followers of a single <see cref="SwabbrUser"/>.
         /// </summary>
         [HttpGet("{userId}/followers")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowersOutputModel))]
         public async Task<IActionResult> ListFollowersAsync([FromRoute] Guid userId)
         {
             try
