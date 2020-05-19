@@ -19,7 +19,6 @@ namespace Swabbr.Infrastructure.Database
         {
             // Setup custom mappers
             SqlMapper.AddTypeHandler(new UriHandler());
-            SqlMapper.AddTypeHandler(new FollowRequestStatusHandler()); // TODO Look at this
             SqlMapper.AddTypeHandler(new TimeZoneInfoHandler());
             SqlMapper.AddTypeHandler(new GenderHandler());
 

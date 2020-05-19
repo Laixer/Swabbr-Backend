@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -7,17 +8,16 @@ using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.Reaction;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Laixer.Utility.Extensions;
-using Swabbr.Api.ViewModels.Reaction;
-using System.Linq;
 
 namespace Swabbr.Api.Controllers
 {

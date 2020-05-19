@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

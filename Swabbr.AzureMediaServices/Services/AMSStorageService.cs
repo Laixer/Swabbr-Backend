@@ -9,7 +9,6 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Services
@@ -31,7 +30,7 @@ namespace Swabbr.AzureMediaServices.Services
         {
             if (options == null) { throw new ArgumentNullException(nameof(options)); }
             options.Value.ThrowIfInvalid();
-            config = options.Value; 
+            config = options.Value;
         }
 
         /// <summary>

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Swabbr.Core.Utility
 {
-    
+
     /// <summary>
     /// Contains extension functionality for <see cref="DateTimeOffset"/>.
     /// </summary>

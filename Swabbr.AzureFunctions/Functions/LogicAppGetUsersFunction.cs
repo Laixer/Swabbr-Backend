@@ -51,10 +51,12 @@ namespace Swabbr.AzureFunctions.Functions
 
             if (wrapper.TriggerMinute.GetMinutes() % 2 == 0)
             {
+                log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Returning user (getminutes is % 2)");
                 return new OkObjectResult(new List<Guid> { new Guid("e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee") });
             }
             else
             {
+                log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Returning no users");
                 return new OkObjectResult(new List<Guid>());
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Swabbr.Core.Utility
@@ -21,11 +20,19 @@ namespace Swabbr.Core.Utility
             if (input == null) { throw new ArgumentNullException(nameof(input)); }
             try
             {
-                string decoded = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(input));
-                string encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(decoded));
+                string decoded = Encoding.UTF8.GetString(Convert.FromBase64String(input));
+                string encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(decoded));
                 return input.Equals(encoded, StringComparison.InvariantCultureIgnoreCase);
             }
-            catch (Exception)
+            catch (FormatException)
+            {
+                return false;
+            }
+            catch (DecoderFallbackException)
+            {
+                return false;
+            }
+            catch (EncoderFallbackException)
             {
                 return false;
             }

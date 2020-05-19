@@ -1,9 +1,7 @@
 ﻿using Dapper;
 using Swabbr.Core.Enums;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 
 namespace Swabbr.Infrastructure.Database
 {

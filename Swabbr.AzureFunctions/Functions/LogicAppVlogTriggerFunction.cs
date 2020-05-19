@@ -1,17 +1,17 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Swabbr.AzureFunctions.Types;
-using Laixer.Utility.Extensions;
-using Swabbr.Core.Utility;
-using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Utility;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Swabbr.AzureFunctions.Functions
 {
@@ -55,7 +55,7 @@ namespace Swabbr.AzureFunctions.Functions
             {
                 await _vlogTriggerService.ProcessVlogTriggerForUserAsync(wrapper.UserId, wrapper.UserTriggerMinute).ConfigureAwait(false);
             }
-            catch (UserAlreadyInLivestreamCycleException e)
+            catch (UserAlreadyInLivestreamCycleException)
             {
                 log.LogError($@"{nameof(LogicAppVlogTimeoutFunction)} -
                     User {wrapper.UserId} is already in a livestream cycle,

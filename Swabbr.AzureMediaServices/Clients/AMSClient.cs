@@ -11,9 +11,7 @@ using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -95,11 +93,11 @@ namespace Swabbr.AzureMediaServices.Clients
             var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
 
             // First do the checks
-            var contentKeyPolicy = await EnsureContentKeyPolicyExistsAsync().ConfigureAwait(false);
+            await EnsureContentKeyPolicyExistsAsync().ConfigureAwait(false);
 
             // Create asset
             var liveOutputAssetName = AMSNameGenerator.VlogLiveOutputAssetName(correspondingVlogId);
-            var liveOutputAsset = await CreateAssetAsync(liveOutputAssetName).ConfigureAwait(false);
+            await CreateAssetAsync(liveOutputAssetName).ConfigureAwait(false);
 
             // Create output
             var liveOutputName = AMSNameGenerator.VlogLiveOutputName(correspondingVlogId);

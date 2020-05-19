@@ -22,7 +22,7 @@ namespace Swabbr.Core.Entities
 
         public Guid UserId { get => Id.UserId; set => Id.UserId = value; }
 
-        public Guid VlogId{ get => Id.VlogId; set => Id.VlogId = value; }
+        public Guid VlogId { get => Id.VlogId; set => Id.VlogId = value; }
 
         /// <summary>
         /// The time at which the user liked the vlog.

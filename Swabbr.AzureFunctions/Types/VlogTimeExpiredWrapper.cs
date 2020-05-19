@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Swabbr.AzureFunctions.Types
+﻿namespace Swabbr.AzureFunctions.Types
 {
 
     /// <summary>

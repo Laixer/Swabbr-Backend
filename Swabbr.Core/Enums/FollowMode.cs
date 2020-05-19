@@ -1,5 +1,5 @@
-﻿using System.Runtime.Serialization;
-using NpgsqlTypes;
+﻿using NpgsqlTypes;
+using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Enums
 {

@@ -19,13 +19,13 @@ namespace Swabbr
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-            var settings = config.Build();
-            var connectionString = settings["ConnectionStrings:AzureAppConfig"];
-            if (string.IsNullOrEmpty(connectionString)) { throw new ConfigurationException("Missing connection string for AzureAppConfig"); }
-            config.AddAzureAppConfiguration(options =>
-            {
-                options.Connect(connectionString);
+                var settings = config.Build();
+                var connectionString = settings["ConnectionStrings:AzureAppConfig"];
+                if (string.IsNullOrEmpty(connectionString)) { throw new ConfigurationException("Missing connection string for AzureAppConfig"); }
+                config.AddAzureAppConfiguration(options =>
+                {
+                    options.Connect(connectionString);
+                });
             });
-        });
     }
 }

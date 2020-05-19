@@ -14,6 +14,9 @@ namespace Swabbr.Core.Exceptions
 
         public NotAllowedException(string message, Exception innerException) : base(message, innerException) { }
 
+        public NotAllowedException()
+        {
+        }
     }
 
 }

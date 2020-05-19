@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Laixer.Identity.Dapper" Version="0.9.23" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.13.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.AzureAppServices.HostingStartup" Version="3.1.3" />
@@ -35,7 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\LaixerIdentityDapper\src\Laixer.Identity.Dapper\Laixer.Identity.Dapper.csproj" />
     <ProjectReference Include="..\Swabbr.AzureMediaServices\Swabbr.AzureMediaServices.csproj" />
     <ProjectReference Include="..\Swabbr.Core\Swabbr.Core.csproj" />
     <ProjectReference Include="..\Swabbr.Infrastructure\Swabbr.Infrastructure.csproj" />

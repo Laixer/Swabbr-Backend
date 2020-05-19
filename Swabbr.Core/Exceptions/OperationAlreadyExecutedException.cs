@@ -14,6 +14,8 @@ namespace Swabbr.Core.Exceptions
 
         public OperationAlreadyExecutedException(string message, Exception innerException) : base(message, innerException) { }
 
+        public OperationAlreadyExecutedException() { }
+
     }
 
 }

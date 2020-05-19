@@ -2,10 +2,7 @@
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services

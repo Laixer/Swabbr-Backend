@@ -2,12 +2,10 @@
 using Laixer.Infra.Npgsql;
 using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
@@ -76,6 +74,7 @@ namespace Swabbr.Infrastructure.Repositories
 
         public Task<bool> ExistsForUser(Guid userId)
         {
+            userId.ThrowIfNullOrEmpty();
             throw new NotImplementedException();
         }
 
@@ -92,6 +91,7 @@ namespace Swabbr.Infrastructure.Repositories
 
         public Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
         {
+            userId.ThrowIfNullOrEmpty();
             throw new NotImplementedException();
         }
 

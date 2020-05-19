@@ -56,7 +56,8 @@ namespace Swabbr.Api.Services
                 signingCredentials: credentials
             );
 
-            return new TokenWrapper{
+            return new TokenWrapper
+            {
                 CreateDate = DateTimeOffset.Now,
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 TokenExpirationTimespan = TimeSpan.FromDays(_jwtConfig.ExpireDays)

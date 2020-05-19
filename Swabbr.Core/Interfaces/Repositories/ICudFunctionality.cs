@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories

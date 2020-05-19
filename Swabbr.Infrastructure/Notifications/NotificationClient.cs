@@ -145,12 +145,12 @@ namespace Swabbr.Infrastructure.Notifications
                 case PushNotificationPlatform.APNS:
                     var objApns = _notificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
                     var jsonApns = JsonConvert.SerializeObject(objApns);
-                    var resultApns = await _hubClient.SendAppleNativeNotificationAsync(jsonApns, userId.ToString()).ConfigureAwait(false);
+                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, userId.ToString()).ConfigureAwait(false);
                     return;
                 case PushNotificationPlatform.FCM:
                     var objFcm = _notificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
                     var jsonFcm = JsonConvert.SerializeObject(objFcm);
-                    var resultFcm = await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, userId.ToString()).ConfigureAwait(false);
+                    await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, userId.ToString()).ConfigureAwait(false);
                     return;
             }
 
@@ -164,7 +164,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="platform"><see cref="PushNotificationPlatform"/></param>
         /// <param name="externalRegistrationId">External registration id</param>
         /// <returns><see cref="RegistrationDescription"/></returns>
-        private RegistrationDescription ExtractForCreation(NotificationRegistration notificationRegistration)
+        private static RegistrationDescription ExtractForCreation(NotificationRegistration notificationRegistration)
         {
             if (notificationRegistration == null) { throw new ArgumentNullException(nameof(notificationRegistration)); }
             notificationRegistration.Handle.ThrowIfNullOrEmpty();
@@ -214,7 +214,7 @@ namespace Swabbr.Infrastructure.Notifications
 
 
 
-
+        // TODO Clean up
 
         //public async Task<RegistrationDescription> GetRegistrationAsync(string registrationId)
         //{

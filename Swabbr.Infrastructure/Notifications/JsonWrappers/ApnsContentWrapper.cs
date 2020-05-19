@@ -4,7 +4,7 @@
     /// <summary>
     /// Content wrapper json object template for Apple Push Notification Services.
     /// </summary>
-    internal sealed class ApnsContentWrapper
+    internal sealed class ApnsContentWrapper : NotificationJsonBase
     {
 
         public ApnsContentAps Aps { get; set; }

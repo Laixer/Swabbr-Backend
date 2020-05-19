@@ -1,7 +1,6 @@
 ﻿using Microsoft.Azure.Management.Media.Models;
 using Swabbr.Core.Types;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

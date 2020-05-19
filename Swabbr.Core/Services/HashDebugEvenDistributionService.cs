@@ -3,7 +3,6 @@ using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Swabbr.Core.Services
 {

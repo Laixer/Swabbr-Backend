@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.ViewModels.Vlog
 {
-    
+
     /// <summary>
     /// Contains playback details for a <see cref="Core.Entities.Vlog"/>.
     /// </summary>

@@ -1,9 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Laixer.Utility.Exceptions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using System;
-using System.Configuration;
 using System.Data;
 
 namespace Laixer.Infra.Npgsql
@@ -33,8 +31,10 @@ namespace Laixer.Infra.Npgsql
         /// Gets a connection scope.
         /// </summary>
         /// <returns><see cref="NpgsqlConnection"/></returns>
-        public IDbConnection GetConnectionScope() => new NpgsqlConnection(connectionString);
-
+        public IDbConnection GetConnectionScope()
+        {
+            return new NpgsqlConnection(connectionString);
+        }
     }
 
 }

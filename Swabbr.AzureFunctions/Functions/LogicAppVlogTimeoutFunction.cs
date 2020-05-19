@@ -1,16 +1,16 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Swabbr.AzureFunctions.Types;
-using Laixer.Utility.Extensions;
-using Swabbr.Core.Utility;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Utility;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Swabbr.AzureFunctions.Functions
 {

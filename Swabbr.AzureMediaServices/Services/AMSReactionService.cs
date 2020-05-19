@@ -2,7 +2,6 @@
 using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage.File.Protocol;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
@@ -161,7 +160,7 @@ namespace Swabbr.AzureMediaServices.Services
             if (!await _vlogRepository.ExistsAsync(vlogId).ConfigureAwait(false)) { throw new EntityNotFoundException(nameof(vlogId)); }
             return await _reactionRepository.GetReactionCountForVlogAsync(vlogId).ConfigureAwait(false);
         }
-       
+
         /// <summary>
         /// Gets all <see cref="Reaction"/> entities that belong to a given
         /// <see cref="Vlog"/>.

@@ -8,7 +8,6 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using System;
 using System.Threading.Tasks;

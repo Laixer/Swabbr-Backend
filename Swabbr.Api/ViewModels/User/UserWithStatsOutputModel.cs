@@ -1,5 +1,4 @@
-﻿using Microsoft.OData.Edm;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Swabbr.Api.ViewModels.Enums;
 using System;
 

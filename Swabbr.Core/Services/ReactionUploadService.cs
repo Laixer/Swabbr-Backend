@@ -83,7 +83,7 @@
 //                var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
 //                if (reaction.UserId != userId) { throw new UserNotOwnerException(nameof(Reaction)); }
 //                if (reaction.ReactionProcessingState != ReactionProcessingState.Created) { throw new InvalidOperationException($"Reaction was not in state {ReactionProcessingState.Created.GetEnumMemberAttribute()}"); }
-                
+
 //                await _reactionRepository.UpdateStatusAsync(reactionId, ReactionProcessingState.Processing).ConfigureAwait(false);
 //                scope.Complete();
 //            }

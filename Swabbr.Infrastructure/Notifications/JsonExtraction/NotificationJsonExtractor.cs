@@ -1,5 +1,4 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.JsonExtraction;

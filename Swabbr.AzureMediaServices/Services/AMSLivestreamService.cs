@@ -1,5 +1,4 @@
 ﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.Core.Configuration;

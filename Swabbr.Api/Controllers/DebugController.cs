@@ -45,7 +45,6 @@ namespace Swabbr.Api.Controllers
         private readonly IDeviceRegistrationService _deviceRegistrationService;
         private readonly IStorageService _storageService;
         private readonly IReactionRepository _reactionRepository;
-        private readonly AMSDebugService _amsDebugService;
         private readonly IAMSClient _amsClient;
         private readonly IHostingEnvironment _hostingEnvironment;
 
@@ -61,7 +60,6 @@ namespace Swabbr.Api.Controllers
             IDeviceRegistrationService deviceRegistrationService,
             IStorageService storageService,
             IReactionRepository reactionRepository,
-            AMSDebugService debugService,
             IAMSClient amsClient,
             IHostingEnvironment hostingEnvironment)
         {
@@ -74,7 +72,6 @@ namespace Swabbr.Api.Controllers
             _deviceRegistrationService = deviceRegistrationService ?? throw new ArgumentNullException(nameof(deviceRegistrationService));
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
-            _amsDebugService = debugService ?? throw new ArgumentNullException(nameof(debugService));
             _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
             _hostingEnvironment = hostingEnvironment ?? throw new ArgumentNullException(nameof(hostingEnvironment));
         }

@@ -208,9 +208,9 @@ namespace Swabbr.Core.Services
                     UserId = userId,
                     UserConnectTimeoutSeconds = swabbrConfiguration.UserConnectTimeoutSeconds
                 });
-                var content = new StringContent(json.ToString(), Encoding.UTF8, "application/json");
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var result = await client.PostAsync(logicAppsConfiguration.EndpointUserConnectTimeout, content).ConfigureAwait(false);
-                
+
                 if (!result.IsSuccessStatusCode)
                 {
                     logger.LogError($@"{nameof(OnUserStartStreaming)} - Failed triggering user connect logic app for livestream {livestreamId} for user {userId} -

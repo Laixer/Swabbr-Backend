@@ -30,10 +30,11 @@ namespace Swabbr.AzureMediaServices.Configuration
             var clientCredential = new ClientCredential(config.AadClientId, config.AadSecret);
             var credentials = await ApplicationTokenProvider.LoginSilentAsync(config.AadTenantId, clientCredential, ActiveDirectoryServiceSettings.Azure);
 
-            return new AzureMediaServicesClient(config.ArmEndpoint, credentials)
+            client = new AzureMediaServicesClient(config.ArmEndpoint, credentials)
             {
                 SubscriptionId = config.SubscriptionId,
             };
+            return client;
         }
 
     }

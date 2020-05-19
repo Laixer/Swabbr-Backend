@@ -11,10 +11,10 @@ namespace Swabbr.Core.Exceptions
 
         public ExternalErrorException() { }
 
-        public ExternalErrorException(string message) 
+        public ExternalErrorException(string message)
             : base(message) { }
 
-        public ExternalErrorException(string message, Exception innerException) 
+        public ExternalErrorException(string message, Exception innerException)
             : base(message, innerException) { }
 
 

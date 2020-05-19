@@ -1,9 +1,7 @@
-﻿using Laixer.Utility.Exceptions;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
@@ -17,7 +15,8 @@ namespace Swabbr.Core.Services
     /// <summary>
     /// Handles our hash distribution.
     /// </summary>
-    public sealed class HashDistributionService : IHashDistributionService    {
+    public sealed class HashDistributionService : IHashDistributionService
+    {
 
         private readonly SwabbrConfiguration config;
         private static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
@@ -67,27 +66,6 @@ namespace Swabbr.Core.Services
             }
 
             if (result.Count > 0) { }
-
-            return result;
-        }
-
-        // TODO Debug, remove this
-        public IEnumerable<KeyValuePair<SwabbrUserMinified, int>> DebugGetAllForDate(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
-        {
-            if (users == null) { throw new ArgumentNullException(nameof(users)); }
-            if (time == null) { throw new ArgumentNullException(nameof(time)); }
-
-            var day = new DateTime(time.Year, time.Month, time.Day);
-
-            var result = new Collection<KeyValuePair<SwabbrUserMinified, int>>();
-            foreach (var user in users)
-            {
-                for (int i = 1; i <= Math.Min(config.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
-                {
-                    var userMinute = GetHashMinute(user, day, i);
-                    result.Add(new KeyValuePair<SwabbrUserMinified, int>(user, userMinute));
-                }
-            }
 
             return result;
         }

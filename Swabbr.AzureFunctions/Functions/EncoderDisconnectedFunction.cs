@@ -1,5 +1,4 @@
 ﻿using Laixer.Utility.Extensions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
@@ -41,25 +40,24 @@ namespace Swabbr.AzureFunctions.Functions
         [FunctionName("EncoderDisconnectedFunction")]
         public async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            // First extract the data
+            var liveEventExternalId = eventGridEvent.Subject.Split('/')[1]; // TODO Unsafe
+            var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(liveEventExternalId).ConfigureAwait(false);
+
+            // State race condition where the livestream is already decoupled from the user
+            if (livestream.LivestreamState != LivestreamState.Live)
             {
-                // First extract the data
-                var liveEventExternalId = eventGridEvent.Subject.Split('/')[1]; // TODO Unsafe
-                var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(liveEventExternalId).ConfigureAwait(false);
-
-                // State race condition where the livestream is already decoupled from the user
-                if (livestream.LivestreamState != LivestreamState.Live)
-                {
-                    log.LogInformation($"No need to call {nameof(EncoderDisconnectedFunction)}, livestream not in {LivestreamState.Live.GetEnumMemberAttribute()} state");
-                    return;
-                }
-
-                // Log and process
-                log.LogInformation($"Triggered {nameof(EncoderDisconnectedFunction)} at { eventGridEvent.EventTime}");
-                await _userStreamingHandlingService.OnUserDisconnectedFromLivestreamAsync(livestream.UserId, livestream.Id).ConfigureAwait(false);
-                log.LogInformation($"Finished {nameof(EncoderDisconnectedFunction)} for { eventGridEvent.EventTime}");
-                scope.Complete();
+                log.LogInformation($"No need to call {nameof(EncoderDisconnectedFunction)}, livestream not in {LivestreamState.Live.GetEnumMemberAttribute()} state");
+                return;
             }
+
+            // Log and process
+            log.LogInformation($"Triggered {nameof(EncoderDisconnectedFunction)} at { eventGridEvent.EventTime}");
+            await _userStreamingHandlingService.OnUserDisconnectedFromLivestreamAsync(livestream.UserId, livestream.Id).ConfigureAwait(false);
+            log.LogInformation($"Finished {nameof(EncoderDisconnectedFunction)} for { eventGridEvent.EventTime}");
+            scope.Complete();
         }
 
     }

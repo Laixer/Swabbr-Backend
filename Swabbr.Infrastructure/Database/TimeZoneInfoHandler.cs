@@ -21,8 +21,7 @@ namespace Swabbr.Infrastructure.Database
         public override TimeZoneInfo Parse(object value)
         {
             if (value == null) { throw new ArgumentNullException(nameof(value)); }
-            var asString = value as string;
-            if (asString == null) { throw new InvalidCastException(nameof(value)); }
+            if (!(value is string asString)) { throw new InvalidCastException(nameof(value)); }
 
             // REGEX check
             if (!Regex.IsMatch(asString, @"^UTC(\+|-)\d\d:\d\d$")) { throw new FormatException(nameof(value)); }
@@ -42,8 +41,8 @@ namespace Swabbr.Infrastructure.Database
             if (value == null) { throw new ArgumentNullException(nameof(value)); }
 
             var offset = value.BaseUtcOffset;
-            var hours = (offset.Hours >= 10) ? offset.Hours.ToString() : $"0{offset.Hours.ToString()}";
-            var minutes = (offset.Minutes >= 10) ? offset.Minutes.ToString() : $"0{offset.Minutes.ToString()}";
+            var hours = (offset.Hours >= 10) ? $"{offset.Hours}" : $"0{offset.Hours}";
+            var minutes = (offset.Minutes >= 10) ? $"{offset.Minutes}" : $"0{offset.Minutes}";
             parameter.Value = $"UTC+{hours}:{minutes}";
         }
 

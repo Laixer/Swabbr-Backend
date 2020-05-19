@@ -9,7 +9,6 @@ using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -135,6 +134,7 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="FollowRequestStatus"/></returns>
         public async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
         {
+            if (id == null) { throw new ArgumentNullException(nameof(id)); }
             id.RequesterId.ThrowIfNullOrEmpty();
             id.ReceiverId.ThrowIfNullOrEmpty();
             return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).FollowRequestStatus;

@@ -107,7 +107,7 @@ namespace Swabbr.Api.Controllers
 
         #region userstopstreaming
         // TODO This is a beun way to disable this piece of code
-        #if ((DEBUG == true) && (DEBUG == false))
+#if ((DEBUG == true) && (DEBUG == false))
         /// <summary>
         /// This gets called when a <see cref="SwabbrUser"/> is finished streaming
         /// on a specified <see cref="Livestream"/>. The vlog will always be published.
@@ -148,7 +148,7 @@ namespace Swabbr.Api.Controllers
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not stop livestream"));
             }
         }
-        #endif
+#endif
         #endregion
 
         /// <summary>

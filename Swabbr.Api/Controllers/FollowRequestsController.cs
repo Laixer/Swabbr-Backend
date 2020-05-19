@@ -1,26 +1,26 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
+using Swabbr.Api.Mapping;
 using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.Enums;
+using Swabbr.Api.ViewModels.FollowRequest;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Laixer.Utility.Extensions;
-using Swabbr.Api.Mapping;
-using Microsoft.Extensions.Logging;
-using Swabbr.Core.Types;
-using Swabbr.Api.ViewModels.FollowRequest;
-using System.Linq;
-using Swabbr.Api.ViewModels.Enums;
 
 namespace Swabbr.Api.Controllers
 {
@@ -68,9 +68,9 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 var incoming = await _followRequestService.GetPendingIncomingForUserAsync(user.Id).ConfigureAwait(false);
                 return Ok(new FollowRequestCollectionOutputModel
-                    {
-                        FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
-                    }
+                {
+                    FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
+                }
                 );
             }
             catch (Exception e)
@@ -95,9 +95,9 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(user.Id).ConfigureAwait(false);
                 return Ok(new FollowRequestCollectionOutputModel
-                    {
-                        FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
-                    }
+                {
+                    FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
+                }
                 );
             }
             catch (Exception e)

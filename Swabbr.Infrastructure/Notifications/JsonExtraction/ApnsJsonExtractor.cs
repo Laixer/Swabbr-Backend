@@ -1,5 +1,5 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Notifications.JsonWrappers;
+﻿using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using System;
 
@@ -15,6 +15,20 @@ namespace Swabbr.Core.Notifications.JsonExtraction
 
         public NotificationJsonBase Extract(SwabbrNotification swabbrNotification)
         {
+            if (swabbrNotification == null) { throw new ArgumentNullException(nameof(swabbrNotification)); }
+            swabbrNotification.ThrowIfInvalid();
+
+            return new ApnsContentWrapper
+            {
+                Aps = new ApnsContentAps
+                {
+                    Alert = new ApnsContentAlert
+                    {
+                        // TODO Implement
+                    }
+                }
+            };
+
             throw new NotImplementedException();
         }
     }

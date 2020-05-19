@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents.SystemFunctions;
 using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
@@ -74,41 +73,50 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                // Edge cases
-                if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
+                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
+                    // Edge cases
+                    if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
+                    {
+                        return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
+                    }
+
+                    if (await _userService.ExistsNicknameAsync(input.Nickname).ConfigureAwait(false))
+                    {
+                        return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname already exists"));
+                    }
+
+                    // Construct a new identity user for a new user based on the given input
+                    var identityUser = new SwabbrIdentityUser
+                    {
+                        Email = input.Email,
+                        Nickname = input.Nickname
+                    };
+
+                    var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
+                    if (!user.Succeeded) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator")); }
+
+                    // Update all other properties (if present)
+                    var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
+                    {
+                        UserId = identityUser.Id,
+                        BirthDate = input.BirthDate,
+                        Country = input.Country,
+                        FirstName = input.FirstName,
+                        Gender = MapperEnum.Map(input.Gender),
+                        IsPrivate = input.IsPrivate,
+                        LastName = input.LastName,
+                        //Nickname = input.Nickname, Done in creation call
+                        ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
+                    }).ConfigureAwait(false);
+
+                    // Map and return
+                    scope.Complete();
+                    return Ok(new UserAuthenticationOutputModel
+                    {
+                        User = MapperUser.Map(updatedUser)
+                    });
                 }
-
-                // Construct a new identity user for a new user based on the given input
-                var identityUser = new SwabbrIdentityUser
-                {
-                    Email = input.Email,
-                    Nickname = input.Nickname
-                };
-
-                var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
-                if (!user.Succeeded) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator")); }
-
-                // Update all other properties (if present)
-                var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
-                {
-                    UserId = identityUser.Id,
-                    BirthDate = input.BirthDate,
-                    Country = input.Country,
-                    FirstName = input.FirstName,
-                    Gender = MapperEnum.Map(input.Gender),
-                    IsPrivate = input.IsPrivate,
-                    LastName = input.LastName,
-                    //Nickname = input.Nickname, Done in creation call
-                    ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
-                }).ConfigureAwait(false);
-
-                // Map and return
-                return Ok(new UserAuthenticationOutputModel
-                {
-                    User = MapperUser.Map(updatedUser)
-                });
             }
             catch (InvalidProfileImageStringException)
             {

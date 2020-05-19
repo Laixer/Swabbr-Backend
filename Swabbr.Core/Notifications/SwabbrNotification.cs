@@ -21,8 +21,6 @@ namespace Swabbr.Core.Notifications
             string protocol = "swabbr",
             string protocolVersion = "1.0")
         {
-            if (data == null) { throw new ArgumentNullException(nameof(data)); }
-
             ClickAction = NotificationActionTranslator.Translate(notificationAction);
             Timestamp = DateTimeOffset.Now;
             Protocol = protocol;
@@ -31,7 +29,7 @@ namespace Swabbr.Core.Notifications
             DataTypeVersion = "1.0";
             ContentType = "application/json";
 
-            Data = data;
+            Data = data ?? throw new ArgumentNullException(nameof(data));
             Data.Title = title;
             Data.Message = message;
 

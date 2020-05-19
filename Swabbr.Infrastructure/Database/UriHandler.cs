@@ -22,12 +22,14 @@ namespace Swabbr.Infrastructure.Database
             }
             catch (Exception e)
             {
-                throw new InvalidOperationException($"Error while parsing {value.ToString()} to URI", e);
+                throw new InvalidOperationException($"Error while parsing {value} to URI", e);
             }
         }
 
         public override void SetValue(IDbDataParameter parameter, Uri value)
         {
+            if (parameter == null) { throw new ArgumentNullException(nameof(parameter)); }
+            if (value == null) { throw new ArgumentNullException(nameof(value)); }
             parameter.Value = value.AbsoluteUri;
         }
 

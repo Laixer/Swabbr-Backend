@@ -3,7 +3,6 @@ using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 
 namespace Swabbr.Core.Services
 {
@@ -20,6 +19,8 @@ namespace Swabbr.Core.Services
 
         public IEnumerable<SwabbrUserMinified> GetForMinute(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
         {
+            if (users == null) { throw new ArgumentNullException(nameof(users)); }
+
             var asMinute = new DateTimeOffset(time.Year, time.Month, time.Day, time.Hour, time.Minute, 0, TimeSpan.Zero);
             lock (lockObject)
             {

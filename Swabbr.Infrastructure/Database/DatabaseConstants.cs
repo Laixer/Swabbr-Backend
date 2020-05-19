@@ -14,7 +14,7 @@
         internal static string TableNotificationRegistration => "public.notification_registration";
 
         internal static string TableRequest => "public.request";
-        
+
         internal static string TableReaction => "public.reaction";
 
         internal static string TableUser => "public.user";

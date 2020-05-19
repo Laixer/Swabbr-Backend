@@ -25,7 +25,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<string> GetExternalIdAsync(Guid id);
 
         Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
-        
+
         Task<bool> IsUserInLivestreamCycleAsync(Guid userId);
 
         Task MarkClosedAsync(Guid livestreamId);

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Swabbr.Infrastructure.Utility
 {
@@ -20,8 +18,8 @@ namespace Swabbr.Infrastructure.Utility
         {
             if (self == null) { throw new ArgumentNullException(nameof(self)); }
             var offset = self.BaseUtcOffset;
-            var hours = (offset.Hours >= 10) ? offset.Hours.ToString() : $"0{offset.Hours.ToString()}";
-            var minutes = (offset.Minutes >= 10) ? offset.Minutes.ToString() : $"0{offset.Minutes.ToString()}";
+            var hours = (offset.Hours >= 10) ? $"{offset.Hours}" : $"0{offset.Hours}";
+            var minutes = (offset.Minutes >= 10) ? $"{offset.Minutes}" : $"0{offset.Minutes}";
             return $"UTC+{hours}:{minutes}";
         }
 

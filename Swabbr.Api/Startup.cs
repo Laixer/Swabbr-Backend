@@ -39,8 +39,6 @@ using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Utility;
-using Swabbr.WowzaStreamingCloud.Configuration;
-using Swabbr.WowzaStreamingCloud.Services;
 using System;
 using System.IO;
 using System.Linq;
@@ -146,11 +144,6 @@ namespace Swabbr
             services.AddTransient<INotificationBuilder, NotificationBuilder>();
             services.AddTransient<IAMSClient, AMSClient>();
             services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
-
-#if DEBUG
-            // Configure debug services
-            services.AddTransient<AMSDebugService>();
-#endif
         }
 
         /// <summary>

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Laixer.Utility.Exceptions;
+using Laixer.Utility.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Laixer.Utility.Exceptions;
-using Laixer.Utility.Extensions;
 
 namespace Swabbr.Api.Configuration
 {

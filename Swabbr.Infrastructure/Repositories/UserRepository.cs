@@ -385,8 +385,7 @@ namespace Swabbr.Infrastructure.Repositories
                             last_name = COALESCE(@LastName, last_name),
                             nickname = COALESCE(@NickName, nickname),
                             profile_image_base64_encoded = COALESCE(@ProfileImageBase64Encoded, profile_image_base64_encoded),
-                            follow_mode = COALESCE('{entity.FollowMode.GetEnumMemberAttribute()}', follow_mode),
-
+                            follow_mode = COALESCE('{entity.FollowMode.GetEnumMemberAttribute()}', follow_mode)
                         WHERE id = @Id";
                     int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
                     if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
@@ -478,7 +477,7 @@ namespace Swabbr.Infrastructure.Repositories
                         is_private = @IsPrivate
                     WHERE id = @UserId";
                 var rowsAffected = await connection.ExecuteAsync(sql, userSettings).ConfigureAwait(false);
-                if (rowsAffected < 0 ) { throw new InvalidOperationException(); }
+                if (rowsAffected < 0) { throw new InvalidOperationException(); }
                 if (rowsAffected == 0) { throw new EntityNotFoundException(); }
                 if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
             }

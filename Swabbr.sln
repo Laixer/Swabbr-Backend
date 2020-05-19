@@ -9,15 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Core", "Swabbr.Core\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Infrastructure", "Swabbr.Infrastructure\Swabbr.Infrastructure.csproj", "{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.WowzaStreamingCloud", "WowzaStreamingCloud\Swabbr.WowzaStreamingCloud.csproj", "{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contrib", "contrib", "{FB041A95-1F0E-4355-B716-F18E6BC60829}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Infra.Npgsql", "Laixer.Infra.Npgsql\Laixer.Infra.Npgsql.csproj", "{38AAF21A-3A94-4B0E-B633-F06C19CA126C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Utility", "Laixer.Utility\Laixer.Utility.csproj", "{F6BDF238-235F-4CA1-93B3-20393338BA87}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laixer.Identity.Dapper", "..\LaixerIdentityDapper\src\Laixer.Identity.Dapper\Laixer.Identity.Dapper.csproj", "{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.AzureFunctions", "Swabbr.AzureFunctions\Swabbr.AzureFunctions.csproj", "{FC34657C-5733-4C13-92FE-10C7B7519663}"
 EndProject
@@ -41,10 +37,6 @@ Global
 		{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A33F2134-013A-43C2-8853-8DFB6A5E5ACA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{38AAF21A-3A94-4B0E-B633-F06C19CA126C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{38AAF21A-3A94-4B0E-B633-F06C19CA126C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38AAF21A-3A94-4B0E-B633-F06C19CA126C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -53,10 +45,6 @@ Global
 		{F6BDF238-235F-4CA1-93B3-20393338BA87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6BDF238-235F-4CA1-93B3-20393338BA87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6BDF238-235F-4CA1-93B3-20393338BA87}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CB43B1B9-81F5-4094-8EE0-3B7F00DE82A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FC34657C-5733-4C13-92FE-10C7B7519663}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FC34657C-5733-4C13-92FE-10C7B7519663}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC34657C-5733-4C13-92FE-10C7B7519663}.Release|Any CPU.ActiveCfg = Release|Any CPU

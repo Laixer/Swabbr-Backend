@@ -3,7 +3,6 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Exceptions
 {
@@ -10,6 +9,7 @@ namespace Swabbr.Core.Exceptions
     /// </summary>
     public sealed class MultipleEntitiesFoundException : Exception
     {
+
         public MultipleEntitiesFoundException(string message) : base(message)
         {
         }
@@ -19,10 +19,6 @@ namespace Swabbr.Core.Exceptions
         }
 
         public MultipleEntitiesFoundException()
-        {
-        }
-
-        protected MultipleEntitiesFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
 
