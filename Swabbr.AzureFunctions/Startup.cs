@@ -109,7 +109,7 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
 
             // Configure DI for services
-            builder.Services.AddTransient<IHashDistributionService, HashDebugEvenDistributionService>(); // TODO FIX
+            builder.Services.AddTransient<IHashDistributionService, HashDistributionService>();
             builder.Services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             builder.Services.AddTransient<ILivestreamService, AMSLivestreamService>();
             builder.Services.AddTransient<IPlaybackService, AMSPlaybackService>();
