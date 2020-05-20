@@ -31,7 +31,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("users")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/users")]
     public class UsersController : ControllerBase
     {
 

@@ -31,7 +31,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("types")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/types")]
     public class TypesController : ApiControllerBase
     {
 

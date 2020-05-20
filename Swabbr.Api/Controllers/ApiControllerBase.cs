@@ -8,7 +8,6 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Contains utility functionality which is used throughout all our controllers.
     /// </summary>
-    [Route("api/v1")]
     public class ApiControllerBase : ControllerBase
     {
 

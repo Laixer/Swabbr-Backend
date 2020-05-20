@@ -30,7 +30,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("followrequests")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/followrequests")]
     public class FollowRequestsController : ApiControllerBase
     {
 

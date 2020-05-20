@@ -22,7 +22,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("users/self/settings")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/users/self/settings")]
     public class UserSettingsController : ControllerBase
     {
 

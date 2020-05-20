@@ -23,7 +23,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("userdata")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/userdata")]
     public sealed class UserDataController : ControllerBase
     {
 

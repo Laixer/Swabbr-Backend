@@ -27,7 +27,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("authentication")]
+    [Route("api/{version:apiVersion}/authentication")]
     public class AuthenticationController : ControllerBase
     {
 

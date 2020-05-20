@@ -26,7 +26,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("vlogs")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/vlogs")]
     public sealed class VlogsController : ControllerBase
     {
 

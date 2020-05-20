@@ -26,7 +26,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("livestreams")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/livestreams")]
     public class LivestreamsController : ControllerBase
     {
 

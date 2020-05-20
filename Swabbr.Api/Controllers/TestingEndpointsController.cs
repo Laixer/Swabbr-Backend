@@ -19,7 +19,8 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     /// Contains testing endpoints.
     /// </summary>
-    [Route("testing_endpoints")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/testing_endpoints")]
     [Authorize]
     public sealed class TestingEndpointsController : ControllerBase
     {

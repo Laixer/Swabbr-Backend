@@ -27,7 +27,8 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("reactions")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/reactions")]
     public class ReactionsController : ControllerBase
     {
 
