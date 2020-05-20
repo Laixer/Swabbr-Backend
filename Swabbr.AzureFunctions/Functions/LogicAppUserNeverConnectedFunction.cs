@@ -42,7 +42,10 @@ namespace Swabbr.AzureFunctions.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var wrapper = JsonConvert.DeserializeObject<UserNeverConnectedWrapper>(await new StreamReader(req.Body).ReadToEndAsync());
+            if (req == null) { throw new ArgumentNullException(nameof(req)); }
+
+            using var streamReader = new StreamReader(req.Body);
+            var wrapper = JsonConvert.DeserializeObject<UserNeverConnectedWrapper>(await streamReader.ReadToEndAsync().ConfigureAwait(false));
             wrapper.LivestreamId.ThrowIfNullOrEmpty();
             wrapper.UserId.ThrowIfNullOrEmpty();
 

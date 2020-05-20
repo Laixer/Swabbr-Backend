@@ -35,9 +35,11 @@ namespace Swabbr.AzureMediaServices.Services
             IAMSClient amsClient)
         {
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
+            _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
+
+            if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
-            _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
         }
 
         /// <summary>
@@ -157,7 +159,7 @@ namespace Swabbr.AzureMediaServices.Services
             // Update internally
             livestream.ExternalId = liveEvent.Name;
             livestream.BroadcastLocation = liveEvent.Location;
-            await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation);
+            await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
 
             return await _livestreamRepository.GetAsync(livestream.Id).ConfigureAwait(false);
         }

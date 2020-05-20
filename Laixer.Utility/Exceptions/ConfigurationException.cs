@@ -17,5 +17,8 @@ namespace Laixer.Utility.Exceptions
         {
         }
 
+        public ConfigurationException()
+        {
+        }
     }
 }

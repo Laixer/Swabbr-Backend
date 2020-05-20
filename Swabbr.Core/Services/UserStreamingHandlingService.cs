@@ -220,6 +220,8 @@ namespace Swabbr.Core.Services
                 {
                     logger.LogTrace($"{nameof(OnUserStartStreaming)} - Successfully triggered user connect logic app for livestream {livestreamId} for user {userId}");
                 }
+
+                content.Dispose(); // TODO Is this correct?
                 return upstreamDetails;
             }
             catch (Exception e)

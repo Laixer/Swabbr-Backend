@@ -17,7 +17,9 @@ namespace Swabbr.AzureMediaServices.Utility
         {
             assetName.ThrowIfNullOrEmpty();
             if (!Regex.IsMatch(assetName, Format)) { throw new FormatException("Invalid asset name format for id extraction"); }
+#pragma warning disable CA1062 // Validate arguments of public methods
             var idSubString = assetName.Substring(15);
+#pragma warning restore CA1062 // Validate arguments of public methods
             return new Guid(idSubString);
         }
 

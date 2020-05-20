@@ -43,7 +43,10 @@ namespace Swabbr.AzureFunctions.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var wrapper = JsonConvert.DeserializeObject<VlogTriggerWrapper>(await new StreamReader(req.Body).ReadToEndAsync());
+            if (req == null) { throw new ArgumentNullException(nameof(req)); }
+
+            using var streamReader = new StreamReader(req.Body);
+            var wrapper = JsonConvert.DeserializeObject<VlogTriggerWrapper>(await streamReader.ReadToEndAsync().ConfigureAwait(false));
             wrapper.UserId.ThrowIfNullOrEmpty();
             wrapper.UserTriggerMinute.ThrowIfNullOrEmpty();
             if (wrapper.VlogRequestTimeoutMinutes < 1) { throw new ArgumentOutOfRangeException(nameof(wrapper.VlogRequestTimeoutMinutes)); }

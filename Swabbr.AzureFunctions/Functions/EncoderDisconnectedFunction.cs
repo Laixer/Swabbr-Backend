@@ -40,6 +40,9 @@ namespace Swabbr.AzureFunctions.Functions
         [FunctionName("EncoderDisconnectedFunction")]
         public async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
+            if (eventGridEvent == null) { throw new ArgumentNullException(nameof(eventGridEvent)); }
+            if (log == null) { throw new ArgumentNullException(nameof(log)); }
+
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             // First extract the data

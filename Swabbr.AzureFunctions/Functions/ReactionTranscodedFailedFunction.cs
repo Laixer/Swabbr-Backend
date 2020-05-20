@@ -38,6 +38,9 @@ namespace Swabbr.AzureFunctions.Functions
         [FunctionName(nameof(ReactionTranscodedFailedFunction))]
         public async Task Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
+            if (eventGridEvent == null) { throw new ArgumentNullException(nameof(eventGridEvent)); }
+            if (log == null) { throw new ArgumentNullException(nameof(log)); }
+
             // First extract the data
             var data = JsonConvert.DeserializeObject<AMSJobResultMessage>(eventGridEvent.Data.ToString());
             if (data.Outputs == null || !data.Outputs.Any()) { throw new ArgumentException("Event grid data object doesn't contain any AMS outputs"); }

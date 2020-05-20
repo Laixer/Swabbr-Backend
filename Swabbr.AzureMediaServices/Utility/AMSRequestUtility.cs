@@ -1,5 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 using Swabbr.Core.Exceptions;
 using System;
 using System.Collections.Generic;
@@ -31,7 +31,7 @@ namespace Swabbr.AzureMediaServices.Utility
 
                 do
                 {
-                    var resultSegment = await container.ListBlobsSegmentedAsync(string.Empty, true, BlobListingDetails.Metadata, 1000, continuationToken, null, null);
+                    var resultSegment = await container.ListBlobsSegmentedAsync(string.Empty, true, BlobListingDetails.Metadata, 1000, continuationToken, null, null).ConfigureAwait(false);
 
                     foreach (var blobItem in resultSegment.Results)
                     {

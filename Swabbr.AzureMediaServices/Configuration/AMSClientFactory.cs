@@ -11,7 +11,9 @@ namespace Swabbr.AzureMediaServices.Configuration
     /// Factory to build an Azure Media Services client.
     /// TODO Should this be a "singleton" like this? Does that support concurrency?
     /// </summary>
-    internal sealed class AMSClientFactory
+#pragma warning disable CA1812 
+    internal static class AMSClientFactory
+#pragma warning restore CA1812
     {
 
         private static IAzureMediaServicesClient client;
@@ -28,7 +30,7 @@ namespace Swabbr.AzureMediaServices.Configuration
             if (client != null) { return client; }
 
             var clientCredential = new ClientCredential(config.AadClientId, config.AadSecret);
-            var credentials = await ApplicationTokenProvider.LoginSilentAsync(config.AadTenantId, clientCredential, ActiveDirectoryServiceSettings.Azure);
+            var credentials = await ApplicationTokenProvider.LoginSilentAsync(config.AadTenantId, clientCredential, ActiveDirectoryServiceSettings.Azure).ConfigureAwait(false);
 
             client = new AzureMediaServicesClient(config.ArmEndpoint, credentials)
             {

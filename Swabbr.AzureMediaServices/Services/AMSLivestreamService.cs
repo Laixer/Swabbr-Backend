@@ -162,7 +162,7 @@ namespace Swabbr.AzureMediaServices.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId);
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
                 if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUserConnect.GetEnumMemberAttribute()} state"); }
 
@@ -193,7 +193,7 @@ namespace Swabbr.AzureMediaServices.Services
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId);
+                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
                 if (livestream.LivestreamState != LivestreamState.Live) { throw new LivestreamStateException($"Livestream not in {LivestreamState.Live.GetEnumMemberAttribute()} state"); }
 

@@ -1,4 +1,6 @@
-﻿namespace Swabbr.AzureFunctions.Parsing
+﻿using System;
+
+namespace Swabbr.AzureFunctions.Parsing
 {
 
     /// <summary>
@@ -9,7 +11,7 @@
 
         public string StreamId { get; set; }
 
-        public string IngestUrl { get; set; }
+        public Uri IngestUrl { get; set; }
 
         public string EncoderIp { get; set; }
 

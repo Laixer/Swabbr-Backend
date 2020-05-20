@@ -31,6 +31,7 @@ namespace Swabbr.AzureMediaServices.Clients
         /// </summary>
         public AMSClient(IOptions<AMSConfiguration> config)
         {
+            if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
         }
@@ -70,7 +71,7 @@ namespace Swabbr.AzureMediaServices.Clients
                 },
                 VanityUrl = false,
             };
-            return await amsClient.LiveEvents.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveEventRequest);
+            return await amsClient.LiveEvents.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveEventRequest).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -219,7 +220,7 @@ namespace Swabbr.AzureMediaServices.Clients
                 )
             };
 
-            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.LivestreamTransformDescription);
+            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.LivestreamTransformDescription).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -290,7 +291,7 @@ namespace Swabbr.AzureMediaServices.Clients
                 )
             };
 
-            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.ReactionTransformDescription);
+            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.ReactionTransformDescription).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -556,8 +557,8 @@ namespace Swabbr.AzureMediaServices.Clients
             if (!endpoints.Any()) { throw new ExternalErrorException("Live Event has no endpoints"); }
             foreach (var endpoint in endpoints)
             {
-                if (endpoint.Protocol.Equals(protocol) &&
-                    endpoint.Url.Substring(0, 5).Equals("rtmps"))
+                if (endpoint.Protocol.Equals(protocol, StringComparison.InvariantCulture) &&
+                    endpoint.Url.Substring(0, 5).Equals("rtmps", StringComparison.InvariantCulture))
                 {
                     return new Uri(endpoint.Url);
                 }

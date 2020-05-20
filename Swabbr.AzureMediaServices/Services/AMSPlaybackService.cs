@@ -41,6 +41,7 @@ namespace Swabbr.AzureMediaServices.Services
             IAMSClient amsClient,
             IVlogService vlogService)
         {
+            if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));

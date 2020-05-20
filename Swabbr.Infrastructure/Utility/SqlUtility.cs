@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Swabbr.Infrastructure.Utility
 {
@@ -17,7 +18,7 @@ namespace Swabbr.Infrastructure.Utility
         internal static string FormatDateTime(DateTimeOffset date)
         {
             if (date == null) { throw new ArgumentNullException(nameof(date)); }
-            return date.ToString("yyyy-MM-dd HH:mm:ss"); // TODO Check this
+            return date.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture); // TODO Check this
         }
 
     }

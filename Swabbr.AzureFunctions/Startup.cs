@@ -24,6 +24,7 @@ using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Utility;
+using System;
 
 [assembly: FunctionsStartup(typeof(Swabbr.AzureFunctions.Startup))]
 namespace Swabbr.AzureFunctions
@@ -46,6 +47,8 @@ namespace Swabbr.AzureFunctions
         /// <param name="builder"><see cref="IFunctionsHostBuilder"/></param>
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
+
             // TODO Fix the config mess later
             // Add Azure App Configuration remote
             //var connectionString = builder.Services.BuildServiceProvider().GetRequiredService<IConfiguration>().GetValue<string>("AzureAppConfig:ConnectionString");

@@ -8,8 +8,8 @@ using Swabbr.AzureFunctions.Types;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Utility;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.AzureFunctions.Functions
@@ -46,19 +46,19 @@ namespace Swabbr.AzureFunctions.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var wrapper = JsonConvert.DeserializeObject<TriggerMinuteWrapper>(await new StreamReader(req.Body).ReadToEndAsync());
+            if (req == null) { throw new ArgumentNullException(nameof(req)); }
+
+            using var streamReader = new StreamReader(req.Body);
+            var wrapper = JsonConvert.DeserializeObject<TriggerMinuteWrapper>(await streamReader.ReadToEndAsync().ConfigureAwait(false));
             if (wrapper.TriggerMinute.IsNullOrEmpty()) { throw new ArgumentNullException("Missing trigger minute"); }
 
-            if (wrapper.TriggerMinute.GetMinutes() % 2 == 0)
-            {
-                log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Returning user (getminutes is % 2)");
-                return new OkObjectResult(new List<Guid> { new Guid("e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee") });
-            }
-            else
-            {
-                log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Returning no users");
-                return new OkObjectResult(new List<Guid>());
-            }
+            log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Getting users for trigger minute {wrapper.TriggerMinute}");
+
+            var users = await _userService.GetAllVloggableUserMinifiedAsync().ConfigureAwait(false);
+            var selectedUsers = _hashDistributionService.GetForMinute(users, wrapper.TriggerMinute);
+
+            log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Returning {selectedUsers.Count()} users for trigger minute {wrapper.TriggerMinute}");
+            return new OkObjectResult(selectedUsers.Select(x => x.Id));
         }
 
     }

@@ -15,19 +15,19 @@ namespace Swabbr.Core.Notifications
             switch (notificationAction)
             {
                 case NotificationAction.FollowedProfileLive:
-                    return NotificationActionConstants.FOLLOWED_PROFILE_LIVE;
+                    return NotificationActionConstants.FollowedProfileLive;
                 case NotificationAction.InactiveUserMotivate:
-                    return NotificationActionConstants.INACTIVE_USER_MOTIVATE;
+                    return NotificationActionConstants.InactiveUserMotivate;
                 case NotificationAction.InactiveUnwatchedVlogs:
-                    return NotificationActionConstants.INACTIVE_UNWATCHED_VLOGS;
+                    return NotificationActionConstants.InactiveUnwatchedVlogs;
                 case NotificationAction.InactiveVlogRecordRequest:
-                    return NotificationActionConstants.INACTIVE_VLOG_RECORD_REQUEST;
+                    return NotificationActionConstants.InactiveVlogRecordRequest;
                 case NotificationAction.VlogGainedLikes:
-                    return NotificationActionConstants.VLOG_GAINED_LIKES;
+                    return NotificationActionConstants.VlogGainedLikes;
                 case NotificationAction.VlogNewReaction:
-                    return NotificationActionConstants.VLOG_NEW_REACTION;
+                    return NotificationActionConstants.VlogNewReaction;
                 case NotificationAction.VlogRecordRequest:
-                    return NotificationActionConstants.VLOG_RECORD_REQUEST;
+                    return NotificationActionConstants.VlogRecordRequest;
             }
 
             throw new InvalidOperationException(nameof(notificationAction));

@@ -45,12 +45,15 @@ namespace Swabbr.AzureFunctions.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
+            if (req == null) { throw new ArgumentNullException(nameof(req)); }
+
             // First extract the data
-            var wrapper = JsonConvert.DeserializeObject<VlogTimeExpiredWrapper>(await new StreamReader(req.Body).ReadToEndAsync());
+            using var streamReader = new StreamReader(req.Body);
+            var wrapper = JsonConvert.DeserializeObject<VlogTimeExpiredWrapper>(await streamReader.ReadToEndAsync().ConfigureAwait(false));
             wrapper.LivestreamExternalId.ThrowIfNullOrEmpty();
 
             // Parse if required
-            if (wrapper.LivestreamExternalId.Contains('/'))
+            if (wrapper.LivestreamExternalId.Contains('/', StringComparison.InvariantCulture))
             {
                 wrapper.LivestreamExternalId = wrapper.LivestreamExternalId.Split('/')[1]; // TODO Unsafe
             }
@@ -59,7 +62,7 @@ namespace Swabbr.AzureFunctions.Functions
             log.LogInformation($"Triggered {nameof(LogicAppEncoderConnectedFunction)}");
 
             var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(wrapper.LivestreamExternalId).ConfigureAwait(false);
-            await _userStreamingHandlingService.OnUserConnectedToLivestreamAsync(livestream.UserId, livestream.Id);
+            await _userStreamingHandlingService.OnUserConnectedToLivestreamAsync(livestream.UserId, livestream.Id).ConfigureAwait(false);
 
             log.LogInformation($"Finished {nameof(LogicAppEncoderConnectedFunction)}");
 

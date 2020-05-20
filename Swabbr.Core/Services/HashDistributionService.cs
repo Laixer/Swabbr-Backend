@@ -89,7 +89,7 @@ namespace Swabbr.Core.Services
             return (int)minute;
         }
 
-        private int GetMinutes(DateTimeOffset date)
+        private static int GetMinutes(DateTimeOffset date)
         {
             return date.Hour * 60 + date.Minute;
         }

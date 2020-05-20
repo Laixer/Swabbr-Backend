@@ -49,7 +49,10 @@ namespace Swabbr.AzureFunctions.Functions
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            var wrapper = JsonConvert.DeserializeObject<VlogTimeExpiredWrapper>(await new StreamReader(req.Body).ReadToEndAsync());
+            if (req == null || req.Body == null) { throw new ArgumentNullException(nameof(req)); }
+
+            using var streamReader = new StreamReader(req.Body);
+            var wrapper = JsonConvert.DeserializeObject<VlogTimeExpiredWrapper>(await streamReader.ReadToEndAsync().ConfigureAwait(false));
             wrapper.LivestreamExternalId.ThrowIfNullOrEmpty();
 
             try
@@ -57,7 +60,7 @@ namespace Swabbr.AzureFunctions.Functions
                 using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     // Parse if required
-                    if (wrapper.LivestreamExternalId.Contains('/'))
+                    if (wrapper.LivestreamExternalId.Contains('/', StringComparison.InvariantCulture))
                     {
                         wrapper.LivestreamExternalId = wrapper.LivestreamExternalId.Split('/')[1]; // TODO Unsafe
                     }
