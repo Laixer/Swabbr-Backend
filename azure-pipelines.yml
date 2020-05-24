@@ -24,7 +24,15 @@ steps:
     restoreSolution: '$(solution)'
 
 - task: DotNetCoreCLI@2
-  displayName: Publish project
+  displayName: Build Swabbr.Api
+  inputs:
+    command: 'build'
+    publishWebProjects: false
+    projects: '**/Swabbr.Api.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: Publish Swabbr.Api
   inputs:
     command: 'publish'
     publishWebProjects: false
@@ -32,7 +40,7 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/web'
 
 - task: DotNetCoreCLI@2
-  displayName: Publish project
+  displayName: Publish Swabbr.AzureFunctions
   inputs:
     command: 'publish'
     publishWebProjects: false
@@ -40,13 +48,13 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func'
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
+  displayName: Publish Swabbr.Api
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/web'
     ArtifactName: 'web'
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
+  displayName: Publish Swabbr.AzureFunctions
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/func'
     ArtifactName: 'func'
