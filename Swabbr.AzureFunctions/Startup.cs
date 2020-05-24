@@ -106,7 +106,6 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<ILivestreamRepository, LivestreamRepository>();
             builder.Services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
             builder.Services.AddTransient<IReactionRepository, ReactionRepository>();
-            builder.Services.AddTransient<IRequestRepository, RequestRepository>();
             builder.Services.AddTransient<IUserRepository, UserRepository>();
             builder.Services.AddTransient<IVlogRepository, VlogRepository>();
             builder.Services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
