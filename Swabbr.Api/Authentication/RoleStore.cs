@@ -20,57 +20,59 @@ namespace Swabbr.Api.Authentication
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
         };
 
-        public async Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
             // TODO THOMAS This should throw! I suspect this is to enable endpoint calling for iOS and Android? --> yorick: kan met de user manager te maken hebben
-            return IdentityResult.Success;
+            return Task.FromResult(IdentityResult.Success);
         }
 
-        public async Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            //! Not implemented
-            return IdentityResult.Success;
+            // TODO Not implemented
+            return Task.FromResult(IdentityResult.Success);
         }
 
-        public async Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            //! Not implemented
-            return IdentityResult.Success;
+            // TODO Not implemented
+            return Task.FromResult(IdentityResult.Success);
         }
 
-        public async Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            return Roles.Where(r => r.Id.ToString() == roleId).First();
+            return Task.FromResult(Roles.Where(r => r.Id.ToString() == roleId).First());
         }
 
-        public async Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
+        public Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
         {
-            return Roles.Where(r => r.NormalizedName.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase)).First();
+            return Task.FromResult(Roles.Where(r => r.NormalizedName.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase)).First());
         }
 
-        public async Task<string> GetNormalizedRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public Task<string> GetNormalizedRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            return role.NormalizedName;
+            return Task.FromResult(role.NormalizedName);
         }
 
-        public async Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            return role.Id.ToString();
+            return Task.FromResult(role.Id.ToString());
         }
 
-        public async Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
+        public Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            return role.Name;
+            return Task.FromResult(role.Name);
         }
 
-        public async Task SetNormalizedRoleNameAsync(SwabbrIdentityRole role, string normalizedName, CancellationToken cancellationToken)
+        public Task SetNormalizedRoleNameAsync(SwabbrIdentityRole role, string normalizedName, CancellationToken cancellationToken)
         {
             role.NormalizedName = normalizedName;
+            return Task.CompletedTask;
         }
 
-        public async Task SetRoleNameAsync(SwabbrIdentityRole role, string roleName, CancellationToken cancellationToken)
+        public Task SetRoleNameAsync(SwabbrIdentityRole role, string roleName, CancellationToken cancellationToken)
         {
             role.Name = roleName;
+            return Task.CompletedTask;
         }
 
         #region IDisposable Support

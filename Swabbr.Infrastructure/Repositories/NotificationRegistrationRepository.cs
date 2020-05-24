@@ -72,12 +72,6 @@ namespace Swabbr.Infrastructure.Repositories
             return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableNotificationRegistration);
         }
 
-        public Task<bool> ExistsForUser(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Gets a single <see cref="NotificationRegistration"/> from our database.
         /// </summary>
@@ -87,12 +81,6 @@ namespace Swabbr.Infrastructure.Repositories
         {
             id.ThrowIfNullOrEmpty();
             return SharedRepositoryFunctions.GetAsync<NotificationRegistration>(_databaseProvider, id, TableNotificationRegistration);
-        }
-
-        public Task<NotificationRegistration> GetByUserIdAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-            throw new NotImplementedException();
         }
 
         /// <summary>

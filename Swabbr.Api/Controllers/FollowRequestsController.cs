@@ -138,7 +138,7 @@ namespace Swabbr.Api.Controllers
                     Status = MapperEnum.Map(await _followRequestService.GetStatusAsync(id).ConfigureAwait(false)).GetEnumMemberAttribute()
                 });
             }
-            catch (EntityNotFoundException e)
+            catch (EntityNotFoundException)
             {
                 return Ok(new FollowRequestStatusOutputModel
                 {

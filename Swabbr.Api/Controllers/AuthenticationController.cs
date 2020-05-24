@@ -128,6 +128,7 @@ namespace Swabbr.Api.Controllers
             }
             catch (Exception e)
             {
+                logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Something went wrong, contact your administrator for further assistance"));
             }
         }

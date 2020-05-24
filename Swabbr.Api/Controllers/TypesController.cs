@@ -47,7 +47,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("get_notification_wrapper")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(NotificationPayloadJsonWrapperModel))]
-        public async Task<IActionResult> NotificationWrapper()
+        public IActionResult NotificationWrapper()
         {
             return Ok(new NotificationPayloadJsonWrapperModel());
         }
@@ -58,7 +58,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("get_notification_followed_profile_live")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ParametersFollowedProfileLive))]
-        public async Task<IActionResult> NotificationDataFollowedProfileLive()
+        public IActionResult NotificationDataFollowedProfileLive()
         {
             return Ok(new ParametersFollowedProfileLive());
         }
@@ -69,7 +69,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("get_notification_followed_profile_vlog_posted")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ParametersFollowedProfileVlogPosted))]
-        public async Task<IActionResult> NotificationDataFollowedProfileVlogPosted()
+        public IActionResult NotificationDataFollowedProfileVlogPosted()
         {
             return Ok(new ParametersFollowedProfileVlogPosted());
         }
@@ -80,7 +80,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("get_notification_vlog_record_request")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ParametersRecordVlog))]
-        public async Task<IActionResult> NotificationDataVlogRecordRequest()
+        public IActionResult NotificationDataVlogRecordRequest()
         {
             return Ok(new ParametersRecordVlog());
         }
@@ -91,7 +91,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("get_notification_vlog_gained_likes")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ParametersVlogGainedLike))]
-        public async Task<IActionResult> NotificationDataVlogGainedLikes()
+        public IActionResult NotificationDataVlogGainedLikes()
         {
             return Ok(new ParametersVlogGainedLike());
         }
@@ -102,7 +102,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [HttpGet("get_notification_vlog_new_reaction")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ParametersVlogNewReaction))]
-        public async Task<IActionResult> NotificationDataVlogNewReaction()
+        public IActionResult NotificationDataVlogNewReaction()
         {
             return Ok(new ParametersVlogNewReaction());
         }
@@ -112,7 +112,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("get_notification_click_types")]
-        public async Task<IActionResult> ListNotificationClickTypes()
+        public IActionResult ListNotificationClickTypes()
         {
             var result = new List<string>();
             foreach (var e in (NotificationAction[])Enum.GetValues(typeof(NotificationAction)))
