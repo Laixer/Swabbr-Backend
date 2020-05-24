@@ -118,7 +118,6 @@ namespace Swabbr
             services.AddTransient<ILivestreamRepository, LivestreamRepository>();
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
             services.AddTransient<IReactionRepository, ReactionRepository>();
-            services.AddTransient<IRequestRepository, RequestRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
             services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();

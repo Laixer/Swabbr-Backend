@@ -28,7 +28,6 @@ namespace Swabbr.Core.Services
         private readonly ILivestreamService _livestreamingService;
         private readonly IUserService _userService;
         private readonly IHashDistributionService _hashDistributionService;
-        private readonly IRequestRepository _requestRepository;
         private readonly INotificationService _notificationService;
         private readonly ILogger logger;
         private readonly SwabbrConfiguration config;
@@ -39,7 +38,6 @@ namespace Swabbr.Core.Services
         public VlogTriggerService(ILivestreamService livestreamingService,
             IUserService userService,
             IHashDistributionService hashDistributionService,
-            IRequestRepository requestRepository,
             INotificationService notificationService,
             ILoggerFactory loggerFactory,
             IOptions<SwabbrConfiguration> options)
@@ -47,7 +45,6 @@ namespace Swabbr.Core.Services
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _hashDistributionService = hashDistributionService ?? throw new ArgumentNullException(nameof(hashDistributionService));
-            _requestRepository = requestRepository ?? throw new ArgumentNullException(nameof(requestRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogTriggerService)) : throw new ArgumentNullException(nameof(loggerFactory));
 
