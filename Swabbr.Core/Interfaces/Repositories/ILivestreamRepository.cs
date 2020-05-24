@@ -3,37 +3,47 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
 
-    public interface ILivestreamRepository : IRepository<Livestream>
+    /// <summary>
+    /// Repository for <see cref="Livestream"/> entities.
+    /// </summary>
+    public interface ILivestreamRepository : IRepository<Livestream, Guid>
     {
-        /// <summary>
-        /// Returns all active livestreams.
-        /// </summary>
-        Task<IEnumerable<Livestream>> GetActiveLivestreamsAsync();
 
-        /// <summary>
-        /// Returns the amount of inactive livestreams.
-        /// </summary>
-        /// TODO THOMAS Why would we ever need this? (pool probably?)
-        Task<int> GetAvailableLivestreamCountAsync();
+        Task<Livestream> CreateAsync(Livestream entity);
 
-        /// <summary>
-        /// Returns a <see cref="Livestream"/> that is active and currently claimed by the specified user.
-        /// </summary>
-        Task<Livestream> GetActiveLivestreamForUserAsync(Guid userId);
+        Task DeleteAsync(Guid id);
 
-        /// <summary>
-        /// Returns a <see cref="Livestream"/> that is available for usage and claims ownership for
-        /// the specified user.
-        /// </summary>
-        Task<Livestream> ReserveLivestreamForUserAsync(Guid userId);
+        Task<bool> ExistsLivestreamForTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
 
-        /// <summary>
-        /// Return a single entity by providing its unique identifier.
-        /// </summary>
-        /// <param name="livestreamId">Unique identifier of the livestream</param>
-        Task<Livestream> GetByIdAsync(string livestreamId);
+        Task<IEnumerable<Livestream>> GetAvailableLivestreamsAsync();
+
+        Task<Livestream> GetByExternalIdAsync(string externalId);
+
+        Task<string> GetExternalIdAsync(Guid id);
+
+        Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
+
+        Task<bool> IsUserInLivestreamCycleAsync(Guid userId);
+
+        Task MarkClosedAsync(Guid livestreamId);
+
+        Task MarkCreatedAsync(Guid id, string externalId, string broadcastLocation);
+
+        Task MarkLiveAsync(Guid id);
+
+        Task MarkPendingClosureAsync(Guid livestreamId);
+
+        Task MarkPendingUserAsync(Guid livestreamId, Guid userId, DateTimeOffset triggerMinute);
+
+        Task MarkPendingUserConnectAsync(Guid livestreamId);
+
+        Task MarkUserNoResponseTimeoutAsync(Guid livestreamId);
+
+        Task MarkUserNeverConnectedTimeoutAsync(Guid livestreamId);
+
     }
+
 }

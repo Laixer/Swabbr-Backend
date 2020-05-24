@@ -1,67 +1,195 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Dapper;
+using Laixer.Identity.Dapper.Extensions;
+using Laixer.Infra.Npgsql;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Extensions;
-using Swabbr.Api.Options;
+using Swabbr.Api.Configuration;
 using Swabbr.Api.Services;
-using Swabbr.Core.Interfaces;
+using Swabbr.AzureMediaServices.Clients;
+using Swabbr.AzureMediaServices.Configuration;
+using Swabbr.AzureMediaServices.Extensions;
+using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Services;
+using Swabbr.Core.Configuration;
+using Swabbr.Core.Factories;
 using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Factories;
+using Swabbr.Core.Interfaces.Notifications;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
+using Swabbr.Core.Types;
+using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
-using Swabbr.Infrastructure.Data.Repositories;
-using Swabbr.Infrastructure.Services;
+using Swabbr.Infrastructure.Database;
+using Swabbr.Infrastructure.Notifications;
+using Swabbr.Infrastructure.Notifications.JsonExtraction;
+using Swabbr.Infrastructure.Repositories;
+using Swabbr.Infrastructure.Utility;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using WowzaStreamingCloud.Configuration;
 
 namespace Swabbr
 {
+
+    /// <summary>
+    /// Startup configuration for all dependency injections.
+    /// </summary>
     public class Startup
     {
+
+        private readonly IConfiguration _configuration;
+
+        /// <summary>
+        /// Constructor for dependency injection.
+        /// </summary>
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// Sets up all our dependency injection.
+        /// </summary>
+        /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // Setup request related services
             services.AddCors();
-            services.AddControllers(c =>
-            {
-            }).AddNewtonsoftJson();
+            services.AddControllers(c => { }).AddNewtonsoftJson();
+            services.AddRouting(options => { options.LowercaseUrls = true; });
+            SetupIdentity(services);
+            SetupAuthentication(services);
+            services.AddApiVersioning(options => { options.ReportApiVersions = true; });
 
-            // Add routing options
-            services.AddRouting(options =>
+            // Setup logging explicitly
+            services.AddLogging((config) =>
             {
-                options.LowercaseUrls = true;
+                config.AddAzureWebAppDiagnostics();
             });
 
-            var jwtConfigSection = Configuration.GetSection("Jwt");
-            var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
-            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
-
-            var notificationHubConfigSection = Configuration.GetSection("NotificationHub");
-            var wowzaStreamingCloudSection = Configuration.GetSection("WowzaStreamingCloud");
+            // Setup doc
+            SetupSwagger(services);
 
             // Add configurations
-            services.Configure<JwtConfiguration>(jwtConfigSection);
-            services.Configure<NotificationHubConfiguration>(notificationHubConfigSection);
-            services.Configure<WowzaStreamingCloudConfiguration>(wowzaStreamingCloudSection);
+            services.Configure<JwtConfiguration>(_configuration.GetSection("Jwt"));
+            services.Configure<NotificationHubConfiguration>(options =>
+            {
+                _configuration.GetSection("NotificationHub").Bind(options);
+                options.ConnectionString = _configuration.GetConnectionString("AzureNotificationHub");
+            });
+            services.Configure<AMSConfiguration>(_configuration.GetSection("AzureMediaServices"));
+            services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
+            services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
 
-            // Add OpenAPI definition
+            // Check configuration
+            var servicesBuilt = services.BuildServiceProvider();
+            servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
+            servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
+
+            // Add postgresql database functionality
+            NpgsqlSetup.Setup();
+            services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
+            services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionString = _configuration.GetConnectionString("DatabaseInternal"); });
+
+            // Configure DI for data repositories
+            services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
+            services.AddTransient<ILivestreamRepository, LivestreamRepository>();
+            services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
+            services.AddTransient<IReactionRepository, ReactionRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
+            services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
+            services.AddTransient<IVlogRepository, VlogRepository>();
+
+            // Configure DI for services
+            services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
+            services.AddTransient<IFollowRequestService, FollowRequestService>();
+            services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
+            services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
+            services.AddTransient<ILivestreamService, AMSLivestreamService>();
+            services.AddTransient<INotificationService, NotificationService>();
+            services.AddTransient<INotificationTestingService, NotificationTestingService>(); // TODO Remove in the final product
+            services.AddTransient<IPlaybackService, AMSPlaybackService>();
+            services.AddTransient<IReactionService, AMSReactionService>();
+            services.AddTransient<IStorageService, AMSStorageService>();
+            services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<IVlogService, VlogService>();
+            services.AddTransient<IVlogTriggerService, VlogTriggerService>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
+            services.AddTransient<IUserWithStatsService, UserWithStatsService>();
+
+            // Configure DI for clients and helpers
+            services.AddTransient<INotificationClient, NotificationClient>();
+            services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
+            services.AddTransient<INotificationBuilder, NotificationBuilder>();
+            services.AddTransient<IAMSClient, AMSClient>();
+            services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
+        }
+
+        /// <summary>
+        /// Configures our pipeline for requests.
+        /// </summary>
+        /// <param name="app"><see cref="IApplicationBuilder"/></param>
+        /// <param name="env"><see cref="IWebHostEnvironment"/></param>
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            app.UseHsts();
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            // CORS policy
+            app.UseCors(cp => cp
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+
+            // Add authentication and authorization middleware
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            // Add Swagger API definition middleware
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr v1");
+            });
+        }
+
+        /// <summary>
+        /// Adds swagger to the services.
+        /// </summary>
+        /// <param name="services"><see cref="IServiceCollection"/></param>
+        private void SetupSwagger(IServiceCollection services)
+        {
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swabbr", Version = "v1" });
@@ -84,58 +212,44 @@ namespace Swabbr
                         Array.Empty<string>() } }
                 );
             });
+        }
 
-            var cosmosDbConfig = Configuration.GetSection("CosmosDb").Get<CosmosDbConfiguration>();
-            var connectionStringConfig = cosmosDbConfig.ConnectionStrings;
-            var connectionString = connectionStringConfig.ActiveConnectionString;
-            var tableProperties = cosmosDbConfig.Tables;
-
-            // Add CosmosDb. Ensure database and tables exist.
-            services.AddCosmosDb(connectionString, tableProperties);
-
-            // Configure DI for data repositories
-            services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IUserSettingsRepository, UserSettingsRepository>();
-            services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
-            services.AddTransient<IVlogRepository, VlogRepository>();
-            services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
-            services.AddTransient<IReactionRepository, ReactionRepository>();
-            services.AddTransient<ILivestreamRepository, LivestreamRepository>();
-            services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
-
-            // Configure DI for services
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IVlogService, VlogService>();
-            services.AddTransient<IReactionService, ReactionService>();
-            services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<ILivestreamingService, LivestreamingService>();
-            services.AddTransient<INotificationService, NotificationService>();
-            services.AddTransient<ITokenService, TokenService>();
-
-            // Configure DI for client services
-            services.AddTransient<INotificationClient, NotificationClient>();
-            services.AddTransient<ILivestreamingClient, LivestreamingClient>();
-
-            // Configure DI for identity stores
-            services.AddTransient<IUserStore<SwabbrIdentityUser>, UserStore>();
-            services.AddTransient<IRoleStore<SwabbrIdentityRole>, RoleStore>();
-
-            // Add background services
-            services.AddHostedService<VlogTriggerHostedService>();
-
-            // Add identity middleware
+        /// <summary>
+        /// Adds identity to the services.
+        /// </summary>
+        /// <param name="services"><see cref="IServiceCollection"/></param>
+        private void SetupIdentity(IServiceCollection services)
+        {
+            // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
-             {
-                 //TODO: Determine configuration for password strength
-                 setup.Password.RequireDigit = false;
-                 setup.Password.RequireUppercase = false;
-                 setup.Password.RequireLowercase = false;
-                 setup.Password.RequireNonAlphanumeric = false;
-                 setup.User.RequireUniqueEmail = true;
-             })
+            {
+                setup.Password.RequireDigit = true;
+                setup.Password.RequireUppercase = true;
+                setup.Password.RequireLowercase = true;
+                setup.Password.RequireNonAlphanumeric = true;
+                setup.Password.RequiredLength = 8;
+                setup.User.RequireUniqueEmail = true;
+            })
+            .AddDapperStores(options =>
+            {
+                options.UserTable = "user";
+                options.Schema = "public";
+                options.MatchWithUnderscore = true;
+                options.UseNpgsql<IdentityQueryRepository>(_configuration.GetConnectionString("DatabaseInternal"));
+            })
             .AddDefaultTokenProviders();
+        }
 
-            // Add authentication middleware
+        /// <summary>
+        /// Adds authentication to the services.
+        /// </summary>
+        /// <param name="services"><see cref="IServiceCollection"/></param>
+        private void SetupAuthentication(IServiceCollection services)
+        {
+            var jwtConfigSection = _configuration.GetSection("Jwt");
+            var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
+            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -155,40 +269,6 @@ namespace Swabbr
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            // The default HSTS value is 30 days. You may want to change this for production
-            // scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
-
-            app.UseHttpsRedirection();
-
-            app.UseRouting();
-
-            // CORS policy
-            app.UseCors(cp => cp
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader());
-
-            // Add authentication and authorization middleware
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UsePathBase(new PathString("/api/v1/"));
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
-            // Add Swagger API definition middleware
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"Swabbr v1");
-            });
-        }
     }
+
 }

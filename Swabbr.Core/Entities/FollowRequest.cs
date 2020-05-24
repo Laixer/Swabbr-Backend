@@ -1,36 +1,46 @@
-﻿using Swabbr.Core.Enums;
+﻿using Laixer.Utility.Extensions;
+using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Represents an active follow request between two users.
     /// </summary>
-    public class FollowRequest : EntityBase
+    public class FollowRequest : EntityBase<FollowRequestId>
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid FollowRequestId { get; set; }
 
         /// <summary>
-        /// Id of the user that initiated the follow request.
+        /// Constructor to ensure <see cref="FollowRequestId"/> initialization.
         /// </summary>
-        public Guid RequesterId { get; set; }
+        public FollowRequest()
+        {
+            Id = new FollowRequestId();
+        }
 
         /// <summary>
-        /// Id of the user that should receive the follow request.
+        /// Id of the requesting user.
         /// </summary>
-        public Guid ReceiverId { get; set; }
+        public Guid RequesterId { get => Id.RequesterId; set => Id.RequesterId = value; }
+
+        /// <summary>
+        /// Id of the receiving user.
+        /// </summary>
+        public Guid ReceiverId { get => Id.ReceiverId; set => Id.ReceiverId = value; }
 
         /// <summary>
         /// Current status of the follow request.
         /// </summary>
-        public FollowRequestStatus Status { get; set; }
+        public FollowRequestStatus FollowRequestStatus { get; set; }
+        public string FollowRequestStatusText => FollowRequestStatus.GetEnumMemberAttribute();
 
         /// <summary>
         /// Timestamp of when the request was initiated.
         /// </summary>
-        public DateTime TimeCreated { get; set; }
+        public DateTimeOffset TimeCreated { get; set; }
+
     }
+
 }

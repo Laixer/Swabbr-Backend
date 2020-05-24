@@ -1,46 +1,46 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
+    /// <summary>
+    /// Contract for <see cref="SwabbrUser"/> related operations.
+    /// </summary>
     public interface IUserService
     {
-        /// <summary>
-        /// Checks if a user with the given id exists.
-        /// </summary>
-        /// TODO THOMAS This should never be required (getasync will just return null --> throw exception)
+
         Task<bool> ExistsAsync(Guid userId);
 
-        /// <summary>
-        /// Get a single user entity by id.
-        /// </summary>
-        Task<User> GetAsync(Guid userId);
+        Task<bool> ExistsNicknameAsync(string nickname);
 
-        /// <summary>
-        /// Update a user entity.
-        /// </summary>
-        Task<User> UpdateAsync(User user);
+        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
 
-        /// <summary>
-        /// Get a single user entity by its email address.
-        /// </summary>
-        Task<User> GetByEmailAsync(string email);
+        Task<SwabbrUser> GetAsync(Guid userId);
 
-        /// <summary>
-        /// Create a new user.
-        /// </summary>
-        /// <param name="user">User to create.</param>
-        Task<User> CreateAsync(User user);
+        Task<SwabbrUser> GetByEmailAsync(string email);
 
-        /// <summary>
-        /// Search for application users based on a given search query.
-        /// </summary>
-        /// <param name="query">Search query to run against the user properties.</param>
-        /// <param name="offset">Result record offset.</param>
-        /// <param name="limit">Result limit.</param>
-        /// <returns>A collection of users matching the search query.</returns>
-        Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
+        Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId);
+
+        Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
+
+        Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId);
+
+        Task<UserSettings> GetUserSettingsAsync(Guid userId);
+
+        Task<UserStatistics> GetUserStatisticsAsync(Guid userId);
+
+        Task<SwabbrUser> UpdateAsync(UserUpdateWrapper user);
+
+        Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
+
+        Task UpdateSettingsAsync(UserSettings userSettings);
+
+        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
+
     }
+
 }

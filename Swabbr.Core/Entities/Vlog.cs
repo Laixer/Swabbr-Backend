@@ -1,27 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// A vlog created by a user.
+    /// TODO This needs some work
     /// </summary>
-    public class Vlog : EntityBase
+    public class Vlog : EntityBase<Guid>
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid VlogId { get; set; }
-
-        /// <summary>
-        /// Unique identifier of the livestream bound to this vlog.
-        /// </summary>
-        public string LivestreamId { get; set; }
-
-        /// <summary>
-        /// Download url of the recording.
-        /// </summary>
-        public string DownloadUrl { get; set; }
 
         /// <summary>
         /// Id of the user who created the vlog.
@@ -29,29 +16,25 @@ namespace Swabbr.Core.Entities
         public Guid UserId { get; set; }
 
         /// <summary>
+        /// References the <see cref="Livestream"/> on which this vlog was created.
+        /// </summary>
+        public Guid LivestreamId { get; set; }
+
+        /// <summary>
         /// Indicates if the vlog should be publicly available to other users.
         /// </summary>
         public bool IsPrivate { get; set; }
 
         /// <summary>
-        /// Indicates whether the vlog is currently live or not.
-        /// </summary>
-        public bool IsLive { get; set; }
-
-        /// <summary>
         /// The date at which the recording of the vlog started.
         /// </summary>
-        public DateTime DateStarted { get; set; }
+        public DateTimeOffset StartDate { get; set; }
 
         /// <summary>
-        /// Likes given to this vlog by users.
+        /// Total amount of views for this vlog.
         /// </summary>
-        /// IEnumerable
-        public List<VlogLike> Likes { get; set; }
+        public int Views { get; set; }
 
-        /// <summary>
-        /// Metadata from the Media Service.
-        /// </summary>
-        public string MediaServiceData { get; set; }
     }
+
 }

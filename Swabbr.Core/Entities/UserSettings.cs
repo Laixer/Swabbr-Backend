@@ -3,11 +3,13 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Personal settings and preferences for a user.
     /// </summary>
-    public class UserSettings : EntityBase
+    public class UserSettings
     {
+
         /// <summary>
         /// Id of the user these settings belong to.
         /// </summary>
@@ -16,7 +18,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// The maximum amount of times the user should be reminded to record a vlog through push notifications.
         /// </summary>
-        public uint DailyVlogRequestLimit { get; set; }
+        public int DailyVlogRequestLimit { get; set; }
 
         /// <summary>
         /// Determines how follow requests are processed for the user.
@@ -27,5 +29,7 @@ namespace Swabbr.Core.Entities
         /// Setting that determines if the user account is private.
         /// </summary>
         public bool IsPrivate { get; set; }
+
     }
+
 }

@@ -1,38 +1,51 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
+
     /// <summary>
-    /// Repository for User entities.
+    /// Repository for <see cref="SwabbrUser"/> entities.
     /// </summary>
-    public interface IUserRepository : IRepository<User>
+    public interface IUserRepository : IRepository<SwabbrUser, Guid>, ICudFunctionality<SwabbrUser, Guid>
     {
-        /// <summary>
-        /// Get a single user entity by id.
-        /// </summary>
-        Task<User> GetAsync(Guid userId);
 
-        /// <summary>
-        /// Get a single user entity by its email address.
-        /// </summary>
-        Task<User> GetByEmailAsync(string email);
+        Task<UserSettings> GetUserSettingsAsync(Guid userId);
 
-        /// <summary>
-        /// Searching for users.
-        /// </summary>
-        /// <param name="query">Search query to run against the user properties.</param>
-        /// <param name="offset">Result record offset.</param>
-        /// <param name="limit">Result limit.</param>
-        /// <returns>A collection of users matching the search query.</returns>
-        /// Is this the optimal pagination method? Maybe make this a bit more explicit
-        Task<IEnumerable<User>> SearchAsync(string query, uint offset, uint limit);
+        Task<UserStatistics> GetUserStatisticsAsync(Guid userId);
 
-        /// <summary>
-        /// Checks if a user with the given id exists.
-        /// </summary>
+        // TODO Do we need this?
+        Task UpdateUserSettingsAsync(UserSettings userSettings);
+
+        Task<SwabbrUser> GetByEmailAsync(string email);
+
         Task<bool> UserExistsAsync(Guid userId);
+
+        Task<bool> NicknameExistsAsync(string nickname);
+
+        // TODO Move to withstats
+        Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
+
+        // TODO Move to withstats
+        Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId);
+
+        Task<IEnumerable<UserPushNotificationDetails>> GetFollowersPushDetailsAsync(Guid userId);
+
+        Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId);
+
+        Task<IEnumerable<SwabbrUser>> GetVlogRequestableUsersAsync(DateTimeOffset from, TimeSpan timeSpan);
+
+        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
+
+        Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId);
+
+        Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
+
+        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
+
     }
+
 }

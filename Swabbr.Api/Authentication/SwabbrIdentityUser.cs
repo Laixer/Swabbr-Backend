@@ -1,30 +1,23 @@
-﻿using Swabbr.Infrastructure.Data.Entities;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Identity;
+using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Api.Authentication
 {
-    public class SwabbrIdentityUser : UserTableEntity
+
+    /// <summary>
+    /// Custom Identity framework user.
+    /// </summary>
+    public class SwabbrIdentityUser : IdentityUser<Guid>
     {
-        public string PasswordHash { get; set; }
 
-        public DateTimeOffset? LockoutEnd { get; set; }
+        /// <summary>
+        /// Nickname to display for the user.
+        /// </summary>
+        public string Nickname { get; set; }
 
-        public bool LockoutEnabled { get; set; }
-
-        public string Email { get; set; }
-
-        public string NormalizedEmail { get; set; }
-
-        public bool EmailConfirmed { get; set; }
-
-        public string PhoneNumber { get; set; }
-
-        public bool PhoneNumberConfirmed { get; set; }
-
-        public string ConcurrencyStamp { get; set; }
-
-        public int AccessFailedCount { get; set; }
-
-        public bool TwoFactorEnabled { get; set; }
     }
+
 }

@@ -1,33 +1,29 @@
-﻿using Swabbr.Core.Notifications;
+﻿using Swabbr.Core.Notifications.JsonWrappers;
+using Swabbr.Core.Types;
 using System;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
     /// <summary>
-    /// A service for notification related actions.
+    /// A contract for a service to handle everything regarding notification.
     /// </summary>
     public interface INotificationService
     {
-        /// <summary>
-        /// Delete the registration for an already registered device
-        /// </summary>
-        /// <param name="registrationId">Id of the registered device</param>
-        Task DeleteRegistrationAsync(string registrationId);
 
-        /// <summary>
-        /// Enable push notifications for a device
-        /// </summary>
-        /// <param name="id">Id of the device</param>
-        /// <param name="deviceUpdate">Registration information</param>
-        Task<NotificationResponse> RegisterUserForPushNotificationsAsync(Guid userId, DeviceRegistration deviceUpdate);
+        Task NotifyVlogRecordRequestAsync(Guid userId, Guid livesteamId, ParametersRecordVlog pars);
 
-        /// <summary>
-        /// Send out a notification
-        /// </summary>
-        /// <typeparam name="T">The notification outcome type</typeparam>
-        /// <param name="notification">The notification to send</param>
-        /// <returns>A response containing</returns>
-        Task<NotificationResponse> SendNotificationToUserAsync(SwabbrNotification notification, Guid userId);
+        Task NotifyVlogRecordTimeoutAsync(Guid userId);
+
+        Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars);
+
+        Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId);
+
+        Task NotifyReactionPlacedAsync(Guid reactionId);
+
+        Task NotifyVlogLikedAsync(VlogLikeId vlogLikeId);
+
     }
+
 }

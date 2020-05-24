@@ -1,46 +1,52 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.ViewModels.User
 {
+
+    /// <summary>
+    /// Contains our user authentication details.
+    /// </summary>
     public sealed class UserAuthenticationOutputModel
     {
+
         /// <summary>
         /// Application access token of the authenticated user.
         /// </summary>
-        [JsonProperty("token")]
         public string Token { get; set; }
 
-        //TODO ...
         /// <summary>
-        /// The amount of seconds the token is valid.
+        /// The time the token is valid.
         /// </summary>
-        [JsonProperty("tokenValid")]
-        public int TokenValid { get; set; }
+        public TimeSpan TokenExpirationTimespan { get; set; }
+
+        /// <summary>
+        /// The moment this token was generated.
+        /// </summary>
+        public DateTimeOffset TokenCreationDate { get; set; }
 
         /// <summary>
         /// Claims of the authenticated user.
         /// </summary>
-        [JsonProperty("claims")]
-        public IList<Claim> Claims { get; set; }
+        public IEnumerable<Claim> Claims { get; set; }
 
         /// <summary>
         /// Application roles of the user.
         /// </summary>
-        [JsonProperty("roles")]
-        public IList<string> Roles { get; set; }
+        public IEnumerable<string> Roles { get; set; }
 
         /// <summary>
         /// Information about the authenticated user.
         /// </summary>
-        [JsonProperty("user")]
         public UserOutputModel User { get; set; }
 
         /// <summary>
         /// Settings of the authenticated user.
         /// </summary>
-        [JsonProperty("userSettings")]
         public UserSettingsOutputModel UserSettings { get; set; }
+
     }
+
 }

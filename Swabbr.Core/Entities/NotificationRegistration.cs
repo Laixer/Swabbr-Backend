@@ -1,14 +1,19 @@
-﻿using Swabbr.Core.Notifications;
+﻿using Swabbr.Core.Enums;
 using System;
 
 namespace Swabbr.Core.Entities
 {
-    public class NotificationRegistration : EntityBase
+
+    /// <summary>
+    /// Represents a single registration event for a device to receive notifications.
+    /// </summary>
+    public class NotificationRegistration : EntityBase<Guid>
     {
+
         /// <summary>
-        /// Unique registration identifier
+        /// External registration id.
         /// </summary>
-        public string RegistrationId { get; set; }
+        public string ExternalId { get; set; }
 
         /// <summary>
         /// Id of the user this registration is bound to.
@@ -23,6 +28,8 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Indicates which platform is being used for sending push notifications.
         /// </summary>
-        public PushNotificationPlatform Platform { get; set; }
+        public PushNotificationPlatform PushNotificationPlatform { get; set; }
+
     }
+
 }

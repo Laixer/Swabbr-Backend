@@ -1,341 +1,201 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.ViewModels;
+using Swabbr.Api.ViewModels.Livestreaming;
+using Swabbr.Api.ViewModels.Vlog;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
 using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
+
+    /// <summary>
+    /// Contains all endpoints regarding <see cref="Livestream"/> entities.
+    /// </summary>
     [Authorize]
     [ApiController]
-    [Route("livestreams")]
+    [ApiVersion("1")]
+    [Route("api/{version:apiVersion}/livestreams")]
     public class LivestreamsController : ControllerBase
     {
+
         private readonly UserManager<SwabbrIdentityUser> _userManager;
+        private readonly ILivestreamService _livestreamingService;
+        private readonly IPlaybackService _livestreamPlaybackService;
+        private readonly IUserStreamingHandlingService _userStreamingHandlingService;
+        private readonly ILogger logger;
 
-        private readonly ILivestreamingService _livestreamingService;
-        private readonly INotificationService _notificationService;
-
-        private readonly ILivestreamRepository _livestreamRepository;
-        private readonly IFollowRequestRepository _followRequestRepository;
-        private readonly IVlogRepository _vlogRepository;
-
-        public LivestreamsController(
-            UserManager<SwabbrIdentityUser> userManager,
-            ILivestreamingService livestreamingService,
-            INotificationService notificationService,
-            ILivestreamRepository livestreamRepository,
-            IFollowRequestRepository followRequestRepository,
-            IVlogRepository vlogRepository)
-        {
-            _userManager = userManager;
-            _livestreamingService = livestreamingService;
-            _notificationService = notificationService;
-            _livestreamRepository = livestreamRepository;
-            _followRequestRepository = followRequestRepository;
-            _vlogRepository = vlogRepository;
-        }
-
-        //TODO:The method below is limited and to be used TEMPORARILY for testing purposes only. It should be removed.
         /// <summary>
-        /// Open an available livestream for a user
+        /// Constructor for dependency injection.
         /// </summary>
-        [Obsolete("Temporary function to trigger a livestream for a user")]
-        [HttpGet("test/trigger/{userId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> NotifyUserStreamAsync(Guid userId)
+        public LivestreamsController(UserManager<SwabbrIdentityUser> userManager,
+            ILivestreamService livestreamingService,
+            IPlaybackService livestreamPlaybackService,
+            ILoggerFactory loggerFactory,
+            IUserStreamingHandlingService userStreamingHandlingService)
         {
-            var connection = await _livestreamingService.ReserveLiveStreamForUserAsync(userId);
-
-            await _livestreamingService.StartStreamAsync(connection.Id);
-
-            return Ok(new StreamConnectionDetailsOutputModel
-            {
-                Id = connection.Id,
-                AppName = connection.AppName,
-                HostAddress = connection.HostAddress,
-                Password = connection.Password,
-                Port = connection.Port,
-                StreamName = connection.StreamName,
-                Username = connection.Username
-            });
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
+            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(LivestreamsController)) : throw new ArgumentNullException(nameof(loggerFactory));
+            _userStreamingHandlingService = userStreamingHandlingService ?? throw new ArgumentNullException(nameof(userStreamingHandlingService));
         }
 
         /// <summary>
-        /// Start the broadcasting to an available livestream.
+        /// Indicates that a user is going to start streaming to the given 
+        /// <see cref="Livestream"/>.
         /// </summary>
-        /// <param name="livestreamId">Id of the livestream</param>
-        [HttpPut("{livestreamId}/startbroadcast")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> StartBroadcastAsync(string livestreamId)
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="LivestreamStartStreamingResponseModel"/></returns>
+        [HttpPost("{livestreamId}/start_streaming")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamStartStreamingResponseModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
+        public async Task<IActionResult> StartStreamingAsync([FromRoute]Guid livestreamId)
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-
-            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
-
-            // Ensure the requested user owns this livestream
-            if (!livestream.UserId.Equals(identityUser.UserId))
+            try
             {
-                return BadRequest(
-                    this.Error(ErrorCodes.InsufficientAccessRights, "User currently does not have access to this livestream.")
-                    );
-            }
-            if (await _vlogRepository.ExistsAsync(livestream.VlogId))
-            {
-                // If a vlog exists the livestream has already been started.
-                return BadRequest(
-                    this.Error(ErrorCodes.InvalidInput, "This livestream has already been started.")
-                    );
-            }
+                livestreamId.ThrowIfNullOrEmpty();
 
-            // Create a new vlog for the livestream
-            var newVlog = await _vlogRepository.CreateAsync(new Vlog
-            {
-                VlogId = Guid.NewGuid(),
-                LivestreamId = livestream.Id,
-                UserId = identityUser.UserId,
-                DateStarted = DateTime.Now,
-                IsLive = true
-            });
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            // Bind the vlog to the livestream
-            livestream.VlogId = newVlog.VlogId;
-            await _livestreamRepository.UpdateAsync(livestream);
-
-            // Obtain the nickname to use for the notification alert
-            string nickname = identityUser.Nickname;
-
-            // Obtain the followers of the authenticated user
-            var followers = (await (_followRequestRepository.GetIncomingForUserAsync(identityUser.UserId)))
-                .Where(fr => fr.Status == FollowRequestStatus.Accepted);
-
-            // Construct notification
-            var notification = new SwabbrNotification
-            {
-                MessageContent = new SwabbrNotificationBody
+                // Await service and return results
+                var upstreamDetails = await _userStreamingHandlingService.OnUserStartStreaming(user.Id, livestreamId).ConfigureAwait(false);
+                return Ok(new LivestreamStartStreamingResponseModel
                 {
-                    //TODO: Use string constants
-                    Title = $"{nickname} is livestreaming right now!",
-                    Body = $"{nickname} has just gone live.",
-                    ClickAction = ClickActions.FOLLOWED_PROFILE_LIVE,
-                    Object = JObject.FromObject(newVlog),
-                    ObjectType = typeof(Vlog).Name
-                }
-            };
-
-            // Send the notification to each follower
-            foreach (FollowRequest fr in followers)
-            {
-                Guid followerId = fr.RequesterId;
-                await _notificationService.SendNotificationToUserAsync(notification, followerId);
+                    ApplicationName = upstreamDetails.ApplicationName,
+                    HostPort = upstreamDetails.HostPort,
+                    HostServer = upstreamDetails.HostServer,
+                    Username = upstreamDetails.Username,
+                    LivestreamId = upstreamDetails.LivestreamId,
+                    Password = upstreamDetails.Password,
+                    StreamKey = upstreamDetails.StreamKey,
+                    VlogId = upstreamDetails.VlogId
+                });
             }
-
-            return Ok();
+            catch (UserNotOwnerException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "The current user does not own this livestream."));
+            }
+            catch (LivestreamStateException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Livestream could not be found"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not start user streaming process for livestream"));
+            }
         }
 
+        #region userstopstreaming
+        // TODO This is a beun way to disable this piece of code
+#if ((DEBUG == true) && (DEBUG == false))
         /// <summary>
-        /// Publish a livestream as a vlog.
+        /// This gets called when a <see cref="SwabbrUser"/> is finished streaming
+        /// on a specified <see cref="Livestream"/>. The vlog will always be published.
         /// </summary>
-        [HttpPut("{livestreamId}/publish")]
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="OkResult"/> or <see cref="ConflictResult"/></returns>
+        [HttpPost("{livestreamId}/stop_streaming")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
-        public async Task<IActionResult> PublishAsync([FromRoute]string livestreamId, [FromBody]VlogUpdateModel input)
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
+        public async Task<IActionResult> StopStreamingAsync([FromRoute]Guid livestreamId)
         {
-            //TODO: Check if vlog has already been published
+            return Conflict(this.Error(ErrorCodes.InvalidOperation, "There is no need to call this function anymore, it was done using events. This will be removed shortly."));
 
-            var identityUser = await _userManager.GetUserAsync(User);
-
-            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
-
-            if (!livestream.UserId.Equals(identityUser.UserId))
+            try
             {
-                return StatusCode(
-                    (int)HttpStatusCode.Forbidden,
-                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to perform this action.")
-                );
+                livestreamId.ThrowIfNullOrEmpty();
+
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                // Await service
+                await _userStreamingHandlingService.OnUserStopStreaming(user.Id, livestreamId).ConfigureAwait(false);
+
+                return Ok();
             }
-            if (!(await _vlogRepository.ExistsAsync(livestream.VlogId)))
+            catch (UserNotOwnerException e)
             {
-                //TODO: Determine what to do at this point
-                // Failsave for if a vlog has not been created (livestream is being published without having been started)
-                // Create a new vlog record
-                var newVlog = await _vlogRepository.CreateAsync(new Vlog
-                {
-                    VlogId = Guid.NewGuid(),
-                    LivestreamId = livestream.Id,
-                    UserId = identityUser.UserId,
-                    DateStarted = DateTime.Now
-                });
-
-                // Bind the vlog to the livestream
-                livestream.VlogId = newVlog.VlogId;
-                // Update livestream instance
-                livestream = await _livestreamRepository.UpdateAsync(livestream);
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "The current user does not own this livestream."));
             }
-
-            // Update the livestream bound vlog
-            var vlog = await _vlogRepository.GetByIdAsync(livestream.VlogId);
-
-            vlog.IsPrivate = input.IsPrivate;
-
-            // Bind the given shared users to this vlog
-            foreach (Guid userId in input.SharedUsers)
+            catch (LivestreamStateException e)
             {
-                // Bind the shared user with the vlog
-                await _vlogRepository.ShareWithUserAsync(vlog.VlogId, userId);
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
             }
-
-            VlogOutputModel output = VlogOutputModel.Parse(await _vlogRepository.UpdateAsync(vlog));
-
-            // Stop the external livestream asynchronously
-            await _livestreamingService.StopStreamAsync(livestreamId);
-
-            // Synchronize the livestream recordings for the vlog asynchronously without awaiting
-            // the result
-            _ = _livestreamingService.SyncRecordingsForVlogAsync(livestreamId, livestream.VlogId);
-
-            return Ok(output);
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not stop livestream"));
+            }
         }
+#endif
+        #endregion
 
         /// <summary>
-        /// Get thumbnail of livestream.
+        /// Indicates that a user is going to start streaming to the given 
+        /// <see cref="Livestream"/>.
         /// </summary>
-        [HttpGet("{livestreamId}/thumbnail")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetThumbnailAsync(string livestreamId)
+        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <returns><see cref="LivestreamStartStreamingResponseModel"/></returns>
+        [HttpGet("{livestreamId}/watch")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(LivestreamPlaybackOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.Conflict, Type = typeof(ErrorMessage))]
+        public async Task<IActionResult> RequestDownstreamDetailsAsync([FromRoute]Guid livestreamId)
         {
             try
             {
-                // Retrieve the live thumbnail of the livestream
-                var thumbnailUrl = await _livestreamingService.GetThumbnailUrlAsync(livestreamId);
-                return Ok(thumbnailUrl);
-            }
-            catch
-            {
-                //TODO: Handle specific exception
-                return BadRequest(
-                    this.Error(ErrorCodes.ExternalError, "Could not retrieve thumbnail.")
-                );
-            }
-        }
+                livestreamId.ThrowIfNullOrEmpty();
 
-        /// <summary>
-        /// Stop all running livestreams.
-        /// </summary>
-        [HttpPut("test/stopall")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        public async Task<IActionResult> TestStopAllStreamsAsync()
-        {
-            //TODO: This method has been added for testing purposes only. It is being used to stop any started livestreams externally and deactivate them internally.
-            var active = await _livestreamRepository.GetActiveLivestreamsAsync();
+                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-            foreach (var a in active)
-            {
-                // Currently not being awaited
-
-                // Stop all active streams
-                _ = _livestreamingService.StopStreamAsync(a.Id);
-                a.IsActive = false;
-                a.UserId = Guid.Empty;
-                await _livestreamRepository.UpdateAsync(a);
-            }
-
-            return Ok();
-        }
-
-        /// <summary>
-        /// Returns playback details of a livestream.
-        /// </summary>
-        [HttpGet("{livestreamId}/playback")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlaybackAsync(string livestreamId)
-        {
-            var details = await _livestreamingService.GetStreamPlaybackAsync(livestreamId);
-
-            return Ok(new StreamPlaybackOutputModel
-            {
-                PlaybackUrl = details.PlaybackUrl
-            });
-        }
-
-        /// <summary>
-        /// Returns playback details of a livestream that is broadcasted by the specified user.
-        /// </summary>
-        [HttpGet("playback/user/{userId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamPlaybackOutputModel))]
-        public async Task<IActionResult> GetPlaybackForUserAsync(Guid userId)
-        {
-            try
-            {
-                var activeStream = await _livestreamRepository.GetActiveLivestreamForUserAsync(userId);
-
-                return Ok(new StreamPlaybackOutputModel
+                var pars = await _livestreamPlaybackService.GetLivestreamDownstreamParametersAsync(livestreamId, user.Id).ConfigureAwait(false);
+                return Ok(new LivestreamPlaybackOutputModel
                 {
-                    PlaybackUrl = (await _livestreamingService.GetStreamPlaybackAsync(activeStream.Id)).PlaybackUrl
+                    EndpointUrl = pars.EndpointUrl,
+                    LiveLivestreamId = pars.LiveLivestreamId,
+                    LiveUserId = pars.LiveUserId,
+                    LiveVlogId = pars.LiveVlogId,
+                    Token = pars.Token
                 });
             }
-            catch (EntityNotFoundException)
+            catch (LivestreamStateException e)
             {
-                return NotFound(
-                    this.Error(ErrorCodes.EntityNotFound, "Livestream for the specified user was not found.")
-                );
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Livestream state is invalid for this operation"));
+            }
+            catch (EntityNotFoundException e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Livestream could not be found"));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.Message);
+                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get downstream token for livestream"));
             }
         }
 
-        /// <summary>
-        /// Delete a Wowza Streaming Cloud livestream
-        /// </summary>
-        [Authorize(Roles = "Admin")]
-        [HttpGet("{livestreamId}/delete")]
-        public async Task<IActionResult> DeleteStreamAsync(string livestreamId)
-        {
-            await _livestreamingService.DeleteStreamAsync(livestreamId);
-            return Ok();
-        }
-
-        /// <summary>
-        /// Retrieve the connection details of a livestream.
-        /// </summary>
-        [HttpGet("{livestreamId}/connection")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(StreamConnectionDetailsOutputModel))]
-        public async Task<IActionResult> GetConnectionDetailsAsync(string livestreamId)
-        {
-            var identityUser = await _userManager.GetUserAsync(User);
-
-            var livestream = await _livestreamRepository.GetByIdAsync(livestreamId);
-
-            if (!livestream.UserId.Equals(identityUser.UserId))
-            {
-                return StatusCode(
-                    (int)HttpStatusCode.Forbidden,
-                    this.Error(ErrorCodes.InsufficientAccessRights, "User is not allowed to access livestream details.")
-                );
-            }
-
-            var connection = await _livestreamingService.GetStreamConnectionAsync(livestreamId);
-
-            return Ok(new StreamConnectionDetailsOutputModel
-            {
-                Id = connection.Id,
-                AppName = connection.AppName,
-                HostAddress = connection.HostAddress,
-                Password = connection.Password,
-                Port = connection.Port,
-                StreamName = connection.StreamName,
-                Username = connection.Username
-            });
-        }
     }
+
 }

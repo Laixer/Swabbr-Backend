@@ -1,16 +1,14 @@
-﻿using System;
+﻿using Swabbr.Core.Enums;
+using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
-    /// A video reaction to a vlog.
+    /// Represents a video reaction to a vlog.
     /// </summary>
-    public class Reaction : EntityBase
+    public class Reaction : EntityBase<Guid>
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid ReactionId { get; set; }
 
         /// <summary>
         /// Id of the user by whom this reaction was created.
@@ -20,7 +18,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Id of the vlog the reaction responds to.
         /// </summary>
-        public Guid VlogId { get; set; }
+        public Guid TargetVlogId { get; set; }
 
         /// <summary>
         /// Duration of the video.
@@ -30,17 +28,23 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// The moment at which the reaction was posted.
         /// </summary>
-        public DateTime DatePosted { get; set; }
+        public DateTime CreateDate { get; set; }
 
         /// <summary>
         /// Indicates whether this reaction is public or private.
         /// </summary>
         public bool IsPrivate { get; set; }
 
-        //TODO: Add metadata from media service? To reactions
         /// <summary>
-        /// Metadata from the Media Service.
+        /// Represents the length in seconds for this reaction.
         /// </summary>
-        public string MediaServiceData { get; set; }
+        public int LengthInSeconds { get; set; }
+
+        /// <summary>
+        /// Indicates the state of this reaction.
+        /// </summary>
+        public ReactionState ReactionState { get; set; }
+
     }
+
 }

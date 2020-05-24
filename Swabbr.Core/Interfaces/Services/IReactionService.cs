@@ -1,49 +1,58 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+
+    /// <summary>
+    /// Contract for a service that handles everything related to <see cref="Reaction"/> entities.
+    /// </summary>
     public interface IReactionService
     {
-        /// <summary>
-        /// Returns whether a reaction with the given id exists.
-        /// </summary>
-        /// <param name="reactionId">Unique identifier of a reaction</param>
-        /// TODO THOMAS This should never be required
-        Task<bool> ExistsAsync(Guid reactionId);
+
+        Task DeleteReactionAsync(Guid userId, Guid reactionId);
 
         /// <summary>
-        /// Returns a reaction with the specified id.
+        /// Gets a new uploading uri for a <see cref="Reaction"/> upload.
         /// </summary>
-        /// <param name="reactionId">Unique identifier of a reaction</param>
-        /// <returns></returns>
-        Task<Reaction> GetByIdAsync(Guid reactionId);
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Uri"/></returns>
+        Task<Uri> GetNewUploadUriAsync(Guid userId, Guid reactionId);
 
-        /// <summary>
-        /// Returns a collection of reactions for a given vlog.
-        /// </summary>
-        /// <param name="vlogId">Unique identifier of the vlog the reactions were placed on</param>
+        Task<SwabbrUser> GetOwnerOfVlogByReactionAsync(Guid reactionId);
+
+        Task<Reaction> GetReactionAsync(Guid reactionId);
+
+        Task<int> GetReactionCountForVlogAsync(Guid vlogId);
+
         Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId);
 
         /// <summary>
-        /// Returns a collection of reactions that were placed by a specific user.
+        /// Called when a <see cref="Reaction"/> is uploaded.
         /// </summary>
-        /// <param name="userId">Unique identifier of the user who placed the reactions</param>
-        Task<IEnumerable<Reaction>> GetReactionsByUserAsync(Guid userId);
+        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
+        /// <returns><see cref="Task"/></returns>
+        Task OnFinishedUploadingReactionAsync(Guid reactionId);
+
+        Task OnTranscodingReactionFailedAsync(Guid reactionId);
+
+        Task OnTranscodingReactionSucceededAsync(Guid reactionId);
 
         /// <summary>
-        /// Returns the amount of reactions that were placed on a specific vlog.
+        /// Called when we want to upload a reaction.
         /// </summary>
-        /// <param name="userId">Unique identifier of a vlog</param>
-        Task<int> GetReactionCountForVlogAsync(Guid vlogId);
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="targetVlogId">Internal <see cref="Vlog"/> id</param>
+        /// <param name="isPrivate">Indicates vlog private or not</param>
+        /// <returns><see cref="ReactionUploadWrapper"/></returns>
+        Task<ReactionUploadWrapper> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate);
 
-        /// <summary>
-        /// Returns the amount of reactions that were placed by a specific user.
-        /// </summary>
-        /// <param name="userId">Unique identifier of a user</param>
-        Task<int> GetGivenReactionCountForUserAsync(Guid userId);
+        Task<Reaction> UpdateReactionAsync(Guid userId, Guid reactionId, bool isPrivate);
+
     }
+
 }

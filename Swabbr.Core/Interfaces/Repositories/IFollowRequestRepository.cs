@@ -1,24 +1,18 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
-    public interface IFollowRequestRepository : IRepository<FollowRequest>
-    {
-        /// <summary>
-        /// Returns a single follow request entity by id.
-        /// </summary>
-        /// <param name="followRequestId">Unique identifier of the follow request.</param>
-        /// <returns></returns>
-        Task<FollowRequest> GetByIdAsync(Guid followRequestId);
 
-        /// <summary>
-        /// Returns a single follow request entity from the id of the requester to the id of the receiver.
-        /// </summary>
-        /// <returns></returns>
-        Task<FollowRequest> GetByUserIdAsync(Guid receiverId, Guid requesterId);
+    /// <summary>
+    /// Contract for the <see cref="FollowRequest"/> repository.
+    /// </summary>
+    public interface IFollowRequestRepository : IRepository<FollowRequest, FollowRequestId>, ICudFunctionality<FollowRequest, FollowRequestId>
+    {
 
         /// <summary>
         /// Returns whether a follow relationship from the receiver to the requester exists.
@@ -28,7 +22,7 @@ namespace Swabbr.Core.Interfaces
         /// <returns></returns>
         /// TODO THOMAS I suspect that this exists to battle the double-follow-request race conditions. These should
         /// never be a problem as long as the follow request processsing pipeline is transactional. --> postgresql
-        Task<bool> ExistsAsync(Guid receiverId, Guid requesterId);
+        Task<bool> ExistsAsync(FollowRequestId followRequestId);
 
         /// <summary>
         /// Returns all follow requests targeted to a specific user.
@@ -59,5 +53,16 @@ namespace Swabbr.Core.Interfaces
         /// </param>
         /// <returns></returns>
         Task<int> GetFollowingCountAsync(Guid userId);
+
+        /// <summary>
+        /// Updates the status for a single <see cref="FollowRequest"/> to the 
+        /// specified <paramref name="status"/>.
+        /// </summary>
+        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="status"><see cref="FollowRequestStatus"/></param>
+        /// <returns><see cref="Task"/></returns>
+        Task<FollowRequest> UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status);
+
     }
+
 }

@@ -1,21 +1,18 @@
 ﻿using Swabbr.Core.Entities;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Repositories
 {
+
     /// <summary>
-    /// Repository for entities.
+    /// Generic repository base for an <see cref="EntityBase<typeparamref name="TPrimary"/>"/>.
     /// </summary>
-    public interface IRepository<TEntity> where TEntity : EntityBase
+    public interface IRepository<TEntity, TPrimary>
+        where TEntity : EntityBase<TPrimary>
     {
-        // This is Table API specific
-        // This should just be GetAsync(Guid id)
-        Task<TEntity> RetrieveAsync(string partitionKey, string rowKey);
 
-        Task<TEntity> CreateAsync(TEntity entity);
+        Task<TEntity> GetAsync(TPrimary id);
 
-        Task<TEntity> UpdateAsync(TEntity entity);
-
-        Task DeleteAsync(TEntity entity);
     }
+
 }

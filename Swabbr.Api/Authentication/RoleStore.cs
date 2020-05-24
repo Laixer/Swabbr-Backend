@@ -7,19 +7,21 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-    //TODO: Hardcoded for now, not yet able to create, update or delete roles.
-    // TODO THOMAS This entire thing has to be redone (as specified by Beau)
+
+    /// <summary>
+    /// Contains our role stores for identity.
+    /// </summary>
     public class RoleStore : IRoleStore<SwabbrIdentityRole>
     {
+
         protected static readonly List<SwabbrIdentityRole> Roles = new List<SwabbrIdentityRole>
         {
-            new SwabbrIdentityRole{ RoleId = "0", Name = "User", NormalizedName = "USER" },
-            new SwabbrIdentityRole{ RoleId = "1", Name = "Admin", NormalizedName = "ADMIN" },
+            new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "User", NormalizedName = "USER" },
+            new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
         };
 
         public async Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            //! Not implemented
             // TODO THOMAS This should throw! I suspect this is to enable endpoint calling for iOS and Android? --> yorick: kan met de user manager te maken hebben
             return IdentityResult.Success;
         }
@@ -38,7 +40,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
         {
-            return Roles.Where(r => r.RoleId == roleId).First();
+            return Roles.Where(r => r.Id.ToString() == roleId).First();
         }
 
         public async Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
@@ -53,7 +55,7 @@ namespace Swabbr.Api.Authentication
 
         public async Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            return role.RoleId;
+            return role.Id.ToString();
         }
 
         public async Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)

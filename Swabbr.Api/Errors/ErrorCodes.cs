@@ -19,7 +19,6 @@
         /// </summary>
         public const int InvalidInput = 603;
 
-        //TODO: Update
         /// <summary>
         /// Indicates that the requested operation was invalid.
         /// </summary>

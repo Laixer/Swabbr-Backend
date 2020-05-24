@@ -1,7 +1,19 @@
 ﻿namespace Swabbr.Core.Entities
 {
-    // TODO THOMAS This should contain the id as a Guid
-    public abstract class EntityBase
+
+    //public abstract class EntityBase { }
+
+    /// <summary>
+    /// Used as a base class for all our entities.
+    /// </summary>
+    public abstract class EntityBase<TPrimary>// : EntityBase
     {
+
+        /// <summary>
+        /// Internal entity unique identifier.
+        /// </summary>
+        public TPrimary Id { get; set; }
+
     }
+
 }

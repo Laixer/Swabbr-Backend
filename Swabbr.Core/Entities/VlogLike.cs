@@ -1,30 +1,34 @@
-﻿using System;
+﻿using Swabbr.Core.Types;
+using System;
 
 namespace Swabbr.Core.Entities
 {
+
     /// <summary>
     /// Represents a like (love-it) given to a vlog.
     /// </summary>
-    public class VlogLike : EntityBase
+    public class VlogLike : EntityBase<VlogLikeId>
     {
-        /// <summary>
-        /// Unique identifier.
-        /// </summary>
-        public Guid VlogLikeId { get; set; }
 
         /// <summary>
-        /// Id of the vlog that was given a like.
+        /// TODO This seems like a beunfix.
+        /// When we parse this object into it's Id object through UserId and VlogId,
+        /// the Id object is still null.
         /// </summary>
-        public Guid VlogId { get; set; }
+        public VlogLike()
+        {
+            Id = new VlogLikeId();
+        }
 
-        /// <summary>
-        /// Id of the user that created the like.
-        /// </summary>
-        public Guid UserId { get; set; }
+        public Guid UserId { get => Id.UserId; set => Id.UserId = value; }
+
+        public Guid VlogId { get => Id.VlogId; set => Id.VlogId = value; }
 
         /// <summary>
         /// The time at which the user liked the vlog.
         /// </summary>
-        public DateTime TimeCreated { get; set; }
+        public DateTimeOffset TimeCreated { get; set; }
+
     }
+
 }

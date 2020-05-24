@@ -4,26 +4,28 @@ using System.Net;
 
 namespace Swabbr.Api.Controllers
 {
-    [Route("api/v1")]
+
+    /// <summary>
+    /// Contains utility functionality which is used throughout all our controllers.
+    /// </summary>
     public class ApiControllerBase : ControllerBase
     {
+
         /// <summary>
         /// Creates an <see cref="ObjectResult"/> object that produces an <see
         /// cref="HttpStatusCode.Forbidden"/> response.
         /// </summary>
         /// <param name="value">The content value to format in the entity body.</param>
-        protected ObjectResult Forbidden([ActionResultObjectValue] object value)
-        {
-            return StatusCode((int)HttpStatusCode.Forbidden, value);
-        }
+        /// <returns><see cref="ObjectResult"/></returns>
+        protected ObjectResult Forbidden([ActionResultObjectValue] object value) => StatusCode((int)HttpStatusCode.Forbidden, value);
 
         /// <summary>
         /// Creates a <see cref="StatusCodeResult"/> object that produces an <see
         /// cref="HttpStatusCode.Forbidden"/> response.
         /// </summary>
-        protected StatusCodeResult Forbidden()
-        {
-            return StatusCode((int)HttpStatusCode.Forbidden);
-        }
+        /// <returns><see cref="ObjectResult"/></returns>
+        protected StatusCodeResult Forbidden() => StatusCode((int)HttpStatusCode.Forbidden);
+
     }
+
 }
