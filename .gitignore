@@ -354,6 +354,5 @@ MigrationBackup/
 
 **/appsettings.json
 **/appsettings.*.json
-**/*.editorconfig
 Swabbr.AzureFunctions/local.settings.json
 Swabbr.AzureFunctions/host.json
