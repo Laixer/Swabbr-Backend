@@ -27,11 +27,26 @@ steps:
   displayName: Publish project
   inputs:
     command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    publishWebProjects: false
+    projects: '**/Swabbr.Api.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/web'
+
+- task: DotNetCoreCLI@2
+  displayName: Publish project
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: '**/Swabbr.AzureFunctions.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func'
 
 - task: PublishBuildArtifacts@1
   displayName: Publish artifacts
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/web'
+    ArtifactName: 'web'
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/func'
+    ArtifactName: 'func'
