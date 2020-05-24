@@ -46,7 +46,7 @@ namespace Swabbr.Api.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.SecretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_jwtConfig.ExpireDays));
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(_jwtConfig.ExpireMinutes));
 
             var token = new JwtSecurityToken(
                 _jwtConfig.Issuer,
@@ -60,7 +60,7 @@ namespace Swabbr.Api.Services
             {
                 CreateDate = DateTimeOffset.Now,
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                TokenExpirationTimespan = TimeSpan.FromDays(_jwtConfig.ExpireDays)
+                TokenExpirationTimespan = TimeSpan.FromMinutes(_jwtConfig.ExpireMinutes)
             };
         }
 

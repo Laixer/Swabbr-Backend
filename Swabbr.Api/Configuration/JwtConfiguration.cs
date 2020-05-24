@@ -11,7 +11,7 @@
 
         public string Issuer { get; set; }
 
-        public uint ExpireDays { get; set; }
+        public uint ExpireMinutes { get; set; }
 
     }
 
