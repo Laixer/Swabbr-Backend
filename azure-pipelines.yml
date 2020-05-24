@@ -1,7 +1,8 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+# Builds, publishes and creates an artifact for:
+# - Swabbr.API (ASP.Net Core Web API project)
+# - Swabbr.AzureFunctions (Azure Functions project)
+# 
+# This performs a separate build for each in order to trigger the static analysis.
 
 trigger:
 - master
@@ -56,13 +57,13 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func'
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish Swabbr.Api
+  displayName: Publish Swabbr.Api build artifact
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/web'
     ArtifactName: 'web'
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish Swabbr.AzureFunctions
+  displayName: Publish Swabbr.AzureFunctions build artifact
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/func'
     ArtifactName: 'func'
