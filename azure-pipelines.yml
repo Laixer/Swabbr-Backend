@@ -40,6 +40,14 @@ steps:
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/web'
 
 - task: DotNetCoreCLI@2
+  displayName: Build Swabbr.AzureFunctions
+  inputs:
+    command: 'build'
+    publishWebProjects: false
+    projects: '**/Swabbr.AzureFunctions.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
   displayName: Publish Swabbr.AzureFunctions
   inputs:
     command: 'publish'
