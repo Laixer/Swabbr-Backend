@@ -12,10 +12,19 @@ namespace Swabbr.Api.Authentication
     public sealed class TokenWrapper
     {
 
+        /// <summary>
+        /// The acces token.
+        /// </summary>
         public string Token { get; set; }
 
+        /// <summary>
+        /// The <see cref="DateTimeOffset"/> at which the access token was created.
+        /// </summary>
         public DateTimeOffset CreateDate { get; set; }
 
+        /// <summary>
+        /// <see cref="TimeSpan"/> indicating how long the access token is valid.
+        /// </summary>
         public TimeSpan TokenExpirationTimespan { get; set; }
 
     }

@@ -551,7 +551,7 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <param name="liveEvent"></param>
         /// <param name="protocol"></param>
         /// <returns></returns>
-        private Uri GetUriFromLiveEvent(LiveEvent liveEvent, string protocol = "RTMP")
+        private static Uri GetUriFromLiveEvent(LiveEvent liveEvent, string protocol = "RTMP")
         {
             var endpoints = liveEvent.Input.Endpoints;
             if (!endpoints.Any()) { throw new ExternalErrorException("Live Event has no endpoints"); }

@@ -305,6 +305,7 @@ namespace Swabbr.Api.Controllers
         /// <see cref="SwabbrUser"/>. This currently gets a list of most recent 
         /// <see cref="Vlog"/>s posted by <see cref="SwabbrUser"/>s that are being
         /// followed by the currently logged in <see cref="SwabbrUser"/>.
+        /// </summary>
         /// <returns><see cref="VlogCollectionOutputModel"/></returns>
         [HttpGet("recommended")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogCollectionOutputModel))]

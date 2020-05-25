@@ -18,7 +18,7 @@ namespace Swabbr.Api.Controllers
         /// <returns></returns>
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("/")]
-        public async Task<IActionResult> IndexAsync() => Redirect("/swagger");
+        public IActionResult IndexAsync() => Redirect("/swagger");
 
     }
 

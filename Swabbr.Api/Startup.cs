@@ -73,24 +73,9 @@ namespace Swabbr
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Setup request related services
-            services.AddCors();
-            services.AddControllers(c => { }).AddNewtonsoftJson();
-            services.AddRouting(options => { options.LowercaseUrls = true; });
-            SetupIdentity(services);
-            SetupAuthentication(services);
-            services.AddApiVersioning(options => { options.ReportApiVersions = true; });
-
-            // Setup logging explicitly
-            services.AddLogging((config) =>
-            {
-                config.AddAzureWebAppDiagnostics();
-            });
-
-            // Setup doc
-            SetupSwagger(services);
-
+#pragma warning disable ASP0000
             // Add configurations
+            // We do this first, because building the service provider will create additional singletons otherwise
             services.Configure<JwtConfiguration>(_configuration.GetSection("Jwt"));
             services.Configure<NotificationHubConfiguration>(options =>
             {
@@ -107,6 +92,24 @@ namespace Swabbr
             servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
+#pragma warning enable ASP0000
+
+            // Setup request related services
+            services.AddCors();
+            services.AddControllers(c => { }).AddNewtonsoftJson();
+            services.AddRouting(options => { options.LowercaseUrls = true; });
+            SetupIdentity(services);
+            SetupAuthentication(services);
+            services.AddApiVersioning(options => { options.ReportApiVersions = true; });
+
+            // Setup logging explicitly
+            services.AddLogging((config) =>
+            {
+                config.AddAzureWebAppDiagnostics();
+            });
+
+            // Setup doc
+            SetupSwagger(services);
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
@@ -154,8 +157,11 @@ namespace Swabbr
         /// </summary>
         /// <param name="app"><see cref="IApplicationBuilder"/></param>
         /// <param name="env"><see cref="IWebHostEnvironment"/></param>
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            if (app == null) { throw new ArgumentNullException(nameof(app)); }
+            if (env == null) { throw new ArgumentNullException(nameof(env)); }
+
             app.UseHsts();
             app.UseHttpsRedirection();
 
@@ -188,7 +194,7 @@ namespace Swabbr
         /// Adds swagger to the services.
         /// </summary>
         /// <param name="services"><see cref="IServiceCollection"/></param>
-        private void SetupSwagger(IServiceCollection services)
+        private static void SetupSwagger(IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
             {
