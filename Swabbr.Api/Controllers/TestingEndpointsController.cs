@@ -18,6 +18,7 @@ namespace Swabbr.Api.Controllers
 
     /// <summary>
     /// Contains testing endpoints.
+    /// TODO Disable this for production.
     /// </summary>
     [ApiVersion("1")]
     [Route("api/{version:apiVersion}/testing_endpoints")]
@@ -47,7 +48,7 @@ namespace Swabbr.Api.Controllers
         /// <remarks>
         /// This uses randomly generated values - they do not exist in the datastore.
         /// </remarks>
-        /// <param name="action"><see cref="NotificationActionModel"/></param>
+        /// <param name="actionAsString">The action as string value</param>
         /// <returns><see cref="OkObjectResult"/></returns>
         [HttpPost("request_test_notification/")]
         public async Task<IActionResult> RequestTestNotification(string actionAsString)

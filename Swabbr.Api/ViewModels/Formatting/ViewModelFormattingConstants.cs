@@ -16,12 +16,12 @@ namespace Swabbr.Api.ViewModels.Formatting
         /// <summary>
         /// Format for dd-mm-yyyy.
         /// </summary>
-        public static string RegexDate = @"^\d{2}\-\d{2}\-\d{4}$";
+        public static string RegexDate => @"^\d{2}\-\d{2}\-\d{4}$";
 
         /// <summary>
         /// Regex for UTC+xx:xx or UTC-xx:xx.
         /// </summary>
-        public static string RegexTimeZone = @"^UTC(\+|\-)\d{2}:\d{2}$";
+        public static string RegexTimeZone => @"^UTC(\+|\-)\d{2}:\d{2}$";
 
     }
 

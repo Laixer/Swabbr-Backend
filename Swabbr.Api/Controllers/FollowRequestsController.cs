@@ -261,7 +261,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Accept a pending follow request for the authenticated user.
         /// </summary>
-        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <param name="requesterId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
         /// <remarks><see cref="IActionResult"/></remarks>
         [HttpPost("accept")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]
@@ -293,7 +293,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Decline a follow request for the authenticated user.
         /// </summary>
-        /// <param name="receiverId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
+        /// <param name="requesterId">Internal <see cref="Core.Entities.SwabbrUser"/> id</param>
         /// <remarks><see cref="FollowRequestOutputModel"/></remarks>
         [HttpPost("decline")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FollowRequestOutputModel))]

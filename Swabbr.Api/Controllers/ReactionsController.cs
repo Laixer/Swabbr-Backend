@@ -255,7 +255,7 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Should be called when the user finishes uploading a <see cref="Reaction"/>.
         /// </summary>
-        /// <param name="model"><see cref="ReactionInputModel"/></param>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
         [HttpPost("finished_uploading")]
         [ProducesResponseType((int)HttpStatusCode.OK)]

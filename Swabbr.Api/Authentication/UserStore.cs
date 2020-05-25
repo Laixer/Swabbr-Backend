@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
+
+#pragma warning disable CS1591
 
     // TODO: Not optimized
     // TODO THOMAS This is a lot of code, might be worth revisiting.
@@ -83,41 +86,49 @@ namespace Swabbr.Api.Authentication
 
         public Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.NormalizedEmail);
         }
 
         public Task<string> GetPasswordHashAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.PasswordHash);
         }
 
         public Task<string> GetPhoneNumberAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.PhoneNumber);
         }
 
         public Task<bool> GetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.PhoneNumberConfirmed);
         }
 
         public Task<bool> GetTwoFactorEnabledAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.TwoFactorEnabled);
         }
 
         public Task<string> GetUserIdAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.Id.ToString());
         }
 
         public Task<string> GetUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.Email);
         }
 
         public Task<bool> HasPasswordAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
         }
 
@@ -129,24 +140,29 @@ namespace Swabbr.Api.Authentication
 
         public Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
+            passwordHash.ThrowIfNullOrEmpty();
             user.PasswordHash = passwordHash;
             return Task.CompletedTask;
         }
 
         public Task SetPhoneNumberAsync(SwabbrIdentityUser user, string phoneNumber, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             user.PhoneNumber = phoneNumber;
             return Task.CompletedTask;
         }
 
         public Task SetPhoneNumberConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             user.PhoneNumberConfirmed = confirmed;
             return Task.CompletedTask;
         }
 
         public Task SetTwoFactorEnabledAsync(SwabbrIdentityUser user, bool enabled, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             user.TwoFactorEnabled = enabled;
             return Task.CompletedTask;
         }
@@ -181,33 +197,39 @@ namespace Swabbr.Api.Authentication
 
         public Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.Email);
         }
 
         public Task<bool> GetEmailConfirmedAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.EmailConfirmed);
         }
 
         public Task<string> GetNormalizedEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             return Task.FromResult(user.NormalizedEmail);
         }
 
         public Task SetEmailAsync(SwabbrIdentityUser user, string email, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             user.Email = email;
             return Task.CompletedTask;
         }
 
         public Task SetEmailConfirmedAsync(SwabbrIdentityUser user, bool confirmed, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             user.EmailConfirmed = confirmed;
             return Task.CompletedTask;
         }
 
         public Task SetNormalizedEmailAsync(SwabbrIdentityUser user, string normalizedEmail, CancellationToken cancellationToken)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
             user.NormalizedEmail = normalizedEmail;
             return Task.CompletedTask;
         }
@@ -253,6 +275,7 @@ namespace Swabbr.Api.Authentication
 
         public Task AddClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
+            if (claims == null) { throw new ArgumentNullException(nameof(claims)); }
             foreach (Claim c in claims)
             {
                 //TODO: Store claim for user
@@ -273,6 +296,7 @@ namespace Swabbr.Api.Authentication
 
         public Task RemoveClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
+            if (claims == null) { throw new ArgumentNullException(nameof(claims)); }
             foreach (Claim c in claims)
             {
                 //TODO: Remove claim for user
@@ -327,3 +351,5 @@ namespace Swabbr.Api.Authentication
         #endregion IUserRoleStore
     }
 }
+
+#pragma warning restore CS1591

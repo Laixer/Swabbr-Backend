@@ -14,11 +14,16 @@ namespace Swabbr.Api.Authentication
     public class RoleStore : IRoleStore<SwabbrIdentityRole>
     {
 
+        /// <summary>
+        /// TODO Don't hard code like this.
+        /// </summary>
         protected static readonly List<SwabbrIdentityRole> Roles = new List<SwabbrIdentityRole>
         {
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "User", NormalizedName = "USER" },
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
         };
+
+#pragma warning disable CS1591
 
         public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
@@ -111,3 +116,5 @@ namespace Swabbr.Api.Authentication
         #endregion IDisposable Support
     }
 }
+
+#pragma warning restore CS1591
