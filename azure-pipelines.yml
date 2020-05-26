@@ -54,7 +54,7 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '**/Swabbr.AzureFunctions.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func --self-contained true -r win-x64'
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Swabbr.Api build artifact
