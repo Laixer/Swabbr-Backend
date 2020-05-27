@@ -1,4 +1,5 @@
 ﻿using Laixer.Infra.Npgsql;
+using Laixer.Utility.Exceptions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,28 +50,6 @@ namespace Swabbr.AzureFunctions
         {
             if (builder == null) { throw new ArgumentNullException(nameof(builder)); }
 
-            // TODO Fix the config mess later
-            // Add Azure App Configuration remote
-            //var connectionString = builder.Services.BuildServiceProvider().GetRequiredService<IConfiguration>().GetValue<string>("AzureAppConfig:ConnectionString");
-            //if (string.IsNullOrEmpty(connectionString)) { throw new ConfigurationException("Missing connection string for AzureAppConfig"); }
-            //var myBuilder = new ConfigurationBuilder();
-            //myBuilder.AddAzureAppConfiguration(connectionString);
-            //var newConfiguration = myBuilder.Build();
-            //// builder.AddConfigurationClient
-            //// Add configurations
-            //builder.Services.Configure<SwabbrConfiguration>(options =>
-            //{
-            //    newConfiguration.GetSection("SwabbrConfiguration").Bind(options);
-            //});
-            //builder.Services.Configure<NotificationHubConfiguration>(options =>
-            //{
-            //    newConfiguration.GetSection("NotificationHub").Bind(options);
-            //});
-            //builder.Services.Configure<AMSConfiguration>(options =>
-            //{
-            //    newConfiguration.GetSection("AzureMediaServices").Bind(options);
-            //});
-
             // Add configuration
             builder.Services.AddOptions<SwabbrConfiguration>().Configure<IConfiguration>((settings, configuration) =>
             {
@@ -89,12 +68,13 @@ namespace Swabbr.AzureFunctions
                 configuration.GetSection("LogicAppsConfiguration").Bind(settings);
             });
 
+            // TODO Not calling this because the app should always launch
             // Check configuration
-            var servicesBuilt = builder.Services.BuildServiceProvider();
-            servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
+            //var servicesBuilt = builder.Services.BuildServiceProvider();
+            //servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();

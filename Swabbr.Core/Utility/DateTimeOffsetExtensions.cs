@@ -39,6 +39,9 @@ namespace Swabbr.Core.Utility
         public static bool IsNullOrEmpty(this DateTimeOffset self)
         {
             if (self == null) { throw new ArgumentNullException(nameof(self)); }
+            if (self.Year == 1 &&
+                self.Month == 1 &&
+                self.Day == 1) { return true; }
             return false;
         }
 

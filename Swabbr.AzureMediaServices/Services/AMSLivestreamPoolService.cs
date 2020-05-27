@@ -174,15 +174,11 @@ namespace Swabbr.AzureMediaServices.Services
         /// <returns><see cref="Livestream"/></returns>
         public async Task<Livestream> TryGetLivestreamFromPoolAsync()
         {
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            var livestreams = await _livestreamRepository.GetAvailableLivestreamsAsync().ConfigureAwait(false);
+            if (livestreams.Any())
             {
-                var livestreams = await _livestreamRepository.GetAvailableLivestreamsAsync().ConfigureAwait(false);
-                if (livestreams.Any())
-                {
-                    var livestream = livestreams.First();
-                    scope.Complete();
-                    return livestream;
-                }
+                var livestream = livestreams.First();
+                return livestream;
             }
 
             return await CreateLivestreamAsync().ConfigureAwait(false);
