@@ -46,22 +46,22 @@ steps:
     command: 'build'
     publishWebProjects: false
     projects: '**/Swabbr.AzureFunctions.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(System.DefaultWorkingDirectory)/func'
+    arguments: '--configuration $(buildConfiguration)'      #' --output $(System.DefaultWorkingDirectory)/func'
 
-# - task: DotNetCoreCLI@2
-#   displayName: Publish Swabbr.AzureFunctions
+# - task: ArchiveFiles@2
+#   displayName: "Archive files for swabbr functions"
 #   inputs:
-#     command: 'publish'
-#     publishWebProjects: false
-#     projects: '**/Swabbr.AzureFunctions.csproj'
-#     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func -r win-x64'
+#     rootFolderOrFile: "$(System.DefaultWorkingDirectory)/func"
+#     includeRootFolder: false
+#     archiveFile: "$(Build.ArtifactStagingDirectory)/func/Swabbr.AzureFunctions.zip"
 
-- task: ArchiveFiles@2
-  displayName: "Archive files for swabbr functions"
+- task: DotNetCoreCLI@2
+  displayName: Publish Swabbr.AzureFunctions
   inputs:
-    rootFolderOrFile: "$(System.DefaultWorkingDirectory)/func"
-    includeRootFolder: false
-    archiveFile: "$(Build.ArtifactStagingDirectory)/func/Swabbr.AzureFunctions.zip"
+    command: 'publish'
+    publishWebProjects: false
+    projects: '**/Swabbr.AzureFunctions.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/func'
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Swabbr.Api build artifact
