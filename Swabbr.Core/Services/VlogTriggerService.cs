@@ -128,12 +128,12 @@ namespace Swabbr.Core.Services
                             return;
 
                         // No need for request timeout processing
-                        case LivestreamState.Closed |
-                            LivestreamState.Created |
-                            LivestreamState.Live |
-                            LivestreamState.PendingClosure |
-                            LivestreamState.PendingUserConnect |
-                            LivestreamState.UserNeverConnectedTimeout:
+                        case LivestreamState.Closed:
+                        case LivestreamState.Created:
+                        case LivestreamState.Live:
+                        case LivestreamState.PendingClosure:
+                        case LivestreamState.PendingUserConnect:
+                        case LivestreamState.UserNeverConnectedTimeout:
                             logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - No vlog timeout actions required for for user {userId}");
                             return;
 
