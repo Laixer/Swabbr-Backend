@@ -1,29 +1,26 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Laixer.Utility.Extensions;
+using Microsoft.Extensions.Options;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data.HashFunction.MurmurHash;
 using System.Text;
-using Laixer.Utility.Extensions;
 
 namespace Swabbr.Core.Services
 {
-
     /// <summary>
     /// Handles our hash distribution.
     /// </summary>
     public sealed class HashDistributionService : IHashDistributionService
     {
-
         private readonly SwabbrConfiguration config;
         private static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
         private static readonly UTF8Encoding encoder = new UTF8Encoding();
 
-        private static int validMinutes;
+        public int ValidMinutes => config.VlogRequestEndTimeMinutes - config.VlogRequestStartTimeMinutes;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -33,7 +30,6 @@ namespace Swabbr.Core.Services
             if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
             options.Value.ThrowIfInvalid();
             config = options.Value;
-            validMinutes = config.VlogRequestEndTimeMinutes - config.VlogRequestStartTimeMinutes;
         }
 
         /// <summary>
@@ -52,7 +48,7 @@ namespace Swabbr.Core.Services
             var timeUtc = time.ToUniversalTime() + (offset ?? TimeSpan.Zero);
             var thisMinute = GetMinutes(timeUtc);
 
-            var result = new Collection<SwabbrUserMinified>();
+            var result = new List<SwabbrUserMinified>();
             foreach (var user in users)
             {
                 // Perform one check for each possible vlog request
@@ -62,23 +58,36 @@ namespace Swabbr.Core.Services
                     var userMinuteCorrected = userMinute - user.TimeZone.BaseUtcOffset.TotalMinutes;
                     if (userMinuteCorrected < 0) { userMinuteCorrected += 60 * 24; }
 
-                    if (userMinuteCorrected == thisMinute) { result.Add(user); }
+                    if (userMinuteCorrected == thisMinute)
+                    {
+                        // TODO Use yield
+                        result.Add(user);
+                    }
                 }
             }
-
-            if (result.Count > 0) { }
 
             return result;
         }
 
         /// <summary>
-        /// Hashes a single <see cref="SwabbrUserMinified"/>.
+        /// Hashes a single <see cref="SwabbrUserMinified"/> into a corresponding minute
+        /// of the day, represented as <see cref="int"/> value.
         /// </summary>
         /// <remarks>
+        /// This algorithm computes a Murmur3 hash of a composed string value which contains:
+        ///     - The user id
+        ///     - The day
+        ///     - The request index, ranging between 1 and the vlog request limit for that user
+        /// The computed hash is then converted to a uint32. The resulting minute is computed
+        /// by taking the <see cref="SwabbrConfiguration.VlogRequestStartTimeMinutes"/> plus
+        /// the uint32 modulo <see cref="SwabbrConfiguration.VlogRequestEndTimeMinutes"/>.
+        /// 
         /// This ignores the <see cref="SwabbrUserMinified.TimeZone"/> value.
         /// </remarks>
         /// <param name="user"><see cref="SwabbrUserMinified"/></param>
-        /// <returns></returns>
+        /// <param name="day"><see cref="DateTime"/></param>
+        /// <param name="requestIndex">Index of the request on the day</param>
+        /// <returns>The minute in the day based on the inputs</returns>
         private int GetHashMinute(SwabbrUserMinified user, DateTime day, int requestIndex)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
@@ -88,10 +97,10 @@ namespace Swabbr.Core.Services
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
             var hash = hasher.ComputeHash(encoder.GetBytes(hashString));
 
-            // TODO In theory this can overflow, but in practise we ALWAYS shrink this down to somewhere within 24*60 minutes
             var number = BitConverter.ToUInt32(hash.Hash, 0);
-            var minute = config.VlogRequestStartTimeMinutes + (number % validMinutes);
-            return (int)minute;
+            // In theory this can overflow, but in practise we ALWAYS shrink this down to somewhere within 24*60 minutes
+            var minute = config.VlogRequestStartTimeMinutes + (number % ValidMinutes);
+            return (int)Math.Abs(minute);
         }
 
         private static int GetMinutes(DateTimeOffset date)
