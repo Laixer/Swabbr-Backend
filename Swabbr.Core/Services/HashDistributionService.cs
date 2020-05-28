@@ -97,6 +97,7 @@ namespace Swabbr.Core.Services
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
             var hash = hasher.ComputeHash(encoder.GetBytes(hashString));
 
+            // TODO Make sure we never exceed a byte[] length of 4
             var number = BitConverter.ToUInt32(hash.Hash, 0);
             // In theory this can overflow, but in practise we ALWAYS shrink this down to somewhere within 24*60 minutes
             var minute = config.VlogRequestStartTimeMinutes + (number % ValidMinutes);
