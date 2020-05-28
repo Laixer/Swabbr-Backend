@@ -42,7 +42,6 @@ namespace Swabbr.Api.Controllers
         /// Constructor for dependency injection.
         /// </summary>
         public AuthenticationController(IUserService userService,
-            IUserWithStatsRepository userWithStatsRepository,
             ITokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager,

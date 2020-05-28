@@ -16,7 +16,7 @@ namespace Swabbr.Api.ViewModels.Vlog
         /// A collection of user id's to share the vlog with.
         /// </summary>
         public List<Guid> SharedUsers { get; set; }
-#pragma warning enable CA2227
+#pragma warning restore CA2227
 
         /// <summary>
         /// Indicates if the vlog should be publicly available to other users.

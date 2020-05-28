@@ -1,5 +1,6 @@
 ﻿using Laixer.Utility.Extensions;
 using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Swabbr.Api.Parsing
@@ -20,8 +21,8 @@ namespace Swabbr.Api.Parsing
 
             bool isPlus = userInput[3] == '+';
 
-            var hour = int.Parse(userInput.Substring(4, 2));
-            var minute = int.Parse(userInput.Substring(7, 2));
+            var hour = int.Parse(userInput.Substring(4, 2), CultureInfo.InvariantCulture);
+            var minute = int.Parse(userInput.Substring(7, 2), CultureInfo.InvariantCulture);
 
             var timeSpan = new TimeSpan(hours: isPlus ? hour : -hour, minutes: minute, seconds: 0);
             return TimeZoneInfo.CreateCustomTimeZone(userInput, timeSpan, userInput, userInput);
