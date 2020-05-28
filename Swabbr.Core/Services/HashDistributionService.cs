@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.HashFunction.MurmurHash;
 using System.Text;
+using Laixer.Utility.Extensions;
 
 namespace Swabbr.Core.Services
 {
@@ -80,6 +81,10 @@ namespace Swabbr.Core.Services
         /// <returns></returns>
         private int GetHashMinute(SwabbrUserMinified user, DateTime day, int requestIndex)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
+            if (user.Id.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
+            if (user.TimeZone == null) { throw new ArgumentNullException(nameof(user.TimeZone)); }
+
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
             var hash = hasher.ComputeHash(encoder.GetBytes(hashString));
 
@@ -91,6 +96,7 @@ namespace Swabbr.Core.Services
 
         private static int GetMinutes(DateTimeOffset date)
         {
+            if (date.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(date)); }
             return date.Hour * 60 + date.Minute;
         }
     }
