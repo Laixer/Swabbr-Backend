@@ -201,6 +201,7 @@ namespace Swabbr.Core.Services
                     triggering logic app user connect timeout function");
 
                 // Trigger logic app
+                // TODO Clean up? Is this optimal?
                 var client = _httpClientFactory.GetClient();
                 var json = JsonConvert.SerializeObject(new UserStartStreamingWrapper
                 {

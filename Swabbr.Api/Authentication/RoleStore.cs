@@ -55,21 +55,25 @@ namespace Swabbr.Api.Authentication
 
         public Task<string> GetNormalizedRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
+            if (role == null) { throw new ArgumentNullException(nameof(role)); }
             return Task.FromResult(role.NormalizedName);
         }
 
         public Task<string> GetRoleIdAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
+            if (role == null) { throw new ArgumentNullException(nameof(role)); }
             return Task.FromResult(role.Id.ToString());
         }
 
         public Task<string> GetRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
+            if (role == null) { throw new ArgumentNullException(nameof(role)); }
             return Task.FromResult(role.Name);
         }
 
         public Task SetNormalizedRoleNameAsync(SwabbrIdentityRole role, string normalizedName, CancellationToken cancellationToken)
         {
+            if (role == null) { throw new ArgumentNullException(nameof(role)); }
             role.NormalizedName = normalizedName;
             return Task.CompletedTask;
         }

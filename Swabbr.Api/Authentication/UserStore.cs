@@ -330,10 +330,10 @@ namespace Swabbr.Api.Authentication
             });
         }
 
-        public async Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        public Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
             //TODO: Not implemented
-            return new List<SwabbrIdentityUser>();
+            return Task.FromResult<IList<SwabbrIdentityUser>>(new List<SwabbrIdentityUser>());
         }
 
         public Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)

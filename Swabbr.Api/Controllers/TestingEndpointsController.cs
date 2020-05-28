@@ -88,7 +88,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
-        private NotificationActionModel Parse(string actionAsString)
+        private static NotificationActionModel Parse(string actionAsString)
         {
             if (actionAsString == NotificationActionTranslator.Translate(NotificationAction.FollowedProfileLive)) { return NotificationActionModel.FollowedProfileLive; }
             if (actionAsString == NotificationActionTranslator.Translate(NotificationAction.FollowedProfileVlogPosted)) { return NotificationActionModel.FollowedProfileVlogPosted; }

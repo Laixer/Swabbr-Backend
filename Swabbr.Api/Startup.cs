@@ -92,7 +92,7 @@ namespace Swabbr
             servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
             servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
-#pragma warning enable ASP0000
+#pragma warning restore ASP0000
 
             // Setup request related services
             services.AddCors();

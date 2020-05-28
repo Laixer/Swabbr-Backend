@@ -36,6 +36,8 @@ namespace Swabbr.Api.Services
         /// <returns><see cref="TokenWrapper"/></returns>
         public TokenWrapper GenerateToken(SwabbrIdentityUser user)
         {
+            if (user == null) { throw new ArgumentNullException(nameof(user)); }
+
             // Add claims
             var claims = new List<Claim>
             {
