@@ -46,14 +46,7 @@ steps:
     command: 'build'
     publishWebProjects: false
     projects: '**/Swabbr.AzureFunctions.csproj'
-    arguments: '--configuration $(buildConfiguration)'      #' --output $(System.DefaultWorkingDirectory)/func'
-
-# - task: ArchiveFiles@2
-#   displayName: "Archive files for swabbr functions"
-#   inputs:
-#     rootFolderOrFile: "$(System.DefaultWorkingDirectory)/func"
-#     includeRootFolder: false
-#     archiveFile: "$(Build.ArtifactStagingDirectory)/func/Swabbr.AzureFunctions.zip"
+    arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: Publish Swabbr.AzureFunctions
