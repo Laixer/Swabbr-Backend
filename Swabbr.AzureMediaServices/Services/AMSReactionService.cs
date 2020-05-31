@@ -178,7 +178,7 @@ namespace Swabbr.AzureMediaServices.Services
             reactionId.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            
+
             // Internal checks
             var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
             if (reaction.ReactionState != ReactionState.Created) { throw new ReactionStateException($"Reaction not in {ReactionState.Created.GetEnumMemberAttribute()} state"); }
@@ -223,7 +223,7 @@ namespace Swabbr.AzureMediaServices.Services
             reactionId.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-           
+
             // Internal checks
             var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
             if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
@@ -254,7 +254,7 @@ namespace Swabbr.AzureMediaServices.Services
             reactionId.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            
+
             // Internal checks
             var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
             if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
@@ -291,7 +291,7 @@ namespace Swabbr.AzureMediaServices.Services
             targetVlogId.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-           
+
             // Internal checks
             var vlog = await _vlogRepository.GetAsync(targetVlogId).ConfigureAwait(false); // Throws if marked deleted
 

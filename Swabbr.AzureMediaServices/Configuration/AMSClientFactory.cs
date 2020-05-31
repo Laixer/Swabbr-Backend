@@ -11,7 +11,7 @@ namespace Swabbr.AzureMediaServices.Configuration
     /// Factory to build an Azure Media Services client.
     /// TODO Should this be a "singleton" like this? Does that support concurrency?
     /// </summary>
-#pragma warning disable CA1812 
+#pragma warning disable CA1812
     internal static class AMSClientFactory
 #pragma warning restore CA1812
     {

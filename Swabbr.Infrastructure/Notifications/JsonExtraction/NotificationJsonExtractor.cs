@@ -33,15 +33,12 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
             // TODO Why do we need this?
             //var notificationPayload = ExtractPayload(notification);
 
-            switch (platform)
+            return platform switch
             {
-                case PushNotificationPlatform.APNS:
-                    return extractorApns.Extract(notification);
-                case PushNotificationPlatform.FCM:
-                    return extractorFcm.Extract(notification);
-            }
-
-            throw new InvalidOperationException(nameof(platform));
+                PushNotificationPlatform.APNS => extractorApns.Extract(notification),
+                PushNotificationPlatform.FCM => extractorFcm.Extract(notification),
+                _ => throw new InvalidOperationException(nameof(platform)),
+            };
         }
 
         // TODO Why do we need this?

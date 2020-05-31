@@ -24,22 +24,21 @@ namespace Swabbr.Core.Interfaces.Services
         /// <summary>
         /// Accept an existing follow request.
         /// </summary>
-        /// <param name="followRequestId"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
         Task<FollowRequest> AcceptAsync(FollowRequestId id);
 
         /// <summary>
         /// Decline an existing follow request.
         /// </summary>
-        /// <param name="followRequestId"></param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns></returns>
         Task<FollowRequest> DeclineAsync(FollowRequestId id);
 
         /// <summary>
         /// Cancel an existing follow request.
         /// </summary>
-        /// <param name="followRequestId"></param>
-        /// <param name="requesterId">The requesting <see cref="SwabbrUser"/> id</param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns><see cref="Task"/></returns>
         Task CancelAsync(FollowRequestId id);
 
@@ -47,23 +46,22 @@ namespace Swabbr.Core.Interfaces.Services
         /// Unfollows a requester from a receiver.
         /// TODO Do we need functionality for the other way around? As in, kicking your subscribers?
         /// </summary>
-        /// <param name="requesterId">Requesting user id</param>
-        /// <param name="receiverId">Receiving user id</param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns><see cref="Task"/></returns>
         Task UnfollowAsync(FollowRequestId id);
 
         /// <summary>
         /// Returns a single follow request entity from the id of the requester to the id of the receiver.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
+        /// <returns><see cref="FollowRequest"/></returns>
         Task<FollowRequest> GetAsync(FollowRequestId id);
 
         /// <summary>
         /// Gets the <see cref="FollowRequestStatus"/> for a given <see cref="FollowRequest"/>
         /// between two users.
         /// </summary>
-        /// <param name="requesterId">Internal requester id</param>
-        /// <param name="receiverId">Internal receiver id</param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns><see cref="FollowRequestStatus"/></returns>
         Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id);
 
@@ -71,7 +69,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// Returns all pending incoming follow requests for a specific user.
         /// </summary>
         /// <param name="userId">Unique identifier of the user that received the requests.</param>
-        /// <returns></returns>
+        /// <returns><see cref="FollowRequest"/> collection</returns>
         Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId);
 
         /// <summary>

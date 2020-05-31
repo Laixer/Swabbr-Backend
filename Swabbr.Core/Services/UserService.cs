@@ -159,9 +159,9 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        /// Updates the <see cref="UserSettings"/> for a <paramref name="userId"/>.
+        /// Updates the <see cref="UserSettings"/> for a <see cref="SwabbrUser"/>.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="userSettings"><see cref="UserSettings"/></param>
         /// <returns><see cref="Task"/></returns>
         public Task UpdateSettingsAsync(UserSettings userSettings)
         {

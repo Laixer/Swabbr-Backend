@@ -46,11 +46,10 @@ namespace Swabbr.Infrastructure.Repositories
             entity.Id.ThrowIfNotNullOrEmpty();
             entity.UserId.ThrowIfNotNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO Skipping vlog id --> might be bug-sensitive
-                // TODO This inserts null as the user minute and user id explicitly. Might be bug-sensitive
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO Skipping vlog id --> might be bug-sensitive
+            // TODO This inserts null as the user minute and user id explicitly. Might be bug-sensitive
+            var sql = $@"
                     INSERT INTO {TableLivestream} (
                         broadcast_location,
                         create_date,
@@ -66,11 +65,10 @@ namespace Swabbr.Infrastructure.Repositories
                         null,
                         null
                     ) RETURNING id";
-                var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
-                id.ThrowIfNullOrEmpty();
-                entity.Id = id;
-                return entity;
-            }
+            var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
+            id.ThrowIfNullOrEmpty();
+            entity.Id = id;
+            return entity;
         }
 
         /// <summary>
@@ -82,11 +80,9 @@ namespace Swabbr.Infrastructure.Repositories
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $"DELETE FROM {TableLivestream} WHERE id = @Id";
-                await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"DELETE FROM {TableLivestream} WHERE id = @Id";
+            await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -100,20 +96,18 @@ namespace Swabbr.Infrastructure.Repositories
             userId.ThrowIfNullOrEmpty();
             if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT 1 FROM {TableLivestream}
                     WHERE user_id = @UserId
                     AND user_trigger_minute = @UserTriggerMinute
                     FOR UPDATE";
-                var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
+            var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
 
-                var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
+            var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
 
-                return result.Count() == 1;
-            }
+            return result.Count() == 1;
         }
 
         /// <summary>
@@ -125,10 +119,9 @@ namespace Swabbr.Infrastructure.Repositories
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO For some weird reason dapper broke
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO For some weird reason dapper broke
+            var sql = $@"
                     SELECT 
                         id AS Id, 
                         broadcast_location AS BroadcastLocation,
@@ -141,12 +134,11 @@ namespace Swabbr.Infrastructure.Repositories
                         user_trigger_minute AS UserTriggerMinute
                     FROM {TableLivestream} 
                     WHERE id = @Id FOR UPDATE";
-                var result = await connection.QueryAsync<Livestream>(sql, new { Id = id }).ConfigureAwait(false);
+            var result = await connection.QueryAsync<Livestream>(sql, new { Id = id }).ConfigureAwait(false);
 
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-                return result.First();
-            }
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+            return result.First();
         }
 
         /// <summary>
@@ -159,9 +151,8 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns><see cref="Livestream"/> collection</returns>
         public async Task<IEnumerable<Livestream>> GetAvailableLivestreamsAsync()
         {
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT
                         id AS Id, 
                         broadcast_location AS BroadcastLocation,
@@ -175,8 +166,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM {TableLivestream}
                     WHERE livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                return await connection.QueryAsync<Livestream>(sql).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<Livestream>(sql).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -188,14 +178,12 @@ namespace Swabbr.Infrastructure.Repositories
         {
             externalId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $"SELECT * FROM {TableLivestream} WHERE external_id = @ExternalId";
-                var result = await connection.QueryAsync<Livestream>(sql, new { ExternalId = externalId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-                return result.First();
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT * FROM {TableLivestream} WHERE external_id = @ExternalId";
+            var result = await connection.QueryAsync<Livestream>(sql, new { ExternalId = externalId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
+            return result.First();
         }
 
         /// <summary>
@@ -207,19 +195,17 @@ namespace Swabbr.Infrastructure.Repositories
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT external_id FROM {TableLivestream}
                     WHERE id = @Id
                     FOR UPDATE";
-                var pars = new { Id = id };
-                var result = await connection.QueryAsync<string>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-                result.First().ThrowIfNullOrEmpty();
-                return result.First();
-            }
+            var pars = new { Id = id };
+            var result = await connection.QueryAsync<string>(sql, pars).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
+            result.First().ThrowIfNullOrEmpty();
+            return result.First();
         }
 
         /// <summary>
@@ -236,21 +222,19 @@ namespace Swabbr.Infrastructure.Repositories
             userId.ThrowIfNullOrEmpty();
             if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT id FROM {TableLivestream}
                     WHERE user_id = @UserId
                     AND user_trigger_minute = @UserTriggerMinute
                     FOR UPDATE";
-                var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
+            var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
 
-                var result = await connection.QueryAsync<Guid>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-                var actual = await GetAsync(result.First()).ConfigureAwait(false);
-                return actual;
-            }
+            var result = await connection.QueryAsync<Guid>(sql, pars).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
+            var actual = await GetAsync(result.First()).ConfigureAwait(false);
+            return actual;
         }
 
         /// <summary>
@@ -262,16 +246,14 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT 1 FROM {TableLivestream}
                     WHERE user_id = @UserId
                     FOR UPDATE";
-                var count = await connection.QueryAsync<int>(sql, new { UserId = userId }).ConfigureAwait(false);
-                if (count.Count() > 1) { throw new InvalidOperationException("Found multiple livestreams with the same user_id"); }
-                return count.Any();
-            }
+            var count = await connection.QueryAsync<int>(sql, new { UserId = userId }).ConfigureAwait(false);
+            if (count.Count() > 1) { throw new InvalidOperationException("Found multiple livestreams with the same user_id"); }
+            return count.Any();
         }
 
         /// <summary>
@@ -297,19 +279,17 @@ namespace Swabbr.Infrastructure.Repositories
             externalId.ThrowIfNullOrEmpty();
             broadcastLocation.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     UPDATE {TableLivestream} SET
                         broadcast_location = @BroadcastLocation,
                         external_id = @ExternalId,
                         livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'
                     WHERE id = @Id";
-                var pars = new { Id = livestreamId, BroadcastLocation = broadcastLocation, ExternalId = externalId };
-                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
+            var pars = new { Id = livestreamId, BroadcastLocation = broadcastLocation, ExternalId = externalId };
+            var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
         }
 
         /// <summary>
@@ -344,19 +324,17 @@ namespace Swabbr.Infrastructure.Repositories
             userId.ThrowIfNullOrEmpty();
             if (triggerMinute == null) { throw new ArgumentNullException(nameof(triggerMinute)); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     UPDATE {TableLivestream} SET
                         user_id = @UserId,
                         livestream_state = '{LivestreamState.PendingUser.GetEnumMemberAttribute()}',
                         user_trigger_minute = @UserTriggerMinute
                     WHERE id = @Id";
-                var pars = new { Id = livestreamId, UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
-                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
+            var pars = new { Id = livestreamId, UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
+            var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
         }
 
         /// <summary>
@@ -402,16 +380,14 @@ namespace Swabbr.Infrastructure.Repositories
         {
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     UPDATE {TableLivestream} 
                     SET livestream_state = '{state.GetEnumMemberAttribute()}'
                     WHERE id = @LivestreamId";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
-            }
+            var rowsAffected = await connection.ExecuteAsync(sql, new { LivestreamId = livestreamId }).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
         }
 
     }

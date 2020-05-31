@@ -11,27 +11,18 @@ namespace Swabbr.Core.Notifications
 
         public static string Translate(NotificationAction action)
         {
-            switch (action)
+            return action switch
             {
-                case NotificationAction.FollowedProfileLive:
-                    return "followed_profile_live";
-                case NotificationAction.FollowedProfileVlogPosted:
-                    return "followed_profile_vlog_posted";
-                case NotificationAction.InactiveUserMotivate:
-                    return "inactive_user_motivate";
-                case NotificationAction.InactiveUnwatchedVlogs:
-                    return "inactive_unwatched_vlogs";
-                case NotificationAction.InactiveVlogRecordRequest:
-                    return "inactive_vlog_record_request";
-                case NotificationAction.VlogGainedLikes:
-                    return "vlog_gained_likes";
-                case NotificationAction.VlogNewReaction:
-                    return "vlog_new_reaction";
-                case NotificationAction.VlogRecordRequest:
-                    return "vlog_record_request";
-            }
-
-            throw new InvalidOperationException(nameof(action));
+                NotificationAction.FollowedProfileLive => "followed_profile_live",
+                NotificationAction.FollowedProfileVlogPosted => "followed_profile_vlog_posted",
+                NotificationAction.InactiveUserMotivate => "inactive_user_motivate",
+                NotificationAction.InactiveUnwatchedVlogs => "inactive_unwatched_vlogs",
+                NotificationAction.InactiveVlogRecordRequest => "inactive_vlog_record_request",
+                NotificationAction.VlogGainedLikes => "vlog_gained_likes",
+                NotificationAction.VlogNewReaction => "vlog_new_reaction",
+                NotificationAction.VlogRecordRequest => "vlog_record_request",
+                _ => throw new InvalidOperationException(nameof(action)),
+            };
         }
 
     }

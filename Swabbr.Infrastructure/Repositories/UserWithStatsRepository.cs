@@ -38,15 +38,13 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<SwabbrUserWithStats> GetAsync(Guid id)
         {
             id.ThrowIfNullOrEmpty();
-            using (var connection = _databaseProvider.GetConnectionScope())
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT * FROM {ViewUserWithStats} WHERE id = '{id}';";
+            var result = await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {id}"); }
+            else
             {
-                var sql = $"SELECT * FROM {ViewUserWithStats} WHERE id = '{id}';";
-                var result = await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {id}"); }
-                else
-                {
-                    return result.First();
-                }
+                return result.First();
             }
         }
 
@@ -77,16 +75,14 @@ namespace Swabbr.Infrastructure.Repositories
             if (itemsPerPage < 1) { throw new ArgumentOutOfRangeException("Items per page must be greater than one"); }
             if (itemsPerPage > 100) { throw new ArgumentOutOfRangeException("Items per page must be smaller than 100"); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {ViewUserWithStats} 
                     WHERE LOWER(nickname) LIKE LOWER('{searchString}%') 
                     {(excludeUserId.IsNullOrEmpty() ? "" : "AND id != @ExcludeUserId")}
                     OFFSET {(page - 1) * itemsPerPage} 
                     LIMIT {itemsPerPage}";
-                return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { ExcludeUserId = excludeUserId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { ExcludeUserId = excludeUserId }).ConfigureAwait(false);
         }
 
         public Task<IEnumerable<SwabbrUserWithStats>> ListFollowersAsync(Guid id, int page, int itemsPerPage)
@@ -110,27 +106,25 @@ namespace Swabbr.Infrastructure.Repositories
             if (userIds == null) { throw new ArgumentNullException(nameof(userIds)); }
             if (!userIds.Any()) { return new List<SwabbrUserWithStats>(); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO Clean this mess up
+            var userIdArray = userIds.ToArray();
+            var sql = $"SELECT * FROM {ViewUserWithStats} WHERE id IN ";
+            sql += "(";
+            for (int i = 0; i < userIds.Count(); i++)
             {
-                // TODO Clean this mess up
-                var userIdArray = userIds.ToArray();
-                var sql = $"SELECT * FROM {ViewUserWithStats} WHERE id IN ";
-                sql += "(";
-                for (int i = 0; i < userIds.Count(); i++)
+                sql += $"'{userIdArray[i]}'";
+                if (i < userIds.Count() - 1)
                 {
-                    sql += $"'{userIdArray[i]}'";
-                    if (i < userIds.Count() - 1)
-                    {
-                        sql += ",";
-                    }
+                    sql += ",";
                 }
-                sql += ");";
-
-                var result = await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
-                if (result == null) { throw new InvalidOperationException(); }
-                if (result.Count() != userIds.Count()) { throw new EntityNotFoundException(); }
-                return result;
             }
+            sql += ");";
+
+            var result = await connection.QueryAsync<SwabbrUserWithStats>(sql).ConfigureAwait(false);
+            if (result == null) { throw new InvalidOperationException(); }
+            if (result.Count() != userIds.Count()) { throw new EntityNotFoundException(); }
+            return result;
         }
     }
 

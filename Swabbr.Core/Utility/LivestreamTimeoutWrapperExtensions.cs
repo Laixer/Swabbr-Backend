@@ -12,7 +12,7 @@ namespace Swabbr.Core.Utility
     {
 
         /// <summary>
-        /// Throws if a <paramref name="wrapper"/> is <see cref="null"/> or contains
+        /// Throws if a <paramref name="wrapper"/> is null or contains
         /// incomplete information.
         /// </summary>
         /// <param name="wrapper"><see cref="LivestreamTimeoutWrapper"/></param>

@@ -62,17 +62,15 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns><see cref="SwabbrUserMinified"/> colletion</returns>
         public async Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync()
         {
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT 
                         id, 
                         daily_vlog_request_limit AS DailyVlogRequestLimit,
                         timezone
                     FROM {TableUser} 
                     WHERE daily_vlog_request_limit > 0";
-                return await connection.QueryAsync<SwabbrUserMinified>(sql).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<SwabbrUserMinified>(sql).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -86,15 +84,13 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<SwabbrUser> GetAsync(Guid userId)
         {
             userId.ThrowIfNullOrEmpty();
-            using (var connection = _databaseProvider.GetConnectionScope())
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT * FROM {TableUser} WHERE id = @Id FOR UPDATE;";
+            var result = await connection.QueryAsync<SwabbrUser>(sql, new { Id = userId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
+            else
             {
-                var sql = $"SELECT * FROM {TableUser} WHERE id = @Id FOR UPDATE;";
-                var result = await connection.QueryAsync<SwabbrUser>(sql, new { Id = userId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
-                else
-                {
-                    return result.First();
-                }
+                return result.First();
             }
         }
 
@@ -109,15 +105,13 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<SwabbrUser> GetByEmailAsync(string email)
         {
             email.ThrowIfNullOrEmpty();
-            using (var connection = _databaseProvider.GetConnectionScope())
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT * FROM {TableUser} WHERE email = '{email}';";
+            var result = await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with email = {email}"); }
+            else
             {
-                var sql = $"SELECT * FROM {TableUser} WHERE email = '{email}';";
-                var result = await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with email = {email}"); }
-                else
-                {
-                    return result.First();
-                }
+                return result.First();
             }
         }
 
@@ -133,15 +127,13 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {ViewUserWithStats} AS u
                     JOIN {TableFollowRequest} AS f
                     ON u.id = f.requester_id
                     WHERE f.receiver_id = @Id";
-                return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -156,9 +148,8 @@ namespace Swabbr.Infrastructure.Repositories
 
             if (!await UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT 
                         u.id AS UserId, 
                         nr.push_notification_platform AS PushNotificationPlatform
@@ -168,8 +159,7 @@ namespace Swabbr.Infrastructure.Repositories
                     JOIN {TableNotificationRegistration} AS nr
                     ON u.id = nr.user_id
                     WHERE fr.receiver_id = @Id";
-                return await connection.QueryAsync<UserPushNotificationDetails>(sql, new { Id = userId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<UserPushNotificationDetails>(sql, new { Id = userId }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -185,15 +175,13 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {ViewUserWithStats} AS u
                     JOIN {TableFollowRequest} AS f
                     ON u.id = f.receiver_id
                     WHERE f.requester_id = @Id";
-                return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -207,15 +195,13 @@ namespace Swabbr.Infrastructure.Repositories
             userId.ThrowIfNullOrEmpty();
             if (!await UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO Mapping doesn't work for some reason
-                var sql = $"SELECT push_notification_platform AS PushNotificationPlatform, user_id as UserId FROM {ViewUserPushNotificationDetails} WHERE user_id = @UserId";
-                var result = await connection.QueryAsync<UserPushNotificationDetails>(sql, new { UserId = userId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); } // TODO Is this correct?
-                return result.First();
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO Mapping doesn't work for some reason
+            var sql = $"SELECT push_notification_platform AS PushNotificationPlatform, user_id as UserId FROM {ViewUserPushNotificationDetails} WHERE user_id = @UserId";
+            var result = await connection.QueryAsync<UserPushNotificationDetails>(sql, new { UserId = userId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+            if (result.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); } // TODO Is this correct?
+            return result.First();
         }
 
         /// <summary>
@@ -228,20 +214,18 @@ namespace Swabbr.Infrastructure.Repositories
         {
             vlogId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT u.* 
                     FROM {TableVlog} AS v
                     JOIN {TableUser} AS u
                     ON v.user_id = u.id
                     WHERE v.id = @VlogId
                     FOR UPDATE";
-                var result = await connection.QueryAsync<SwabbrUser>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
-                return result.First();
-            }
+            var result = await connection.QueryAsync<SwabbrUser>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
+            return result.First();
         }
 
         /// <summary>
@@ -252,15 +236,13 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<UserSettings> GetUserSettingsAsync(Guid userId)
         {
             userId.ThrowIfNullOrEmpty();
-            using (var connection = _databaseProvider.GetConnectionScope())
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT *, id AS user_id FROM {ViewUserSettings} WHERE id = '{userId}';";
+            var result = await connection.QueryAsync<UserSettings>(sql).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
+            else
             {
-                var sql = $"SELECT *, id AS user_id FROM {ViewUserSettings} WHERE id = '{userId}';";
-                var result = await connection.QueryAsync<UserSettings>(sql).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
-                else
-                {
-                    return result.First();
-                }
+                return result.First();
             }
         }
 
@@ -273,14 +255,12 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $"SELECT * FROM {ViewUserStatistics} WHERE id = @Id";
-                var result = await connection.QueryAsync<UserStatistics>(sql, new { Id = userId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
-                return result.First();
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT * FROM {ViewUserStatistics} WHERE id = @Id";
+            var result = await connection.QueryAsync<UserStatistics>(sql, new { Id = userId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
+            return result.First();
         }
 
         /// <summary>
@@ -303,9 +283,8 @@ namespace Swabbr.Infrastructure.Repositories
             var sqlFrom = SqlUtility.FormatDateTime(from);
             var sqlTo = SqlUtility.FormatDateTime(to);
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {TableUser}
                     WHERE daily_vlog_request_limit > 0
                     AND (
@@ -333,8 +312,7 @@ namespace Swabbr.Infrastructure.Repositories
                         )
                     )
                     FOR UPDATE";
-                return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -346,12 +324,10 @@ namespace Swabbr.Infrastructure.Repositories
         {
             nickname.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"SELECT 1 FROM {TableUser} WHERE nickname = @Nickname";
-                var result = await connection.QueryAsync<int>(sql, new { Nickname = nickname }).ConfigureAwait(false);
-                return result.Any();
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"SELECT 1 FROM {TableUser} WHERE nickname = @Nickname";
+            var result = await connection.QueryAsync<int>(sql, new { Nickname = nickname }).ConfigureAwait(false);
+            return result.Any();
         }
 
         /// <summary>
@@ -364,38 +340,34 @@ namespace Swabbr.Infrastructure.Repositories
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
             entity.Id.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                using (var connection = _databaseProvider.GetConnectionScope())
-                {
-                    await GetAsync(entity.Id).ConfigureAwait(false); // FOR UPATE
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            using var connection = _databaseProvider.GetConnectionScope();
+            await GetAsync(entity.Id).ConfigureAwait(false); // FOR UPATE
 
-                    // TODO Enum injection, also ugly
-                    var sql = $@"
+            // TODO Enum injection, also ugly
+            var sql = $@"
                         UPDATE {TableUser} SET
                             birth_date = COALESCE(@BirthDate, birth_date),
                             country = COALESCE(@Country, country),
                             first_name = COALESCE(@FirstName, first_name),
                             {(
-                                (entity.Gender == null) ?
-                                "" :
-                                $"gender = COALESCE('{entity.Gender?.GetEnumMemberAttribute()}', gender),"
-                            )}
+                        (entity.Gender == null) ?
+                        "" :
+                        $"gender = COALESCE('{entity.Gender?.GetEnumMemberAttribute()}', gender),"
+                    )}
                             is_private = COALESCE(@IsPrivate, is_private),
                             last_name = COALESCE(@LastName, last_name),
                             nickname = COALESCE(@NickName, nickname),
                             profile_image_base64_encoded = COALESCE(@ProfileImageBase64Encoded, profile_image_base64_encoded),
                             follow_mode = COALESCE('{entity.FollowMode.GetEnumMemberAttribute()}', follow_mode)
                         WHERE id = @Id";
-                    int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
-                    if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
-                    if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
+            int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
 
-                    var result = await GetAsync(entity.Id).ConfigureAwait(false);
-                    scope.Complete();
-                    return result;
-                }
-            }
+            var result = await GetAsync(entity.Id).ConfigureAwait(false);
+            scope.Complete();
+            return result;
         }
 
         /// <summary>
@@ -409,24 +381,22 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     UPDATE {TableUser}
                     SET 
                         longitude = @Longitude,
                         latitude = @Latitude
                     WHERE id = @Id";
-                var pars = new
-                {
-                    Id = userId,
-                    Longitude = longitude,
-                    Latitude = latitude
-                };
-                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
-            }
+            var pars = new
+            {
+                Id = userId,
+                Longitude = longitude,
+                Latitude = latitude
+            };
+            var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
         }
 
         /// <summary>
@@ -439,21 +409,19 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     UPDATE {TableUser}
                     SET timezone = @TimeZone
                     WHERE id = @Id";
-                var pars = new
-                {
-                    Id = userId,
-                    TimeZone = newTimeZone
-                };
-                var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
-            }
+            var pars = new
+            {
+                Id = userId,
+                TimeZone = newTimeZone
+            };
+            var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
         }
 
         /// <summary>
@@ -467,20 +435,18 @@ namespace Swabbr.Infrastructure.Repositories
             if (userSettings.DailyVlogRequestLimit < 0) { throw new ArgumentOutOfRangeException(nameof(userSettings.DailyVlogRequestLimit)); }
             userSettings.UserId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO SQL Injection
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO SQL Injection
+            var sql = $@"
                     UPDATE {TableUser} SET
                         daily_vlog_request_limit = @DailyVlogRequestLimit,
                         follow_mode = '{userSettings.FollowMode.GetEnumMemberAttribute()}',
                         is_private = @IsPrivate
                     WHERE id = @UserId";
-                var rowsAffected = await connection.ExecuteAsync(sql, userSettings).ConfigureAwait(false);
-                if (rowsAffected < 0) { throw new InvalidOperationException(); }
-                if (rowsAffected == 0) { throw new EntityNotFoundException(); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
-            }
+            var rowsAffected = await connection.ExecuteAsync(sql, userSettings).ConfigureAwait(false);
+            if (rowsAffected < 0) { throw new InvalidOperationException(); }
+            if (rowsAffected == 0) { throw new EntityNotFoundException(); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
         }
 
         /// <summary>

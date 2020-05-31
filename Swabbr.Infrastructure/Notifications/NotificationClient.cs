@@ -192,15 +192,12 @@ namespace Swabbr.Infrastructure.Notifications
             // Use the user id as tag (as recommended by Azure Notification Hub docs)
             var tags = new List<string> { notificationRegistration.UserId.ToString() };
 
-            switch (notificationRegistration.PushNotificationPlatform)
+            return notificationRegistration.PushNotificationPlatform switch
             {
-                case PushNotificationPlatform.APNS:
-                    return new AppleRegistrationDescription(notificationRegistration.Handle, tags);
-                case PushNotificationPlatform.FCM:
-                    return new FcmRegistrationDescription(notificationRegistration.Handle, tags);
-            }
-
-            throw new InvalidOperationException(nameof(notificationRegistration.PushNotificationPlatform));
+                PushNotificationPlatform.APNS => new AppleRegistrationDescription(notificationRegistration.Handle, tags),
+                PushNotificationPlatform.FCM => new FcmRegistrationDescription(notificationRegistration.Handle, tags),
+                _ => throw new InvalidOperationException(nameof(notificationRegistration.PushNotificationPlatform)),
+            };
         }
 
         /// <summary>
@@ -215,15 +212,12 @@ namespace Swabbr.Infrastructure.Notifications
             if (notificationRegistration == null) { throw new ArgumentNullException(nameof(notificationRegistration)); }
             notificationRegistration.ThrowIfInvalid();
 
-            switch (notificationRegistration.PushNotificationPlatform)
+            return notificationRegistration.PushNotificationPlatform switch
             {
-                case PushNotificationPlatform.APNS:
-                    return await _hubClient.GetRegistrationAsync<AppleRegistrationDescription>(notificationRegistration.ExternalId).ConfigureAwait(false);
-                case PushNotificationPlatform.FCM:
-                    return await _hubClient.GetRegistrationAsync<FcmRegistrationDescription>(notificationRegistration.ExternalId).ConfigureAwait(false);
-            }
-
-            throw new InvalidOperationException(nameof(notificationRegistration.PushNotificationPlatform));
+                PushNotificationPlatform.APNS => await _hubClient.GetRegistrationAsync<AppleRegistrationDescription>(notificationRegistration.ExternalId).ConfigureAwait(false),
+                PushNotificationPlatform.FCM => await _hubClient.GetRegistrationAsync<FcmRegistrationDescription>(notificationRegistration.ExternalId).ConfigureAwait(false),
+                _ => throw new InvalidOperationException(nameof(notificationRegistration.PushNotificationPlatform)),
+            };
         }
 
 

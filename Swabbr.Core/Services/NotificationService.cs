@@ -60,6 +60,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="pars"><see cref="ParametersFollowedProfileLive"/></param>
         /// <returns><see cref="Task"/></returns>
         public async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars)
         {
@@ -129,6 +130,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/>id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="pars"><see cref="ParametersRecordVlog"/></param>
         /// <returns><see cref="Task"/></returns>
         public async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
         {

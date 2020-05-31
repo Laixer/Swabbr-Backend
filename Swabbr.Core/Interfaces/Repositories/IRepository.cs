@@ -5,7 +5,7 @@ namespace Swabbr.Core.Interfaces.Repositories
 {
 
     /// <summary>
-    /// Generic repository base for an <see cref="EntityBase<typeparamref name="TPrimary"/>"/>.
+    /// Generic repository base for an <see cref="EntityBase{TPrimary}"/>.
     /// </summary>
     public interface IRepository<TEntity, TPrimary>
         where TEntity : EntityBase<TPrimary>

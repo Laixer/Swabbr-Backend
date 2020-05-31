@@ -274,7 +274,7 @@ namespace Swabbr.AzureMediaServices.Services
             userId.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            
+
             // Internal checks
             var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
             if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
@@ -377,7 +377,7 @@ namespace Swabbr.AzureMediaServices.Services
             livestreamId.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            
+
             // Internal checks
             var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
             if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUser.GetEnumMemberAttribute()} during timeout processing"); }
