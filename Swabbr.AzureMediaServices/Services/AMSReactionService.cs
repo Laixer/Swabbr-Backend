@@ -78,16 +78,14 @@ namespace Swabbr.AzureMediaServices.Services
             userId.ThrowIfNullOrEmpty();
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
-                if (reaction.UserId != userId) { throw new UserNotOwnerException(nameof(reaction)); }
-                if (reaction.ReactionState != ReactionState.Finished) { throw new ReactionStateException(ReactionState.Finished); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
+            if (reaction.UserId != userId) { throw new UserNotOwnerException(nameof(reaction)); }
+            if (reaction.ReactionState != ReactionState.Finished) { throw new ReactionStateException(ReactionState.Finished); }
 
-                await _reactionRepository.SoftDeleteAsync(reactionId).ConfigureAwait(false);
+            await _reactionRepository.SoftDeleteAsync(reactionId).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -125,14 +123,12 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // TODO Make single query - error checking is done by db fk
-                var vlog = await _vlogRepository.GetVlogFromReactionAsync(reactionId).ConfigureAwait(false);
-                var user = await _userRepository.GetUserFromVlogAsync(vlog.Id).ConfigureAwait(false);
-                scope.Complete();
-                return user;
-            }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            // TODO Make single query - error checking is done by db fk
+            var vlog = await _vlogRepository.GetVlogFromReactionAsync(reactionId).ConfigureAwait(false);
+            var user = await _userRepository.GetUserFromVlogAsync(vlog.Id).ConfigureAwait(false);
+            scope.Complete();
+            return user;
         }
 
         /// <summary>
@@ -181,38 +177,37 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            
+            // Internal checks
+            var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
+            if (reaction.ReactionState != ReactionState.Created) { throw new ReactionStateException($"Reaction not in {ReactionState.Created.GetEnumMemberAttribute()} state"); }
+
+            // External checks
+            await _amsClient.EnsureReactionTransformExistsAsync().ConfigureAwait(false);
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) == null)
             {
-                // Internal checks
-                var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
-                if (reaction.ReactionState != ReactionState.Created) { throw new ReactionStateException($"Reaction not in {ReactionState.Created.GetEnumMemberAttribute()} state"); }
-
-                // External checks
-                await _amsClient.EnsureReactionTransformExistsAsync().ConfigureAwait(false);
-                var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-                if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) == null)
-                {
-                    throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} does not exists in AMS");
-                }
-                // TODO Check - does asset have a video?
-
-                // Internal operations
-                await _reactionRepository.MarkProcessingAsync(reactionId).ConfigureAwait(false);
-
-                // External operations
-                var jobInput = new JobInputAsset(AMSNameGenerator.ReactionInputAssetName(reactionId),
-                    start: new AbsoluteClipTime(TimeSpan.Zero),
-                    end: new AbsoluteClipTime(TimeSpan.FromSeconds(swabbrConfiguration.ReactionLengthMaxInSeconds)));
-                var jobOutputs = new JobOutput[] { new JobOutputAsset(AMSNameGenerator.ReactionOutputAssetName(reactionId)) };
-                await amsClient.Jobs.CreateAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId), new Job
-                {
-                    Input = jobInput,
-                    Outputs = jobOutputs
-                }).ConfigureAwait(false);
-
-                // Commit only if everything succeeded
-                scope.Complete();
+                throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} does not exists in AMS");
             }
+            // TODO Check - does asset have a video?
+
+            // Internal operations
+            await _reactionRepository.MarkProcessingAsync(reactionId).ConfigureAwait(false);
+
+            // External operations
+            var jobInput = new JobInputAsset(AMSNameGenerator.ReactionInputAssetName(reactionId),
+                start: new AbsoluteClipTime(TimeSpan.Zero),
+                end: new AbsoluteClipTime(TimeSpan.FromSeconds(swabbrConfiguration.ReactionLengthMaxInSeconds)));
+            var jobOutputs = new JobOutput[] { new JobOutputAsset(AMSNameGenerator.ReactionOutputAssetName(reactionId)) };
+            await amsClient.Jobs.CreateAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId), new Job
+            {
+                Input = jobInput,
+                Outputs = jobOutputs
+            }).ConfigureAwait(false);
+
+            // Commit only if everything succeeded
+            scope.Complete();
         }
 
         /// <summary>
@@ -227,27 +222,26 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
-                if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+           
+            // Internal checks
+            var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
+            if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
 
-                // External checks
-                // TODO Implement
+            // External checks
+            // TODO Implement
 
-                // External operations
-                await _storageService.CleanupReactionStorageOnFailureAsync(reactionId).ConfigureAwait(false);
+            // External operations
+            await _storageService.CleanupReactionStorageOnFailureAsync(reactionId).ConfigureAwait(false);
 
-                // Internal operations
-                // TODO Is this correct?
-                await _reactionRepository.MarkFailedAsync(reactionId).ConfigureAwait(false);
-                await _reactionRepository.HardDeleteAsync(reactionId).ConfigureAwait(false);
+            // Internal operations
+            // TODO Is this correct?
+            await _reactionRepository.MarkFailedAsync(reactionId).ConfigureAwait(false);
+            await _reactionRepository.HardDeleteAsync(reactionId).ConfigureAwait(false);
 
-                // TODO Notify some kind of failure to user?
+            // TODO Notify some kind of failure to user?
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -259,25 +253,24 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
-                if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            
+            // Internal checks
+            var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
+            if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
 
-                // External checks
-                // TODO Implement
+            // External checks
+            // TODO Implement
 
-                // External operations
-                await _storageService.CleanupReactionStorageOnSuccessAsync(reactionId).ConfigureAwait(false);
-                await _amsClient.CreateReactionStreamingLocatorAsync(reactionId).ConfigureAwait(false);
+            // External operations
+            await _storageService.CleanupReactionStorageOnSuccessAsync(reactionId).ConfigureAwait(false);
+            await _amsClient.CreateReactionStreamingLocatorAsync(reactionId).ConfigureAwait(false);
 
-                // Internal operations
-                await _reactionRepository.MarkFinishedAsync(reactionId).ConfigureAwait(false);
-                await _notificationService.NotifyReactionPlacedAsync(reactionId).ConfigureAwait(false);
+            // Internal operations
+            await _reactionRepository.MarkFinishedAsync(reactionId).ConfigureAwait(false);
+            await _notificationService.NotifyReactionPlacedAsync(reactionId).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -297,41 +290,40 @@ namespace Swabbr.AzureMediaServices.Services
             userId.ThrowIfNullOrEmpty();
             targetVlogId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+           
+            // Internal checks
+            var vlog = await _vlogRepository.GetAsync(targetVlogId).ConfigureAwait(false); // Throws if marked deleted
+
+            // Internal operations
+            var reaction = await _reactionRepository.CreateAsync(new Reaction
             {
-                // Internal checks
-                var vlog = await _vlogRepository.GetAsync(targetVlogId).ConfigureAwait(false); // Throws if marked deleted
+                UserId = userId,
+                TargetVlogId = targetVlogId
+            }).ConfigureAwait(false);
 
-                // Internal operations
-                var reaction = await _reactionRepository.CreateAsync(new Reaction
-                {
-                    UserId = userId,
-                    TargetVlogId = targetVlogId
-                }).ConfigureAwait(false);
-
-                // External checks
-                var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
-                if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) != null)
-                {
-                    throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} already exists in AMS");
-                }
-
-                // External operations
-                await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
-                await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
-                var sas = await amsClient.Assets.ListContainerSasAsync(config.ResourceGroup, config.AccountName,
-                    AMSNameGenerator.ReactionInputAssetName(reaction.Id),
-                    permissions: AssetContainerPermission.ReadWrite,
-                    expiryTime: DateTime.UtcNow.AddMinutes(15).ToUniversalTime()).ConfigureAwait(false);
-
-                //Commit, bundle and return
-                scope.Complete();
-                return new ReactionUploadWrapper
-                {
-                    Reaction = reaction,
-                    UploadUrl = new Uri(sas.AssetContainerSasUrls.First())
-                };
+            // External checks
+            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) != null)
+            {
+                throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} already exists in AMS");
             }
+
+            // External operations
+            await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
+            await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
+            var sas = await amsClient.Assets.ListContainerSasAsync(config.ResourceGroup, config.AccountName,
+                AMSNameGenerator.ReactionInputAssetName(reaction.Id),
+                permissions: AssetContainerPermission.ReadWrite,
+                expiryTime: DateTime.UtcNow.AddMinutes(15).ToUniversalTime()).ConfigureAwait(false);
+
+            //Commit, bundle and return
+            scope.Complete();
+            return new ReactionUploadWrapper
+            {
+                Reaction = reaction,
+                UploadUrl = new Uri(sas.AssetContainerSasUrls.First())
+            };
         }
 
         /// <summary>
@@ -349,17 +341,15 @@ namespace Swabbr.AzureMediaServices.Services
             userId.ThrowIfNullOrEmpty();
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
-                if (reaction.UserId != userId) { throw new NotAllowedException("User does not own reaction"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var reaction = await _reactionRepository.GetAsync(reactionId).ConfigureAwait(false);
+            if (reaction.UserId != userId) { throw new NotAllowedException("User does not own reaction"); }
 
-                reaction.IsPrivate = isPrivate;
+            reaction.IsPrivate = isPrivate;
 
-                reaction = await _reactionRepository.UpdateAsync(reaction).ConfigureAwait(false);
-                scope.Complete();
-                return reaction;
-            }
+            reaction = await _reactionRepository.UpdateAsync(reaction).ConfigureAwait(false);
+            scope.Complete();
+            return reaction;
         }
 
     }

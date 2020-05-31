@@ -959,6 +959,17 @@
             Contract for managing hash distributions for timed triggers.
             </summary>
         </member>
+        <member name="T:Swabbr.Core.Interfaces.Services.IHealthCheckService">
+            <summary>
+            Contract for checking the health of our backend.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IHealthCheckService.IsHealthyAsync">
+            <summary>
+            Checks if our backend is healthy.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
+        </member>
         <member name="T:Swabbr.Core.Interfaces.Services.ILivestreamPoolService">
             <summary>
             Contains functionality for managing a <see cref="T:Swabbr.Core.Entities.Livestream"/> resource
@@ -974,6 +985,12 @@
             <summary>
             A contract for a service to handle everything regarding notification.
             </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.INotificationService.IsServiceOnlineAsync">
+            <summary>
+            Used to check if our notification service is online.
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Services.IPlaybackService">
             <summary>
@@ -1358,6 +1375,28 @@
             <param name="requestIndex">Index of the request on the day</param>
             <returns>The minute in the day based on the inputs</returns>
         </member>
+        <member name="T:Swabbr.Core.Services.HealthCheckService">
+            <summary>
+            Checks the health of our backend.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Services.HealthCheckService.#ctor(Swabbr.Core.Interfaces.Services.ILivestreamService,Swabbr.Core.Interfaces.Services.INotificationService,Laixer.Infra.Npgsql.IDatabaseProvider,Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Constructor for dependency injection.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Services.HealthCheckService.IsHealthyAsync">
+            <summary>
+            Checks the livestream service, notification service and database.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.HealthCheckService.IsDatabaseOnlineAsync">
+            <summary>
+            Checks if our database is online.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
+        </member>
         <member name="T:Swabbr.Core.Services.NotificationService">
             <summary>
             Contains functionality to handle notification operations.
@@ -1415,6 +1454,12 @@
             </summary>
             <param name="vlogLikeId">Internal <see cref="T:Swabbr.Core.Entities.VlogLike"/> id</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.NotificationService.IsServiceOnlineAsync">
+            <summary>
+            Checks if the notification service is online.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
         </member>
         <member name="T:Swabbr.Core.Services.NotificationTestingService">
             <summary>

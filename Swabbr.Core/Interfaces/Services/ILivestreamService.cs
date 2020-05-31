@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
-
     /// <summary>
     /// Handles all functionality for our <see cref="Livestream"/> objects.
     /// </summary>
     public interface ILivestreamService
     {
+
+        Task<bool> IsServiceOnlineAsync();
 
         Task<bool> ExistsLivestreamForTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
 
@@ -42,5 +43,4 @@ namespace Swabbr.Core.Interfaces.Services
         Task OnUserDisconnectedFromLivestreamAsync(Guid livestreamId, Guid userId);
 
     }
-
 }

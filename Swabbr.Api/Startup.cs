@@ -50,13 +50,11 @@ using System.Text;
 
 namespace Swabbr
 {
-
     /// <summary>
     /// Startup configuration for all dependency injections.
     /// </summary>
     public class Startup
     {
-
         private readonly IConfiguration _configuration;
 
         /// <summary>
@@ -130,6 +128,7 @@ namespace Swabbr
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
+            services.AddTransient<IHealthCheckService, HealthCheckService>();
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
@@ -274,7 +273,5 @@ namespace Swabbr
                 };
             });
         }
-
     }
-
 }

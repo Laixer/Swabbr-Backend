@@ -19,7 +19,6 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Notifications
 {
-
     /// <summary>
     /// Communicates with Azure Notification Hub to manage device registrations.
     /// This has no knowledge of our internal data store.
@@ -32,7 +31,6 @@ namespace Swabbr.Infrastructure.Notifications
     /// </remarks>
     public class NotificationClient : INotificationClient
     {
-
         private readonly NotificationHubClient _hubClient;
         private readonly INotificationJsonExtractor _notificationJsonExtractor;
         private readonly ILogger logger;
@@ -50,6 +48,28 @@ namespace Swabbr.Infrastructure.Notifications
             _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationClient)) : throw new ArgumentNullException(nameof(loggerFactory));
             _notificationJsonExtractor = notificationJsonExtractor ?? throw new ArgumentNullException(nameof(notificationJsonExtractor));
+        }
+
+        /// <summary>
+        /// Checks if the Azure Notification Hub is available.
+        /// </summary>
+        /// <remarks>
+        /// This just gets registrations by some arbitrary tag.
+        /// TODO Enhance
+        /// </remarks>
+        /// <returns><see cref="bool"/> result</returns>
+        public async Task<bool> IsServiceAvailableAsync()
+        {
+            try
+            {
+                await _hubClient.GetRegistrationsByTagAsync("anytag", 0).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Error while checking ANH health", e.Message);
+                return false;
+            }
         }
 
         /// <summary>
@@ -313,6 +333,5 @@ namespace Swabbr.Infrastructure.Notifications
         //        return new NotificationResponse<NotificationOutcome>().SetAsFailureResponse().AddErrorMessage("Could not find any stored Notification Hub Registrations.");
         //    }
         //}
-
     }
 }
