@@ -2034,7 +2034,8 @@
         </member>
         <member name="M:Swabbr.Core.Utility.DateTimeOffsetExtensions.ThrowIfNullOrEmpty(System.DateTimeOffset)">
             <summary>
-            TODO Implement
+            Checks if the <paramref name="self"/> is equal to the default value,
+            indicating that it was parsed from null.
             </summary>
             <param name="self">This <see cref="T:System.DateTimeOffset"/></param>
         </member>

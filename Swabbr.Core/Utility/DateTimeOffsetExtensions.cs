@@ -22,7 +22,8 @@ namespace Swabbr.Core.Utility
         }
 
         /// <summary>
-        /// TODO Implement
+        /// Checks if the <paramref name="self"/> is equal to the default value,
+        /// indicating that it was parsed from null.
         /// </summary>
         /// <param name="self">This <see cref="DateTimeOffset"/></param>
         public static void ThrowIfNullOrEmpty(this DateTimeOffset self)
