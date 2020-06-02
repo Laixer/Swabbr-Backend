@@ -33,7 +33,7 @@ namespace Swabbr.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    [Route("debug")]
+    [Route("api/{version:apiVersion}/debug")]
     public class DebugController : ApiControllerBase
     {
 
