@@ -39,9 +39,7 @@ namespace Swabbr.AzureFunctions.Functions
         /// <param name="log"></param>
         /// <returns></returns>
         [FunctionName(nameof(LogicAppVlogTriggerFunction))]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
-            ILogger log)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
         {
             if (req == null) { throw new ArgumentNullException(nameof(req)); }
 
