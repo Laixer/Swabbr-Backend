@@ -27,7 +27,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// specified <see cref="Livestream"/>.
         /// </summary>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="true"/> if exists</returns>
+        /// <returns>True if exists</returns>
         Task<bool> ExistsForLivestreamAsync(Guid livestreamId);
 
         /// <summary>

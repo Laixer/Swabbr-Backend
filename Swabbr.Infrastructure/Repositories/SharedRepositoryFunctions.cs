@@ -30,14 +30,12 @@ namespace Swabbr.Infrastructure.Repositories
             tableName.ThrowIfNullOrEmpty();
             id.ThrowIfNullOrEmpty();
 
-            using (var connection = provider.GetConnectionScope())
-            {
-                var sql = $"SELECT 1 FROM {tableName} WHERE id = @Id;";
-                var result = await connection.QueryAsync<int>(sql, new { Id = id }).ConfigureAwait(false);
-                if (result == null) { throw new InvalidOperationException("Result for exist checks should never be null"); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Single check result should never have more than one entity"); }
-                return result.Count() == 1;
-            }
+            using var connection = provider.GetConnectionScope();
+            var sql = $"SELECT 1 FROM {tableName} WHERE id = @Id;";
+            var result = await connection.QueryAsync<int>(sql, new { Id = id }).ConfigureAwait(false);
+            if (result == null) { throw new InvalidOperationException("Result for exist checks should never be null"); }
+            if (result.Count() > 1) { throw new InvalidOperationException("Single check result should never have more than one entity"); }
+            return result.Count() == 1;
         }
 
         /// <summary>
@@ -58,14 +56,12 @@ namespace Swabbr.Infrastructure.Repositories
             tableName.ThrowIfNullOrEmpty();
             if (provider == null) { throw new ArgumentNullException(nameof(provider)); }
 
-            using (var connection = provider.GetConnectionScope())
-            {
-                var sql = $"SELECT * FROM {tableName} WHERE id = @Id FOR UPDATE";
-                var result = await connection.QueryAsync<TEntity>(sql, new { Id = id }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-                return result.First();
-            }
+            using var connection = provider.GetConnectionScope();
+            var sql = $"SELECT * FROM {tableName} WHERE id = @Id FOR UPDATE";
+            var result = await connection.QueryAsync<TEntity>(sql, new { Id = id }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+            return result.First();
         }
 
         /// <summary>
@@ -81,15 +77,13 @@ namespace Swabbr.Infrastructure.Repositories
             tableName.ThrowIfNullOrEmpty();
             if (provider == null) { throw new ArgumentNullException(nameof(provider)); }
 
-            using (var connection = provider.GetConnectionScope())
-            {
-                var sql = $"DELETE FROM {tableName} WHERE id = @Id";
-                var result = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
+            using var connection = provider.GetConnectionScope();
+            var sql = $"DELETE FROM {tableName} WHERE id = @Id";
+            var result = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
 
-                if (result < 0) { throw new InvalidOperationException("Number of rows deleted can never be < 0"); }
-                if (result > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-                if (result == 0) { throw new EntityNotFoundException("Could not find entity to delete"); }
-            }
+            if (result < 0) { throw new InvalidOperationException("Number of rows deleted can never be < 0"); }
+            if (result > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+            if (result == 0) { throw new EntityNotFoundException("Could not find entity to delete"); }
         }
 
     }

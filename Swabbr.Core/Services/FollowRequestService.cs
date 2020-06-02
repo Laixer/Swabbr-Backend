@@ -55,47 +55,46 @@ namespace Swabbr.Core.Services
             requesterId.ThrowIfNullOrEmpty();
             var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = receiverId };
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            // Handle if the request exists.
+            if (await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
             {
-                // Handle if the request exists.
-                if (await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
+                // TODO This can be done with a database function maybe
+                var existingRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+                if (existingRequest.FollowRequestStatus == FollowRequestStatus.Declined)
                 {
-                    // TODO This can be done with a database function maybe
-                    var existingRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-                    if (existingRequest.FollowRequestStatus == FollowRequestStatus.Declined)
-                    {
-                        existingRequest.FollowRequestStatus = FollowRequestStatus.Pending;
-                        var updatedEntity = await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
+                    existingRequest.FollowRequestStatus = FollowRequestStatus.Pending;
+                    var updatedEntity = await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
 
-                        // Commit and return
-                        scope.Complete();
-                        return updatedEntity;
-                    }
-
-                    // If we get here, a request that is either pending or accepted already exists between these users.
-                    throw new EntityAlreadyExistsException("A follow request between the requesting and receiving user already exists (and is not declined)");
+                    // Commit and return
+                    scope.Complete();
+                    return updatedEntity;
                 }
 
-                // Continue if the request does not exist yet
-                var result = await _followRequestRepository.CreateAsync(new FollowRequest
-                {
-                    Id = new FollowRequestId
-                    {
-                        ReceiverId = receiverId,
-                        RequesterId = requesterId
-                    }
-                }).ConfigureAwait(false);
-
-                // Commit and return
-                scope.Complete();
-                return result;
+                // If we get here, a request that is either pending or accepted already exists between these users.
+                throw new EntityAlreadyExistsException("A follow request between the requesting and receiving user already exists (and is not declined)");
             }
+
+            // Continue if the request does not exist yet
+            var result = await _followRequestRepository.CreateAsync(new FollowRequest
+            {
+                Id = new FollowRequestId
+                {
+                    ReceiverId = receiverId,
+                    RequesterId = requesterId
+                }
+            }).ConfigureAwait(false);
+
+            // Commit and return
+            scope.Complete();
+            return result;
         }
 
         /// <summary>
         /// Accepts a <see cref="FollowRequest"/>.
         /// </summary>
-        /// <param name="followRequestId"></param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns></returns>
         public async Task<FollowRequest> AcceptAsync(FollowRequestId id)
         {
@@ -129,8 +128,7 @@ namespace Swabbr.Core.Services
         /// <remarks>
         /// TODO Maybe a separate call for the repository to save processing power? Minor optimization
         /// </remarks>
-        /// <param name="receiverId">Internal receiver id</param>
-        /// <param name="requesterId">Internal requester id</param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns><see cref="FollowRequestStatus"/></returns>
         public async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
         {
@@ -173,50 +171,40 @@ namespace Swabbr.Core.Services
         /// <summary>
         /// Cancels a <see cref="FollowRequest"/>.
         /// </summary>
-        /// <remarks>
-        /// The <paramref name="requesterId"/> is used to ensure that a user can 
-        /// only cancel a <see cref="FollowRequest"/> that he has requested himself.
-        /// </remarks>
-        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
-        /// <param name="requesterId">Internal requesting <see cref="SwabbrUser"/> id</param>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns><see cref="Task"/></returns>
         public async Task CancelAsync(FollowRequestId id)
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            if (!await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
             {
-                if (!await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
-                {
-                    throw new InvalidOperationException("Follow request does not exist");
-                }
-                // if (followRequest.Id.RequesterId != requesterId) { throw new InvalidOperationException("Follow request not owned by user"); }
-                // TODO We can't really check this, you can always do this wrong.
-                // We can only require the function call to have both the requester and receiver id, as we do now.
-
-                await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
-                scope.Complete();
+                throw new InvalidOperationException("Follow request does not exist");
             }
+            // if (followRequest.Id.RequesterId != requesterId) { throw new InvalidOperationException("Follow request not owned by user"); }
+            // TODO We can't really check this, you can always do this wrong.
+            // We can only require the function call to have both the requester and receiver id, as we do now.
+
+            await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
+            scope.Complete();
         }
 
         /// <summary>
         /// Unfollows a user.
         /// </summary>
-        /// <param name="receiverId">Internal receiver id</param>
-        /// <param name="requesterId">Internal requester id</param>
-        /// <returns></returns>
+        /// <param name="id"><see cref="FollowRequestId"/></param>
+        /// <returns><see cref="Task"/></returns>
         public async Task UnfollowAsync(FollowRequestId id)
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-                if (followRequest.FollowRequestStatus != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+            if (followRequest.FollowRequestStatus != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
 
-                await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
-                scope.Complete();
-            }
+            await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
+            scope.Complete();
         }
 
     }

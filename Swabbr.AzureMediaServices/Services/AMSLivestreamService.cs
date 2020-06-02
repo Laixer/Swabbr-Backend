@@ -22,7 +22,6 @@ namespace Swabbr.AzureMediaServices.Services
     /// </summary>
     public sealed class AMSLivestreamService : ILivestreamService
     {
-
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly ILivestreamPoolService _livestreamPoolService;
         private readonly IAMSClient _amsClient;
@@ -124,18 +123,25 @@ namespace Swabbr.AzureMediaServices.Services
             livestreamId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException(LivestreamState.PendingUserConnect.GetEnumMemberAttribute()); }
-                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                // TODO User trigger minute validation?
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException(LivestreamState.PendingUserConnect.GetEnumMemberAttribute()); }
+            if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+            // TODO User trigger minute validation?
 
-                var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+            var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
 
-                scope.Complete();
-                return await _amsClient.GetUpstreamDetailsAsync(livestreamId, vlog.Id, livestream.ExternalId).ConfigureAwait(false);
-            }
+            scope.Complete();
+            return await _amsClient.GetUpstreamDetailsAsync(livestreamId, vlog.Id, livestream.ExternalId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Checks if the livestream service is externally available.
+        /// </summary>
+        /// <returns><see cref="bool"/> result</returns>
+        public Task<bool> IsServiceOnlineAsync()
+        {
+            return _amsClient.IsServiceAvailableAsync();
         }
 
         /// <summary>
@@ -159,24 +165,22 @@ namespace Swabbr.AzureMediaServices.Services
             livestreamId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUserConnect.GetEnumMemberAttribute()} state"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            // Internal checks
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+            if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUserConnect.GetEnumMemberAttribute()} state"); }
 
-                var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
-                if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
+            var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+            if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
 
-                // External checks
-                // TODO Implement
+            // External checks
+            // TODO Implement
 
-                // Internal operations
-                await _livestreamRepository.MarkLiveAsync(livestreamId).ConfigureAwait(false);
+            // Internal operations
+            await _livestreamRepository.MarkLiveAsync(livestreamId).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -269,29 +273,28 @@ namespace Swabbr.AzureMediaServices.Services
             livestreamId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException(livestream.LivestreamState.GetEnumMemberAttribute()); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
-                if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
+            // Internal checks
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+            if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException(livestream.LivestreamState.GetEnumMemberAttribute()); }
 
-                // External checks
-                // TODO Implement
+            var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+            if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
 
-                // External operations
-                await _amsClient.StartLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
-                await _amsClient.CreateLiveOutputAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
-                await _amsClient.CreateLivestreamVlogStreamingLocatorAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
+            // External checks
+            // TODO Implement
 
-                // Internal operations
-                await _livestreamRepository.MarkPendingUserConnectAsync(livestreamId).ConfigureAwait(false);
+            // External operations
+            await _amsClient.StartLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
+            await _amsClient.CreateLiveOutputAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
+            await _amsClient.CreateLivestreamVlogStreamingLocatorAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            // Internal operations
+            await _livestreamRepository.MarkPendingUserConnectAsync(livestreamId).ConfigureAwait(false);
+
+            scope.Complete();
         }
 
         /// <summary>
@@ -373,31 +376,30 @@ namespace Swabbr.AzureMediaServices.Services
             userId.ThrowIfNullOrEmpty();
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUser.GetEnumMemberAttribute()} during timeout processing"); }
-                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                // External checks
-                // TODO Implement
+            // Internal checks
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.LivestreamState != LivestreamState.PendingUser) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingUser.GetEnumMemberAttribute()} during timeout processing"); }
+            if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
 
-                // External operations
-                await _amsClient.StopLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
-                // TODO Cleanup streaming asset
+            // External checks
+            // TODO Implement
 
-                // Internal operations
-                var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
-                await _livestreamRepository.MarkUserNoResponseTimeoutAsync(livestreamId).ConfigureAwait(false); // This deletes the vlog as well
-                await _storageService.CleanupVlogStorageOnDeleteAsync(vlog.Id).ConfigureAwait(false);
+            // External operations
+            await _amsClient.StopLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
+            // TODO Cleanup streaming asset
 
-                // TODO Should this function be responsible for the cleanup operation call?
-                // Clean up livestream for reusage
-                await _livestreamPoolService.CleanupTimedOutLivestreamAsync(livestreamId).ConfigureAwait(false);
+            // Internal operations
+            var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+            await _livestreamRepository.MarkUserNoResponseTimeoutAsync(livestreamId).ConfigureAwait(false); // This deletes the vlog as well
+            await _storageService.CleanupVlogStorageOnDeleteAsync(vlog.Id).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            // TODO Should this function be responsible for the cleanup operation call?
+            // Clean up livestream for reusage
+            await _livestreamPoolService.CleanupTimedOutLivestreamAsync(livestreamId).ConfigureAwait(false);
+
+            scope.Complete();
         }
 
         /// <summary>
@@ -424,7 +426,5 @@ namespace Swabbr.AzureMediaServices.Services
 
             return await _livestreamRepository.GetAsync(livestream.Id).ConfigureAwait(false);
         }
-
     }
-
 }

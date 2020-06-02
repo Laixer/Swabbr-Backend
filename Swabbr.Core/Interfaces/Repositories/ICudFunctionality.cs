@@ -6,9 +6,10 @@ namespace Swabbr.Core.Interfaces.Repositories
 
     /// <summary>
     /// Contract for ipmlementing create, update and delete functionality for
-    /// a given <see cref="TEntity"/> entity type.
+    /// a given entity type.
     /// </summary>
-    /// <typeparam name="TEntity"></typeparam>
+    /// <typeparam name="TEntity"><see cref="EntityBase{TPrimary}"/></typeparam>
+    /// <typeparam name="TPrimary">Primary key for the <see cref="EntityBase{TPrimary}"/></typeparam>
     public interface ICudFunctionality<TEntity, TPrimary>
         where TEntity : EntityBase<TPrimary>
     {

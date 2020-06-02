@@ -5,7 +5,7 @@ namespace Swabbr.Core.Enums
 {
 
     /// <summary>
-    /// Enum representation of the follow mode setting for the profile of a <see cref="UserItem"/>.
+    /// Enum representation of the follow mode setting for a profile.
     /// </summary>
     public enum FollowMode
     {

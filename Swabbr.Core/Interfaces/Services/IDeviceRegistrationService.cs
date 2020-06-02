@@ -6,7 +6,7 @@ namespace Swabbr.Core.Interfaces.Services
 {
 
     /// <summary>
-    /// Contract for managing device & user registration for notifications.
+    /// Contract for managing device and user registration for notifications.
     /// </summary>
     public interface IDeviceRegistrationService
     {

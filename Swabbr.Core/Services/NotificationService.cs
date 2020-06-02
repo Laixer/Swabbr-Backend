@@ -16,7 +16,6 @@ using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
-
     /// <summary>
     /// Contains functionality to handle notification operations.
     /// TODO This used to contain a circular dependency for the livestream service. Implement boundary checks here!
@@ -24,7 +23,6 @@ namespace Swabbr.Core.Services
     /// </summary>
     public sealed class NotificationService : INotificationService
     {
-
         private readonly IUserRepository _userRepository;
         private readonly IVlogRepository _vlogRepository;
         private readonly IVlogLikeRepository _vlogLikeRepository;
@@ -62,6 +60,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="pars"><see cref="ParametersFollowedProfileLive"/></param>
         /// <returns><see cref="Task"/></returns>
         public async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars)
         {
@@ -131,6 +130,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/>id</param>
         /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="pars"><see cref="ParametersRecordVlog"/></param>
         /// <returns><see cref="Task"/></returns>
         public async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
         {
@@ -238,6 +238,13 @@ namespace Swabbr.Core.Services
             throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
         }
 
+        /// <summary>
+        /// Checks if the notification service is online.
+        /// </summary>
+        /// <returns><see cref="bool"/> result</returns>
+        public Task<bool> IsServiceOnlineAsync()
+        {
+            return _notificationClient.IsServiceAvailableAsync();
+        }
     }
-
 }

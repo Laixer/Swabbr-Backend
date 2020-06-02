@@ -1,6 +1,7 @@
 ﻿using Laixer.Utility.Extensions;
 using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
@@ -17,23 +18,24 @@ using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Clients
 {
-
     /// <summary>
     /// Communicates with Azure Media Services.
     /// </summary>
     public sealed class AMSClient : IAMSClient
     {
-
         private readonly AMSConfiguration _config;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public AMSClient(IOptions<AMSConfiguration> config)
+        public AMSClient(IOptions<AMSConfiguration> config,
+            ILoggerFactory loggerFactory)
         {
             if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
+            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(AMSClient)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
@@ -493,6 +495,29 @@ namespace Swabbr.AzureMediaServices.Clients
         }
 
         /// <summary>
+        /// Checks if Azure Media Services is up and running.
+        /// </summary>
+        /// <remarks>
+        /// This just polls all live events.
+        /// TODO Enhance in the future
+        /// </remarks>
+        /// <returns><see cref="bool"/> result</returns>
+        public async Task<bool> IsServiceAvailableAsync()
+        {
+            try
+            {
+                var amsClient = await AMSClientFactory.GetClientAsync(_config).ConfigureAwait(false);
+                await amsClient.LiveEvents.ListAsync(_config.ResourceGroup, _config.AccountName).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Error while health checking AMS", e.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Starts a <see cref="LiveEvent"/> in AMS.
         /// </summary>
         /// <param name="liveEventName">AMS <see cref="LiveEvent"/> name</param>
@@ -565,7 +590,5 @@ namespace Swabbr.AzureMediaServices.Clients
             }
             throw new ExternalErrorException($"Could not find Live Event endpoint for protocol {protocol}");
         }
-
     }
-
 }

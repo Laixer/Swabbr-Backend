@@ -41,9 +41,8 @@ namespace Swabbr.Infrastructure.Repositories
             entity.ExternalId.ThrowIfNullOrEmpty();
 
             // TODO Enum injection
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     INSERT INTO {TableNotificationRegistration} (
                         external_id,
                         handle,
@@ -55,10 +54,9 @@ namespace Swabbr.Infrastructure.Repositories
                         '{entity.PushNotificationPlatform.GetEnumMemberAttribute()}',
                         @UserId
                     ) RETURNING id";
-                var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
-                id.ThrowIfNullOrEmpty();
-                return await GetAsync(id).ConfigureAwait(false);
-            }
+            var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
+            id.ThrowIfNullOrEmpty();
+            return await GetAsync(id).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -93,11 +91,9 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $"SELECT * FROM {TableNotificationRegistration} WHERE user_id = @UserId";
-                return await connection.QueryAsync<NotificationRegistration>(sql, new { UserId = userId }).ConfigureAwait(false);
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT * FROM {TableNotificationRegistration} WHERE user_id = @UserId";
+            return await connection.QueryAsync<NotificationRegistration>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
         public Task<NotificationRegistration> UpdateAsync(NotificationRegistration entity)

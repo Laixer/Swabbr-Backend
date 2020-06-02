@@ -50,13 +50,11 @@ using System.Text;
 
 namespace Swabbr
 {
-
     /// <summary>
     /// Startup configuration for all dependency injections.
     /// </summary>
     public class Startup
     {
-
         private readonly IConfiguration _configuration;
 
         /// <summary>
@@ -86,12 +84,13 @@ namespace Swabbr
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
             services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
 
+            // TODO This is not the job of the host, but of the application itself
             // Check configuration
-            var servicesBuilt = services.BuildServiceProvider();
-            servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
+            //var servicesBuilt = services.BuildServiceProvider();
+            //servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
 #pragma warning restore ASP0000
 
             // Setup request related services
@@ -130,6 +129,7 @@ namespace Swabbr
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
+            services.AddTransient<IHealthCheckService, HealthCheckService>();
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
@@ -274,7 +274,5 @@ namespace Swabbr
                 };
             });
         }
-
     }
-
 }

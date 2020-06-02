@@ -66,14 +66,12 @@ namespace Swabbr.Core.Services
             vlogId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
-                if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
+            if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
 
-                await _vlogRepository.SoftDeleteAsync(vlogId).ConfigureAwait(false);
-                scope.Complete();
-            }
+            await _vlogRepository.SoftDeleteAsync(vlogId).ConfigureAwait(false);
+            scope.Complete();
         }
 
         /// <summary>
@@ -158,19 +156,17 @@ namespace Swabbr.Core.Services
             vlogId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var vlogLikeId = new VlogLikeId
             {
-                var vlogLikeId = new VlogLikeId
-                {
-                    VlogId = vlogId,
-                    UserId = userId
-                };
-                if (!await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new EntityNotFoundException(); }
+                VlogId = vlogId,
+                UserId = userId
+            };
+            if (!await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new EntityNotFoundException(); }
 
-                await _vlogLikeRepository.DeleteAsync(vlogLikeId).ConfigureAwait(false);
+            await _vlogLikeRepository.DeleteAsync(vlogLikeId).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -178,27 +174,28 @@ namespace Swabbr.Core.Services
         /// TODO Is this optimal?
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
+        /// <param name="isPrivate">Whether or not the <see cref="Vlog"/> should become
+        /// private</param>
         /// <returns>Updated and queried <see cref="Vlog"/></returns>
         public async Task<Vlog> UpdateAsync(Guid vlogId, Guid userId, bool isPrivate)
         {
             vlogId.ThrowIfNullOrEmpty();
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
-                var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
-                if (vlog.UserId != user.Id) { throw new NotAllowedException("User doesn't own vlog"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
+            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
+            if (vlog.UserId != user.Id) { throw new NotAllowedException("User doesn't own vlog"); }
 
-                vlog.IsPrivate = isPrivate;
-                // TODO Implement shared users here
+            vlog.IsPrivate = isPrivate;
+            // TODO Implement shared users here
 
-                var updatedVlog = await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
+            var updatedVlog = await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
 
-                // Commit and return
-                scope.Complete();
-                return updatedVlog;
-            }
+            // Commit and return
+            scope.Complete();
+            return updatedVlog;
         }
 
         /// <summary>

@@ -14,6 +14,11 @@ namespace Swabbr.Core.Notifications
         /// Constructor to force us to always initialize <see cref="NotificationAction"/>.
         /// </summary>
         /// <param name="notificationAction"><see cref="NotificationAction"/></param>
+        /// <param name="data"><see cref="ParametersJsonBase"/></param>
+        /// <param name="title">The title to display</param>
+        /// <param name="message">The message to display</param>
+        /// <param name="protocol">Protocol type</param>
+        /// <param name="protocolVersion">Protocol version</param>
         public SwabbrNotification(NotificationAction notificationAction,
             ParametersJsonBase data,
             string title = null,

@@ -44,18 +44,16 @@ namespace Swabbr.Infrastructure.Repositories
         {
             followRequestId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {TableFollowRequest}  
                     WHERE receiver_id = @ReceiverId
                     AND requester_id = @RequesterId
                     FOR UPDATE";
-                var result = await connection.QueryAsync<FollowRequest>(sql, followRequestId).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-                return result.First();
-            }
+            var result = await connection.QueryAsync<FollowRequest>(sql, followRequestId).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+            return result.First();
         }
 
         /// <summary>
@@ -67,14 +65,12 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<bool> ExistsAsync(FollowRequestId followRequestId)
         {
             followRequestId.ThrowIfNullOrEmpty();
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $"SELECT 1 FROM {TableFollowRequest}" +
-                    $" WHERE receiver_id = @ReceiverId" +
-                    $" AND requester_id = @RequesterId";
-                var result = await connection.QueryAsync<int>(sql, followRequestId).ConfigureAwait(false);
-                return result != null && result.Any();
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"SELECT 1 FROM {TableFollowRequest}" +
+$" WHERE receiver_id = @ReceiverId" +
+$" AND requester_id = @RequesterId";
+            var result = await connection.QueryAsync<int>(sql, followRequestId).ConfigureAwait(false);
+            return result != null && result.Any();
         }
 
         public Task<int> GetFollowerCountAsync(Guid userId)
@@ -96,15 +92,13 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {TableFollowRequest}
                     WHERE receiver_id = @UserId
                     AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -116,15 +110,13 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {TableFollowRequest}
                     WHERE requester_id = @UserId
                     AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -141,19 +133,17 @@ namespace Swabbr.Infrastructure.Repositories
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
             entity.Id.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"INSERT INTO {TableFollowRequest} (
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"INSERT INTO {TableFollowRequest} (
                         requester_id,
                         receiver_id
                     ) VALUES (
                         @RequesterId,
                         @ReceiverId
                     )";
-                await connection.ExecuteAsync(sql, entity.Id).ConfigureAwait(false);
+            await connection.ExecuteAsync(sql, entity.Id).ConfigureAwait(false);
 
-                return await GetAsync(entity.Id).ConfigureAwait(false);
-            }
+            return await GetAsync(entity.Id).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -182,16 +172,14 @@ namespace Swabbr.Infrastructure.Repositories
         {
             followRequestId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     DELETE FROM {TableFollowRequest} 
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-                var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
-                if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(FollowRequest)); }
-            }
+            var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(FollowRequest)); }
         }
 
         /// <summary>
@@ -205,21 +193,19 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<FollowRequest> UpdateStatusAsync(FollowRequestId followRequestId, FollowRequestStatus status)
         {
             followRequestId.ThrowIfNullOrEmpty();
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO Anti SQL inject
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO Anti SQL inject
+            var sql = $@"
                     UPDATE {TableFollowRequest}
                     SET follow_request_status = '{status.GetEnumMemberAttribute()}'
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-                var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
-                if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
-                else if (rowsAffected > 1) { throw new InvalidOperationException($"Affected {rowsAffected} while updating a single follow request, this should never happen"); }
-                else
-                {
-                    return await GetAsync(followRequestId).ConfigureAwait(false);
-                }
+            var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
+            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
+            else if (rowsAffected > 1) { throw new InvalidOperationException($"Affected {rowsAffected} while updating a single follow request, this should never happen"); }
+            else
+            {
+                return await GetAsync(followRequestId).ConfigureAwait(false);
             }
         }
 

@@ -52,25 +52,23 @@ namespace Swabbr.AzureMediaServices.Services
         {
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamState != LivestreamState.PendingClosure) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingClosure.GetEnumMemberAttribute()} state"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            // Internal checks
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.LivestreamState != LivestreamState.PendingClosure) { throw new LivestreamStateException($"Livestream not in {LivestreamState.PendingClosure.GetEnumMemberAttribute()} state"); }
 
-                // External checks
-                // TODO Implement
+            // External checks
+            // TODO Implement
 
-                // External operations
-                // TODO What do we need to do here?
+            // External operations
+            // TODO What do we need to do here?
 
-                // Internal operations
-                // TODO This just resets the livestream, check this
-                await _livestreamRepository.MarkClosedAsync(livestream.Id).ConfigureAwait(false);
-                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+            // Internal operations
+            // TODO This just resets the livestream, check this
+            await _livestreamRepository.MarkClosedAsync(livestream.Id).ConfigureAwait(false);
+            await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -83,24 +81,22 @@ namespace Swabbr.AzureMediaServices.Services
         {
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamState != LivestreamState.UserNeverConnectedTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamState.UserNeverConnectedTimeout.GetEnumMemberAttribute()} state"); }
+            using TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            // Internal checks
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.LivestreamState != LivestreamState.UserNeverConnectedTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamState.UserNeverConnectedTimeout.GetEnumMemberAttribute()} state"); }
 
-                // External checks
-                // TODO Implement
+            // External checks
+            // TODO Implement
 
-                // External operations
-                // TODO What do we need to do here?
+            // External operations
+            // TODO What do we need to do here?
 
-                // Internal operations
-                // TODO This just resets the livestream, check this
-                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+            // Internal operations
+            // TODO This just resets the livestream, check this
+            await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
         /// <summary>
@@ -113,26 +109,25 @@ namespace Swabbr.AzureMediaServices.Services
         {
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Internal checks
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamState != LivestreamState.UserNoResponseTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamState.UserNoResponseTimeout.GetEnumMemberAttribute()} state"); }
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                // External checks
-                // TODO Implement
+            // Internal checks
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.LivestreamState != LivestreamState.UserNoResponseTimeout) { throw new LivestreamStateException($"Livestream not in {LivestreamState.UserNoResponseTimeout.GetEnumMemberAttribute()} state"); }
 
-                // External operations
-                // TODO What do we need to do here?
+            // External checks
+            // TODO Implement
 
-                // Internal operations
-                // TODO This just resets the livestream, check this
-                await _livestreamRepository.MarkPendingClosureAsync(livestream.Id).ConfigureAwait(false);
-                await _livestreamRepository.MarkClosedAsync(livestream.Id).ConfigureAwait(false);
-                await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+            // External operations
+            // TODO What do we need to do here?
 
-                scope.Complete();
-            }
+            // Internal operations
+            // TODO This just resets the livestream, check this
+            await _livestreamRepository.MarkPendingClosureAsync(livestream.Id).ConfigureAwait(false);
+            await _livestreamRepository.MarkClosedAsync(livestream.Id).ConfigureAwait(false);
+            await _livestreamRepository.MarkCreatedAsync(livestream.Id, livestream.ExternalId, livestream.BroadcastLocation).ConfigureAwait(false);
+
+            scope.Complete();
         }
 
         /// <summary>

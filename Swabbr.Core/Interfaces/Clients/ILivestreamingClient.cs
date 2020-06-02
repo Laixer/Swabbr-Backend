@@ -16,7 +16,6 @@ namespace Swabbr.Core.Interfaces.Clients
         /// Create a new livestream.
         /// </summary>
         /// <param name="name">Name of the livestream.</param>
-        /// <param name="userId">Id of the user this stream should belong to.</param>
         /// <returns>Connection details for broadcasting the stream.</returns>
         Task<Livestream> CreateNewStreamAsync(string name);
 
@@ -68,7 +67,6 @@ namespace Swabbr.Core.Interfaces.Clients
         /// Synchronize the recordings from a livestream to a vlog.
         /// </summary>
         /// <param name="livestreamId">Id of the livestream.</param>
-        /// <param name="vlogId">Id of the vlog.</param>
         /// <returns></returns>
         Task GetRecordingsAsync(string livestreamId);
 

@@ -45,28 +45,27 @@ namespace Swabbr.Core.Services
             userId.ThrowIfNullOrEmpty();
             handle.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            // First clear the existing registration if it exists
+            var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
+            if (registrations.Count() > 1) { throw new InvalidOperationException("Can't have more than one notification registration per user"); }
+            if (registrations.Any())
             {
-                // First clear the existing registration if it exists
-                var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
-                if (registrations.Count() > 1) { throw new InvalidOperationException("Can't have more than one notification registration per user"); }
-                if (registrations.Any())
-                {
-                    await _notificationClient.UnregisterAsync(registrations.First()).ConfigureAwait(false);
-                    await _notificationRegistrationRepository.DeleteAsync(registrations.First().Id).ConfigureAwait(false);
-                }
-
-                // Create new registration and assign external id
-                var registration = await _notificationClient.RegisterAsync(new NotificationRegistration
-                {
-                    Handle = handle,
-                    PushNotificationPlatform = platform,
-                    UserId = userId
-                }).ConfigureAwait(false);
-                await _notificationRegistrationRepository.CreateAsync(registration).ConfigureAwait(false);
-
-                scope.Complete();
+                await _notificationClient.UnregisterAsync(registrations.First()).ConfigureAwait(false);
+                await _notificationRegistrationRepository.DeleteAsync(registrations.First().Id).ConfigureAwait(false);
             }
+
+            // Create new registration and assign external id
+            var registration = await _notificationClient.RegisterAsync(new NotificationRegistration
+            {
+                Handle = handle,
+                PushNotificationPlatform = platform,
+                UserId = userId
+            }).ConfigureAwait(false);
+            await _notificationRegistrationRepository.CreateAsync(registration).ConfigureAwait(false);
+
+            scope.Complete();
         }
 
         /// <summary>
@@ -82,21 +81,19 @@ namespace Swabbr.Core.Services
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
 
-                // Throw if we don't have any registration
-                if (!registrations.Any()) { throw new DeviceNotRegisteredException(); }
+            // Throw if we don't have any registration
+            if (!registrations.Any()) { throw new DeviceNotRegisteredException(); }
 
-                // Throw if there is more than one registration
-                if (registrations.Count() > 1) { throw new InvalidOperationException("Device still has multiple registrations, this is not allowed during Unregister operation"); }
+            // Throw if there is more than one registration
+            if (registrations.Count() > 1) { throw new InvalidOperationException("Device still has multiple registrations, this is not allowed during Unregister operation"); }
 
-                await _notificationClient.UnregisterAsync(registrations.First()).ConfigureAwait(false);
-                await _notificationRegistrationRepository.DeleteAsync(registrations.First().Id).ConfigureAwait(false);
+            await _notificationClient.UnregisterAsync(registrations.First()).ConfigureAwait(false);
+            await _notificationRegistrationRepository.DeleteAsync(registrations.First().Id).ConfigureAwait(false);
 
-                scope.Complete();
-            }
+            scope.Complete();
         }
 
     }

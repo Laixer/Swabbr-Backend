@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Interfaces.Clients
 {
-
     /// <summary>
     /// Contract for an Azure Media Services handler.
     /// </summary>
     public interface IAMSClient
     {
-
         Task<LiveEvent> CreateLiveEventAsync(Guid livestreamId);
 
         Task<LiveOutput> CreateLiveOutputAsync(Guid correspondingVlogId, string liveEventName);
@@ -40,6 +38,8 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
         Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId);
 
         Task<string> GetStreamingEndpointHostNameAsync();
+
+        Task<bool> IsServiceAvailableAsync();
 
         Task StartLiveEventAsync(string liveEventName);
 

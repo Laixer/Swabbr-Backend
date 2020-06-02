@@ -157,18 +157,16 @@ namespace Swabbr.Core.Services
             userId.ThrowIfNullOrEmpty();
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+
+            // Only do something if we are in the pending user connect state
+            if (livestream.LivestreamState == LivestreamState.PendingUserConnect)
             {
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-
-                // Only do something if we are in the pending user connect state
-                if (livestream.LivestreamState == LivestreamState.PendingUserConnect)
-                {
-                    await _livestreamingService.OnUserNeverConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
-                }
-
-                scope.Complete();
+                await _livestreamingService.OnUserNeverConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
             }
+
+            scope.Complete();
         }
 
         /// <summary>
@@ -277,16 +275,14 @@ namespace Swabbr.Core.Services
             userId.ThrowIfNullOrEmpty();
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            if (livestream.LivestreamState == LivestreamState.Live)
             {
-                var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                if (livestream.LivestreamState == LivestreamState.Live)
-                {
-                    if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-                    await _livestreamingService.OnUserVlogTimeExpiredAsync(livestreamId, userId).ConfigureAwait(false);
-                }
-                scope.Complete();
+                if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
+                await _livestreamingService.OnUserVlogTimeExpiredAsync(livestreamId, userId).ConfigureAwait(false);
             }
+            scope.Complete();
         }
     }
 

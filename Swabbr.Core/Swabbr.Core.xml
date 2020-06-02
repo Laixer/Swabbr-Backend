@@ -434,7 +434,7 @@
         </member>
         <member name="T:Swabbr.Core.Enums.FollowMode">
             <summary>
-            Enum representation of the follow mode setting for the profile of a <see cref="!:UserItem"/>.
+            Enum representation of the follow mode setting for a profile.
             </summary>
         </member>
         <member name="F:Swabbr.Core.Enums.FollowMode.Manual">
@@ -454,7 +454,7 @@
         </member>
         <member name="T:Swabbr.Core.Enums.FollowRequestStatus">
             <summary>
-            Enum that represents the status of an active <see cref="!:FollowRequest"/> between two users.
+            Enum that represents the status of an active <see cref="T:Swabbr.Core.Entities.FollowRequest"/> between two users.
             </summary>
         </member>
         <member name="F:Swabbr.Core.Enums.FollowRequestStatus.Pending">
@@ -474,7 +474,7 @@
         </member>
         <member name="T:Swabbr.Core.Enums.Gender">
             <summary>
-            Enum for the gender of a <see cref="!:UserItem"/>.
+            Enum for the gender of a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
             </summary>
         </member>
         <member name="F:Swabbr.Core.Enums.Gender.Female">
@@ -662,7 +662,6 @@
             Create a new livestream.
             </summary>
             <param name="name">Name of the livestream.</param>
-            <param name="userId">Id of the user this stream should belong to.</param>
             <returns>Connection details for broadcasting the stream.</returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Clients.ILivestreamingClient.GetStreamConnectionAsync(System.String)">
@@ -714,7 +713,6 @@
             Synchronize the recordings from a livestream to a vlog.
             </summary>
             <param name="livestreamId">Id of the livestream.</param>
-            <param name="vlogId">Id of the vlog.</param>
             <returns></returns>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Clients.INotificationClient">
@@ -739,9 +737,10 @@
         <member name="T:Swabbr.Core.Interfaces.Repositories.ICudFunctionality`2">
             <summary>
             Contract for ipmlementing create, update and delete functionality for
-            a given <see cref="!:TEntity"/> entity type.
+            a given entity type.
             </summary>
-            <typeparam name="TEntity"></typeparam>
+            <typeparam name="TEntity"><see cref="T:Swabbr.Core.Entities.EntityBase`1"/></typeparam>
+            <typeparam name="TPrimary">Primary key for the <see cref="T:Swabbr.Core.Entities.EntityBase`1"/></typeparam>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Repositories.IFollowRequestRepository">
             <summary>
@@ -752,8 +751,7 @@
             <summary>
             Returns whether a follow relationship from the receiver to the requester exists.
             </summary>
-            <param name="receiverId">Unique identifier of the receiving user.</param>
-            <param name="requesterId">Unique identifier of the requesting user.</param>
+            <param name="followRequestId"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns></returns>
             TODO THOMAS I suspect that this exists to battle the double-follow-request race conditions. These should
             never be a problem as long as the follow request processsing pipeline is transactional. --> postgresql
@@ -812,7 +810,11 @@
             Contract for a <see cref="T:Swabbr.Core.Entities.Reaction"/> repository.
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Swabbr.Core.Interfaces.Repositories.IRepository`2" -->
+        <member name="T:Swabbr.Core.Interfaces.Repositories.IRepository`2">
+            <summary>
+            Generic repository base for an <see cref="T:Swabbr.Core.Entities.EntityBase`1"/>.
+            </summary>
+        </member>
         <member name="T:Swabbr.Core.Interfaces.Repositories.IUserRepository">
             <summary>
             Repository for <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> entities.
@@ -845,7 +847,7 @@
             specified <see cref="T:Swabbr.Core.Entities.Livestream"/>.
             </summary>
             <param name="livestreamId">Internal <see cref="T:Swabbr.Core.Entities.Livestream"/> id</param>
-            <returns><see cref="!:true"/> if exists</returns>
+            <returns>True if exists</returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Repositories.IVlogRepository.GetFeaturedVlogsAsync">
             <summary>
@@ -865,7 +867,11 @@
             </summary>
             <param name="userId">Unique identifier of the user and owner of the vlogs.</param>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Swabbr.Core.Interfaces.Services.IDeviceRegistrationService" -->
+        <member name="T:Swabbr.Core.Interfaces.Services.IDeviceRegistrationService">
+            <summary>
+            Contract for managing device and user registration for notifications.
+            </summary>
+        </member>
         <member name="T:Swabbr.Core.Interfaces.Services.IFollowRequestService">
             <summary>
             Contains functionality for processing <see cref="T:Swabbr.Core.Entities.FollowRequest"/> entities.
@@ -882,22 +888,21 @@
             <summary>
             Accept an existing follow request.
             </summary>
-            <param name="followRequestId"></param>
+            <param name="id"></param>
             <returns></returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.DeclineAsync(Swabbr.Core.Types.FollowRequestId)">
             <summary>
             Decline an existing follow request.
             </summary>
-            <param name="followRequestId"></param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns></returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.CancelAsync(Swabbr.Core.Types.FollowRequestId)">
             <summary>
             Cancel an existing follow request.
             </summary>
-            <param name="followRequestId"></param>
-            <param name="requesterId">The requesting <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.UnfollowAsync(Swabbr.Core.Types.FollowRequestId)">
@@ -905,23 +910,22 @@
             Unfollows a requester from a receiver.
             TODO Do we need functionality for the other way around? As in, kicking your subscribers?
             </summary>
-            <param name="requesterId">Requesting user id</param>
-            <param name="receiverId">Receiving user id</param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.GetAsync(Swabbr.Core.Types.FollowRequestId)">
             <summary>
             Returns a single follow request entity from the id of the requester to the id of the receiver.
             </summary>
-            <returns></returns>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
+            <returns><see cref="T:Swabbr.Core.Entities.FollowRequest"/></returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.GetStatusAsync(Swabbr.Core.Types.FollowRequestId)">
             <summary>
             Gets the <see cref="T:Swabbr.Core.Enums.FollowRequestStatus"/> for a given <see cref="T:Swabbr.Core.Entities.FollowRequest"/>
             between two users.
             </summary>
-            <param name="requesterId">Internal requester id</param>
-            <param name="receiverId">Internal receiver id</param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns><see cref="T:Swabbr.Core.Enums.FollowRequestStatus"/></returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.GetPendingIncomingForUserAsync(System.Guid)">
@@ -929,7 +933,7 @@
             Returns all pending incoming follow requests for a specific user.
             </summary>
             <param name="userId">Unique identifier of the user that received the requests.</param>
-            <returns></returns>
+            <returns><see cref="T:Swabbr.Core.Entities.FollowRequest"/> collection</returns>
         </member>
         <member name="M:Swabbr.Core.Interfaces.Services.IFollowRequestService.GetPendingOutgoingForUserAsync(System.Guid)">
             <summary>
@@ -959,6 +963,17 @@
             Contract for managing hash distributions for timed triggers.
             </summary>
         </member>
+        <member name="T:Swabbr.Core.Interfaces.Services.IHealthCheckService">
+            <summary>
+            Contract for checking the health of our backend.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IHealthCheckService.IsHealthyAsync">
+            <summary>
+            Checks if our backend is healthy.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
+        </member>
         <member name="T:Swabbr.Core.Interfaces.Services.ILivestreamPoolService">
             <summary>
             Contains functionality for managing a <see cref="T:Swabbr.Core.Entities.Livestream"/> resource
@@ -974,6 +989,12 @@
             <summary>
             A contract for a service to handle everything regarding notification.
             </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.INotificationService.IsServiceOnlineAsync">
+            <summary>
+            Used to check if our notification service is online.
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Services.IPlaybackService">
             <summary>
@@ -1198,6 +1219,11 @@
             Constructor to force us to always initialize <see cref="T:Swabbr.Core.Notifications.NotificationAction"/>.
             </summary>
             <param name="notificationAction"><see cref="T:Swabbr.Core.Notifications.NotificationAction"/></param>
+            <param name="data"><see cref="T:Swabbr.Core.Notifications.JsonWrappers.ParametersJsonBase"/></param>
+            <param name="title">The title to display</param>
+            <param name="message">The message to display</param>
+            <param name="protocol">Protocol type</param>
+            <param name="protocolVersion">Protocol version</param>
         </member>
         <member name="T:Swabbr.Core.Services.DeviceRegistrationService">
             <summary>
@@ -1258,7 +1284,7 @@
             <summary>
             Accepts a <see cref="T:Swabbr.Core.Entities.FollowRequest"/>.
             </summary>
-            <param name="followRequestId"></param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns></returns>
         </member>
         <member name="M:Swabbr.Core.Services.FollowRequestService.GetStatusAsync(Swabbr.Core.Types.FollowRequestId)">
@@ -1269,8 +1295,7 @@
             <remarks>
             TODO Maybe a separate call for the repository to save processing power? Minor optimization
             </remarks>
-            <param name="receiverId">Internal receiver id</param>
-            <param name="requesterId">Internal requester id</param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns><see cref="T:Swabbr.Core.Enums.FollowRequestStatus"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.FollowRequestService.GetPendingIncomingForUserAsync(System.Guid)">
@@ -1291,21 +1316,15 @@
             <summary>
             Cancels a <see cref="T:Swabbr.Core.Entities.FollowRequest"/>.
             </summary>
-            <remarks>
-            The <paramref name="requesterId"/> is used to ensure that a user can 
-            only cancel a <see cref="T:Swabbr.Core.Entities.FollowRequest"/> that he has requested himself.
-            </remarks>
-            <param name="followRequestId">Internal <see cref="T:Swabbr.Core.Entities.FollowRequest"/> id</param>
-            <param name="requesterId">Internal requesting <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.FollowRequestService.UnfollowAsync(Swabbr.Core.Types.FollowRequestId)">
             <summary>
             Unfollows a user.
             </summary>
-            <param name="receiverId">Internal receiver id</param>
-            <param name="requesterId">Internal requester id</param>
-            <returns></returns>
+            <param name="id"><see cref="T:Swabbr.Core.Types.FollowRequestId"/></param>
+            <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="T:Swabbr.Core.Services.HashDebugDistributionService">
             <summary>
@@ -1358,6 +1377,28 @@
             <param name="requestIndex">Index of the request on the day</param>
             <returns>The minute in the day based on the inputs</returns>
         </member>
+        <member name="T:Swabbr.Core.Services.HealthCheckService">
+            <summary>
+            Checks the health of our backend.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Services.HealthCheckService.#ctor(Swabbr.Core.Interfaces.Services.ILivestreamService,Swabbr.Core.Interfaces.Services.INotificationService,Laixer.Infra.Npgsql.IDatabaseProvider,Microsoft.Extensions.Logging.ILoggerFactory)">
+            <summary>
+            Constructor for dependency injection.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Services.HealthCheckService.IsHealthyAsync">
+            <summary>
+            Checks the livestream service, notification service and database.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.HealthCheckService.IsDatabaseOnlineAsync">
+            <summary>
+            Checks if our database is online.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
+        </member>
         <member name="T:Swabbr.Core.Services.NotificationService">
             <summary>
             Contains functionality to handle notification operations.
@@ -1380,6 +1421,7 @@
             </remarks>
             <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
             <param name="livestreamId">Internal <see cref="T:Swabbr.Core.Entities.Livestream"/> id</param>
+            <param name="pars"><see cref="T:Swabbr.Core.Notifications.JsonWrappers.ParametersFollowedProfileLive"/></param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.NotificationService.NotifyFollowersVlogPostedAsync(System.Guid,System.Guid)">
@@ -1398,6 +1440,7 @@
             </summary>
             <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>id</param>
             <param name="livestreamId">Internal <see cref="T:Swabbr.Core.Entities.Livestream"/> id</param>
+            <param name="pars"><see cref="T:Swabbr.Core.Notifications.JsonWrappers.ParametersRecordVlog"/></param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.NotificationService.NotifyReactionPlacedAsync(System.Guid)">
@@ -1415,6 +1458,12 @@
             </summary>
             <param name="vlogLikeId">Internal <see cref="T:Swabbr.Core.Entities.VlogLike"/> id</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.NotificationService.IsServiceOnlineAsync">
+            <summary>
+            Checks if the notification service is online.
+            </summary>
+            <returns><see cref="T:System.Boolean"/> result</returns>
         </member>
         <member name="T:Swabbr.Core.Services.NotificationTestingService">
             <summary>
@@ -1499,9 +1548,9 @@
         </member>
         <member name="M:Swabbr.Core.Services.UserService.UpdateSettingsAsync(Swabbr.Core.Entities.UserSettings)">
             <summary>
-            Updates the <see cref="T:Swabbr.Core.Entities.UserSettings"/> for a <paramref name="userId"/>.
+            Updates the <see cref="T:Swabbr.Core.Entities.UserSettings"/> for a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
             </summary>
-            <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="userSettings"><see cref="T:Swabbr.Core.Entities.UserSettings"/></param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.UserService.UpdateTimeZoneAsync(System.Guid,System.TimeZoneInfo)">
@@ -1695,6 +1744,9 @@
             TODO Is this optimal?
             </summary>
             <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="isPrivate">Whether or not the <see cref="T:Swabbr.Core.Entities.Vlog"/> should become
+            private</param>
             <returns>Updated and queried <see cref="T:Swabbr.Core.Entities.Vlog"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.VlogService.ExistsAsync(System.Guid)">
@@ -1746,6 +1798,7 @@
             TODO This should poll after the request was received, and only then start the timer (not for version 1)
             </remarks>
             <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="triggerMinute">The trigger minute</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="M:Swabbr.Core.Services.VlogTriggerService.ProcessVlogTimeoutForUserAsync(System.Guid,System.DateTimeOffset)">
@@ -1753,6 +1806,7 @@
             Processes the timeout for a vlog request for a <paramref name="userId"/>.
             </summary>
             <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="triggerMinute">The trigger minute</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
         </member>
         <member name="T:Swabbr.Core.Types.FollowRequestId">
@@ -1902,12 +1956,6 @@
             Wrapper for uploading a <see cref="P:Swabbr.Core.Types.ReactionUploadWrapper.Reaction"/>.
             </summary>
         </member>
-        <member name="T:Swabbr.Core.Types.StreamWithEntityIdWrapper">
-            <summary>
-            Wrapper for a <see cref="P:Swabbr.Core.Types.StreamWithEntityIdWrapper.Stream"/> and a <see cref="T:System.Guid"/> of an
-            <see cref="!:Entity"/>.
-            </summary>
-        </member>
         <member name="T:Swabbr.Core.Types.UserPushNotificationDetails">
             <summary>
             Composite class that contains a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id 
@@ -2017,7 +2065,7 @@
         </member>
         <member name="M:Swabbr.Core.Utility.LivestreamTimeoutWrapperExtensions.ThrowIfInvalid(Swabbr.Core.Types.LivestreamTimeoutWrapper)">
             <summary>
-            Throws if a <paramref name="wrapper"/> is <see cref="!:null"/> or contains
+            Throws if a <paramref name="wrapper"/> is null or contains
             incomplete information.
             </summary>
             <param name="wrapper"><see cref="T:Swabbr.Core.Types.LivestreamTimeoutWrapper"/></param>

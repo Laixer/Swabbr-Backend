@@ -1,12 +1,9 @@
 ﻿using Laixer.Infra.Npgsql;
-using Laixer.Utility.Exceptions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
-using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
@@ -18,13 +15,11 @@ using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
-using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Repositories;
-using Swabbr.Infrastructure.Utility;
 using System;
 
 [assembly: FunctionsStartup(typeof(Swabbr.AzureFunctions.Startup))]

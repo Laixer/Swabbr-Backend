@@ -12,25 +12,17 @@ namespace Swabbr.Core.Notifications
 
         public static string Map(NotificationAction notificationAction)
         {
-            switch (notificationAction)
+            return notificationAction switch
             {
-                case NotificationAction.FollowedProfileLive:
-                    return NotificationActionConstants.FollowedProfileLive;
-                case NotificationAction.InactiveUserMotivate:
-                    return NotificationActionConstants.InactiveUserMotivate;
-                case NotificationAction.InactiveUnwatchedVlogs:
-                    return NotificationActionConstants.InactiveUnwatchedVlogs;
-                case NotificationAction.InactiveVlogRecordRequest:
-                    return NotificationActionConstants.InactiveVlogRecordRequest;
-                case NotificationAction.VlogGainedLikes:
-                    return NotificationActionConstants.VlogGainedLikes;
-                case NotificationAction.VlogNewReaction:
-                    return NotificationActionConstants.VlogNewReaction;
-                case NotificationAction.VlogRecordRequest:
-                    return NotificationActionConstants.VlogRecordRequest;
-            }
-
-            throw new InvalidOperationException(nameof(notificationAction));
+                NotificationAction.FollowedProfileLive => NotificationActionConstants.FollowedProfileLive,
+                NotificationAction.InactiveUserMotivate => NotificationActionConstants.InactiveUserMotivate,
+                NotificationAction.InactiveUnwatchedVlogs => NotificationActionConstants.InactiveUnwatchedVlogs,
+                NotificationAction.InactiveVlogRecordRequest => NotificationActionConstants.InactiveVlogRecordRequest,
+                NotificationAction.VlogGainedLikes => NotificationActionConstants.VlogGainedLikes,
+                NotificationAction.VlogNewReaction => NotificationActionConstants.VlogNewReaction,
+                NotificationAction.VlogRecordRequest => NotificationActionConstants.VlogRecordRequest,
+                _ => throw new InvalidOperationException(nameof(notificationAction)),
+            };
         }
 
     }

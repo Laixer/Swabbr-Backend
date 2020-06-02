@@ -17,8 +17,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <summary>
         /// Returns whether a follow relationship from the receiver to the requester exists.
         /// </summary>
-        /// <param name="receiverId">Unique identifier of the receiving user.</param>
-        /// <param name="requesterId">Unique identifier of the requesting user.</param>
+        /// <param name="followRequestId"><see cref="FollowRequestId"/></param>
         /// <returns></returns>
         /// TODO THOMAS I suspect that this exists to battle the double-follow-request race conditions. These should
         /// never be a problem as long as the follow request processsing pipeline is transactional. --> postgresql
