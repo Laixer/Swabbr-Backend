@@ -84,12 +84,13 @@ namespace Swabbr
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
             services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
 
+            // TODO This is not the job of the host, but of the application itself
             // Check configuration
-            var servicesBuilt = services.BuildServiceProvider();
-            servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
-            servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
+            //var servicesBuilt = services.BuildServiceProvider();
+            //servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
+            //servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
 #pragma warning restore ASP0000
 
             // Setup request related services
