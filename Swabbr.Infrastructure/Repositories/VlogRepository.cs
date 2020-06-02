@@ -61,12 +61,11 @@ namespace Swabbr.Infrastructure.Repositories
             entity.Id.ThrowIfNotNullOrEmpty();
             entity.UserId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                // TODO DRY
-                // TODO Inserting a new vlog that is a reaction should never get a livestream id
-                // This will create a possibility where the livestream_id will be {0000-00-00...}.
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            // TODO DRY
+            // TODO Inserting a new vlog that is a reaction should never get a livestream id
+            // This will create a possibility where the livestream_id will be {0000-00-00...}.
+            var sql = $@"
                     INSERT INTO {TableVlog} (
                         is_private,
                         user_id,
@@ -76,11 +75,10 @@ namespace Swabbr.Infrastructure.Repositories
                         @UserId,
                         @LivestreamId
                     ) RETURNING id";
-                var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
-                id.ThrowIfNullOrEmpty();
-                entity.Id = id;
-                return entity;
-            }
+            var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
+            id.ThrowIfNullOrEmpty();
+            entity.Id = id;
+            return entity;
         }
 
         /// <summary>
@@ -92,18 +90,16 @@ namespace Swabbr.Infrastructure.Repositories
         {
             vlogId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * FROM {TableVlog} 
                     WHERE id = @Id 
                     AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                var result = await connection.QueryAsync<Vlog>(sql, new { Id = vlogId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-                if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-                return result.Count() == 1;
-            }
+            var result = await connection.QueryAsync<Vlog>(sql, new { Id = vlogId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
+            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+            return result.Count() == 1;
         }
 
         /// <summary>
@@ -137,19 +133,17 @@ namespace Swabbr.Infrastructure.Repositories
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE id = @Id 
                     AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                var result = await connection.QueryAsync<Vlog>(sql, new { Id = id }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-                return result.First();
-            }
+            var result = await connection.QueryAsync<Vlog>(sql, new { Id = id }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
+            return result.First();
         }
 
         public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync()
@@ -198,20 +192,18 @@ namespace Swabbr.Infrastructure.Repositories
         {
             livestreamId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE livestream_id = @LivestreamId 
                     AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                var pars = new { LivestreamId = livestreamId };
-                var result = await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-                return result.First();
-            }
+            var pars = new { LivestreamId = livestreamId };
+            var result = await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
+            return result.First();
         }
 
         /// <summary>
@@ -223,9 +215,8 @@ namespace Swabbr.Infrastructure.Repositories
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT v.* 
                     FROM {TableReaction} AS r
                     JOIN {TableVlog} AS v
@@ -233,11 +224,10 @@ namespace Swabbr.Infrastructure.Repositories
                     WHERE r.id = @ReactionId
                         AND v.vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
                     FOR UPDATE";
-                var result = await connection.QueryAsync<Vlog>(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
-                if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
-                if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-                return result.First();
-            }
+            var result = await connection.QueryAsync<Vlog>(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
+            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
+            return result.First();
         }
 
         /// <summary>
@@ -250,15 +240,13 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $@"
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $@"
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE user_id = @UserId
                     AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-                return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
-            }
+            return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -283,13 +271,11 @@ namespace Swabbr.Infrastructure.Repositories
         {
             id.ThrowIfNullOrEmpty();
 
-            using (var connection = _databaseProvider.GetConnectionScope())
-            {
-                var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogState.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
-                var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
-                if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
-                if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-            }
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogState.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
+            var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
+            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
         }
 
         /// <summary>
