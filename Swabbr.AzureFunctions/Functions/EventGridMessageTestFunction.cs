@@ -20,7 +20,7 @@ namespace Swabbr.AzureFunctions.Functions
         /// <param name="eventGridEvent"><see cref="EventGridEvent"/></param>
         /// <param name="log"><see cref="ILogger"/></param>
         /// <returns><see cref="Task"/></returns>
-        [FunctionName(nameof(EncoderDisconnectedHttpFunction))]
+        [FunctionName(nameof(EventGridMessageTestFunction))]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
         {
             if (req == null) { throw new ArgumentNullException(nameof(req)); }
