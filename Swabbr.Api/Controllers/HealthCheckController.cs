@@ -24,7 +24,8 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        /// <param name="healthCheckService"></param>
+        /// <param name="healthCheckService"><see cref="IHashDistributionService"/></param>
+        /// <param name="loggerFactory"><see cref="ILoggerFactory"/></param>
         public HealthCheckController(IHealthCheckService healthCheckService,
             ILoggerFactory loggerFactory)
         {

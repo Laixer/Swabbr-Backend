@@ -80,6 +80,7 @@ namespace Swabbr.Api.Authentication
 
         public Task SetRoleNameAsync(SwabbrIdentityRole role, string roleName, CancellationToken cancellationToken)
         {
+            if (role == null) { throw new ArgumentNullException(nameof(role)); }
             role.Name = roleName;
             return Task.CompletedTask;
         }
