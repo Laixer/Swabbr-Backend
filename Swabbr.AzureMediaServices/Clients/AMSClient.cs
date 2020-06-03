@@ -106,7 +106,8 @@ namespace Swabbr.AzureMediaServices.Clients
             var liveOutputName = AMSNameGenerator.VlogLiveOutputName(correspondingVlogId);
             var liveOutputRequest = new LiveOutput
             {
-                AssetName = liveOutputAssetName
+                AssetName = liveOutputAssetName,
+                ArchiveWindowLength = TimeSpan.FromHours(24) // TODO What do we want to enter here?
             };
             return await amsClient.LiveOutputs.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveOutputName, liveOutputRequest).ConfigureAwait(false);
         }
