@@ -17,7 +17,7 @@ namespace Swabbr.AzureFunctions.Functions
         /// <summary>
         /// Trigger when a user connects to a Live Event.
         /// </summary>
-        /// <param name="eventGridEvent"><see cref="EventGridEvent"/></param>
+        /// <param name="req"><see cref="HttpRequest"/></param>
         /// <param name="log"><see cref="ILogger"/></param>
         /// <returns><see cref="Task"/></returns>
         [FunctionName(nameof(EventGridMessageTestFunction))]
