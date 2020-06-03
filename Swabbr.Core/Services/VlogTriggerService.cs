@@ -78,6 +78,7 @@ namespace Swabbr.Core.Services
                 if (await _livestreamingService.IsUserInLivestreamCycleAsync(userId).ConfigureAwait(false)) { throw new UserAlreadyInLivestreamCycleException(); }
 
                 // Process livestream
+                // TODO This isn't transactional!
                 var livestream = await _livestreamingService.TryClaimLivestreamForUserAsync(userId, triggerMinute).ConfigureAwait(false);
 
                 // Process notifications
