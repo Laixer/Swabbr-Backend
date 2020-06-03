@@ -71,9 +71,7 @@ namespace Swabbr
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-#pragma warning disable ASP0000
             // Add configurations
-            // We do this first, because building the service provider will create additional singletons otherwise
             services.Configure<JwtConfiguration>(_configuration.GetSection("Jwt"));
             services.Configure<NotificationHubConfiguration>(options =>
             {
@@ -84,15 +82,6 @@ namespace Swabbr
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
             services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
 
-            // TODO This is not the job of the host, but of the application itself
-            // Check configuration
-            //var servicesBuilt = services.BuildServiceProvider();
-            //servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
-#pragma warning restore ASP0000
-
             // Setup request related services
             services.AddCors();
             services.AddControllers(c => { }).AddNewtonsoftJson();
@@ -101,7 +90,8 @@ namespace Swabbr
             SetupAuthentication(services);
             services.AddApiVersioning(options => { options.ReportApiVersions = true; });
 
-            // Setup logging explicitly
+            // Setup logging and insights
+            services.AddApplicationInsightsTelemetry();
             services.AddLogging((config) =>
             {
                 config.AddAzureWebAppDiagnostics();
