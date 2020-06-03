@@ -287,6 +287,7 @@ namespace Swabbr.AzureMediaServices.Services
             // TODO Implement
 
             // External operations
+            // TODO Make transactional
             await _amsClient.StartLiveEventAsync(livestream.ExternalId).ConfigureAwait(false);
             await _amsClient.CreateLiveOutputAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
             await _amsClient.CreateLivestreamVlogStreamingLocatorAsync(vlog.Id, livestream.ExternalId).ConfigureAwait(false);
