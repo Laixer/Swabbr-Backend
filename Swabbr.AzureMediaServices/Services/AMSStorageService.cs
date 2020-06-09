@@ -49,7 +49,7 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
 
             // Delete input asset
             // TODO Delete or not? Depends on our codec choice
@@ -70,7 +70,7 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
 
             // Delete assets
 
@@ -141,7 +141,7 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
             var outputAssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId);
             var assetContainerSas = await amsClient.Assets.ListContainerSasAsync(
                     config.ResourceGroup,
