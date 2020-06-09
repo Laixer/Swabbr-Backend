@@ -6,21 +6,17 @@ using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Configuration
 {
-
     /// <summary>
     /// Factory to build an Azure Media Services client.
     /// </summary>
-#pragma warning disable CA1812
     internal static class AMSClientFactory
-#pragma warning restore CA1812
     {
-
         /// <summary>
         /// Creates a new instance of <see cref="AzureMediaServicesClient"/>.
         /// </summary>
         /// <param name="config"><see cref="AMSConfiguration"/></param>
         /// <returns><see cref="AzureMediaServicesClient"/></returns>
-        internal static async Task<IAzureMediaServicesClient> GetClientAsync(AMSConfiguration config)
+        internal static async Task<IAzureMediaServicesClient> BuildClientAsync(AMSConfiguration config)
         {
             config.ThrowIfInvalid();
 
@@ -32,7 +28,5 @@ namespace Swabbr.AzureMediaServices.Configuration
                 SubscriptionId = config.SubscriptionId,
             };
         }
-
     }
-
 }

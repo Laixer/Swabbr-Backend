@@ -104,7 +104,7 @@ namespace Swabbr.AzureMediaServices.Services
             if (reaction.UserId != userId) { throw new UserNotOwnerException(nameof(reaction)); }
 
             // TODO DRY
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
             await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
             var sas = await amsClient.Assets.ListContainerSasAsync(config.ResourceGroup, config.AccountName,
                 AMSNameGenerator.ReactionInputAssetName(reaction.Id),
@@ -185,7 +185,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             // External checks
             await _amsClient.EnsureReactionTransformExistsAsync().ConfigureAwait(false);
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
             if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) == null)
             {
                 throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} does not exists in AMS");
@@ -303,7 +303,7 @@ namespace Swabbr.AzureMediaServices.Services
             }).ConfigureAwait(false);
 
             // External checks
-            var amsClient = await AMSClientFactory.GetClientAsync(config).ConfigureAwait(false);
+            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
             if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) != null)
             {
                 throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} already exists in AMS");
