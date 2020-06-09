@@ -99,7 +99,10 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                await _livestreamPoolService.CleanupLivestreamAsync(livestreamId);
+                await _amsClient.EnsureLivestreamTransformExistsAsync().ConfigureAwait(false);
+                await _amsClient.EnsureContentKeyPolicyExistsAsync().ConfigureAwait(false);
+                await _amsClient.EnsureReactionTransformExistsAsync().ConfigureAwait(false);
+                await _amsClient.EnsureStreamingEndpointRunningAsync().ConfigureAwait(false);
 
                 return Ok();
             }
