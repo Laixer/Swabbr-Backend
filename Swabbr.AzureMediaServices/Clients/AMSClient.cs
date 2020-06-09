@@ -74,8 +74,7 @@ namespace Swabbr.AzureMediaServices.Clients
                 VanityUrl = false,
                 Encoding = new LiveEventEncoding
                 {
-                    EncodingType = LiveEventEncodingType.Standard,
-                    PresetName = "Default720p"
+                    EncodingType = LiveEventEncodingType.None
                 }
             };
             return await amsClient.LiveEvents.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveEventRequest).ConfigureAwait(false);
