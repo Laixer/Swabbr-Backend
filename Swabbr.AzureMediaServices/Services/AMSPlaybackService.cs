@@ -32,6 +32,8 @@ namespace Swabbr.AzureMediaServices.Services
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IVlogService _vlogService;
 
+        private const int JwtValidTimeSubstractionMinutes = 5;
+
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
@@ -100,7 +102,7 @@ namespace Swabbr.AzureMediaServices.Services
             return new ReactionPlaybackDetails
             {
                 ReactionId = reactionId,
-                EndpointUrl = endpointUrl == null ? null : new Uri($"{hostName}{endpointUrl}"),
+                EndpointUrl = endpointUrl == null ? null : new Uri($"{hostName}{endpointUrl}"), // TODO Uribuilder
                 Token = await GetReactionTokenAsync(reactionId).ConfigureAwait(false)
             };
         }
@@ -127,12 +129,12 @@ namespace Swabbr.AzureMediaServices.Services
             var token = await GetVlogTokenAsync(vlogId).ConfigureAwait(false);
 
             // Update view if we can watch the vlog
-            if (!endpointUrl.IsNullOrEmpty()) { await _vlogService.AddView(vlogId).ConfigureAwait(false); }
+            if (endpointUrl != null) { await _vlogService.AddView(vlogId).ConfigureAwait(false); }
 
             return new VlogPlaybackDetails
             {
                 VlogId = vlogId,
-                EndpointUrl = endpointUrl.IsNullOrEmpty() ? null : new Uri($"{hostName}{endpointUrl}"),
+                EndpointUrl = endpointUrl == null ? null : new Uri(hostName, endpointUrl),
                 Token = token
             };
         }
@@ -154,17 +156,10 @@ namespace Swabbr.AzureMediaServices.Services
             var paths = await _amsClient.GetVlogStreamingLocatorPathsAsync(vlog.Id).ConfigureAwait(false);
             if (!paths.Any()) { return null; } // TODO How to fix this?
 
-            var hostName = await _amsClient.GetStreamingEndpointHostNameAsync().ConfigureAwait(false);
-
-            var uriBuilder = new UriBuilder
-            {
-                Scheme = "https",
-                Host = hostName,
-                Path = paths.First()
-            };
-            return uriBuilder.Uri;
+            return new Uri(await _amsClient.GetStreamingEndpointHostNameAsync().ConfigureAwait(false), paths.First());
         }
 
+        // TODO Separate class for tokens --> single responsibility
         /// <summary>
         /// Generates a JWT token for livestream playback.
         /// </summary>
@@ -187,7 +182,7 @@ namespace Swabbr.AzureMediaServices.Services
                 issuer: _config.TokenIssuer,
                 audience: _config.TokenAudience,
                 claims: claims,
-                notBefore: DateTime.UtcNow.AddMinutes(-5),
+                notBefore: DateTime.UtcNow.AddMinutes(-JwtValidTimeSubstractionMinutes),
                 expires: DateTime.UtcNow.AddMinutes(_config.TokenValidMinutes),
                 signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -211,7 +206,7 @@ namespace Swabbr.AzureMediaServices.Services
                 issuer: _config.TokenIssuer,
                 audience: _config.TokenAudience,
                 claims: claims,
-                notBefore: DateTime.UtcNow.AddMinutes(-5),
+                notBefore: DateTime.UtcNow.AddMinutes(-JwtValidTimeSubstractionMinutes),
                 expires: DateTime.UtcNow.AddMinutes(_config.TokenValidMinutes),
                 signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -234,7 +229,7 @@ namespace Swabbr.AzureMediaServices.Services
                 issuer: _config.TokenIssuer,
                 audience: _config.TokenAudience,
                 claims: claims,
-                notBefore: DateTime.UtcNow.AddMinutes(-5),
+                notBefore: DateTime.UtcNow.AddMinutes(-JwtValidTimeSubstractionMinutes),
                 expires: DateTime.UtcNow.AddMinutes(_config.TokenValidMinutes),
                 signingCredentials: credentials);
             return new JwtSecurityTokenHandler().WriteToken(token);

@@ -47,7 +47,7 @@ namespace Swabbr.AzureFunctions.Functions
             if (data.Outputs.Count() > 1) { throw new ArgumentException("Event grid data object contained more than one AMS output"); }
 
             // Extract the reaction id
-            var reactionId = AMSAssetNameIdExtractor.GetId(data.Outputs.First().AssetName);
+            var reactionId = AMSNameGenerator.ReactionOutputAssetNameInverted(data.Outputs.First().AssetName);
 
             // Log and process
             log.LogInformation($"Triggered {nameof(ReactionTranscodedSucceededFunction)} for reaction {reactionId} at { eventGridEvent.EventTime}");

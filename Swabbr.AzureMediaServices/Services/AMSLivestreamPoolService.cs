@@ -143,7 +143,7 @@ namespace Swabbr.AzureMediaServices.Services
             // First create internally (state will be created_internal)
             var livestream = await _livestreamRepository.CreateAsync(new Livestream
             {
-                Name = AMSNameConstants.LivestreamDefaultName
+                Name = AMSConstants.LivestreamDefaultName
             }).ConfigureAwait(false);
 
             // Create externally
@@ -167,7 +167,7 @@ namespace Swabbr.AzureMediaServices.Services
         /// transaction (<see cref="TransactionScope"/> is an option).
         /// </remarks>
         /// <returns><see cref="Livestream"/></returns>
-        public async Task<Livestream> TryGetLivestreamFromPoolAsync()
+        public async Task<Livestream> GetLivestreamFromPoolAsync()
         {
             var livestreams = await _livestreamRepository.GetAvailableLivestreamsAsync().ConfigureAwait(false);
             if (livestreams.Any())
@@ -178,7 +178,5 @@ namespace Swabbr.AzureMediaServices.Services
 
             return await CreateLivestreamAsync().ConfigureAwait(false);
         }
-
     }
-
 }
