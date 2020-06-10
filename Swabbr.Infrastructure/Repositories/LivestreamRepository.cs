@@ -100,8 +100,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT 1 FROM {TableLivestream}
                     WHERE user_id = @UserId
-                    AND user_trigger_minute = @UserTriggerMinute
-                    FOR UPDATE";
+                    AND user_trigger_minute = @UserTriggerMinute";
             var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
 
             var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
@@ -133,7 +132,7 @@ namespace Swabbr.Infrastructure.Repositories
                         livestream_state AS LivestreamState,
                         user_trigger_minute AS UserTriggerMinute
                     FROM {TableLivestream} 
-                    WHERE id = @Id FOR UPDATE";
+                    WHERE id = @Id";
             var result = await connection.QueryAsync<Livestream>(sql, new { Id = id }).ConfigureAwait(false);
 
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
@@ -145,9 +144,6 @@ namespace Swabbr.Infrastructure.Repositories
         /// Gets all <see cref="Livestream"/> entities from the database that
         /// are currently available for claiming.
         /// </summary>
-        /// <remarks>
-        /// Uses the FOR UPDATE sql clause.
-        /// </remarks>
         /// <returns><see cref="Livestream"/> collection</returns>
         public async Task<IEnumerable<Livestream>> GetAvailableLivestreamsAsync()
         {
@@ -164,8 +160,7 @@ namespace Swabbr.Infrastructure.Repositories
                         livestream_state AS LivestreamState,
                         user_trigger_minute AS UserTriggerMinute
                     FROM {TableLivestream}
-                    WHERE livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    WHERE livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Livestream>(sql).ConfigureAwait(false);
         }
 
@@ -198,8 +193,7 @@ namespace Swabbr.Infrastructure.Repositories
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     SELECT external_id FROM {TableLivestream}
-                    WHERE id = @Id
-                    FOR UPDATE";
+                    WHERE id = @Id";
             var pars = new { Id = id };
             var result = await connection.QueryAsync<string>(sql, pars).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Livestream)); }
@@ -226,8 +220,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT id FROM {TableLivestream}
                     WHERE user_id = @UserId
-                    AND user_trigger_minute = @UserTriggerMinute
-                    FOR UPDATE";
+                    AND user_trigger_minute = @UserTriggerMinute";
             var pars = new { UserId = userId, UserTriggerMinute = triggerMinute.GetMinutes() };
 
             var result = await connection.QueryAsync<Guid>(sql, pars).ConfigureAwait(false);
@@ -249,8 +242,7 @@ namespace Swabbr.Infrastructure.Repositories
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     SELECT 1 FROM {TableLivestream}
-                    WHERE user_id = @UserId
-                    FOR UPDATE";
+                    WHERE user_id = @UserId";
             var count = await connection.QueryAsync<int>(sql, new { UserId = userId }).ConfigureAwait(false);
             if (count.Count() > 1) { throw new InvalidOperationException("Found multiple livestreams with the same user_id"); }
             return count.Any();

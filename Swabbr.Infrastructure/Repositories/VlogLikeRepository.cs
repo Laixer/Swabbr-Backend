@@ -80,9 +80,6 @@ namespace Swabbr.Infrastructure.Repositories
         /// Checks if a <see cref="VlogLike"/> relation between a 
         /// <see cref="SwabbrUser"/> and a <see cref="Vlog"/> exists or not.
         /// </summary>
-        /// <remarks>
-        /// Contains the FOR UPDATE sql clause.
-        /// </remarks>
         /// <param name="vlogLikeId">Internal <see cref="VlogLike"/> id</param>
         /// <returns><see cref="bool"/> if exists</returns>
         public async Task<bool> ExistsAsync(VlogLikeId vlogLikeId)
@@ -95,8 +92,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableVlogLike}
                     WHERE vlog_id = @VlogId
-                    AND user_id = @UserId
-                    FOR UPDATE";
+                    AND user_id = @UserId";
             var rowsAffected = await connection.QueryAsync(sql, vlogLikeId).ConfigureAwait(false);
             if (rowsAffected == null) { throw new InvalidOperationException("Something went wrong during exists query"); }
             if (rowsAffected.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); }
@@ -106,9 +102,6 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Gets a single <see cref="VlogLike"/> from our database.
         /// </summary>
-        /// <remarks>
-        /// Contains the FOR UPDATE sql clause.
-        /// </remarks>
         /// <param name="vlogLikeId">Internal <see cref="VlogLike"/> id</param>
         /// <returns><see cref="VlogLike"/></returns>
         public async Task<VlogLike> GetAsync(VlogLikeId vlogLikeId)
@@ -121,8 +114,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableVlogLike}  
                     WHERE vlog_id = @VlogId
-                    AND user_id = @UserId
-                    FOR UPDATE";
+                    AND user_id = @UserId";
             var result = await connection.QueryAsync<VlogLike>(sql, vlogLikeId).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }

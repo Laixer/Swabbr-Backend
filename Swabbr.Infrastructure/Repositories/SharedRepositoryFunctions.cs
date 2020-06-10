@@ -57,7 +57,7 @@ namespace Swabbr.Infrastructure.Repositories
             if (provider == null) { throw new ArgumentNullException(nameof(provider)); }
 
             using var connection = provider.GetConnectionScope();
-            var sql = $"SELECT * FROM {tableName} WHERE id = @Id FOR UPDATE";
+            var sql = $"SELECT * FROM {tableName} WHERE id = @Id";
             var result = await connection.QueryAsync<TEntity>(sql, new { Id = id }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }

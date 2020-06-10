@@ -85,7 +85,7 @@ namespace Swabbr.Infrastructure.Repositories
         {
             userId.ThrowIfNullOrEmpty();
             using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT * FROM {TableUser} WHERE id = @Id FOR UPDATE;";
+            var sql = $"SELECT * FROM {TableUser} WHERE id = @Id";
             var result = await connection.QueryAsync<SwabbrUser>(sql, new { Id = userId }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {userId}"); }
             else
@@ -220,8 +220,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM {TableVlog} AS v
                     JOIN {TableUser} AS u
                     ON v.user_id = u.id
-                    WHERE v.id = @VlogId
-                    FOR UPDATE";
+                    WHERE v.id = @VlogId";
             var result = await connection.QueryAsync<SwabbrUser>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
@@ -310,8 +309,7 @@ namespace Swabbr.Infrastructure.Repositories
                             WHERE r.create_date >= '{sqlFrom}'
                             AND r.create_date <= '{sqlTo}'
                         )
-                    )
-                    FOR UPDATE";
+                    )";
             return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
         }
 
