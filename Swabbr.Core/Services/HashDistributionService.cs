@@ -20,7 +20,7 @@ namespace Swabbr.Core.Services
         private static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
         private static readonly UTF8Encoding encoder = new UTF8Encoding();
 
-        public int ValidMinutes => config.VlogRequestEndTimeMinutes - config.VlogRequestStartTimeMinutes;
+        public uint ValidMinutes => config.VlogRequestEndTimeMinutes - config.VlogRequestStartTimeMinutes;
 
         /// <summary>
         /// Constructor for dependency injection.

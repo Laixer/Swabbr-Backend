@@ -20,7 +20,7 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute);
 
-        Task<Livestream> TryClaimLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute);
+        Task<Livestream> ClaimLivestreamForUserAsync(Guid userId, DateTimeOffset triggerMinute);
 
         Task OnUserNeverConnectedToLivestreamAsync(Guid livestreamId, Guid userId);
 

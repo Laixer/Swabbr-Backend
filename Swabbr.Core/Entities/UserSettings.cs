@@ -6,6 +6,7 @@ namespace Swabbr.Core.Entities
 
     /// <summary>
     /// Personal settings and preferences for a user.
+    /// TODO Move to types OR make entity in view (call UserId -> Id)
     /// </summary>
     public class UserSettings
     {

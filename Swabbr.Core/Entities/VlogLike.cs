@@ -15,10 +15,7 @@ namespace Swabbr.Core.Entities
         /// When we parse this object into it's Id object through UserId and VlogId,
         /// the Id object is still null.
         /// </summary>
-        public VlogLike()
-        {
-            Id = new VlogLikeId();
-        }
+        public VlogLike() => Id = new VlogLikeId();
 
         public Guid UserId { get => Id.UserId; set => Id.UserId = value; }
 

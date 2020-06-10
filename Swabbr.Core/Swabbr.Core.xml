@@ -60,6 +60,7 @@
         <member name="T:Swabbr.Core.Entities.EntityBase`1">
             <summary>
             Used as a base class for all our entities.
+            TODO Default TPrimary?
             </summary>
         </member>
         <member name="P:Swabbr.Core.Entities.EntityBase`1.Id">
@@ -70,6 +71,7 @@
         <member name="T:Swabbr.Core.Entities.FollowRequest">
             <summary>
             Represents an active follow request between two users.
+            TODO Why use <see cref="P:Swabbr.Core.Entities.FollowRequest.RequesterId"/> and <see cref="P:Swabbr.Core.Entities.FollowRequest.ReceiverId"/>?
             </summary>
         </member>
         <member name="M:Swabbr.Core.Entities.FollowRequest.#ctor">
@@ -215,6 +217,7 @@
         <member name="T:Swabbr.Core.Entities.ReactionWithDownload">
             <summary>
             <see cref="T:Swabbr.Core.Entities.Reaction"/> with extended download URI's.
+            TODO Mark
             </summary>
         </member>
         <member name="T:Swabbr.Core.Entities.SwabbrUser">
@@ -297,6 +300,7 @@
             <summary>
             Contains only the id, the vlog request limit and the timezone
             of a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
+            TODO EntityBase -> SwabbrUserMinified -> SwabbrUser -> SwabbrUserWithStats
             </summary>
         </member>
         <member name="T:Swabbr.Core.Entities.SwabbrUserWithStats">
@@ -322,6 +326,7 @@
         <member name="T:Swabbr.Core.Entities.UserSettings">
             <summary>
             Personal settings and preferences for a user.
+            TODO Move to types OR make entity in view (call UserId -> Id)
             </summary>
         </member>
         <member name="P:Swabbr.Core.Entities.UserSettings.UserId">

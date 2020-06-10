@@ -1,12 +1,13 @@
-﻿namespace Swabbr.Core.Entities
-{
+﻿using System;
 
-    //public abstract class EntityBase { }
+namespace Swabbr.Core.Entities
+{
 
     /// <summary>
     /// Used as a base class for all our entities.
+    /// TODO Default TPrimary?
     /// </summary>
-    public abstract class EntityBase<TPrimary>// : EntityBase
+    public abstract class EntityBase<TPrimary>
     {
 
         /// <summary>

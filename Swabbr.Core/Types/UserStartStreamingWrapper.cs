@@ -13,7 +13,7 @@ namespace Swabbr.Core.Types
 
         public Guid LivestreamId { get; set; }
 
-        public int UserConnectTimeoutSeconds { get; set; }
+        public uint UserConnectTimeoutSeconds { get; set; }
 
     }
 
