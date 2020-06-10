@@ -122,6 +122,7 @@ namespace Swabbr.AzureMediaServices.Services
             // Internal checks
             var vlog = await _vlogService.GetAsync(vlogId).ConfigureAwait(false);
             if (!vlog.LivestreamId.IsNullOrEmpty()) { throw new LivestreamStateException("Vlog is still linked to livestream"); }
+
             // TODO Check if the user is allowed to watch the vlog
 
             var hostName = await _amsClient.GetStreamingEndpointHostNameAsync().ConfigureAwait(false);

@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Management.Media.Models;
+﻿using Microsoft.Azure.Management.Media;
+using Microsoft.Azure.Management.Media.Models;
 using System;
 
 namespace Swabbr.AzureMediaServices.Utility
