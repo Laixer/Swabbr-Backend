@@ -611,10 +611,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            // Check
-            if (await ExistsAssetAsync(AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false)) { throw new InvalidOperationException("Reaction input asset already exists"); }
-            if (await ExistsAssetAsync(AMSNameGenerator.ReactionOutputAssetName(reactionId)).ConfigureAwait(false)) { throw new InvalidOperationException("Reaction output asset already exists"); }
-
             try
             {
                 // Create assets
