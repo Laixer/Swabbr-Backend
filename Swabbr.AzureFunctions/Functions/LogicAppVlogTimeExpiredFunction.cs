@@ -62,7 +62,9 @@ namespace Swabbr.AzureFunctions.Functions
                     // Parse if required
                     if (wrapper.LivestreamExternalId.Contains('/', StringComparison.InvariantCulture))
                     {
-                        wrapper.LivestreamExternalId = wrapper.LivestreamExternalId.Split('/')[1]; // TODO Unsafe
+                        var split = wrapper.LivestreamExternalId.Split('/');
+                        if (split.Length != 2) { throw new FormatException("Could not extract live event name from request body"); }
+                        wrapper.LivestreamExternalId = split[1];
                     }
 
                     var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(wrapper.LivestreamExternalId).ConfigureAwait(false);

@@ -13,7 +13,6 @@
         <member name="T:Swabbr.Core.Configuration.SwabbrConfiguration">
             <summary>
             Contains <see cref="N:Swabbr"/> configuration parameters.
-            TODO <see cref="T:System.UInt32"/>?
             </summary>
         </member>
         <member name="P:Swabbr.Core.Configuration.SwabbrConfiguration.ReactionLengthMaxInSeconds">
@@ -649,12 +648,6 @@
             <summary>
             Indicates a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> does not own a given
             <see cref="T:Swabbr.Core.Entities.EntityBase`1"/>.
-            </summary>
-        </member>
-        <member name="T:Swabbr.Core.Factories.HttpClientFactory">
-            <summary>
-            Generates <see cref="T:System.Net.Http.HttpClient"/>s for us.
-            TODO Is this safe? Maybe using singleton of asp?
             </summary>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Clients.ILivestreamingClient">
@@ -1572,7 +1565,7 @@
             backend when he or she starts or stops livestreaming (or is about to).
             </summary>
         </member>
-        <member name="M:Swabbr.Core.Services.UserStreamingHandlingService.#ctor(Swabbr.Core.Interfaces.Services.ILivestreamService,Swabbr.Core.Interfaces.Services.IPlaybackService,Swabbr.Core.Interfaces.Services.INotificationService,Swabbr.Core.Interfaces.Repositories.IUserRepository,Swabbr.Core.Interfaces.Repositories.ILivestreamRepository,Swabbr.Core.Interfaces.Services.IVlogService,Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Options.IOptions{Swabbr.Core.Configuration.LogicAppsConfiguration},Microsoft.Extensions.Options.IOptions{Swabbr.Core.Configuration.SwabbrConfiguration},Swabbr.Core.Interfaces.Factories.IHttpClientFactory)">
+        <member name="M:Swabbr.Core.Services.UserStreamingHandlingService.#ctor(Swabbr.Core.Interfaces.Services.ILivestreamService,Swabbr.Core.Interfaces.Services.IPlaybackService,Swabbr.Core.Interfaces.Services.INotificationService,Swabbr.Core.Interfaces.Repositories.IUserRepository,Swabbr.Core.Interfaces.Repositories.ILivestreamRepository,Swabbr.Core.Interfaces.Services.IVlogService,Microsoft.Extensions.Logging.ILoggerFactory,Microsoft.Extensions.Options.IOptions{Swabbr.Core.Configuration.LogicAppsConfiguration},Microsoft.Extensions.Options.IOptions{Swabbr.Core.Configuration.SwabbrConfiguration})">
             <summary>
             Constructor for dependency injection.
             </summary>
@@ -2115,6 +2108,21 @@
             </summary>
             <param name="input"></param>
             <returns></returns>
+        </member>
+        <member name="T:Swabbr.Core.Utility.RandomIdGenerator">
+            <summary>
+            Generates random ids for us.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Utility.RandomIdGenerator.Generate(System.UInt32)">
+            <summary>
+            Generates a random id based on the <see cref="F:Swabbr.Core.Utility.RandomIdGenerator.Alphabet"/>.
+            </summary>
+            <remarks>
+            The maximum <paramref name="length"/> is 256.
+            </remarks>
+            <param name="length">Id string length</param>
+            <returns>Generated id</returns>
         </member>
         <member name="M:Swabbr.Core.Utility.SwabbrConfigurationExtensions.ThrowIfInvalid(Swabbr.Core.Configuration.SwabbrConfiguration)">
             <summary>

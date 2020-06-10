@@ -80,7 +80,6 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
         /// <summary>
         ///Ensures that the <see cref="Transform"/> for our <see cref="Core.Entities.Livestream"/>
         /// encoding exists in AMS.
-        /// TODO Do we even need this?
         /// </summary>
         /// <returns><see cref="Task"/></returns>
         Task EnsureLivestreamTransformExistsAsync();
@@ -119,9 +118,9 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
         /// <summary>
         /// Gets the key identifier for a livestream <see cref="StreamingLocator"/>.
         /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Core.Entities.Livestream"/> id</param>
+        /// <param name="vlogId">Internal <see cref="Core.Entities.Livestream"/> id</param>
         /// <returns>Key identifier</returns>
-        Task<string> GetVlogStreamingLocatorKeyIdentifierAsync(Guid livestreamId);
+        Task<string> GetVlogStreamingLocatorKeyIdentifierAsync(Guid vlogId);
 
         /// <summary>
         /// Gets a SAS token for a reaction input <see cref="Asset"/>.

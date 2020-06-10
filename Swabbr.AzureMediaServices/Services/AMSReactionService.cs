@@ -299,9 +299,6 @@ namespace Swabbr.AzureMediaServices.Services
         /// <summary>
         /// Updates a <see cref="Reaction"/> in our data store.
         /// </summary>
-        /// <remarks>
-        /// TODO Clean this up
-        /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
         /// <param name="isPrivate">If the reaction is private</param>

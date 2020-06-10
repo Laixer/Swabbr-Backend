@@ -26,8 +26,6 @@ namespace Swabbr.AzureMediaServices.Services
         /// <remarks>
         /// - Removes the input asset
         /// - Removes the job
-        /// 
-        /// TODO Maybe check if a job is actually finished before doing this?
         /// </remarks>
         /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns><see cref="Task"/></returns>
@@ -35,8 +33,9 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
+            // TODO Check if job is finished before doing this
+
             // Delete input asset
-            // TODO Delete or not? Depends on our codec choice
             await _amsClient.DeleteAssetAsync(AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false);
 
             // Delete job
@@ -54,7 +53,6 @@ namespace Swabbr.AzureMediaServices.Services
             reactionId.ThrowIfNullOrEmpty();
 
             // Delete assets
-            // TODO We don't want to delete the input asset (keep the data)
             await _amsClient.DeleteAssetAsync(AMSNameGenerator.ReactionOutputAssetName(reactionId)).ConfigureAwait(false);
 
             // Delete job

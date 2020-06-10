@@ -23,13 +23,11 @@ using System;
 [assembly: FunctionsStartup(typeof(Swabbr.AzureFunctions.Startup))]
 namespace Swabbr.AzureFunctions
 {
-
     /// <summary>
     /// Sets up our DI.
     /// </summary>
     public class Startup : FunctionsStartup
     {
-
         /// <summary>
         /// Parameterless constructor is required by Azure Functions.
         /// </summary>
@@ -60,14 +58,6 @@ namespace Swabbr.AzureFunctions
             {
                 configuration.GetSection("LogicAppsConfiguration").Bind(settings);
             });
-
-            // TODO Not calling this because the app should always launch
-            // Check configuration
-            //var servicesBuilt = builder.Services.BuildServiceProvider();
-            //servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
 
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
@@ -102,7 +92,5 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             builder.Services.AddTransient<IAMSClient, AMSClient>();
         }
-
     }
-
 }

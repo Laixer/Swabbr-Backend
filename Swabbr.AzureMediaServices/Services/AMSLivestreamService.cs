@@ -125,7 +125,6 @@ namespace Swabbr.AzureMediaServices.Services
             var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
             if (livestream.LivestreamState != LivestreamState.PendingUserConnect) { throw new LivestreamStateException(LivestreamState.PendingUserConnect.GetEnumMemberAttribute()); }
             if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
-            // TODO User trigger minute validation?
 
             var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
 
@@ -214,7 +213,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             scope.Complete();
 
-            // TODO Is this correct, outside tscope from this class?
+            // TODO Semi- incorrect call-place
             await _livestreamPoolService.CleanupLivestreamAsync(livestreamId).ConfigureAwait(false);
         }
 
@@ -250,7 +249,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             scope.Complete();
 
-            // TODO Correct to call this here?
+            // TODO Semi- incorrect call-place
             await _livestreamPoolService.CleanupNeverConnectedLivestreamAsync(livestreamId).ConfigureAwait(false);
         }
 
@@ -355,7 +354,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             scope.Complete();
 
-            // TODO Is this correct, outside tscope from this class?
+            // TODO Semi- incorrect call-place
             await _livestreamPoolService.CleanupLivestreamAsync(livestreamId).ConfigureAwait(false);
         }
 
@@ -392,9 +391,8 @@ namespace Swabbr.AzureMediaServices.Services
             await _storageService.CleanupVlogStorageOnDeleteAsync(vlog.Id).ConfigureAwait(false);
 
             scope.Complete();
-            
-            // TODO Should this function be responsible for the cleanup operation call?
-            // Clean up livestream for reusage
+
+            // TODO Semi- incorrect call-place
             await _livestreamPoolService.CleanupTimedOutLivestreamAsync(livestreamId).ConfigureAwait(false);
         }
 

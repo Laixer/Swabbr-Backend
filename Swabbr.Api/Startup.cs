@@ -116,12 +116,12 @@ namespace Swabbr
             // Configure DI for services
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
+            services.AddTransient<IHashDistributionService, HashDistributionService>();
             services.AddTransient<IHealthCheckService, HealthCheckService>();
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
-            services.AddTransient<INotificationTestingService, NotificationTestingService>(); // TODO Remove in the final product
+            services.AddTransient<INotificationTestingService, NotificationTestingService>();
             services.AddTransient<IPlaybackService, AMSPlaybackService>();
             services.AddTransient<IReactionService, AMSReactionService>();
             services.AddTransient<IStorageService, AMSStorageService>();
