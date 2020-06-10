@@ -26,9 +26,7 @@ using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
-using Swabbr.Core.Factories;
 using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -139,7 +137,6 @@ namespace Swabbr
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             services.AddTransient<INotificationBuilder, NotificationBuilder>();
             services.AddTransient<IAMSClient, AMSClient>();
-            services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
         }
 
         /// <summary>
