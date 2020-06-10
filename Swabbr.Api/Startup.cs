@@ -24,6 +24,7 @@ using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Interfaces.Clients;
@@ -114,6 +115,7 @@ namespace Swabbr
             services.AddTransient<IVlogRepository, VlogRepository>();
 
             // Configure DI for services
+            services.AddTransient<IAMSTokenService, AMSTokenService>();
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDistributionService>();

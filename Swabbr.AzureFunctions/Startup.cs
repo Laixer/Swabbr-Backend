@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Interfaces.Clients;
@@ -74,6 +75,7 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
 
             // Configure DI for services
+            builder.Services.AddTransient<IAMSTokenService, AMSTokenService>();
             builder.Services.AddTransient<IHashDistributionService, HashDistributionService>();
             builder.Services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             builder.Services.AddTransient<ILivestreamService, AMSLivestreamService>();
