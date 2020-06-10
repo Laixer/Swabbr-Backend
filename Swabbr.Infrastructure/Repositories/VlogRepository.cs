@@ -43,7 +43,7 @@ namespace Swabbr.Infrastructure.Repositories
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     UPDATE {TableVlog}
-                    SET view = views + 1
+                    SET views = views + 1
                     WHERE id = @Id";
             var rowsAffected = await connection.ExecuteAsync(sql, new { Id = vlogId }).ConfigureAwait(false);
             if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }

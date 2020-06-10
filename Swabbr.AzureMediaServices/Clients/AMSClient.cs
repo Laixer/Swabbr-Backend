@@ -326,37 +326,31 @@ namespace Swabbr.AzureMediaServices.Clients
             try
             {
                 using var amsClient = await BuildClientAsync().ConfigureAwait(false);
-                var policy = await amsClient.ContentKeyPolicies.GetAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ContentKeyPolicyName).ConfigureAwait(false);
 
-                if (policy == null)
+                var primaryKey = new ContentKeyPolicySymmetricTokenKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
+                var requiredClaims = new List<ContentKeyPolicyTokenClaim>()
                 {
-                    var primaryKey = new ContentKeyPolicySymmetricTokenKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
-                    var requiredClaims = new List<ContentKeyPolicyTokenClaim>()
-                    {
-                        ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim
-                    };
+                    ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim
+                };
 
-                    var options = new List<ContentKeyPolicyOption>()
+                var options = new List<ContentKeyPolicyOption>()
+                {
+                    new ContentKeyPolicyOption()
                     {
-                        new ContentKeyPolicyOption()
+                        Name = AMSConstants.ContentKeyPolicyOptionName,
+                        Configuration = new ContentKeyPolicyClearKeyConfiguration(),
+                        Restriction = new ContentKeyPolicyTokenRestriction()
                         {
-                            Name = AMSConstants.ContentKeyPolicyOptionName,
-                            Configuration = new ContentKeyPolicyClearKeyConfiguration(),
-                            Restriction = new ContentKeyPolicyTokenRestriction()
-                            {
-                                Audience = _config.TokenAudience,
-                                Issuer = _config.TokenIssuer,
-                                PrimaryVerificationKey = primaryKey,
-                                RequiredClaims = requiredClaims,
-                                RestrictionTokenType = ContentKeyPolicyRestrictionTokenType.Jwt
-                            }
+                            Audience = _config.TokenAudience,
+                            Issuer = _config.TokenIssuer,
+                            PrimaryVerificationKey = primaryKey,
+                            RequiredClaims = requiredClaims,
+                            RestrictionTokenType = ContentKeyPolicyRestrictionTokenType.Jwt
                         }
-                    };
+                    }
+                };
 
-                    policy = await amsClient.ContentKeyPolicies.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ContentKeyPolicyName, options).ConfigureAwait(false);
-                }
-
-                return policy;
+                return await amsClient.ContentKeyPolicies.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ContentKeyPolicyName, options).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -434,7 +428,7 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <param name="vlogId">Internal <see cref="Vlog"/> id (can belong
         /// to a <see cref="Core.Entities.Livestream"/>)</param>
         /// <returns><see cref="StreamingLocator"/> paths</returns>
-        public Task<IEnumerable<Uri>> GetVlogStreamingLocatorPathsAsync(Guid vlogId)
+        public Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
             return GettreamingLocatorPathsAsync(AMSNameGenerator.VlogStreamingLocatorName(vlogId));
@@ -445,7 +439,7 @@ namespace Swabbr.AzureMediaServices.Clients
         /// </summary>
         /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns><see cref="StreamingLocator"/> paths</returns>
-        public Task<IEnumerable<Uri>> GetReactionStreamingLocatorPathsAsync(Guid reactionId)
+        public Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
             return GettreamingLocatorPathsAsync(AMSNameGenerator.ReactionStreamingLocatorName(reactionId));
@@ -461,7 +455,11 @@ namespace Swabbr.AzureMediaServices.Clients
             {
                 using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var streamingEndpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.StreamingEndpointName).ConfigureAwait(false);
-                return new Uri(streamingEndpoint.HostName);
+                return new UriBuilder
+                {
+                    Scheme = "https",
+                    Host = streamingEndpoint.HostName
+                }.Uri;
             }
             catch (Exception e)
             {
@@ -777,7 +775,7 @@ namespace Swabbr.AzureMediaServices.Clients
             }
         }
 
-        private async Task<IEnumerable<Uri>> GettreamingLocatorPathsAsync(string streamingLocatorName)
+        private async Task<IEnumerable<string>> GettreamingLocatorPathsAsync(string streamingLocatorName)
         {
             streamingLocatorName.ThrowIfNullOrEmpty();
 
@@ -787,12 +785,12 @@ namespace Swabbr.AzureMediaServices.Clients
                 var paths = await amsClient.StreamingLocators.ListPathsAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
 
                 // TODO This just returns EVERYTHING at the moment, doesn't consider protocols or anything
-                var result = new Collection<Uri>();
+                var result = new Collection<string>();
                 foreach (var streamingPath in paths.StreamingPaths)
                 {
                     foreach (var path in streamingPath.Paths)
                     {
-                        result.Add(new Uri(path));
+                        result.Add(path);
                     }
                 }
                 return result;

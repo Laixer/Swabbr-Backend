@@ -21,6 +21,7 @@ namespace Swabbr.AzureMediaServices.Utility
 
         internal static string ReactionOutputAssetName(Guid reactionId) => $"{AMSConstants.ReactionAssetPrefix}-{reactionId}";
 
+#pragma warning disable CA1062 // Validate arguments of public methods (static analyzer doesn't recognize custom throw function)
         /// <summary>
         /// Extracts the internal reaction id from an asset name. This is the inverse
         /// of <see cref="ReactionOutputAssetName(Guid)"/>.
@@ -30,12 +31,11 @@ namespace Swabbr.AzureMediaServices.Utility
         public static Guid ReactionOutputAssetNameInverted(string reactionAssetName)
         {
             reactionAssetName.ThrowIfNullOrEmpty();
-#pragma warning disable CA1062 // Validate arguments of public methods (static analyzer doesn't recognize custom throw function)
-            if (reactionAssetName.Length != AMSConstants.ReactionAssetPrefix.Length + GuidExtensions.GuidAsStringLength) { throw new FormatException("Asset name has invalid length"); }
-#pragma warning restore CA1062 // Validate arguments of public methods
+            if (reactionAssetName.Length != AMSConstants.ReactionAssetPrefix.Length + 1 + GuidExtensions.GuidAsStringLength) { throw new FormatException("Asset name has invalid length"); }
             if (!reactionAssetName.StartsWith($"{AMSConstants.ReactionAssetPrefix}-", StringComparison.InvariantCulture)) { throw new FormatException($"Asset name doesnt start with {AMSConstants.ReactionAssetPrefix}"); }
             return Guid.TryParse(reactionAssetName.Substring(15), out var result) ? result : throw new FormatException("Couldn't parse asset name to get asset name id");
         }
+#pragma warning restore CA1062 // Validate arguments of public methods
 
         internal static string ReactionStreamingLocatorName(Guid reactionId) => $"reaction-streaming-locator-{reactionId}";
 

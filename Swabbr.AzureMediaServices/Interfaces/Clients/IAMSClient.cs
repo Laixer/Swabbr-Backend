@@ -146,16 +146,22 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
         /// <summary>
         /// Gets all <see cref="StreamingLocator"/> paths for a vlog.
         /// </summary>
+        /// <remarks>
+        /// The results are all subpaths and contain no domain or host.
+        /// </remarks>
         /// <param name="correspondingVlogId">Internal <see cref="Core.Entities.Vlog"/> id</param>
-        /// <returns><see cref="Uri"/> collection</returns>
-        Task<IEnumerable<Uri>> GetVlogStreamingLocatorPathsAsync(Guid correspondingVlogId);
+        /// <returns>Path collection</returns>
+        Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid correspondingVlogId);
 
         /// <summary>
         /// Gets all <see cref="StreamingLocator"/> paths for a reaction.
         /// </summary>
+        /// <remarks>
+        /// The results are all subpaths and contain no domain or host.
+        /// </remarks>
         /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
-        /// <returns><see cref="Uri"/> collection</returns>
-        Task<IEnumerable<Uri>> GetReactionStreamingLocatorPathsAsync(Guid reactionId);
+        /// <returns>Path collection</returns>
+        Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId);
 
         /// <summary>
         /// Gets the hostname of our <see cref="StreamingEndpoint"/>.
