@@ -107,8 +107,7 @@ namespace Swabbr.Api.Controllers
         }
 
         #region userstopstreaming
-        // TODO This is a beun way to disable this piece of code
-#if ((DEBUG == true) && (DEBUG == false))
+#if NOT_EXISTING_FEATURE_STOP_STREAMING
         /// <summary>
         /// This gets called when a <see cref="SwabbrUser"/> is finished streaming
         /// on a specified <see cref="Livestream"/>. The vlog will always be published.

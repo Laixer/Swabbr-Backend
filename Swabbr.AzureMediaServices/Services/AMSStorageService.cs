@@ -1,37 +1,23 @@
 ﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.Management.Media;
-using Microsoft.Azure.Management.Media.Models;
-using Microsoft.Extensions.Options;
-using Swabbr.AzureMediaServices.Configuration;
-using Swabbr.AzureMediaServices.Extensions;
+using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Services;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Services
 {
-
     /// <summary>
     /// Handles assets and cleanups for Azure Media Services.
-    /// TODO Move AMS stuff to <see cref="Interfaces.Clients.IAMSClient"/>.
     /// </summary>
     public sealed class AMSStorageService : IStorageService
     {
-
-        private readonly AMSConfiguration config;
+        private readonly IAMSClient _amsClient;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public AMSStorageService(IOptions<AMSConfiguration> options)
-        {
-            if (options == null) { throw new ArgumentNullException(nameof(options)); }
-            options.Value.ThrowIfInvalid();
-            config = options.Value;
-        }
+        public AMSStorageService(IAMSClient amsClient) => _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
 
         /// <summary>
         /// Cleans up the remains of a reaction transcoding process in Azure
@@ -40,8 +26,6 @@ namespace Swabbr.AzureMediaServices.Services
         /// <remarks>
         /// - Removes the input asset
         /// - Removes the job
-        /// 
-        /// TODO Maybe check if a job is actually finished before doing this?
         /// </remarks>
         /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns><see cref="Task"/></returns>
@@ -49,15 +33,13 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
+            // TODO Check if job is finished before doing this
 
             // Delete input asset
-            // TODO Delete or not? Depends on our codec choice
-            await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false);
+            await _amsClient.DeleteAssetAsync(AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false);
 
             // Delete job
-            await amsClient.Jobs.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName,
-                AMSNameGenerator.ReactionJobName(reactionId)).ConfigureAwait(false);
+            await _amsClient.DeleteReactionJobAsync(reactionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -70,17 +52,11 @@ namespace Swabbr.AzureMediaServices.Services
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
-
             // Delete assets
-
-            // We don't want to delete the input asset (keep the data)
-            //await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false);
-            await amsClient.Assets.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reactionId)).ConfigureAwait(false);
+            await _amsClient.DeleteAssetAsync(AMSNameGenerator.ReactionOutputAssetName(reactionId)).ConfigureAwait(false);
 
             // Delete job
-            await amsClient.Jobs.DeleteAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName,
-                AMSNameGenerator.ReactionJobName(reactionId)).ConfigureAwait(false);
+            await _amsClient.DeleteReactionJobAsync(reactionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -130,32 +106,17 @@ namespace Swabbr.AzureMediaServices.Services
         }
 
         /// <summary>
-        /// Creates a new SAS for a reaction container.
+        /// Creates a new SAS for a reaction output container.
         /// </summary>
         /// <remarks>
-        /// The created SAS is valid for 15 minutes.
+        /// The created SAS is valid for <see cref="AMSConstants.ReactionSasOutputExpireTimeMinutes"/> minutes.
         /// </remarks>
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
         /// <returns>SAS <see cref="Uri"/></returns>
-        public async Task<Uri> GetDownloadAccessUriForReactionContainerAsync(Guid reactionId)
+        public Task<Uri> GetDownloadAccessUriForReactionContainerAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
-
-            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
-            var outputAssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId);
-            var assetContainerSas = await amsClient.Assets.ListContainerSasAsync(
-                    config.ResourceGroup,
-                    config.AccountName,
-                    outputAssetName,
-                    permissions: AssetContainerPermission.Read,
-                    expiryTime: DateTime.UtcNow.AddMinutes(30).ToUniversalTime()) // TODO Make configable
-                .ConfigureAwait(false);
-
-            if (!assetContainerSas.AssetContainerSasUrls.Any()) { throw new ExternalErrorException($"Could not find output asset with name {outputAssetName} in Azure Media Services"); }
-
-            return new Uri(assetContainerSas.AssetContainerSasUrls.FirstOrDefault()); // First access key
+            return _amsClient.GetReactionOutputAssetSasAsync(reactionId);
         }
-
     }
-
 }

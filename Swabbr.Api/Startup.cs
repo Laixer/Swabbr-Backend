@@ -24,11 +24,10 @@ using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
-using Swabbr.Core.Factories;
 using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -116,14 +115,15 @@ namespace Swabbr
             services.AddTransient<IVlogRepository, VlogRepository>();
 
             // Configure DI for services
+            services.AddTransient<IAMSTokenService, AMSTokenService>();
             services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<IHashDistributionService, HashDebugDistributionService>();
+            services.AddTransient<IHashDistributionService, HashDistributionService>();
             services.AddTransient<IHealthCheckService, HealthCheckService>();
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<INotificationService, NotificationService>();
-            services.AddTransient<INotificationTestingService, NotificationTestingService>(); // TODO Remove in the final product
+            services.AddTransient<INotificationTestingService, NotificationTestingService>();
             services.AddTransient<IPlaybackService, AMSPlaybackService>();
             services.AddTransient<IReactionService, AMSReactionService>();
             services.AddTransient<IStorageService, AMSStorageService>();
@@ -139,7 +139,6 @@ namespace Swabbr
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             services.AddTransient<INotificationBuilder, NotificationBuilder>();
             services.AddTransient<IAMSClient, AMSClient>();
-            services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
         }
 
         /// <summary>

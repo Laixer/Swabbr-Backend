@@ -8,6 +8,7 @@ namespace Swabbr.Core.Entities
 
     /// <summary>
     /// Represents an active follow request between two users.
+    /// TODO Why use <see cref="RequesterId"/> and <see cref="ReceiverId"/>?
     /// </summary>
     public class FollowRequest : EntityBase<FollowRequestId>
     {
@@ -15,10 +16,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         /// Constructor to ensure <see cref="FollowRequestId"/> initialization.
         /// </summary>
-        public FollowRequest()
-        {
-            Id = new FollowRequestId();
-        }
+        public FollowRequest() => Id = new FollowRequestId();
 
         /// <summary>
         /// Id of the requesting user.
@@ -34,7 +32,6 @@ namespace Swabbr.Core.Entities
         /// Current status of the follow request.
         /// </summary>
         public FollowRequestStatus FollowRequestStatus { get; set; }
-        public string FollowRequestStatusText => FollowRequestStatus.GetEnumMemberAttribute();
 
         /// <summary>
         /// Timestamp of when the request was initiated.

@@ -3,7 +3,10 @@ using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Rest.Azure.Authentication;
 using Swabbr.AzureMediaServices.Configuration;
+using Swabbr.AzureMediaServices.Exceptions;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
@@ -24,18 +27,18 @@ namespace Swabbr.AzureMediaServices.Clients
     public sealed class AMSClient : IAMSClient
     {
         private readonly AMSConfiguration _config;
-        private readonly ILogger logger;
+        private readonly ILogger<AMSClient> _logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public AMSClient(IOptions<AMSConfiguration> config,
-            ILoggerFactory loggerFactory)
+            ILogger<AMSClient> logger)
         {
             if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
-            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(AMSClient)) : throw new ArgumentNullException(nameof(loggerFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -50,34 +53,41 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             livestreamId.ThrowIfNullOrEmpty();
 
-            // First do the checks
-            await EnsureLivestreamTransformExistsAsync().ConfigureAwait(false);
-            await EnsureStreamingEndpointRunningAsync().ConfigureAwait(false);
-
-            // Then create
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var liveEventName = AMSNameGenerator.LiveEventName();
-            var liveEventRequest = new LiveEvent
+            try
             {
-                Location = _config.Location,
-                Input = new LiveEventInput
+                // First do the checks
+                await EnsureLivestreamTransformExistsAsync().ConfigureAwait(false);
+                await EnsureStreamingEndpointRunningAsync().ConfigureAwait(false);
+
+                // Then create
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var liveEventRequest = new LiveEvent
                 {
-                    StreamingProtocol = "RTMP",
-                    AccessControl = new LiveEventInputAccessControl
+                    Location = _config.Location,
+                    Input = new LiveEventInput
                     {
-                        Ip = new IPAccessControl
+                        StreamingProtocol = "RTMP",
+                        AccessControl = new LiveEventInputAccessControl
                         {
-                            Allow = new List<IPRange> { new IPRange("Allow All", "0.0.0.0", 0) }
+                            Ip = new IPAccessControl
+                            {
+                                Allow = new List<IPRange> { new IPRange("Allow All", "0.0.0.0", 0) }
+                            }
                         }
+                    },
+                    VanityUrl = false, // What does this do?
+                    Encoding = new LiveEventEncoding
+                    {
+                        EncodingType = LiveEventEncodingType.None
                     }
-                },
-                VanityUrl = false,
-                Encoding = new LiveEventEncoding
-                {
-                    EncodingType = LiveEventEncodingType.None
-                }
-            };
-            return await amsClient.LiveEvents.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveEventRequest).ConfigureAwait(false);
+                };
+                return await amsClient.LiveEvents.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.LiveEventName, liveEventRequest).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create new live event", e);
+            }
         }
 
         /// <summary>
@@ -97,23 +107,31 @@ namespace Swabbr.AzureMediaServices.Clients
             liveEventName.ThrowIfNullOrEmpty();
             correspondingVlogId.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-
-            // First do the checks
-            await EnsureContentKeyPolicyExistsAsync().ConfigureAwait(false);
-
-            // Create asset
-            var liveOutputAssetName = AMSNameGenerator.VlogLiveOutputAssetName(correspondingVlogId);
-            await CreateAssetAsync(liveOutputAssetName).ConfigureAwait(false);
-
-            // Create output
-            var liveOutputName = AMSNameGenerator.VlogLiveOutputName(correspondingVlogId);
-            var liveOutputRequest = new LiveOutput
+            try
             {
-                AssetName = liveOutputAssetName,
-                ArchiveWindowLength = TimeSpan.FromHours(24) // TODO What do we want to enter here?
-            };
-            return await amsClient.LiveOutputs.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName, liveOutputName, liveOutputRequest).ConfigureAwait(false);
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+
+                // First do the checks
+                await EnsureContentKeyPolicyExistsAsync().ConfigureAwait(false);
+
+                // Create asset
+                var liveOutputAssetName = AMSNameGenerator.VlogLiveOutputAssetName(correspondingVlogId);
+                await CreateAssetAsync(liveOutputAssetName).ConfigureAwait(false);
+
+                // Create output
+                var liveOutputRequest = new LiveOutput
+                {
+                    AssetName = liveOutputAssetName,
+                    ArchiveWindowLength = TimeSpan.FromHours(AMSConstants.LiveOutputArchiveWindowLengthHours)
+                };
+                return await amsClient.LiveOutputs.CreateAsync(_config.ResourceGroup, _config.AccountName, liveEventName,
+                    AMSNameGenerator.VlogLiveOutputName(correspondingVlogId), liveOutputRequest).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create live output", e);
+            }
         }
 
         /// <summary>
@@ -125,13 +143,21 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             reactionId.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            await amsClient.StreamingLocators.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionStreamingLocatorName(reactionId), new StreamingLocator
+            try
             {
-                AssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId),
-                StreamingPolicyName = PredefinedStreamingPolicy.ClearKey,
-                DefaultContentKeyPolicyName = AMSNameConstants.ContentKeyPolicyName
-            }).ConfigureAwait(false);
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.StreamingLocators.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionStreamingLocatorName(reactionId), new StreamingLocator
+                {
+                    AssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId),
+                    StreamingPolicyName = PredefinedStreamingPolicy.ClearKey,
+                    DefaultContentKeyPolicyName = AMSConstants.ContentKeyPolicyName
+                }).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create reaction streaming locator", e);
+            }
         }
 
         /// <summary>
@@ -145,160 +171,115 @@ namespace Swabbr.AzureMediaServices.Clients
             correspondingVlogId.ThrowIfNullOrEmpty();
             liveEventName.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-
-            var liveOutputAssetName = AMSNameGenerator.VlogLiveOutputAssetName(correspondingVlogId);
-            var streamingLocatorName = AMSNameGenerator.VlogStreamingLocatorName(correspondingVlogId);
-            var streamingLocatorRequest = new StreamingLocator
+            try
             {
-                AssetName = liveOutputAssetName,
-                StreamingPolicyName = PredefinedStreamingPolicy.ClearKey,
-                DefaultContentKeyPolicyName = AMSNameConstants.ContentKeyPolicyName
-            };
-            return await amsClient.StreamingLocators.CreateAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName, streamingLocatorRequest).ConfigureAwait(false);
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+
+                var liveOutputAssetName = AMSNameGenerator.VlogLiveOutputAssetName(correspondingVlogId);
+                var streamingLocatorName = AMSNameGenerator.VlogStreamingLocatorName(correspondingVlogId);
+                var streamingLocatorRequest = new StreamingLocator
+                {
+                    AssetName = liveOutputAssetName,
+                    StreamingPolicyName = PredefinedStreamingPolicy.ClearKey,
+                    DefaultContentKeyPolicyName = AMSConstants.ContentKeyPolicyName
+                };
+                return await amsClient.StreamingLocators.CreateAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName, streamingLocatorRequest).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create vlog streaming locator", e);
+            }
         }
 
         /// <summary>
         /// Makes sure that the <see cref="Core.Entities.Livestream"/> 
         /// <see cref="Transform"/>exists on the Azure Media Services side.
         /// </summary>
-        /// <remarks>
-        /// TODO This can be optimized, shouldn't need to run every single time.
-        /// </remarks>
         /// <returns><see cref="Task"/></returns>
         public async Task EnsureLivestreamTransformExistsAsync()
         {
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var livestreamTransformName = AMSNameConstants.LivestreamTransformName;
-
-            var outputs = new TransformOutput[]
+            try
             {
-                new TransformOutput(
-                    new StandardEncoderPreset(
-                        codecs: new Codec[]
-                        {
-                            // Audio codec for video file
-                            new AacAudio(
-                                channels: 2,
-                                samplingRate: 48000,
-                                bitrate: 128000,
-                                profile: AacAudioProfile.AacLc
-                            ),
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var outputs = new TransformOutput[]
+                {
+                    new TransformOutput(
+                        new StandardEncoderPreset(
+                            codecs: new Codec[]
+                            {
+                                AMSConstants.LivestreamAudioCodec(),
+                                AMSConstants.LivestreamVideoCodec(),
+                                AMSConstants.LivestreamThumbnailCodec()
+                            },
+                            // Name formatting
+                            formats: new Format[]
+                            {
+                                new Mp4Format(AMSConstants.FormatVideoFileNamePattern),
+                                new PngFormat(AMSConstants.FormatThumbnailFileNamePattern)
+                            }
+                        ),
+                        onError: OnErrorType.StopProcessingJob,
+                        relativePriority: Priority.Normal
+                    )
+                };
 
-                            // Video file
-                            new H264Video (
-                                keyFrameInterval:TimeSpan.FromSeconds(2),
-                                layers:  new H264Layer[]
-                                {
-                                    new H264Layer (
-                                        bitrate: 1000000,
-                                        width: "1280",
-                                        height: "720",
-                                        label: "HD"
-                                    )
-                                }
-                            ),
-
-                            // Thumbnails
-                            new PngImage(
-                                start: "25%",
-                                layers: new PngLayer[]{
-                                    new PngLayer(
-                                        width: "50%",
-                                        height: "50%"
-                                    )
-                                }
-                            )
-                        },
-
-                        // Name formatting
-                        formats: new Format[]
-                        {
-                            new Mp4Format(
-                                filenamePattern:"video-{Basename}{Extension}"
-                            ),
-                            new PngFormat(
-                                filenamePattern:"thumbnail-{Basename}-{Index}{Extension}"
-                            )
-                        }
-                    ),
-                    onError: OnErrorType.StopProcessingJob,
-                    relativePriority: Priority.Normal
-                )
-            };
-
-            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.LivestreamTransformDescription).ConfigureAwait(false);
+                await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup,
+                    _config.AccountName,
+                    AMSConstants.LivestreamTransformName,
+                    outputs,
+                    AMSConstants.LivestreamTransformDescription).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create or update livestream transform", e);
+            }
         }
 
         /// <summary>
         /// Make sure that the <see cref="Core.Entities.Reaction"/> <see cref="Transform"/> exists.
         /// </summary>
-        /// <remarks>
-        /// TODO This doesn't always have to run
-        /// </remarks>
         /// <returns><see cref="Task"/></returns>
         public async Task EnsureReactionTransformExistsAsync()
         {
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var livestreamTransformName = AMSNameConstants.ReactionTransformName;
-
-            var outputs = new TransformOutput[]
+            try
             {
-                new TransformOutput(
-                    new StandardEncoderPreset(
-                        codecs: new Codec[]
-                        {
-                            // Audio codec for video file
-                            new AacAudio(
-                                channels: 2,
-                                samplingRate: 48000,
-                                bitrate: 128000,
-                                profile: AacAudioProfile.AacLc
-                            ),
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
 
-                            // Video file
-                            new H264Video (
-                                keyFrameInterval:TimeSpan.FromSeconds(2),
-                                layers:  new H264Layer[]
-                                {
-                                    new H264Layer (
-                                        bitrate: 1000000,
-                                        width: "1280",
-                                        height: "720",
-                                        label: "HD"
-                                    )
-                                }
-                            ),
+                var outputs = new TransformOutput[]
+                {
+                    new TransformOutput(
+                        new StandardEncoderPreset(
+                            codecs: new Codec[]
+                            {
+                                AMSConstants.LivestreamAudioCodec(),
+                                AMSConstants.LivestreamVideoCodec(),
+                                AMSConstants.LivestreamThumbnailCodec()
+                            },
+                            // Name formatting
+                            formats: new Format[]
+                            {
+                                new Mp4Format(AMSConstants.FormatVideoFileNamePattern),
+                                new PngFormat(AMSConstants.FormatThumbnailFileNamePattern)
+                            }
+                        ),
+                        onError: OnErrorType.StopProcessingJob,
+                        relativePriority: Priority.Normal
+                    )
+                };
 
-                            // Thumbnails
-                            new PngImage(
-                                start: "25%",
-                                layers: new PngLayer[]{
-                                    new PngLayer(
-                                        width: "50%",
-                                        height: "50%"
-                                    )
-                                }
-                            )
-                        },
-
-                        // Name formatting
-                        formats: new Format[]
-                        {
-                            new Mp4Format(
-                                filenamePattern:"video-{Basename}{Extension}"
-                            ),
-                            new PngFormat(
-                                filenamePattern:"thumbnail-{Basename}-{Index}{Extension}"
-                            )
-                        }
-                    ),
-                    onError: OnErrorType.StopProcessingJob,
-                    relativePriority: Priority.Normal
-                )
-            };
-
-            await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, livestreamTransformName, outputs, AMSNameConstants.ReactionTransformDescription).ConfigureAwait(false);
+                await amsClient.Transforms.CreateOrUpdateAsync(_config.ResourceGroup,
+                    _config.AccountName,
+                    AMSConstants.ReactionTransformName,
+                    outputs,
+                    AMSConstants.ReactionTransformDescription).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create or update reaction transform", e);
+            }
         }
 
         /// <summary>
@@ -308,20 +289,28 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <returns><see cref="Task"/></returns>
         public async Task EnsureStreamingEndpointRunningAsync()
         {
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var streamingEndpointName = AMSNameConstants.StreamingEndpointName;
-            var endpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName).ConfigureAwait(false);
-
-            if (endpoint == null)
+            try
             {
-                var streamingEndpointRequest = new StreamingEndpoint
-                {
-                    Location = _config.Location
-                };
-                await amsClient.StreamingEndpoints.CreateAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName, streamingEndpointRequest).ConfigureAwait(false);
-            }
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var streamingEndpointName = AMSConstants.StreamingEndpointName;
+                var endpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName).ConfigureAwait(false);
 
-            await amsClient.StreamingEndpoints.StartAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName).ConfigureAwait(false);
+                if (endpoint == null)
+                {
+                    var streamingEndpointRequest = new StreamingEndpoint
+                    {
+                        Location = _config.Location
+                    };
+                    await amsClient.StreamingEndpoints.CreateAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName, streamingEndpointRequest).ConfigureAwait(false);
+                }
+
+                await amsClient.StreamingEndpoints.StartAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not ensure that streaming endpoint is running", e);
+            }
         }
 
         /// <summary>
@@ -334,38 +323,46 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <returns><see cref="Task"/></returns>
         public async Task<ContentKeyPolicy> EnsureContentKeyPolicyExistsAsync()
         {
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var policy = await amsClient.ContentKeyPolicies.GetAsync(_config.ResourceGroup, _config.AccountName, AMSNameConstants.ContentKeyPolicyName).ConfigureAwait(false);
-
-            if (policy == null)
+            try
             {
-                var primaryKey = new ContentKeyPolicySymmetricTokenKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
-                var requiredClaims = new List<ContentKeyPolicyTokenClaim>()
-                {
-                    ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim
-                };
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var policy = await amsClient.ContentKeyPolicies.GetAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ContentKeyPolicyName).ConfigureAwait(false);
 
-                var options = new List<ContentKeyPolicyOption>()
+                if (policy == null)
                 {
-                    new ContentKeyPolicyOption()
+                    var primaryKey = new ContentKeyPolicySymmetricTokenKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
+                    var requiredClaims = new List<ContentKeyPolicyTokenClaim>()
                     {
-                        Name = AMSNameConstants.ContentKeyPolicyOptionName,
-                        Configuration = new ContentKeyPolicyClearKeyConfiguration(),
-                        Restriction = new ContentKeyPolicyTokenRestriction()
+                        ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim
+                    };
+
+                    var options = new List<ContentKeyPolicyOption>()
+                    {
+                        new ContentKeyPolicyOption()
                         {
-                            Audience = _config.TokenAudience,
-                            Issuer = _config.TokenIssuer,
-                            PrimaryVerificationKey = primaryKey,
-                            RequiredClaims = requiredClaims,
-                            RestrictionTokenType = ContentKeyPolicyRestrictionTokenType.Jwt
+                            Name = AMSConstants.ContentKeyPolicyOptionName,
+                            Configuration = new ContentKeyPolicyClearKeyConfiguration(),
+                            Restriction = new ContentKeyPolicyTokenRestriction()
+                            {
+                                Audience = _config.TokenAudience,
+                                Issuer = _config.TokenIssuer,
+                                PrimaryVerificationKey = primaryKey,
+                                RequiredClaims = requiredClaims,
+                                RestrictionTokenType = ContentKeyPolicyRestrictionTokenType.Jwt
+                            }
                         }
-                    }
-                };
+                    };
 
-                policy = await amsClient.ContentKeyPolicies.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSNameConstants.ContentKeyPolicyName, options).ConfigureAwait(false);
+                    policy = await amsClient.ContentKeyPolicies.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ContentKeyPolicyName, options).ConfigureAwait(false);
+                }
+
+                return policy;
             }
-
-            return policy;
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not ensure that content key policy exists", e);
+            }
         }
 
         /// <summary>
@@ -381,24 +378,32 @@ namespace Swabbr.AzureMediaServices.Clients
             vlogId.ThrowIfNullOrEmpty();
             liveEventName.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var liveEvent = await amsClient.LiveEvents.GetAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
-
-            // External checks
-            if (liveEvent.ResourceState != LiveEventResourceState.Running) { throw new ExternalErrorException("Live Event not in running state"); }
-            // TODO Check if nobody is already streaming
-
-            return new LivestreamUpstreamDetails
+            try
             {
-                ApplicationName = null,
-                HostPort = 2935, // TODO Extract, don't hardcode
-                HostServer = GetUriFromLiveEvent(liveEvent),
-                LivestreamId = livestreamId,
-                Password = null,
-                StreamKey = liveEvent.Input.AccessToken,
-                Username = null,
-                VlogId = vlogId
-            };
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var liveEvent = await amsClient.LiveEvents.GetAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
+
+                // External checks
+                if (liveEvent.ResourceState != LiveEventResourceState.Running) { throw new ExternalErrorException("Live Event not in running state"); }
+                // TODO Check if nobody is already streaming
+
+                return new LivestreamUpstreamDetails
+                {
+                    ApplicationName = null,
+                    HostPort = 2935, // TODO Extract, don't hardcode
+                    HostServer = GetUriFromLiveEvent(liveEvent),
+                    LivestreamId = livestreamId,
+                    Password = null,
+                    StreamKey = liveEvent.Input.AccessToken,
+                    Username = null,
+                    VlogId = vlogId
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not generate upstream details for livestream", e);
+            }
         }
 
         /// <summary>
@@ -406,32 +411,21 @@ namespace Swabbr.AzureMediaServices.Clients
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns>Key</returns>
-        public async Task<string> GetVlogStreamingLocatorKeyIdentifierAsync(Guid vlogId)
+        public Task<string> GetVlogStreamingLocatorKeyIdentifierAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
-
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var streamingLocatorName = AMSNameGenerator.VlogStreamingLocatorName(vlogId);
-            var streamingLocator = await amsClient.StreamingLocators.GetAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
-            return streamingLocator.ContentKeys.First().Id.ToString();
+            return GetStreamingLocatorKeyIdentifierAsync(AMSNameGenerator.VlogStreamingLocatorName(vlogId));
         }
 
         /// <summary>
         /// Gets the <see cref="StreamingLocator"/> identifier key for a <see cref="Core.Entities.Reaction"/>.
         /// </summary>
-        /// <remarks>
-        /// TODO DRY
-        /// </remarks>
-        /// <param name="reaction">Internal <see cref="Core.Entities.Reaction"/> id</param>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns>Key</returns>
-        public async Task<string> GetReactionStreamingLocatorKeyIdentifierAsync(Guid reaction)
+        public Task<string> GetReactionStreamingLocatorKeyIdentifierAsync(Guid reactionId)
         {
-            reaction.ThrowIfNullOrEmpty();
-
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var streamingLocatorName = AMSNameGenerator.ReactionStreamingLocatorName(reaction);
-            var streamingLocator = await amsClient.StreamingLocators.GetAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
-            return streamingLocator.ContentKeys.First().Id.ToString();
+            reactionId.ThrowIfNullOrEmpty();
+            return GetStreamingLocatorKeyIdentifierAsync(AMSNameGenerator.ReactionStreamingLocatorName(reactionId));
         }
 
         /// <summary>
@@ -440,63 +434,40 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <param name="vlogId">Internal <see cref="Vlog"/> id (can belong
         /// to a <see cref="Core.Entities.Livestream"/>)</param>
         /// <returns><see cref="StreamingLocator"/> paths</returns>
-        public async Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid vlogId)
+        public Task<IEnumerable<Uri>> GetVlogStreamingLocatorPathsAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
-
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var streamingLocatorName = AMSNameGenerator.VlogStreamingLocatorName(vlogId);
-            var paths = await amsClient.StreamingLocators.ListPathsAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
-
-            // TODO This just returns EVERYTHING at the moment, doesn't consider protocols or anything
-            var result = new Collection<string>();
-            foreach (var streamingPath in paths.StreamingPaths)
-            {
-                foreach (var path in streamingPath.Paths)
-                {
-                    result.Add(path);
-                }
-            }
-            return result;
+            return GettreamingLocatorPathsAsync(AMSNameGenerator.VlogStreamingLocatorName(vlogId));
         }
 
         /// <summary>
         /// Gets <see cref="StreamingLocator"/> paths for a reaction.
         /// </summary>
-        /// <remarks>
-        /// TODO DRY
-        /// </remarks>
         /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
         /// <returns><see cref="StreamingLocator"/> paths</returns>
-        public async Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId)
+        public Task<IEnumerable<Uri>> GetReactionStreamingLocatorPathsAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
-
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var streamingLocatorName = AMSNameGenerator.ReactionStreamingLocatorName(reactionId);
-            var paths = await amsClient.StreamingLocators.ListPathsAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
-
-            // TODO This just returns EVERYTHING at the moment, doesn't consider protocols or anything
-            var result = new Collection<string>();
-            foreach (var streamingPath in paths.StreamingPaths)
-            {
-                foreach (var path in streamingPath.Paths)
-                {
-                    result.Add(path);
-                }
-            }
-            return result;
+            return GettreamingLocatorPathsAsync(AMSNameGenerator.ReactionStreamingLocatorName(reactionId));
         }
 
         /// <summary>
         /// Gets the <see cref="StreamingEndpoint"/> host name.
         /// </summary>
-        /// <returns>Host name</returns>
-        public async Task<string> GetStreamingEndpointHostNameAsync()
+        /// <returns>Host name <see cref="Uri"/></returns>
+        public async Task<Uri> GetStreamingEndpointHostNameAsync()
         {
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var streamingEndpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, AMSNameConstants.StreamingEndpointName).ConfigureAwait(false);
-            return $"https://{streamingEndpoint.HostName}";
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var streamingEndpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.StreamingEndpointName).ConfigureAwait(false);
+                return new Uri(streamingEndpoint.HostName);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not get host name for streaming endpoint", e);
+            }
         }
 
         /// <summary>
@@ -511,13 +482,13 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.LiveEvents.ListAsync(_config.ResourceGroup, _config.AccountName).ConfigureAwait(false);
                 return true;
             }
             catch (Exception e)
             {
-                logger.LogError("Error while health checking AMS", e.Message);
+                _logger.LogError("Error while health checking AMS", e.Message);
                 return false;
             }
         }
@@ -530,8 +501,17 @@ namespace Swabbr.AzureMediaServices.Clients
         public async Task StartLiveEventAsync(string liveEventName)
         {
             liveEventName.ThrowIfNullOrEmpty();
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            await amsClient.LiveEvents.StartAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.LiveEvents.StartAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not start live event", e);
+            }
         }
 
         /// <summary>
@@ -542,8 +522,17 @@ namespace Swabbr.AzureMediaServices.Clients
         public async Task StopLiveEventAsync(string liveEventName)
         {
             liveEventName.ThrowIfNullOrEmpty();
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            await amsClient.LiveEvents.StopAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.LiveEvents.StopAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not stop live event", e);
+            }
         }
 
         /// <summary>
@@ -557,8 +546,16 @@ namespace Swabbr.AzureMediaServices.Clients
             vlogId.ThrowIfNullOrEmpty();
             liveEventName.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            await amsClient.LiveOutputs.DeleteAsync(_config.ResourceGroup, _config.AccountName, liveEventName, AMSNameGenerator.VlogLiveOutputName(vlogId)).ConfigureAwait(false);
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.LiveOutputs.DeleteAsync(_config.ResourceGroup, _config.AccountName, liveEventName, AMSNameGenerator.VlogLiveOutputName(vlogId)).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not stop (also meaning delete) live output", e);
+            }
         }
 
         /// <summary>
@@ -570,9 +567,17 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             assetName.ThrowIfNullOrEmpty();
 
-            using var amsClient = await AMSClientFactory.BuildClientAsync(_config).ConfigureAwait(false);
-            var assetRequest = new Asset();
-            return await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, assetName, assetRequest).ConfigureAwait(false);
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var assetRequest = new Asset();
+                return await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, assetName, assetRequest).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create assset", e);
+            }
         }
 
         /// <summary>
@@ -581,19 +586,222 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <param name="liveEvent"></param>
         /// <param name="protocol"></param>
         /// <returns></returns>
-        private static Uri GetUriFromLiveEvent(LiveEvent liveEvent, string protocol = "RTMP")
+        private Uri GetUriFromLiveEvent(LiveEvent liveEvent, string protocol = "RTMP")
         {
-            var endpoints = liveEvent.Input.Endpoints;
-            if (!endpoints.Any()) { throw new ExternalErrorException("Live Event has no endpoints"); }
-            foreach (var endpoint in endpoints)
+            try
             {
-                if (endpoint.Protocol.Equals(protocol, StringComparison.InvariantCulture) &&
-                    endpoint.Url.Substring(0, 5).Equals("rtmps", StringComparison.InvariantCulture))
+                var endpoints = liveEvent.Input.Endpoints;
+                if (!endpoints.Any()) { throw new ExternalErrorException("Live Event has no endpoints"); }
+                foreach (var endpoint in endpoints)
                 {
-                    return new Uri(endpoint.Url);
+                    if (endpoint.Protocol.Equals(protocol, StringComparison.InvariantCulture) &&
+                        endpoint.Url.Substring(0, 5).Equals("rtmps", StringComparison.InvariantCulture))
+                    {
+                        return new Uri(endpoint.Url);
+                    }
                 }
+                throw new ExternalAMSErrorException($"Could not find Live Event endpoint for protocol {protocol}");
             }
-            throw new ExternalErrorException($"Could not find Live Event endpoint for protocol {protocol}");
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not get Uri from Live Event", e);
+            }
+        }
+
+        public async Task CreateReactionInputOutputAssetAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            // Check
+            if (await ExistsAssetAsync(AMSNameGenerator.ReactionInputAssetName(reactionId)).ConfigureAwait(false)) { throw new InvalidOperationException("Reaction input asset already exists"); }
+            if (await ExistsAssetAsync(AMSNameGenerator.ReactionOutputAssetName(reactionId)).ConfigureAwait(false)) { throw new InvalidOperationException("Reaction output asset already exists"); }
+
+            try
+            {
+                // Create assets
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionInputAssetName(reactionId), new Asset()).ConfigureAwait(false);
+                await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reactionId), new Asset()).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create reaction input and output asset", e);
+            }
+        }
+
+        public async Task CreateReactionJobAsync(Guid reactionId, uint reactionLengthMaxInSeconds)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+            if (reactionLengthMaxInSeconds == 0) { throw new ArgumentOutOfRangeException(nameof(reactionLengthMaxInSeconds)); }
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.Jobs.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId), new Job
+                {
+                    Input = new JobInputAsset(AMSNameGenerator.ReactionInputAssetName(reactionId),
+                        start: new AbsoluteClipTime(TimeSpan.Zero),
+                        end: new AbsoluteClipTime(TimeSpan.FromSeconds(reactionLengthMaxInSeconds))),
+                    Outputs = new JobOutput[] { new JobOutputAsset(AMSNameGenerator.ReactionOutputAssetName(reactionId)) }
+                }).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not create reaction job", e);
+            }
+        }
+
+        public async Task<bool> ExistsAssetAsync(string assetName)
+        {
+            assetName.ThrowIfNullOrEmpty();
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                return (await amsClient.Assets.GetAsync(_config.ResourceGroup, _config.AccountName, assetName).ConfigureAwait(false)) != null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not check asset existence", e);
+            }
+        }
+
+        public Task<Uri> GetReactionInputAssetSasAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+            return GetAssetSasAsync(AMSNameGenerator.ReactionInputAssetName(reactionId), AssetContainerPermission.ReadWrite, AMSConstants.ReactionSasInputExpireTimeMinutes);
+        }
+
+        public Task<Uri> GetReactionOutputAssetSasAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+            return GetAssetSasAsync(AMSNameGenerator.ReactionOutputAssetName(reactionId), AssetContainerPermission.Read, AMSConstants.ReactionSasOutputExpireTimeMinutes);
+        }
+
+        public async Task DeleteAssetAsync(string assetName)
+        {
+            assetName.ThrowIfNullOrEmpty();
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.Assets.DeleteAsync(_config.ResourceGroup, _config.AccountName, assetName).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not delete asset", e);
+            }
+        }
+
+        public async Task DeleteReactionJobAsync(Guid reactionId)
+        {
+            reactionId.ThrowIfNullOrEmpty();
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                await amsClient.Jobs.DeleteAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId)).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not delete reaction job", e);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="AzureMediaServicesClient"/>.
+        /// </summary>
+        /// <param name="config"><see cref="AMSConfiguration"/></param>
+        /// <returns><see cref="AzureMediaServicesClient"/></returns>
+        private async Task<IAzureMediaServicesClient> BuildClientAsync()
+        {
+            var clientCredential = new ClientCredential(_config.AadClientId, _config.AadSecret);
+            var credentials = await ApplicationTokenProvider.LoginSilentAsync(_config.AadTenantId, clientCredential, ActiveDirectoryServiceSettings.Azure).ConfigureAwait(false);
+
+            return new AzureMediaServicesClient(_config.ArmEndpoint, credentials)
+            {
+                SubscriptionId = _config.SubscriptionId,
+            };
+        }
+
+        private async Task<Uri> GetAssetSasAsync(string assetName, AssetContainerPermission permissions, uint expireTimeInMinutes)
+        {
+            assetName.ThrowIfNullOrEmpty();
+            if (expireTimeInMinutes == 0) { throw new ArgumentOutOfRangeException(nameof(expireTimeInMinutes)); }
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                return new Uri((await amsClient.Assets.ListContainerSasAsync(
+                    _config.ResourceGroup,
+                    _config.AccountName,
+                    assetName,
+                    permissions: permissions,
+                    expiryTime: DateTime.UtcNow.AddMinutes(expireTimeInMinutes).ToUniversalTime())
+                        .ConfigureAwait(false))
+                        .AssetContainerSasUrls
+                        .First()); // First key
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not get asset sas uri", e);
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="StreamingLocator"/> identifier key for a <see cref="StreamingLocator"/>.
+        /// </summary>
+        /// <param name="streamingLocatorName">AMS <see cref="StreamingLocator"/> name</param>
+        /// <returns>Key</returns>
+        private async Task<string> GetStreamingLocatorKeyIdentifierAsync(string streamingLocatorName)
+        {
+            streamingLocatorName.ThrowIfNullOrEmpty();
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var streamingLocator = await amsClient.StreamingLocators.GetAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
+                return streamingLocator.ContentKeys.First().Id.ToString();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not get streaming locator key identifier", e);
+            }
+        }
+
+        private async Task<IEnumerable<Uri>> GettreamingLocatorPathsAsync(string streamingLocatorName)
+        {
+            streamingLocatorName.ThrowIfNullOrEmpty();
+
+            try
+            {
+                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
+                var paths = await amsClient.StreamingLocators.ListPathsAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
+
+                // TODO This just returns EVERYTHING at the moment, doesn't consider protocols or anything
+                var result = new Collection<Uri>();
+                foreach (var streamingPath in paths.StreamingPaths)
+                {
+                    foreach (var path in streamingPath.Paths)
+                    {
+                        result.Add(new Uri(path));
+                    }
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw new ExternalAMSErrorException("Could not get streaming locator paths", e);
+            }
         }
     }
 }

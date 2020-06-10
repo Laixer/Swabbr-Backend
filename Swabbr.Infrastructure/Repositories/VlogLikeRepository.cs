@@ -125,7 +125,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FOR UPDATE";
             var result = await connection.QueryAsync<VlogLike>(sql, vlogLikeId).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
+            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
             return result.First();
         }
 

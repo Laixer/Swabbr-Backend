@@ -12,7 +12,7 @@ namespace Swabbr.Core.Interfaces.Services
     public interface ILivestreamPoolService
     {
 
-        Task<Livestream> TryGetLivestreamFromPoolAsync();
+        Task<Livestream> GetLivestreamFromPoolAsync();
 
         Task<Livestream> CreateLivestreamAsync();
 

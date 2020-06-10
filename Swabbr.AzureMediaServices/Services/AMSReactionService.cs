@@ -30,37 +30,31 @@ namespace Swabbr.AzureMediaServices.Services
     public sealed class AMSReactionService : IReactionService
     {
 
-        private readonly IAMSClient _amsClient;
         private readonly IReactionRepository _reactionRepository;
         private readonly IVlogRepository _vlogRepository;
         private readonly IStorageService _storageService;
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
-        private readonly AMSConfiguration config;
+        private readonly IAMSClient _amsClient;
         private readonly SwabbrConfiguration swabbrConfiguration;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public AMSReactionService(IAMSClient amsClient,
-            IReactionRepository reactionRepository,
+        public AMSReactionService(IReactionRepository reactionRepository,
             IVlogRepository vlogRepository,
             IUserRepository userRepository,
             IStorageService storageService,
             INotificationService notificationService,
-            IOptions<AMSConfiguration> optionsAms,
+            IAMSClient amsClient,
             IOptions<SwabbrConfiguration> optionsSwabbr)
         {
-            _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-
-            if (optionsAms == null) { throw new ArgumentNullException(nameof(optionsAms)); }
-            optionsAms.Value.ThrowIfInvalid();
-            config = optionsAms.Value;
+            _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
 
             if (optionsSwabbr == null) { throw new ArgumentNullException(nameof(optionsSwabbr)); }
             optionsSwabbr.Value.ThrowIfInvalid();
@@ -102,15 +96,12 @@ namespace Swabbr.AzureMediaServices.Services
             var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
             if (reaction.ReactionState != ReactionState.Created) { throw new ReactionStateException($"Reaction not in {ReactionState.Created.GetEnumMemberAttribute()} state"); }
             if (reaction.UserId != userId) { throw new UserNotOwnerException(nameof(reaction)); }
+            if (!await _amsClient.ExistsAssetAsync(AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false))
+            {
+                throw new InvalidOperationException("Reaction input asset does not exist in AMS");
+            }
 
-            // TODO DRY
-            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
-            await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
-            var sas = await amsClient.Assets.ListContainerSasAsync(config.ResourceGroup, config.AccountName,
-                AMSNameGenerator.ReactionInputAssetName(reaction.Id),
-                permissions: AssetContainerPermission.ReadWrite,
-                expiryTime: DateTime.UtcNow.AddMinutes(15).ToUniversalTime()).ConfigureAwait(false);
-            return new Uri(sas.AssetContainerSasUrls.First());
+            return await _amsClient.GetReactionInputAssetSasAsync(reactionId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -185,10 +176,9 @@ namespace Swabbr.AzureMediaServices.Services
 
             // External checks
             await _amsClient.EnsureReactionTransformExistsAsync().ConfigureAwait(false);
-            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
-            if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) == null)
+            if (!await _amsClient.ExistsAssetAsync(AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false))
             {
-                throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} does not exists in AMS");
+                throw new InvalidOperationException($"Input asset for reaction with id {reaction.Id} does not exists in AMS");
             }
             // TODO Check - does asset have a video?
 
@@ -196,15 +186,7 @@ namespace Swabbr.AzureMediaServices.Services
             await _reactionRepository.MarkProcessingAsync(reactionId).ConfigureAwait(false);
 
             // External operations
-            var jobInput = new JobInputAsset(AMSNameGenerator.ReactionInputAssetName(reactionId),
-                start: new AbsoluteClipTime(TimeSpan.Zero),
-                end: new AbsoluteClipTime(TimeSpan.FromSeconds(swabbrConfiguration.ReactionLengthMaxInSeconds)));
-            var jobOutputs = new JobOutput[] { new JobOutputAsset(AMSNameGenerator.ReactionOutputAssetName(reactionId)) };
-            await amsClient.Jobs.CreateAsync(config.ResourceGroup, config.AccountName, AMSNameConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId), new Job
-            {
-                Input = jobInput,
-                Outputs = jobOutputs
-            }).ConfigureAwait(false);
+            await _amsClient.CreateReactionJobAsync(reactionId, swabbrConfiguration.ReactionLengthMaxInSeconds).ConfigureAwait(false);
 
             // Commit only if everything succeeded
             scope.Complete();
@@ -302,36 +284,21 @@ namespace Swabbr.AzureMediaServices.Services
                 TargetVlogId = targetVlogId
             }).ConfigureAwait(false);
 
-            // External checks
-            using var amsClient = await AMSClientFactory.BuildClientAsync(config).ConfigureAwait(false);
-            if (await amsClient.Assets.GetAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id)).ConfigureAwait(false) != null)
-            {
-                throw new ExternalErrorException($"Input asset for reaction with id {reaction.Id} already exists in AMS");
-            }
-
-            // External operations
-            await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionInputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
-            await amsClient.Assets.CreateOrUpdateAsync(config.ResourceGroup, config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reaction.Id), new Asset()).ConfigureAwait(false);
-            var sas = await amsClient.Assets.ListContainerSasAsync(config.ResourceGroup, config.AccountName,
-                AMSNameGenerator.ReactionInputAssetName(reaction.Id),
-                permissions: AssetContainerPermission.ReadWrite,
-                expiryTime: DateTime.UtcNow.AddMinutes(15).ToUniversalTime()).ConfigureAwait(false);
+            // Create the reaction assets
+            await _amsClient.CreateReactionInputOutputAssetAsync(reaction.Id).ConfigureAwait(false);
 
             //Commit, bundle and return
             scope.Complete();
             return new ReactionUploadWrapper
             {
                 Reaction = reaction,
-                UploadUrl = new Uri(sas.AssetContainerSasUrls.First())
+                UploadUrl = await _amsClient.GetReactionInputAssetSasAsync(reaction.Id).ConfigureAwait(false)
             };
         }
 
         /// <summary>
         /// Updates a <see cref="Reaction"/> in our data store.
         /// </summary>
-        /// <remarks>
-        /// TODO Clean this up
-        /// </remarks>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
         /// <param name="isPrivate">If the reaction is private</param>

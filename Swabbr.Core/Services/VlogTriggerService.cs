@@ -64,35 +64,28 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="Task"/></returns>
         public async Task ProcessVlogTriggerForUserAsync(Guid userId, DateTimeOffset triggerMinute)
         {
-            try
-            {
-                logger.LogTrace($"{nameof(ProcessVlogTriggerForUserAsync)} - Attempting vlog trigger for user {userId}");
+            logger.LogTrace($"{nameof(ProcessVlogTriggerForUserAsync)} - Attempting vlog trigger for user {userId}");
 
-                userId.ThrowIfNullOrEmpty();
-                triggerMinute.ThrowIfNullOrEmpty();
+            userId.ThrowIfNullOrEmpty();
+            triggerMinute.ThrowIfNullOrEmpty();
 
-                using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                // Internal checks
-                if (!await _userService.ExistsAsync(userId).ConfigureAwait(false)) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-                if (await _livestreamingService.IsUserInLivestreamCycleAsync(userId).ConfigureAwait(false)) { throw new UserAlreadyInLivestreamCycleException(); }
+            // Internal checks
+            if (!await _userService.ExistsAsync(userId).ConfigureAwait(false)) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
+            if (await _livestreamingService.IsUserInLivestreamCycleAsync(userId).ConfigureAwait(false)) { throw new UserAlreadyInLivestreamCycleException(); }
 
-                // Process livestream
-                // TODO This isn't transactional!
-                var livestream = await _livestreamingService.TryClaimLivestreamForUserAsync(userId, triggerMinute).ConfigureAwait(false);
+            // Process livestream
+            // TODO This isn't transactional!
+            var livestream = await _livestreamingService.ClaimLivestreamForUserAsync(userId, triggerMinute).ConfigureAwait(false);
 
-                // Process notifications
-                var parameters = await _livestreamingService.GetParametersRecordVlogAsync(livestream.Id, triggerMinute).ConfigureAwait(false);
-                await _notificationService.NotifyVlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
+            // Process notifications
+            var parameters = await _livestreamingService.GetParametersRecordVlogAsync(livestream.Id, triggerMinute).ConfigureAwait(false);
+            await _notificationService.NotifyVlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
 
-                logger.LogTrace($"{nameof(ProcessVlogTriggerForUserAsync)} - Completed vlog trigger for user {userId}");
-                scope.Complete();
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"{nameof(ProcessVlogTriggerForUserAsync)} - Exception while calling ", e.Message);
-                throw;
-            }
+            // First commit, then log success
+            scope.Complete();
+            logger.LogTrace($"{nameof(ProcessVlogTriggerForUserAsync)} - Completed vlog trigger for user {userId}");
         }
 
         /// <summary>
@@ -103,57 +96,49 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="Task"/></returns>
         public async Task ProcessVlogTimeoutForUserAsync(Guid userId, DateTimeOffset triggerMinute)
         {
-            try
+            logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - Attempting vlog timeout for user {userId}");
+
+            userId.ThrowIfNullOrEmpty();
+            triggerMinute.ThrowIfNullOrEmpty();
+            if (!await _userService.ExistsAsync(userId).ConfigureAwait(false)) { throw new EntityNotFoundException(nameof(userId)); }
+
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            // Only process if the livestream is still linked to our user.
+            if (!await _livestreamingService.ExistsLivestreamForTriggerMinute(userId, triggerMinute).ConfigureAwait(false)) { return; }
+
+            var livestream = await _livestreamingService.GetLivestreamFromTriggerMinute(userId, triggerMinute).ConfigureAwait(false);
+
+            switch (livestream.LivestreamState)
             {
-                logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - Attempting vlog timeout for user {userId}");
+                // This means we have to perform a timeout - user did not respond in time
+                case LivestreamState.PendingUser:
+                    logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - Processing timeout for user {userId}");
+                    await _livestreamingService.ProcessTimeoutAsync(userId, livestream.Id).ConfigureAwait(false);
+                    logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - Processed timeout for user {userId}");
+                    scope.Complete();
+                    return;
 
-                userId.ThrowIfNullOrEmpty();
-                triggerMinute.ThrowIfNullOrEmpty();
-                if (!await _userService.ExistsAsync(userId).ConfigureAwait(false)) { throw new EntityNotFoundException(nameof(userId)); }
+                // No need for request timeout processing
+                case LivestreamState.Closed:
+                case LivestreamState.Created:
+                case LivestreamState.Live:
+                case LivestreamState.PendingClosure:
+                case LivestreamState.PendingUserConnect:
+                case LivestreamState.UserNeverConnectedTimeout:
+                    logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - No vlog timeout actions required for for user {userId}");
+                    return;
 
-                using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+                // Should never happen
+                case LivestreamState.UserNoResponseTimeout:
+                    throw new LivestreamStateException($"Timeout trigger found livestream already marked as {LivestreamState.UserNoResponseTimeout.GetEnumMemberAttribute()}");
 
-                // Only process if the livestream is still linked to our user.
-                if (!await _livestreamingService.ExistsLivestreamForTriggerMinute(userId, triggerMinute).ConfigureAwait(false)) { return; }
-
-                var livestream = await _livestreamingService.GetLivestreamFromTriggerMinute(userId, triggerMinute).ConfigureAwait(false);
-
-                switch (livestream.LivestreamState)
-                {
-                    // This means we have to perform a timeout - user did not respond in time
-                    case LivestreamState.PendingUser:
-                        logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - Processing timeout for user {userId}");
-                        await _livestreamingService.ProcessTimeoutAsync(userId, livestream.Id).ConfigureAwait(false);
-                        logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - Processed timeout for user {userId}");
-                        scope.Complete();
-                        return;
-
-                    // No need for request timeout processing
-                    case LivestreamState.Closed:
-                    case LivestreamState.Created:
-                    case LivestreamState.Live:
-                    case LivestreamState.PendingClosure:
-                    case LivestreamState.PendingUserConnect:
-                    case LivestreamState.UserNeverConnectedTimeout:
-                        logger.LogTrace($"{nameof(ProcessVlogTimeoutForUserAsync)} - No vlog timeout actions required for for user {userId}");
-                        return;
-
-                    // Should never happen
-                    case LivestreamState.UserNoResponseTimeout:
-                        throw new LivestreamStateException($"Timeout trigger found livestream already marked as {LivestreamState.UserNoResponseTimeout.GetEnumMemberAttribute()}");
-
-                    // Should never happen
-                    case LivestreamState.CreatedInternal:
-                        throw new LivestreamStateException($"Timeout trigger found livestream marked as {LivestreamState.CreatedInternal.GetEnumMemberAttribute()}");
-                }
-
-                throw new InvalidOperationException($"Unable to process livestream state {livestream.LivestreamState.GetEnumMemberAttribute()}");
+                // Should never happen
+                case LivestreamState.CreatedInternal:
+                    throw new LivestreamStateException($"Timeout trigger found livestream marked as {LivestreamState.CreatedInternal.GetEnumMemberAttribute()}");
             }
-            catch (Exception e)
-            {
-                logger.LogError($"{nameof(ProcessVlogTimeoutForUserAsync)} - Exception while calling ", e.Message);
-                throw;
-            }
+
+            throw new InvalidOperationException($"Unable to process livestream state {livestream.LivestreamState}");
         }
 
     }

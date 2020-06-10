@@ -18,7 +18,6 @@ namespace Swabbr.Api.Controllers
 
     /// <summary>
     /// Contains testing endpoints.
-    /// TODO Disable this for production.
     /// </summary>
     [ApiVersion("1")]
     [Route("api/{version:apiVersion}/testing_endpoints")]

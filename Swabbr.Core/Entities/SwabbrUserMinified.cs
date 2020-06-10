@@ -6,6 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     /// Contains only the id, the vlog request limit and the timezone
     /// of a <see cref="SwabbrUser"/>.
+    /// TODO EntityBase -> SwabbrUserMinified -> SwabbrUser -> SwabbrUserWithStats
     /// </summary>
     public sealed class SwabbrUserMinified : EntityBase<Guid>
     {

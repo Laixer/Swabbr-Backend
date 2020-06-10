@@ -48,7 +48,7 @@ namespace Swabbr.Api.ViewModels.Notifications.JsonWrappers
         public DateTimeOffset Timestamp { get; set; }
 
         /// <summary>
-        /// TODO What to put here?
+        /// The user agent.
         /// </summary>
         public string UserAgent { get; set; }
 

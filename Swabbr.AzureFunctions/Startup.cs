@@ -5,11 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
-using Swabbr.Core.Factories;
 using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -25,13 +24,11 @@ using System;
 [assembly: FunctionsStartup(typeof(Swabbr.AzureFunctions.Startup))]
 namespace Swabbr.AzureFunctions
 {
-
     /// <summary>
     /// Sets up our DI.
     /// </summary>
     public class Startup : FunctionsStartup
     {
-
         /// <summary>
         /// Parameterless constructor is required by Azure Functions.
         /// </summary>
@@ -63,14 +60,6 @@ namespace Swabbr.AzureFunctions
                 configuration.GetSection("LogicAppsConfiguration").Bind(settings);
             });
 
-            // TODO Not calling this because the app should always launch
-            // Check configuration
-            //var servicesBuilt = builder.Services.BuildServiceProvider();
-            //servicesBuilt.GetRequiredService<IOptions<SwabbrConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<NotificationHubConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<AMSConfiguration>>().Value.ThrowIfInvalid();
-            //servicesBuilt.GetRequiredService<IOptions<LogicAppsConfiguration>>().Value.ThrowIfInvalid();
-
             // Add postgresql database functionality
             NpgsqlSetup.Setup();
             builder.Services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
@@ -86,6 +75,7 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
 
             // Configure DI for services
+            builder.Services.AddTransient<IAMSTokenService, AMSTokenService>();
             builder.Services.AddTransient<IHashDistributionService, HashDistributionService>();
             builder.Services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             builder.Services.AddTransient<ILivestreamService, AMSLivestreamService>();
@@ -103,9 +93,6 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<INotificationBuilder, NotificationBuilder>();
             builder.Services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             builder.Services.AddTransient<IAMSClient, AMSClient>();
-            builder.Services.AddSingleton<IHttpClientFactory, HttpClientFactory>();
         }
-
     }
-
 }

@@ -3,6 +3,7 @@ using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Extensions.Logging;
+using Swabbr.AzureFunctions.Utility;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Services;
 using System;
@@ -44,10 +45,8 @@ namespace Swabbr.AzureFunctions.Functions
             if (log == null) { throw new ArgumentNullException(nameof(log)); }
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-            // First extract the data
-            var liveEventExternalId = eventGridEvent.Subject.Split('/')[1]; // TODO Unsafe
-            var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(liveEventExternalId).ConfigureAwait(false);
+            
+            var livestream = await _livestreamService.GetLivestreamFromExternalIdAsync(EventGridEventUtility.ExtractLiveEventExternalId(eventGridEvent)).ConfigureAwait(false);
 
             // State race condition where the livestream is already decoupled from the user
             if (livestream.LivestreamState != LivestreamState.Live)

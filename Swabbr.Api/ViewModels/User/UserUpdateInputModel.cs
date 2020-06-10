@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Swabbr.Api.ViewModels.Enums;
-using Swabbr.Api.ViewModels.Formatting;
 using System;
 using System.ComponentModel.DataAnnotations;
 

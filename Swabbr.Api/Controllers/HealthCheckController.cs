@@ -31,6 +31,7 @@ namespace Swabbr.Api.Controllers
         {
             _healthCheckService = healthCheckService ?? throw new ArgumentNullException(nameof(healthCheckService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(HealthCheckController)) : throw new ArgumentNullException(nameof(loggerFactory));
+
         }
 
         /// <summary>
@@ -47,13 +48,12 @@ namespace Swabbr.Api.Controllers
             try
             {
                 return ((await _healthCheckService.IsHealthyAsync().ConfigureAwait(false))
-                    ? new StatusCodeResult(200) : new StatusCodeResult(503)); // TODO Hard coded status codes
-
+                    ? new StatusCodeResult((int)HttpStatusCode.OK) : new StatusCodeResult((int)HttpStatusCode.ServiceUnavailable));
             }
             catch (Exception e)
             {
                 logger.LogError(e.Message);
-                return new StatusCodeResult(500);
+                return new StatusCodeResult((int)HttpStatusCode.InternalServerError);
             }
         }
     }

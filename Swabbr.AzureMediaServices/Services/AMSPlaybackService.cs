@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
@@ -19,18 +20,17 @@ using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Services
 {
-
     /// <summary>
     /// Service for managing <see cref="Livestream"/> playback.
     /// </summary>
     public sealed class AMSPlaybackService : IPlaybackService
     {
-
         private readonly AMSConfiguration _config;
         private readonly IAMSClient _amsClient;
         private readonly IReactionService _reactionService;
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IVlogService _vlogService;
+        private readonly IAMSTokenService _amsTokenService;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -39,7 +39,8 @@ namespace Swabbr.AzureMediaServices.Services
             ILivestreamRepository livestreamRepository,
             IReactionService reactionService,
             IAMSClient amsClient,
-            IVlogService vlogService)
+            IVlogService vlogService,
+            IAMSTokenService amsTokenService)
         {
             if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
@@ -48,6 +49,7 @@ namespace Swabbr.AzureMediaServices.Services
             _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
             _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
+            _amsTokenService = amsTokenService ?? throw new ArgumentNullException(nameof(amsTokenService));
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace Swabbr.AzureMediaServices.Services
                 LiveLivestreamId = livestreamId,
                 LiveUserId = (await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false)).UserId,
                 LiveVlogId = (await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false)).Id,
-                Token = await GetTokenByLivestreamAsync(livestreamId).ConfigureAwait(false)
+                Token = await GetLivestreamTokenAsync(livestreamId).ConfigureAwait(false)
             };
         }
 
@@ -100,7 +102,7 @@ namespace Swabbr.AzureMediaServices.Services
             return new ReactionPlaybackDetails
             {
                 ReactionId = reactionId,
-                EndpointUrl = endpointUrl == null ? null : new Uri($"{hostName}{endpointUrl}"),
+                EndpointUrl = endpointUrl == null ? null : new Uri(hostName, endpointUrl),
                 Token = await GetReactionTokenAsync(reactionId).ConfigureAwait(false)
             };
         }
@@ -127,12 +129,12 @@ namespace Swabbr.AzureMediaServices.Services
             var token = await GetVlogTokenAsync(vlogId).ConfigureAwait(false);
 
             // Update view if we can watch the vlog
-            if (!endpointUrl.IsNullOrEmpty()) { await _vlogService.AddView(vlogId).ConfigureAwait(false); }
+            if (endpointUrl != null) { await _vlogService.AddView(vlogId).ConfigureAwait(false); }
 
             return new VlogPlaybackDetails
             {
                 VlogId = vlogId,
-                EndpointUrl = endpointUrl.IsNullOrEmpty() ? null : new Uri($"{hostName}{endpointUrl}"),
+                EndpointUrl = endpointUrl == null ? null : new Uri(hostName, endpointUrl),
                 Token = token
             };
         }
@@ -152,94 +154,28 @@ namespace Swabbr.AzureMediaServices.Services
             var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
 
             var paths = await _amsClient.GetVlogStreamingLocatorPathsAsync(vlog.Id).ConfigureAwait(false);
-            if (!paths.Any()) { return null; } // TODO How to fix this?
+            if (!paths.Any()) { return null; }
 
-            var hostName = await _amsClient.GetStreamingEndpointHostNameAsync().ConfigureAwait(false);
-
-            var uriBuilder = new UriBuilder
-            {
-                Scheme = "https",
-                Host = hostName,
-                Path = paths.First()
-            };
-            return uriBuilder.Uri;
+            return new Uri(await _amsClient.GetStreamingEndpointHostNameAsync().ConfigureAwait(false), paths.First());
         }
 
-        /// <summary>
-        /// Generates a JWT token for livestream playback.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <param name="watchingUserId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns>JWT token <see cref="string"/></returns>
-        private async Task<string> GetTokenByLivestreamAsync(Guid livestreamId)
+        private async Task<string> GetLivestreamTokenAsync(Guid livestreamId)
         {
             livestreamId.ThrowIfNullOrEmpty();
-
-            // Get corresponding vlog
             var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
-
-            var tokenSigningKey = new SymmetricSecurityKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
-            var credentials = new SigningCredentials(tokenSigningKey, SecurityAlgorithms.HmacSha256, SecurityAlgorithms.Sha256Digest);
-            var keyIdentifier = await _amsClient.GetVlogStreamingLocatorKeyIdentifierAsync(vlog.Id).ConfigureAwait(false);
-            var claims = new Claim[] { new Claim(ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim.ClaimType, keyIdentifier) };
-
-            var token = new JwtSecurityToken(
-                issuer: _config.TokenIssuer,
-                audience: _config.TokenAudience,
-                claims: claims,
-                notBefore: DateTime.UtcNow.AddMinutes(-5),
-                expires: DateTime.UtcNow.AddMinutes(_config.TokenValidMinutes),
-                signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return await GetVlogTokenAsync(vlog.Id).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// TODO Duplicate function
-        /// </summary>
-        /// <param name="livestreamId"></param>
-        /// <returns>JWT Token</returns>
         private async Task<string> GetVlogTokenAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
-
-            var tokenSigningKey = new SymmetricSecurityKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
-            var credentials = new SigningCredentials(tokenSigningKey, SecurityAlgorithms.HmacSha256, SecurityAlgorithms.Sha256Digest);
-            var keyIdentifier = await _amsClient.GetVlogStreamingLocatorKeyIdentifierAsync(vlogId).ConfigureAwait(false);
-            var claims = new Claim[] { new Claim(ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim.ClaimType, keyIdentifier) };
-
-            var token = new JwtSecurityToken(
-                issuer: _config.TokenIssuer,
-                audience: _config.TokenAudience,
-                claims: claims,
-                notBefore: DateTime.UtcNow.AddMinutes(-5),
-                expires: DateTime.UtcNow.AddMinutes(_config.TokenValidMinutes),
-                signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return _amsTokenService.GenerateToken(await _amsClient.GetVlogStreamingLocatorKeyIdentifierAsync(vlogId).ConfigureAwait(false));
         }
 
-        /// <summary>
-        /// TODO Duplicate function
-        /// </summary>
-        /// <returns>JWT Token</returns>
         private async Task<string> GetReactionTokenAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
-
-            var tokenSigningKey = new SymmetricSecurityKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
-            var credentials = new SigningCredentials(tokenSigningKey, SecurityAlgorithms.HmacSha256, SecurityAlgorithms.Sha256Digest);
-            var keyIdentifier = await _amsClient.GetReactionStreamingLocatorKeyIdentifierAsync(reactionId).ConfigureAwait(false);
-            var claims = new Claim[] { new Claim(ContentKeyPolicyTokenClaim.ContentKeyIdentifierClaim.ClaimType, keyIdentifier) };
-
-            var token = new JwtSecurityToken(
-                issuer: _config.TokenIssuer,
-                audience: _config.TokenAudience,
-                claims: claims,
-                notBefore: DateTime.UtcNow.AddMinutes(-5),
-                expires: DateTime.UtcNow.AddMinutes(_config.TokenValidMinutes),
-                signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return _amsTokenService.GenerateToken(await _amsClient.GetReactionStreamingLocatorKeyIdentifierAsync(reactionId).ConfigureAwait(false));
         }
-
     }
-
 }

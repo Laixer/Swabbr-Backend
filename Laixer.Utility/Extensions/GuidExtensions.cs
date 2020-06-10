@@ -2,12 +2,16 @@
 
 namespace Laixer.Utility.Extensions
 {
-
     /// <summary>
     /// Contains extensions for the <see cref="Guid"/> class.
     /// </summary>
     public static class GuidExtensions
     {
+        /// <summary>
+        /// Indicates how long a <see cref="Guid"/> is when parsed to <see cref="string"/>,
+        /// according to the 00000000-0000-0000-0000-000000000000 format.
+        /// </summary>
+        public const int GuidAsStringLength = 36;
 
         /// <summary>
         /// Throws an <see cref="ArgumentNullException"/> if the <paramref name="self"/>
@@ -49,7 +53,5 @@ namespace Laixer.Utility.Extensions
         {
             return !IsNullOrEmpty(self);
         }
-
     }
-
 }

@@ -6,7 +6,6 @@ using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications.JsonWrappers;
@@ -15,19 +14,18 @@ using Swabbr.Core.Utility;
 using System;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
-
     /// <summary>
     /// This processes the requests that a <see cref="SwabbrUser"/> sends to our
     /// backend when he or she starts or stops livestreaming (or is about to).
     /// </summary>
     public sealed class UserStreamingHandlingService : IUserStreamingHandlingService
     {
-
         private readonly ILivestreamService _livestreamingService;
         private readonly IPlaybackService _livestreamPlaybackService;
         private readonly INotificationService _notificationService;
@@ -37,7 +35,6 @@ namespace Swabbr.Core.Services
         private readonly ILogger logger;
         private readonly LogicAppsConfiguration logicAppsConfiguration;
         private readonly SwabbrConfiguration swabbrConfiguration;
-        private readonly IHttpClientFactory _httpClientFactory;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -50,8 +47,7 @@ namespace Swabbr.Core.Services
             IVlogService vlogService,
             ILoggerFactory loggerFactory,
             IOptions<LogicAppsConfiguration> optionsLogicApps,
-            IOptions<SwabbrConfiguration> optionsSwabbr,
-            IHttpClientFactory httpClientFactory)
+            IOptions<SwabbrConfiguration> optionsSwabbr)
         {
             _livestreamingService = livestreamingService ?? throw new ArgumentNullException(nameof(livestreamingService));
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
@@ -60,7 +56,6 @@ namespace Swabbr.Core.Services
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(UserStreamingHandlingService)) : throw new ArgumentNullException(nameof(loggerFactory));
-            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
 
             if (optionsLogicApps == null || optionsLogicApps.Value == null) { throw new ArgumentNullException(nameof(optionsLogicApps)); }
             logicAppsConfiguration = optionsLogicApps.Value;
@@ -79,28 +74,22 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="Task"/></returns>
         public async Task OnUserConnectedToLivestreamAsync(Guid userId, Guid livestreamId)
         {
-            try
+            logger.LogTrace($"{nameof(OnUserConnectedToLivestreamAsync)} - Processing event where user {userId} connected to livestream {livestreamId}");
+
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
+
+            await _livestreamingService.OnUserConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
+
+            // Notify all followers
+            await _notificationService.NotifyFollowersProfileLiveAsync(userId, livestreamId, new ParametersFollowedProfileLive
             {
-                logger.LogTrace($"{nameof(OnUserConnectedToLivestreamAsync)} - Processing event where user {userId} connected to livestream {livestreamId}");
-                livestreamId.ThrowIfNullOrEmpty();
+                LiveLivestreamId = livestreamId,
+                LiveUserId = userId,
+                LiveVlogId = (await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false)).Id
+            }).ConfigureAwait(false);
 
-                await _livestreamingService.OnUserConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
-
-                // Notify all followers
-                await _notificationService.NotifyFollowersProfileLiveAsync(userId, livestreamId, new ParametersFollowedProfileLive
-                {
-                    LiveLivestreamId = livestreamId,
-                    LiveUserId = userId,
-                    LiveVlogId = (await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false)).Id
-                }).ConfigureAwait(false);
-
-                logger.LogTrace($"{nameof(OnUserConnectedToLivestreamAsync)} - Finished processing event where user {userId} connected to livestream {livestreamId}");
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"{nameof(OnUserConnectedToLivestreamAsync)} - Exception while calling ", e.Message);
-                throw;
-            }
+            logger.LogTrace($"{nameof(OnUserConnectedToLivestreamAsync)} - Finished processing event where user {userId} connected to livestream {livestreamId}");
         }
 
         /// <summary>
@@ -114,35 +103,29 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="Task"/></returns>
         public async Task OnUserDisconnectedFromLivestreamAsync(Guid userId, Guid livestreamId)
         {
-            try
-            {
-                logger.LogTrace($"{nameof(OnUserDisconnectedFromLivestreamAsync)} - Processing event where user {userId} disconnected from livestream {livestreamId}");
-                livestreamId.ThrowIfNullOrEmpty();
+            logger.LogTrace($"{nameof(OnUserDisconnectedFromLivestreamAsync)} - Processing event where user {userId} disconnected from livestream {livestreamId}");
 
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                {
-                    var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
-                    if (livestream.LivestreamState != LivestreamState.Live) { return; }
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
 
-                    // Grab the vlog, this gets demarked in the livestream processing functions
-                    // var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                    // First process the livestream
-                    await _livestreamingService.OnUserDisconnectedFromLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
+            var livestream = await _livestreamRepository.GetAsync(livestreamId).ConfigureAwait(false);
+            // TODO Is this even possible? If not --> throw
+            if (livestream.LivestreamState != LivestreamState.Live) { return; }
 
-                    scope.Complete();
-                }
-                // Then process any notifications (not a requirement at this moment)
-                // TODO Re-enable
-                // await _notificationService.NotifyFollowersVlogPostedAsync(userId, vlog.Id).ConfigureAwait(false);
+            // Grab the vlog, this gets demarked in the livestream processing functions
+            // var vlog = await _vlogService.GetVlogFromLivestreamAsync(livestreamId).ConfigureAwait(false);
 
-                logger.LogTrace($"{nameof(OnUserDisconnectedFromLivestreamAsync)} - Finished processing event where user {userId} disconnected from livestream {livestreamId}");
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"{nameof(OnUserDisconnectedFromLivestreamAsync)} - Exception while calling ", e.Message);
-                throw;
-            }
+            // First process the livestream
+            await _livestreamingService.OnUserDisconnectedFromLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
+
+            scope.Complete();
+            // Then process any notifications (not a requirement at this moment)
+            // TODO Re-enable
+            // await _notificationService.NotifyFollowersVlogPostedAsync(userId, vlog.Id).ConfigureAwait(false);
+
+            logger.LogTrace($"{nameof(OnUserDisconnectedFromLivestreamAsync)} - Finished processing event where user {userId} disconnected from livestream {livestreamId}");
         }
 
         /// <summary>
@@ -164,9 +147,8 @@ namespace Swabbr.Core.Services
             if (livestream.LivestreamState == LivestreamState.PendingUserConnect)
             {
                 await _livestreamingService.OnUserNeverConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
+                scope.Complete();
             }
-
-            scope.Complete();
         }
 
         /// <summary>
@@ -185,49 +167,42 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="LivestreamUpstreamDetails"/></returns>
         public async Task<LivestreamUpstreamDetails> OnUserStartStreaming(Guid userId, Guid livestreamId)
         {
-            try
-            {
-                logger.LogTrace($"{nameof(OnUserStartStreaming)} - Attempting to start livestream {livestreamId} for user {userId}");
-                userId.ThrowIfNullOrEmpty();
-                livestreamId.ThrowIfNullOrEmpty();
+            logger.LogTrace($"{nameof(OnUserStartStreaming)} - Attempting to start livestream {livestreamId} for user {userId}");
 
-                await _livestreamingService.OnUserStartStreamingAsync(livestreamId, userId).ConfigureAwait(false); // DB logic creates vlog
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
 
-                var upstreamDetails = await _livestreamingService.GetUpstreamDetailsAsync(livestreamId, userId).ConfigureAwait(false);
+            // The logic for creation of a Vlog for our Livestream exists in the data store
+            await _livestreamingService.OnUserStartStreamingAsync(livestreamId, userId).ConfigureAwait(false);
 
-                logger.LogTrace($@"{nameof(OnUserStartStreaming)} - Successfully started livestream {livestreamId} for user {userId},
+            var upstreamDetails = await _livestreamingService.GetUpstreamDetailsAsync(livestreamId, userId).ConfigureAwait(false);
+
+            logger.LogTrace($@"{nameof(OnUserStartStreaming)} - Successfully started livestream {livestreamId} for user {userId},
                     triggering logic app user connect timeout function");
 
-                // Trigger logic app
-                // TODO Clean up? Is this optimal?
-                var client = _httpClientFactory.GetClient();
-                var json = JsonConvert.SerializeObject(new UserStartStreamingWrapper
-                {
-                    LivestreamId = livestreamId,
-                    UserId = userId,
-                    UserConnectTimeoutSeconds = swabbrConfiguration.UserConnectTimeoutSeconds
-                });
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var result = await client.PostAsync(logicAppsConfiguration.EndpointUserConnectTimeout, content).ConfigureAwait(false);
-
-                if (!result.IsSuccessStatusCode)
-                {
-                    logger.LogError($@"{nameof(OnUserStartStreaming)} - Failed triggering user connect logic app for livestream {livestreamId} for user {userId} -
-                        {result.StatusCode} {result.ReasonPhrase}");
-                }
-                else
-                {
-                    logger.LogTrace($"{nameof(OnUserStartStreaming)} - Successfully triggered user connect logic app for livestream {livestreamId} for user {userId}");
-                }
-
-                content.Dispose(); // TODO Is this correct?
-                return upstreamDetails;
-            }
-            catch (Exception e)
+            // Trigger logic app
+            // TODO Clean up, too much details for this function scope
+            using var client = new HttpClient();
+            var json = JsonConvert.SerializeObject(new UserStartStreamingWrapper
             {
-                logger.LogError($"{nameof(OnUserStartStreaming)} - Exception while calling ", e.Message);
-                throw;
+                LivestreamId = livestreamId,
+                UserId = userId,
+                UserConnectTimeoutSeconds = swabbrConfiguration.UserConnectTimeoutSeconds
+            });
+
+            using var cts = new CancellationTokenSource(30 * 1000);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var result = await client.PostAsync(logicAppsConfiguration.EndpointUserConnectTimeout, content, cts.Token).ConfigureAwait(false);
+
+            if (!result.IsSuccessStatusCode)
+            {
+                logger.LogError($@"{nameof(OnUserStartStreaming)} - Failed triggering user connect logic app for livestream {livestreamId} for user {userId} -
+                        {result.StatusCode} {result.ReasonPhrase}");
+                throw new InvalidOperationException("Logic app for user connect timeout couldn't trigger");
             }
+
+            logger.LogTrace($"{nameof(OnUserStartStreaming)} - Successfully triggered user connect logic app for livestream {livestreamId} for user {userId}");
+            return upstreamDetails;
         }
 
         /// <summary>
@@ -242,21 +217,13 @@ namespace Swabbr.Core.Services
         [Obsolete("Does nothing")]
         public async Task OnUserStopStreaming(Guid userId, Guid livestreamId)
         {
-            try
-            {
-                logger.LogTrace($"{nameof(OnUserStopStreaming)} - Attempting to stop livestream {livestreamId} for user {userId}");
-                userId.ThrowIfNullOrEmpty();
-                livestreamId.ThrowIfNullOrEmpty();
+            logger.LogTrace($"{nameof(OnUserStopStreaming)} - Attempting to stop livestream {livestreamId} for user {userId}");
+            userId.ThrowIfNullOrEmpty();
+            livestreamId.ThrowIfNullOrEmpty();
 
-                await _livestreamingService.OnUserStopStreamingAsync(livestreamId, userId).ConfigureAwait(false);
+            await _livestreamingService.OnUserStopStreamingAsync(livestreamId, userId).ConfigureAwait(false);
 
-                logger.LogTrace($"{nameof(OnUserStopStreaming)} - Successfully stopped livestream {livestreamId} for user {userId}");
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"{nameof(OnUserStopStreaming)} - Exception while calling ", e.Message);
-                throw;
-            }
+            logger.LogTrace($"{nameof(OnUserStopStreaming)} - Successfully stopped livestream {livestreamId} for user {userId}");
         }
 
         /// <summary>
@@ -281,9 +248,8 @@ namespace Swabbr.Core.Services
             {
                 if (livestream.UserId != userId) { throw new UserNotOwnerException(nameof(Livestream)); }
                 await _livestreamingService.OnUserVlogTimeExpiredAsync(livestreamId, userId).ConfigureAwait(false);
+                scope.Complete();
             }
-            scope.Complete();
         }
     }
-
 }

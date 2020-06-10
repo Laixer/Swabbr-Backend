@@ -66,9 +66,9 @@ namespace Swabbr.Infrastructure.Repositories
         {
             followRequestId.ThrowIfNullOrEmpty();
             using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT 1 FROM {TableFollowRequest}" +
-$" WHERE receiver_id = @ReceiverId" +
-$" AND requester_id = @RequesterId";
+            var sql = $@"SELECT 1 FROM {TableFollowRequest}
+                WHERE receiver_id = @ReceiverId
+                AND requester_id = @RequesterId";
             var result = await connection.QueryAsync<int>(sql, followRequestId).ConfigureAwait(false);
             return result != null && result.Any();
         }
@@ -194,7 +194,6 @@ $" AND requester_id = @RequesterId";
         {
             followRequestId.ThrowIfNullOrEmpty();
             using var connection = _databaseProvider.GetConnectionScope();
-            // TODO Anti SQL inject
             var sql = $@"
                     UPDATE {TableFollowRequest}
                     SET follow_request_status = '{status.GetEnumMemberAttribute()}'
