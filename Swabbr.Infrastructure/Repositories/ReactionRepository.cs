@@ -71,8 +71,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT *
                     FROM {TableReaction} 
                     WHERE id = @Id
-                    AND reaction_state != '{ReactionState.Deleted.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND reaction_state != '{ReactionState.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Reaction>(sql, new { Id = id }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Reaction)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
@@ -92,8 +91,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableReaction} 
                     WHERE target_vlog_id = @VlogId 
-                    AND reaction_state = '{ReactionState.Finished.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND reaction_state = '{ReactionState.Finished.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Reaction>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
         }
 

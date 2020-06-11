@@ -94,8 +94,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableVlog} 
                     WHERE id = @Id 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Vlog>(sql, new { Id = vlogId }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
@@ -115,8 +114,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT 1 FROM {TableVlog} 
                     WHERE livestream_id = @Id
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
-                    FOR UPDATE"; // TODO Does this row lock?
+                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
             var pars = new { Id = livestreamId };
             var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
             if (result == null || !result.Any()) { return false; }
@@ -138,8 +136,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE id = @Id 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Vlog>(sql, new { Id = id }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
@@ -197,8 +194,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE livestream_id = @LivestreamId 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
             var pars = new { LivestreamId = livestreamId };
             var result = await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
@@ -222,8 +218,7 @@ namespace Swabbr.Infrastructure.Repositories
                     JOIN {TableVlog} AS v
                         ON r.target_vlog_id = v.id
                     WHERE r.id = @ReactionId
-                        AND v.vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                        AND v.vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Vlog>(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }

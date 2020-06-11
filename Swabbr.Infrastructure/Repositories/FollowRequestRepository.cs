@@ -48,8 +48,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableFollowRequest}  
                     WHERE receiver_id = @ReceiverId
-                    AND requester_id = @RequesterId
-                    FOR UPDATE";
+                    AND requester_id = @RequesterId";
             var result = await connection.QueryAsync<FollowRequest>(sql, followRequestId).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
@@ -96,8 +95,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableFollowRequest}
                     WHERE receiver_id = @UserId
-                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
@@ -114,8 +112,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableFollowRequest}
                     WHERE requester_id = @UserId
-                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'
-                    FOR UPDATE";
+                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
