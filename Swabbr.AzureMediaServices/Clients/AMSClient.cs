@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest.Azure.Authentication;
+using Npgsql;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Exceptions;
 using Swabbr.AzureMediaServices.Extensions;
@@ -22,12 +23,13 @@ using System.Threading.Tasks;
 namespace Swabbr.AzureMediaServices.Clients
 {
     /// <summary>
-    /// Communicates with Azure Media Services.
+    ///     Communicates with Azure Media Services.
     /// </summary>
-    public sealed class AMSClient : IAMSClient
+    public sealed class AMSClient : IAMSClient, IDisposable
     {
         private readonly AMSConfiguration _config;
         private readonly ILogger<AMSClient> _logger;
+        private readonly IAzureMediaServicesClient amsClient;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -39,6 +41,10 @@ namespace Swabbr.AzureMediaServices.Clients
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));
             _config.ThrowIfInvalid();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            // Create client only once.
+            // TODO Make lazy, future optimalization.
+            amsClient = Task.Run(() => BuildClientAsync()).Result;
         }
 
         /// <summary>
@@ -60,7 +66,6 @@ namespace Swabbr.AzureMediaServices.Clients
                 await EnsureStreamingEndpointRunningAsync().ConfigureAwait(false);
 
                 // Then create
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var liveEventRequest = new LiveEvent
                 {
                     Location = _config.Location,
@@ -109,8 +114,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
-
                 // First do the checks
                 await EnsureContentKeyPolicyExistsAsync().ConfigureAwait(false);
 
@@ -145,7 +148,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.StreamingLocators.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionStreamingLocatorName(reactionId), new StreamingLocator
                 {
                     AssetName = AMSNameGenerator.ReactionOutputAssetName(reactionId),
@@ -173,8 +175,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
-
                 var liveOutputAssetName = AMSNameGenerator.VlogLiveOutputAssetName(correspondingVlogId);
                 var streamingLocatorName = AMSNameGenerator.VlogStreamingLocatorName(correspondingVlogId);
                 var streamingLocatorRequest = new StreamingLocator
@@ -201,7 +201,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var outputs = new TransformOutput[]
                 {
                     new TransformOutput(
@@ -245,8 +244,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
-
                 var outputs = new TransformOutput[]
                 {
                     new TransformOutput(
@@ -291,7 +288,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var streamingEndpointName = AMSConstants.StreamingEndpointName;
                 var endpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, streamingEndpointName).ConfigureAwait(false);
 
@@ -325,8 +321,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
-
                 var primaryKey = new ContentKeyPolicySymmetricTokenKey(new UTF8Encoding().GetBytes(_config.TokenSecret));
                 var requiredClaims = new List<ContentKeyPolicyTokenClaim>()
                 {
@@ -374,7 +368,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var liveEvent = await amsClient.LiveEvents.GetAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
 
                 // External checks
@@ -453,7 +446,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var streamingEndpoint = await amsClient.StreamingEndpoints.GetAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.StreamingEndpointName).ConfigureAwait(false);
                 return new UriBuilder
                 {
@@ -480,7 +472,6 @@ namespace Swabbr.AzureMediaServices.Clients
         {
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.LiveEvents.ListAsync(_config.ResourceGroup, _config.AccountName).ConfigureAwait(false);
                 return true;
             }
@@ -502,7 +493,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.LiveEvents.StartAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -523,7 +513,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.LiveEvents.StopAsync(_config.ResourceGroup, _config.AccountName, liveEventName).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -546,7 +535,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.LiveOutputs.DeleteAsync(_config.ResourceGroup, _config.AccountName, liveEventName, AMSNameGenerator.VlogLiveOutputName(vlogId)).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -567,7 +555,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var assetRequest = new Asset();
                 return await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, assetName, assetRequest).ConfigureAwait(false);
             }
@@ -614,7 +601,6 @@ namespace Swabbr.AzureMediaServices.Clients
             try
             {
                 // Create assets
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionInputAssetName(reactionId), new Asset()).ConfigureAwait(false);
                 await amsClient.Assets.CreateOrUpdateAsync(_config.ResourceGroup, _config.AccountName, AMSNameGenerator.ReactionOutputAssetName(reactionId), new Asset()).ConfigureAwait(false);
             }
@@ -632,7 +618,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.Jobs.CreateAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId), new Job
                 {
                     Input = new JobInputAsset(AMSNameGenerator.ReactionInputAssetName(reactionId),
@@ -654,7 +639,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 return (await amsClient.Assets.GetAsync(_config.ResourceGroup, _config.AccountName, assetName).ConfigureAwait(false)) != null;
             }
             catch (Exception e)
@@ -676,13 +660,18 @@ namespace Swabbr.AzureMediaServices.Clients
             return GetAssetSasAsync(AMSNameGenerator.ReactionOutputAssetName(reactionId), AssetContainerPermission.Read, AMSConstants.ReactionSasOutputExpireTimeMinutes);
         }
 
+        public Task<Uri> GetVlogOutputAssetSasAysync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+            return GetAssetSasAsync(AMSNameGenerator.VlogLiveOutputAssetName(vlogId), AssetContainerPermission.Read, AMSConstants.VlogSasOutputExpireTimeMinutes);
+        }
+
         public async Task DeleteAssetAsync(string assetName)
         {
             assetName.ThrowIfNullOrEmpty();
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.Assets.DeleteAsync(_config.ResourceGroup, _config.AccountName, assetName).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -698,7 +687,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 await amsClient.Jobs.DeleteAsync(_config.ResourceGroup, _config.AccountName, AMSConstants.ReactionTransformName, AMSNameGenerator.ReactionJobName(reactionId)).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -731,7 +719,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 return new Uri((await amsClient.Assets.ListContainerSasAsync(
                     _config.ResourceGroup,
                     _config.AccountName,
@@ -760,7 +747,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var streamingLocator = await amsClient.StreamingLocators.GetAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
                 return streamingLocator.ContentKeys.First().Id.ToString();
             }
@@ -777,7 +763,6 @@ namespace Swabbr.AzureMediaServices.Clients
 
             try
             {
-                using var amsClient = await BuildClientAsync().ConfigureAwait(false);
                 var paths = await amsClient.StreamingLocators.ListPathsAsync(_config.ResourceGroup, _config.AccountName, streamingLocatorName).ConfigureAwait(false);
 
                 // TODO This just returns EVERYTHING at the moment, doesn't consider protocols or anything
@@ -797,5 +782,10 @@ namespace Swabbr.AzureMediaServices.Clients
                 throw new ExternalAMSErrorException("Could not get streaming locator paths", e);
             }
         }
+
+        /// <summary>
+        ///     Called on graceful shutdown.
+        /// </summary>
+        public void Dispose() => amsClient.Dispose();
     }
 }

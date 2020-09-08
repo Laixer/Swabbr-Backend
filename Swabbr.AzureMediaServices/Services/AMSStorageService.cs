@@ -118,5 +118,11 @@ namespace Swabbr.AzureMediaServices.Services
             reactionId.ThrowIfNullOrEmpty();
             return _amsClient.GetReactionOutputAssetSasAsync(reactionId);
         }
+
+        public Task<Uri> GetDownloadAccessUriForVlogThumbnailAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+            return _amsClient.GetVlogOutputAssetSasAysync(vlogId);
+        }
     }
 }

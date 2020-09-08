@@ -140,7 +140,7 @@ namespace Swabbr
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             services.AddTransient<INotificationBuilder, NotificationBuilder>();
-            services.AddTransient<IAMSClient, AMSClient>();
+            services.AddSingleton<IAMSClient, AMSClient>();
         }
 
         /// <summary>

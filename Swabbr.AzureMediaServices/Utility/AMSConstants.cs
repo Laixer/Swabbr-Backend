@@ -17,6 +17,8 @@ namespace Swabbr.AzureMediaServices.Utility
 
         internal const int ReactionSasOutputExpireTimeMinutes = 30;
 
+        internal const int VlogSasOutputExpireTimeMinutes = 30;
+
         internal const int LiveOutputArchiveWindowLengthHours = 24;
 
         internal const int PlaybackTokenTimeSubstractionMinutes = 5;
