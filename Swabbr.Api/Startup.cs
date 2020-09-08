@@ -129,6 +129,8 @@ namespace Swabbr
             services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
             services.AddTransient<IVlogService, VlogService>();
+            services.AddTransient<IVlogWithThumbnailService, VlogWithThumbnailService>();
+
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
