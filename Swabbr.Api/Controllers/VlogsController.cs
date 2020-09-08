@@ -13,9 +13,14 @@ using Swabbr.Api.ViewModels.VlogLike;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Types;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -31,7 +36,7 @@ namespace Swabbr.Api.Controllers
     public sealed class VlogsController : ControllerBase
     {
 
-        private readonly IVlogService _vlogService;
+        private readonly IVlogWithThumbnailService _vlogWithThumbnailService;
         private readonly IUserWithStatsService _userWithStatsService;
         private readonly IPlaybackService _livestreamPlaybackService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
@@ -40,13 +45,13 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public VlogsController(IVlogService vlogService,
+        public VlogsController(IVlogWithThumbnailService vlogWithThumbnailService,
             IUserWithStatsService userWithStatsService,
             IPlaybackService livestreamPlaybackService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
-            _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
+            _vlogWithThumbnailService = vlogWithThumbnailService ?? throw new ArgumentNullException(nameof(vlogWithThumbnailService));
             _userWithStatsService = userWithStatsService ?? throw new ArgumentNullException(nameof(userWithStatsService));
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
@@ -54,28 +59,39 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Gets a single <see cref="Vlog"/> from our data store.
+        ///     Gets a single <see cref="Vlog"/> from our data store, including it's
+        ///     likes and thumbnail download uri.
         /// </summary>
+        /// <remarks>
+        ///     The thumbnail download uri is an Azure Storage SAS Uri.
+        /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns></returns>
+        /// <returns><see cref="VlogWithMetadataOutputModel"/></returns>
         [HttpGet("{vlogId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogWithMetadataOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
 
-                return Ok(new VlogWithLikesOutputModel
+                var vlogWithThumbnailDetails = await _vlogWithThumbnailService.GetWithThumbnailDetailsAsync(vlogId);
+                var vlogLikeSummary = await _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogId);
+
+                return Ok(new VlogWithMetadataOutputModel
                 {
-                    Vlog = MapperVlog.Map(
-                        await _vlogService
-                        .GetAsync(vlogId)
-                        .ConfigureAwait(false)),
-                    VlogLikes = (await _vlogService
-                        .GetVlogLikesForVlogAsync(vlogId)
-                        .ConfigureAwait(false))
-                        .Select(x => MapperVlogLike.Map(x))
+                    ThumbnailUri = vlogWithThumbnailDetails.ThumbnailUri,
+                    Vlog = MapperVlog.Map(vlogWithThumbnailDetails.Vlog),
+                    VlogLikeSummary = new VlogLikeSummaryOutputModel
+                    {
+                        VlogId = vlogLikeSummary.VlogId,
+                        TotalLikes = vlogLikeSummary.TotalLikes,
+                        SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                        {
+                            Id = x.Id,
+                            NickName = x.Nickname
+                        })
+                    }
                 });
             }
             catch (EntityNotFoundException e)
@@ -108,7 +124,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                return Ok(MapperVlog.Map(await _vlogService.UpdateAsync(vlogId, user.Id, input.IsPrivate).ConfigureAwait(false)));
+                return Ok(MapperVlog.Map(await _vlogWithThumbnailService.UpdateAsync(vlogId, user.Id, input.IsPrivate).ConfigureAwait(false)));
             }
             catch (EntityNotFoundException e)
             {
@@ -127,8 +143,10 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO This is too much for a controller to do.
         /// <summary>
-        /// Gets all vlogs for a given <see cref="SwabbrUser"/>.
+        ///     Gets all vlogs for a given <see cref="SwabbrUser"/> including their 
+        ///     thumbnail details and like details.
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="OkObjectResult"/> with <see cref="VlogCollectionOutputModel"/></returns>
@@ -140,12 +158,34 @@ namespace Swabbr.Api.Controllers
             {
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
+                // Get all vlogs.
+                var vlogsWithThumbnails = await _vlogWithThumbnailService.GetVlogsWithThumbnailDetailsFromUserAsync(userId);
+
+                var mappedVlogs = new ConcurrentBag<VlogWithMetadataOutputModel>();
+                Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
+                {
+                    var vlogLikeSummary = Task.Run(() => _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
+                    mappedVlogs.Add(new VlogWithMetadataOutputModel
+                    {
+                        Vlog = MapperVlog.Map(vlogWithThumbnail.Vlog),
+                        ThumbnailUri = vlogWithThumbnail.ThumbnailUri,
+                        VlogLikeSummary = new VlogLikeSummaryOutputModel
+                        {
+                            VlogId = vlogLikeSummary.VlogId,
+                            TotalLikes = vlogLikeSummary.TotalLikes,
+                            SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                            {
+                                Id = x.Id,
+                                NickName = x.Nickname
+                            })
+                        }
+                    });
+                });
+
+                // Wrap and return.
                 return Ok(new VlogCollectionOutputModel
                 {
-                    Vlogs = (await _vlogService
-                        .GetVlogsFromUserAsync(userId)
-                        .ConfigureAwait(false))
-                        .Select(x => MapperVlog.Map(x))
+                    Vlogs = mappedVlogs
                 });
             }
             catch (EntityNotFoundException e)
@@ -175,7 +215,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _vlogService.DeleteAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogWithThumbnailService.DeleteAsync(vlogId, user.Id).ConfigureAwait(false);
 
                 return Ok();
             }
@@ -210,7 +250,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _vlogService.LikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogWithThumbnailService.LikeAsync(vlogId, user.Id).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -249,7 +289,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _vlogService.UnlikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogWithThumbnailService.UnlikeAsync(vlogId, user.Id).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -278,15 +318,15 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+                if (!await _vlogWithThumbnailService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
-                var vlogLikes = await _vlogService.GetVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
+                var vlogLikes = await _vlogWithThumbnailService.GetAllVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
                 var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.UserId)).ConfigureAwait(false);
 
                 return Ok(new VlogLikesWithUsersOutputModel
                 {
                     TotalLikeCount = vlogLikes.Count(),
-                    UsersMinified = users.Select(x => new UserMinifiedOutputModel
+                    UsersSimplified = users.Select(x => new UserSimplifiedOutputModel
                     {
                         Id = x.Id,
                         NickName = x.Nickname
@@ -306,20 +346,47 @@ namespace Swabbr.Api.Controllers
         /// <see cref="Vlog"/>s posted by <see cref="SwabbrUser"/>s that are being
         /// followed by the currently logged in <see cref="SwabbrUser"/>.
         /// </summary>
+        /// <param name="maxCount">Maximum result set count</param>
         /// <returns><see cref="VlogCollectionOutputModel"/></returns>
         [HttpGet("recommended")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogCollectionOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> GetRecommendedVlogsAsync()
+        public async Task<IActionResult> GetRecommendedVlogsAsync(uint maxCount = 25)
         {
             try
             {
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+
+                // Get all vlogs.
+                var vlogsWithThumbnails = await _vlogWithThumbnailService.GetRecommendedVlogsWithThumbnailDetailsForUserAsync(user.Id, maxCount);
+                var mappedVlogs = new ConcurrentBag<VlogWithMetadataOutputModel>();
+
+                // Process each vlog separately.
+                // TODO Duplicate code.
+                Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
+                {
+                    var vlogLikeSummary = Task.Run(() => _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
+                    mappedVlogs.Add(new VlogWithMetadataOutputModel
+                    {
+                        Vlog = MapperVlog.Map(vlogWithThumbnail.Vlog),
+                        ThumbnailUri = vlogWithThumbnail.ThumbnailUri,
+                        VlogLikeSummary = new VlogLikeSummaryOutputModel
+                        {
+                            VlogId = vlogLikeSummary.VlogId,
+                            TotalLikes = vlogLikeSummary.TotalLikes,
+                            SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                            {
+                                Id = x.Id,
+                                NickName = x.Nickname
+                            })
+                        }
+                    });
+                });
+
+                // Wrap and return.
                 return Ok(new VlogCollectionOutputModel
                 {
-                    Vlogs = (await _vlogService.GetRecommendedForUserAsync(user.Id, 50)
-                        .ConfigureAwait(false))
-                        .Select(x => MapperVlog.Map(x))
+                    Vlogs = mappedVlogs
                 });
             }
             catch (Exception e)
