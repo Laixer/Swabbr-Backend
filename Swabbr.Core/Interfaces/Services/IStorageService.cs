@@ -3,13 +3,11 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
-
     /// <summary>
-    /// Contract for managing storage.
+    ///     Contract for managing storage.
     /// </summary>
     public interface IStorageService
     {
-
         Task CleanupReactionStorageOnSuccessAsync(Guid reactionId);
 
         Task CleanupReactionStorageOnFailureAsync(Guid reactionId);
@@ -22,7 +20,6 @@ namespace Swabbr.Core.Interfaces.Services
 
         Task<Uri> GetDownloadAccessUriForReactionThumbnailAsync(Guid reactionId);
 
-
+        Task<Uri> GetDownloadAccessUriForVlogThumbnailAsync(Guid vlogId);
     }
-
 }

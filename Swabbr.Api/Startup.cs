@@ -90,7 +90,11 @@ namespace Swabbr
             services.AddApiVersioning(options => { options.ReportApiVersions = true; });
 
             // Setup logging and insights
+
+#if DEBUG == false
             services.AddApplicationInsightsTelemetry();
+#endif
+
             services.AddLogging((config) =>
             {
                 config.AddAzureWebAppDiagnostics();
@@ -128,6 +132,8 @@ namespace Swabbr
             services.AddTransient<IReactionService, AMSReactionService>();
             services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
+
+            // TODO This seems incorrect (other services still use IVlogService)
             services.AddTransient<IVlogService, VlogService>();
             services.AddTransient<IVlogWithThumbnailService, VlogWithThumbnailService>();
 
