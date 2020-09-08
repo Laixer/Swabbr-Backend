@@ -12,7 +12,7 @@ namespace Swabbr.Api.ViewModels.VlogLike
 
         public int TotalLikeCount { get; set; }
 
-        public IEnumerable<UserMinifiedOutputModel> UsersMinified { get; set; }
+        public IEnumerable<UserSimplifiedOutputModel> UsersSimplified { get; set; }
 
     }
 
