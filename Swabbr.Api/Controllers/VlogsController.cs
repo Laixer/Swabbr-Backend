@@ -66,9 +66,9 @@ namespace Swabbr.Api.Controllers
         ///     The thumbnail download uri is an Azure Storage SAS Uri.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogWithMetadataOutputModel"/></returns>
+        /// <returns><see cref="VlogWrapperOutputModel"/></returns>
         [HttpGet("{vlogId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogWithMetadataOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogWrapperOutputModel))]
         public async Task<IActionResult> GetAsync([FromRoute]Guid vlogId)
         {
             try
@@ -78,7 +78,7 @@ namespace Swabbr.Api.Controllers
                 var vlogWithThumbnailDetails = await _vlogWithThumbnailService.GetWithThumbnailDetailsAsync(vlogId);
                 var vlogLikeSummary = await _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogId);
 
-                return Ok(new VlogWithMetadataOutputModel
+                return Ok(new VlogWrapperOutputModel
                 {
                     ThumbnailUri = vlogWithThumbnailDetails.ThumbnailUri,
                     Vlog = MapperVlog.Map(vlogWithThumbnailDetails.Vlog),
@@ -161,11 +161,11 @@ namespace Swabbr.Api.Controllers
                 // Get all vlogs.
                 var vlogsWithThumbnails = await _vlogWithThumbnailService.GetVlogsWithThumbnailDetailsFromUserAsync(userId);
 
-                var mappedVlogs = new ConcurrentBag<VlogWithMetadataOutputModel>();
+                var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
                 {
                     var vlogLikeSummary = Task.Run(() => _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
-                    mappedVlogs.Add(new VlogWithMetadataOutputModel
+                    mappedVlogs.Add(new VlogWrapperOutputModel
                     {
                         Vlog = MapperVlog.Map(vlogWithThumbnail.Vlog),
                         ThumbnailUri = vlogWithThumbnail.ThumbnailUri,
@@ -359,14 +359,14 @@ namespace Swabbr.Api.Controllers
 
                 // Get all vlogs.
                 var vlogsWithThumbnails = await _vlogWithThumbnailService.GetRecommendedVlogsWithThumbnailDetailsForUserAsync(user.Id, maxCount);
-                var mappedVlogs = new ConcurrentBag<VlogWithMetadataOutputModel>();
+                var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
 
                 // Process each vlog separately.
                 // TODO Duplicate code.
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
                 {
                     var vlogLikeSummary = Task.Run(() => _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
-                    mappedVlogs.Add(new VlogWithMetadataOutputModel
+                    mappedVlogs.Add(new VlogWrapperOutputModel
                     {
                         Vlog = MapperVlog.Map(vlogWithThumbnail.Vlog),
                         ThumbnailUri = vlogWithThumbnail.ThumbnailUri,

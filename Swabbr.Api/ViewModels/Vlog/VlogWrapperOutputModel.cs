@@ -9,7 +9,7 @@ namespace Swabbr.Api.ViewModels.Vlog
     /// <summary>
     ///     Wrapper around a vlog and its thumbnail details.
     /// </summary>
-    public sealed class VlogWithMetadataOutputModel
+    public sealed class VlogWrapperOutputModel
     {
         /// <summary>
         ///     <see cref="VlogOutputModel"/>.

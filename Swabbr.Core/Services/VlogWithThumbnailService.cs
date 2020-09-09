@@ -60,10 +60,7 @@ namespace Swabbr.Core.Services
                 result.Add(new VlogWithThumbnailDetails
                 {
                     Vlog = vlog,
-
-                    // TODO Which of these two and why?
                     ThumbnailUri = Task.Run(() => _storageService.GetDownloadAccessUriForVlogThumbnailAsync(vlog.Id)).Result
-                    //ThumbnailUri = await _storageService.GetDownloadAccessUriForVlogThumbnailAsync(vlog.Id).ConfigureAwait(true)
                 });
             });
 
@@ -77,13 +74,10 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">Internal <see cref="Entities.Vlog"/> id</param>
         /// <returns><see cref="VlogWithThumbnailDetails"/></returns>
         public async Task<VlogWithThumbnailDetails> GetWithThumbnailDetailsAsync(Guid vlogId)
-        {
-            var vlog = await GetAsync(vlogId).ConfigureAwait(false);
-            return new VlogWithThumbnailDetails
+            => new VlogWithThumbnailDetails
             {
-                Vlog = vlog,
+                Vlog = await GetAsync(vlogId).ConfigureAwait(false),
                 ThumbnailUri = await _storageService.GetDownloadAccessUriForVlogThumbnailAsync(vlogId).ConfigureAwait(false)
             };
-        }
     }
 }

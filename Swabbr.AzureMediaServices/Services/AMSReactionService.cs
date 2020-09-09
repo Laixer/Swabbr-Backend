@@ -1,8 +1,6 @@
 ﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
-using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
@@ -16,27 +14,24 @@ using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 
+#pragma warning disable CA1051 // Do not declare visible instance fields
 namespace Swabbr.AzureMediaServices.Services
 {
-
     /// <summary>
-    /// Transcoding wrapper based on Azure Media Services.
-    /// This has no knowlede of our data store.
+    ///     Transcoding wrapper based on Azure Media Services.
     /// </summary>
-    public sealed class AMSReactionService : IReactionService
+    public class AMSReactionService : IReactionService
     {
-
-        private readonly IReactionRepository _reactionRepository;
-        private readonly IVlogRepository _vlogRepository;
-        private readonly IStorageService _storageService;
-        private readonly IUserRepository _userRepository;
-        private readonly INotificationService _notificationService;
-        private readonly IAMSClient _amsClient;
-        private readonly SwabbrConfiguration swabbrConfiguration;
+        protected readonly IReactionRepository _reactionRepository;
+        protected readonly IVlogRepository _vlogRepository;
+        protected readonly IStorageService _storageService;
+        protected readonly IUserRepository _userRepository;
+        protected readonly INotificationService _notificationService;
+        protected readonly IAMSClient _amsClient;
+        protected readonly SwabbrConfiguration swabbrConfiguration;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -128,9 +123,7 @@ namespace Swabbr.AzureMediaServices.Services
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
         /// <returns><see cref="Reaction"/></returns>
         public Task<Reaction> GetReactionAsync(Guid reactionId)
-        {
-            return _reactionRepository.GetAsync(reactionId);
-        }
+            => _reactionRepository.GetAsync(reactionId);
 
         /// <summary>
         /// Gets the amount of <see cref="Reaction"/>s for a given <paramref name="vlogId"/>.
@@ -155,9 +148,7 @@ namespace Swabbr.AzureMediaServices.Services
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="Reaction"/> collection</returns>
         public Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId)
-        {
-            return _reactionRepository.GetForVlogAsync(vlogId);
-        }
+            => _reactionRepository.GetForVlogAsync(vlogId);
 
         /// <summary>
         /// Called when we finish uploading a <see cref="Reaction"/>.
@@ -318,7 +309,6 @@ namespace Swabbr.AzureMediaServices.Services
             scope.Complete();
             return reaction;
         }
-
     }
-
 }
+#pragma warning restore CA1051 // Do not declare visible instance fields

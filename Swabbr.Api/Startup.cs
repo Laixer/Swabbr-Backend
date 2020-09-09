@@ -129,7 +129,11 @@ namespace Swabbr
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<INotificationTestingService, NotificationTestingService>();
             services.AddTransient<IPlaybackService, AMSPlaybackService>();
+
+            // TODO This seems incorrect (other services still use IReactionService)
             services.AddTransient<IReactionService, AMSReactionService>();
+            services.AddTransient<IReactionWithThumbnailService, AMSReactionWithThumbnailService>();
+
             services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
 

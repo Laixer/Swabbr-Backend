@@ -34,7 +34,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly IPlaybackService _livestreamPlaybackService;
-        private readonly IReactionService _reactionService;
+        private readonly IReactionWithThumbnailService _reactionService;
         private readonly IVlogService _vlogService;
         private readonly ILogger logger;
 
@@ -43,7 +43,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public ReactionsController(UserManager<SwabbrIdentityUser> userManager,
             IPlaybackService livestreamPlaybackService,
-            IReactionService reactionService,
+            IReactionWithThumbnailService reactionService,
             IVlogService vlogService,
             ILoggerFactory loggerFactory)
         {
@@ -90,7 +90,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
         /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
         [HttpGet("{reactionId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionWrapperOutputModel))]
         public async Task<IActionResult> Get([FromRoute] Guid reactionId)
         {
             try
@@ -99,7 +99,12 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                return Ok(MapperReaction.Map(await _reactionService.GetReactionAsync(reactionId).ConfigureAwait(false)));
+                var reactionWithThumbnail = await _reactionService.GetWithThumbnailDetailsAsync(reactionId);
+                return Ok(new ReactionWrapperOutputModel
+                {
+                    Reaction = MapperReaction.Map(reactionWithThumbnail.Reaction),
+                    ThumbnailUri = reactionWithThumbnail.ThumbnailUri
+                });
             }
             catch (EntityNotFoundException e)
             {
@@ -119,7 +124,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionCollectionOutputModel"/></returns>
         [HttpGet("for_vlog/{vlogId}")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<ReactionOutputModel>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<ReactionCollectionOutputModel>))]
         public async Task<IActionResult> GetReactionsForVlog([FromRoute] Guid vlogId)
         {
             try
@@ -129,12 +134,15 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
+                var reactions = await _reactionService.GetWithThumbnailForVlogAsync(vlogId);
                 return Ok(new ReactionCollectionOutputModel
                 {
-                    Reactions = (await _reactionService
-                        .GetReactionsForVlogAsync(vlogId)
-                        .ConfigureAwait(false))
-                        .Select(x => MapperReaction.Map(x))
+                    Reactions = reactions.Select(x => new ReactionWrapperOutputModel
+                    {
+                        Reaction = MapperReaction.Map(x.Reaction),
+                        ThumbnailUri = x.ThumbnailUri
+                    }),
+                    ReactionTotalCount = (uint)reactions.Count()
                 });
             }
             catch (EntityNotFoundException e)
