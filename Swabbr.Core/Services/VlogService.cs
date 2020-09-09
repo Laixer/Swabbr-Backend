@@ -9,21 +9,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Transactions;
 
+#pragma warning disable CA1051 // Do not declare visible instance fields
 namespace Swabbr.Core.Services
 {
-
     /// <summary>
     /// Contains request processing functionality for <see cref="Vlog"/>s and
     /// <see cref="VlogLike"/>s.
     /// </summary>
     public class VlogService : IVlogService
     {
-
-        private readonly IVlogRepository _vlogRepository;
-        private readonly IVlogLikeRepository _vlogLikeRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly INotificationService _notificationService;
-        private readonly IStorageService _storageService;
+        protected readonly IVlogRepository _vlogRepository;
+        protected readonly IVlogLikeRepository _vlogLikeRepository;
+        protected readonly IUserRepository _userRepository;
+        protected readonly INotificationService _notificationService;
+        protected readonly IStorageService _storageService;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -90,9 +89,9 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLike"/> collection</returns>
-        public Task<IEnumerable<VlogLike>> GetVlogLikesForVlogAsync(Guid vlogId)
+        public Task<IEnumerable<VlogLike>> GetAllVlogLikesForVlogAsync(Guid vlogId)
         {
-            return _vlogLikeRepository.GetForVlogAsync(vlogId);
+            return _vlogLikeRepository.GetAllForVlogAsync(vlogId);
         }
 
         /// <summary>
@@ -235,6 +234,17 @@ namespace Swabbr.Core.Services
             return _vlogRepository.GetVlogFromLivestreamAsync(livestreamId);
         }
 
+        /// <summary>
+        ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
+        /// </summary>
+        /// <remarks>
+        ///     The <see cref="VlogLikeSummary.SimplifiedUsers"/> does not need
+        ///     to contain all the <see cref="SwabbrUserSimplified"/> users.
+        /// </remarks>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="VlogLikeSummary"/></returns>
+        public Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
+            => _vlogLikeRepository.GetVlogLikeSummaryForVlogAsync(vlogId);
     }
-
 }
+#pragma warning restore CA1051 // Do not declare visible instance fields

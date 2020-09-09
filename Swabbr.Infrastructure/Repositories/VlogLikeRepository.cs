@@ -25,10 +25,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public VlogLikeRepository(IDatabaseProvider databaseProvider)
-        {
-            _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-        }
+        public VlogLikeRepository(IDatabaseProvider databaseProvider) => _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
 
         /// <summary>
         /// Creates a new <see cref="VlogLike"/> in our database.
@@ -121,6 +118,7 @@ namespace Swabbr.Infrastructure.Repositories
             return result.First();
         }
 
+        // TODO This is not used.
         /// <summary>
         /// Gets the amount of <see cref="VlogLike"/>s given to a certain
         /// <see cref="Vlog"/>.
@@ -145,7 +143,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLike"/> collection</returns>
-        public async Task<IEnumerable<VlogLike>> GetForVlogAsync(Guid vlogId)
+        public async Task<IEnumerable<VlogLike>> GetAllForVlogAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
 
@@ -154,9 +152,81 @@ namespace Swabbr.Infrastructure.Repositories
             return await connection.QueryAsync<VlogLike>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
         }
 
-        public Task<VlogLike> UpdateAsync(VlogLike entity)
+        public Task<VlogLike> UpdateAsync(VlogLike entity) => throw new NotImplementedException();
+
+        // TODO This should be cleaned up.
+        /// <summary>
+        ///     This is used by <see cref="GetVlogLikeDetailsForVlogAsync(Guid)"/>.
+        /// </summary>
+        private class VlogLikeMetadata
         {
-            throw new NotImplementedException();
+            public uint Count { get; set; }
+
+            public Guid VlogId { get; set; }
+
+            public Guid UserId { get; set; }
+
+            public string UserNickname { get; set; }
         }
+
+        /// <summary>
+        ///     Gets a <see cref="VlogLikeSummary"/> for a <see cref="Vlog"/>.
+        /// </summary>
+        /// <remarks>
+        ///     The <see cref="VlogLikeSummary.SimplifiedUsers"/> field only
+        ///     contains the first 5 users that liked the <see cref="Vlog"/>.
+        /// </remarks>
+        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <returns><see cref="VlogLikeSummary"/></returns>
+        public async Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
+        {
+            vlogId.ThrowIfNullOrEmpty();
+
+            // TODO Table public.user should be in quotes.
+            var sql = @"
+                WITH cnt AS (
+	                SELECT count(vlog_id) AS c FROM  vlog_like AS vl
+	                WHERE vl.vlog_id = @VlogId
+                )
+                SELECT 
+	                cnt.c AS count,
+	                vlog_likes.vlog_id,
+	                u.id AS user_id,
+	                u.nickname AS user_nickname
+                FROM cnt
+                CROSS JOIN (
+	                SELECT * FROM vlog_like
+	                WHERE vlog_id = @VlogId
+	                LIMIT 5
+                ) AS vlog_likes
+                JOIN public.user AS u ON vlog_likes.user_id = u.id";
+
+            using var connection = _databaseProvider.GetConnectionScope();
+            var metadata = await connection.QueryAsync<VlogLikeMetadata>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+
+            if (!metadata.Any())
+            {
+                return new VlogLikeSummary
+                {
+                    SimplifiedUsers = new List<SwabbrUserSimplified>(),
+                    TotalLikes = 0,
+                    VlogId = vlogId
+                };
+            }
+            else
+            {
+                return new VlogLikeSummary
+                {
+                    TotalLikes = metadata.First().Count,
+                    VlogId = metadata.First().VlogId,
+                    SimplifiedUsers = metadata.Select(x => new SwabbrUserSimplified
+                    {
+                        Id = x.UserId,
+                        Nickname = x.UserNickname
+                    })
+                };
+            }
+        }
+
     }
 }

@@ -90,7 +90,11 @@ namespace Swabbr
             services.AddApiVersioning(options => { options.ReportApiVersions = true; });
 
             // Setup logging and insights
+
+#if DEBUG == false
             services.AddApplicationInsightsTelemetry();
+#endif
+
             services.AddLogging((config) =>
             {
                 config.AddAzureWebAppDiagnostics();
@@ -125,10 +129,18 @@ namespace Swabbr
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<INotificationTestingService, NotificationTestingService>();
             services.AddTransient<IPlaybackService, AMSPlaybackService>();
+
+            // TODO This seems incorrect (other services still use IReactionService)
             services.AddTransient<IReactionService, AMSReactionService>();
+            services.AddTransient<IReactionWithThumbnailService, AMSReactionWithThumbnailService>();
+
             services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
+
+            // TODO This seems incorrect (other services still use IVlogService)
             services.AddTransient<IVlogService, VlogService>();
+            services.AddTransient<IVlogWithThumbnailService, VlogWithThumbnailService>();
+
             services.AddTransient<IVlogTriggerService, VlogTriggerService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
@@ -138,7 +150,7 @@ namespace Swabbr
             services.AddTransient<INotificationClient, NotificationClient>();
             services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
             services.AddTransient<INotificationBuilder, NotificationBuilder>();
-            services.AddTransient<IAMSClient, AMSClient>();
+            services.AddSingleton<IAMSClient, AMSClient>();
         }
 
         /// <summary>

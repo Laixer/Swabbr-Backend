@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Interfaces.Clients
 {
+    // TODO This does NOT benefit from an interface - incorrect design.
     /// <summary>
     /// Contract for an Azure Media Services (AMS) handler.
     /// </summary>
@@ -168,6 +169,13 @@ namespace Swabbr.AzureMediaServices.Interfaces.Clients
         /// </summary>
         /// <returns><see cref="Uri"/></returns>
         Task<Uri> GetStreamingEndpointHostNameAsync();
+
+        /// <summary>
+        ///     Gets a SAS token for a vlog output <see cref="Asset"/>.
+        /// </summary>
+        /// <param name="reactionId">Internal <see cref="Core.Entities.Vlog"/> id</param>
+        /// <returns>SAS <see cref="Uri"/></returns>
+        Task<Uri> GetVlogOutputAssetSasAysync(Guid vlogId);
 
         /// <summary>
         /// Checks if AMS is available.
