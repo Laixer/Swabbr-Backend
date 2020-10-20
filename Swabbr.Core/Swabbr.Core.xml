@@ -302,6 +302,20 @@
             TODO EntityBase -> SwabbrUserMinified -> SwabbrUser -> SwabbrUserWithStats
             </summary>
         </member>
+        <member name="T:Swabbr.Core.Entities.SwabbrUserSimplified">
+            <summary>
+                Simple version of a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
+            </summary>
+            <remarks>
+                This can be used for simple display of users and
+                prevents us from having to retrieve all user details.
+            </remarks>
+        </member>
+        <member name="P:Swabbr.Core.Entities.SwabbrUserSimplified.Nickname">
+            <summary>
+                User nickname.
+            </summary>
+        </member>
         <member name="T:Swabbr.Core.Entities.SwabbrUserWithStats">
             <summary>
             <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> including statistics.
@@ -825,8 +839,19 @@
         </member>
         <member name="T:Swabbr.Core.Interfaces.Repositories.IVlogLikeRepository">
             <summary>
-            Contract for a <see cref="T:Swabbr.Core.Entities.VlogLike"/> repository.
+                Contract for a <see cref="T:Swabbr.Core.Entities.VlogLike"/> repository.
             </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Repositories.IVlogLikeRepository.GetVlogLikeSummaryForVlogAsync(System.Guid)">
+            <summary>
+                Gets a <see cref="T:Swabbr.Core.Types.VlogLikeSummary"/> for a <see cref="T:Swabbr.Core.Entities.Vlog"/>.
+            </summary>
+            <remarks>
+                The <see cref="!:VlogLikeSummary.UsersMinified"/> field does not
+                need to contain all users that liked the <see cref="T:Swabbr.Core.Entities.Vlog"/>.
+            </remarks>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogLikeSummary"/></returns>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Repositories.IVlogRepository">
             <summary>
@@ -1028,9 +1053,30 @@
             <param name="isPrivate">Indicates vlog private or not</param>
             <returns><see cref="T:Swabbr.Core.Types.ReactionUploadWrapper"/></returns>
         </member>
+        <member name="T:Swabbr.Core.Interfaces.Services.IReactionWithThumbnailService">
+            <summary>
+                Contract for retrieving reactions with their thumbnails.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IReactionWithThumbnailService.GetWithThumbnailDetailsAsync(System.Guid)">
+            <summary>
+                Gets a <see cref="T:Swabbr.Core.Entities.Reaction"/> with its corresponding 
+                thumbnail details.
+            </summary>
+            <param name="reactionId">Internal <see cref="T:Swabbr.Core.Entities.Reaction"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/></returns>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IReactionWithThumbnailService.GetWithThumbnailForVlogAsync(System.Guid)">
+            <summary>
+                Gets all <see cref="T:Swabbr.Core.Entities.Reaction"/> with its corresponding 
+                thumbnail details for a given <paramref name="vlogId"/>.
+            </summary>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/></returns>
+        </member>
         <member name="T:Swabbr.Core.Interfaces.Services.IStorageService">
             <summary>
-            Contract for managing storage.
+                Contract for managing storage.
             </summary>
         </member>
         <member name="T:Swabbr.Core.Interfaces.Services.IUserService">
@@ -1054,10 +1100,61 @@
             related requests.
             </summary>
         </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IVlogService.GetAllVlogLikesForVlogAsync(System.Guid)">
+            <summary>
+                Gets all the <see cref="T:Swabbr.Core.Entities.VlogLike"/>s for a <see cref="T:Swabbr.Core.Entities.Vlog"/>.
+            </summary>
+            <remarks>
+                This does not scale. If that is required, use an implementation
+                of <see cref="M:Swabbr.Core.Interfaces.Services.IVlogService.GetVlogLikeSummaryForVlogAsync(System.Guid)"/> which does
+                not return all <see cref="T:Swabbr.Core.Entities.VlogLike"/> but only a subset.
+            </remarks>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Entities.VlogLike"/> collection</returns>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IVlogService.GetVlogLikeSummaryForVlogAsync(System.Guid)">
+            <summary>
+                Gets a <see cref="T:Swabbr.Core.Types.VlogLikeSummary"/> for a given vlog.
+            </summary>
+            <remarks>
+                The <see cref="P:Swabbr.Core.Types.VlogLikeSummary.SimplifiedUsers"/> does not need
+                to contain all the <see cref="T:Swabbr.Core.Entities.SwabbrUserSimplified"/> entries.
+            </remarks>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogLikeSummary"/></returns>
+        </member>
         <member name="T:Swabbr.Core.Interfaces.Services.IVlogTriggerService">
             <summary>
             Contract for handling vlog trigger requests.
             </summary>
+        </member>
+        <member name="T:Swabbr.Core.Interfaces.Services.IVlogWithThumbnailService">
+            <summary>
+                Contract for retrieving vlogs with their thumbnails.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IVlogWithThumbnailService.GetWithThumbnailDetailsAsync(System.Guid)">
+            <summary>
+                Gets a <see cref="T:Swabbr.Core.Entities.Vlog"/> with its corresponding 
+                thumbnail details.
+            </summary>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/></returns>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IVlogWithThumbnailService.GetVlogsWithThumbnailDetailsFromUserAsync(System.Guid)">
+            <summary>
+                Gets all <see cref="T:Swabbr.Core.Entities.Vlog"/>s for a given <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
+            </summary>
+            <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/> collection</returns>
+        </member>
+        <member name="M:Swabbr.Core.Interfaces.Services.IVlogWithThumbnailService.GetRecommendedVlogsWithThumbnailDetailsForUserAsync(System.Guid,System.UInt32)">
+            <summary>
+                Gets all recommended <see cref="T:Swabbr.Core.Entities.Vlog"/>s for a given <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
+            </summary>
+            <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="maxCount">Max result set size</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/> collection</returns>
         </member>
         <member name="T:Swabbr.Core.Notifications.JsonWrappers.NotificationJsonBase">
             <summary>
@@ -1693,7 +1790,7 @@
             <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
             <returns><see cref="T:Swabbr.Core.Entities.Vlog"/></returns>
         </member>
-        <member name="M:Swabbr.Core.Services.VlogService.GetVlogLikesForVlogAsync(System.Guid)">
+        <member name="M:Swabbr.Core.Services.VlogService.GetAllVlogLikesForVlogAsync(System.Guid)">
             <summary>
             Gets all <see cref="T:Swabbr.Core.Entities.VlogLike"/> entities that belong to a given
             <see cref="T:Swabbr.Core.Entities.Vlog"/>.
@@ -1774,6 +1871,17 @@
             <param name="livestreamId">Internal <see cref="T:Swabbr.Core.Entities.Livestream"/> id</param>
             <returns><see cref="T:Swabbr.Core.Entities.Vlog"/></returns>
         </member>
+        <member name="M:Swabbr.Core.Services.VlogService.GetVlogLikeSummaryForVlogAsync(System.Guid)">
+            <summary>
+                Gets a <see cref="T:Swabbr.Core.Types.VlogLikeSummary"/> for a given vlog.
+            </summary>
+            <remarks>
+                The <see cref="P:Swabbr.Core.Types.VlogLikeSummary.SimplifiedUsers"/> does not need
+                to contain all the <see cref="T:Swabbr.Core.Entities.SwabbrUserSimplified"/> users.
+            </remarks>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogLikeSummary"/></returns>
+        </member>
         <member name="T:Swabbr.Core.Services.VlogTriggerService">
             <summary>
             Handles the triggers where a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> has to start vlogging.
@@ -1806,6 +1914,34 @@
             <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
             <param name="triggerMinute">The trigger minute</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/></returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.VlogWithThumbnailService.#ctor(Swabbr.Core.Interfaces.Repositories.IVlogRepository,Swabbr.Core.Interfaces.Repositories.IVlogLikeRepository,Swabbr.Core.Interfaces.Repositories.IUserRepository,Swabbr.Core.Interfaces.Services.INotificationService,Swabbr.Core.Interfaces.Services.IStorageService)">
+            <summary>
+                Create new instance.
+            </summary>
+        </member>
+        <member name="M:Swabbr.Core.Services.VlogWithThumbnailService.GetRecommendedVlogsWithThumbnailDetailsForUserAsync(System.Guid,System.UInt32)">
+            <summary>
+                Gets all recommended <see cref="T:Swabbr.Core.Entities.Vlog"/>s for a given <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
+            </summary>
+            <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <param name="maxCount">Max result set size</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/> collection</returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.VlogWithThumbnailService.GetVlogsWithThumbnailDetailsFromUserAsync(System.Guid)">
+            <summary>
+                Gets all <see cref="T:Swabbr.Core.Entities.Vlog"/>s for a given <see cref="T:Swabbr.Core.Entities.SwabbrUser"/>.
+            </summary>
+            <param name="userId">Internal <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/> collection</returns>
+        </member>
+        <member name="M:Swabbr.Core.Services.VlogWithThumbnailService.GetWithThumbnailDetailsAsync(System.Guid)">
+            <summary>
+                Gets a <see cref="T:Swabbr.Core.Entities.Vlog"/> with its corresponding 
+                thumbnail details.
+            </summary>
+            <param name="vlogId">Internal <see cref="T:Swabbr.Core.Entities.Vlog"/> id</param>
+            <returns><see cref="T:Swabbr.Core.Types.VlogWithThumbnailDetails"/></returns>
         </member>
         <member name="T:Swabbr.Core.Types.FollowRequestId">
             <summary>
@@ -1954,6 +2090,21 @@
             Wrapper for uploading a <see cref="P:Swabbr.Core.Types.ReactionUploadWrapper.Reaction"/>.
             </summary>
         </member>
+        <member name="T:Swabbr.Core.Types.ReactionWithThumbnailDetails">
+            <summary>
+                Wrapper for a reaction and its thumbnail details.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.ReactionWithThumbnailDetails.Reaction">
+            <summary>
+               <see cref="P:Swabbr.Core.Types.ReactionWithThumbnailDetails.Reaction"/>.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.ReactionWithThumbnailDetails.ThumbnailUri">
+            <summary>
+                Thumbnail download uri.
+            </summary>
+        </member>
         <member name="T:Swabbr.Core.Types.UserPushNotificationDetails">
             <summary>
             Composite class that contains a <see cref="T:Swabbr.Core.Entities.SwabbrUser"/> id 
@@ -2020,9 +2171,47 @@
             Contains the primary key information for a <see cref="T:Swabbr.Core.Entities.VlogLike"/>.
             </summary>
         </member>
+        <member name="T:Swabbr.Core.Types.VlogLikeSummary">
+            <summary>
+                Summary wrapper for the likes for a vlog.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.VlogLikeSummary.VlogId">
+            <summary>
+                The vlog id to which this wrapper belongs.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.VlogLikeSummary.TotalLikes">
+            <summary>
+                The total amount of likes for this vlog.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.VlogLikeSummary.SimplifiedUsers">
+            <summary>
+                The simplified users that liked this vlog.
+            </summary>
+            <remarks>
+                This does not need to contain all the users.
+            </remarks>
+        </member>
         <member name="T:Swabbr.Core.Types.VlogPlaybackDetails">
             <summary>
             Contains the details we need to playback a <see cref="T:Swabbr.Core.Entities.Vlog"/>.
+            </summary>
+        </member>
+        <member name="T:Swabbr.Core.Types.VlogWithThumbnailDetails">
+            <summary>
+                Wrapper around a vlog and its thumbnail details.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.VlogWithThumbnailDetails.Vlog">
+            <summary>
+               <see cref="P:Swabbr.Core.Types.VlogWithThumbnailDetails.Vlog"/>.
+            </summary>
+        </member>
+        <member name="P:Swabbr.Core.Types.VlogWithThumbnailDetails.ThumbnailUri">
+            <summary>
+                Thumbnail download uri.
             </summary>
         </member>
         <member name="T:Swabbr.Core.Utility.DateTimeOffsetExtensions">

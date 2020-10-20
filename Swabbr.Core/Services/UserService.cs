@@ -128,7 +128,7 @@ namespace Swabbr.Core.Services
         {
             if (wrapper == null) { throw new ArgumentNullException(nameof(wrapper)); }
             wrapper.UserId.ThrowIfNullOrEmpty();
-            if (!wrapper.ProfileImageBase64Encoded.IsNullOrEmpty() && !ProfileImageBase64Checker.IsValid(wrapper.ProfileImageBase64Encoded)) { throw new InvalidProfileImageStringException(); }
+            if (!wrapper.ProfileImageBase64Encoded.IsNullOrEmpty() /*&& !ProfileImageBase64Checker.IsValid(wrapper.ProfileImageBase64Encoded)*/) { throw new InvalidProfileImageStringException(); }
             if (!wrapper.Nickname.IsNullOrEmpty() && await ExistsNicknameAsync(wrapper.Nickname).ConfigureAwait(false)) { throw new NicknameExistsException(); }
 
             // Copy properties

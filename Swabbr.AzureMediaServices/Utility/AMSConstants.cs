@@ -70,7 +70,7 @@ namespace Swabbr.AzureMediaServices.Utility
                                 });
 
         internal static Codec LivestreamThumbnailCodec() => new PngImage(
-                                start: "25%",
+                                start: "{Best}",
                                 layers: new PngLayer[]{
                                     new PngLayer(
                                         width: "50%",
