@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.Management.Media;
-using Microsoft.Azure.Management.Media.Models;
+﻿using Microsoft.Azure.Management.Media.Models;
 using System;
 
 namespace Swabbr.AzureMediaServices.Utility
@@ -70,7 +69,9 @@ namespace Swabbr.AzureMediaServices.Utility
                                 });
 
         internal static Codec LivestreamThumbnailCodec() => new PngImage(
-                                start: "{Best}",
+                                start: "25%",
+                                step: "25%",
+                                range: "80%",
                                 layers: new PngLayer[]{
                                     new PngLayer(
                                         width: "50%",
