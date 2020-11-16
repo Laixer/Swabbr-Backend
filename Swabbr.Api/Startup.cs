@@ -230,11 +230,7 @@ namespace Swabbr
             // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
-                // TODO Cleanup
-                //setup.Password.RequireDigit = true;
-                //setup.Password.RequireUppercase = true;
-                //setup.Password.RequireLowercase = true;
-                //setup.Password.RequireNonAlphanumeric = true;
+                // TODO Setup properly
                 setup.Password.RequiredLength = 8;
                 setup.User.RequireUniqueEmail = true;
             })
