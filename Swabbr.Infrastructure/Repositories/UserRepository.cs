@@ -17,7 +17,6 @@ using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
-
     /// <summary>
     /// Repository for <see cref="SwabbrUser"/> entities.
     /// </summary>
@@ -305,15 +304,12 @@ namespace Swabbr.Infrastructure.Repositories
             // TODO Enum injection, also ugly
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
-                        UPDATE {TableUser} SET
+                        UPDATE {TableUser} 
+                        SET
                             birth_date = COALESCE(@BirthDate, birth_date),
                             country = COALESCE(@Country, country),
                             first_name = COALESCE(@FirstName, first_name),
-                            {(
-                        (entity.Gender == null) ?
-                        "" :
-                        $"gender = COALESCE('{entity.Gender?.GetEnumMemberAttribute()}', gender),"
-                    )}
+                            gender = COALESCE('{entity.Gender?.GetEnumMemberAttribute() ?? "NULL"}', gender),
                             is_private = COALESCE(@IsPrivate, is_private),
                             last_name = COALESCE(@LastName, last_name),
                             nickname = COALESCE(@NickName, nickname),
@@ -390,5 +386,4 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns><see cref="true"/> if it exists</returns>
         public Task<bool> UserExistsAsync(Guid userId) => SharedRepositoryFunctions.ExistsAsync(_databaseProvider, TableUser, userId);
     }
-
 }
