@@ -1,10 +1,9 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-//using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Net.Http.Headers;
 using Swabbr.Api.Authentication;

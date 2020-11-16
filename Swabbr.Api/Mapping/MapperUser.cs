@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Swabbr.Api.Parsing;
 using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.Enums;

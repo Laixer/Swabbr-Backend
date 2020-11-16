@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +9,7 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Net;

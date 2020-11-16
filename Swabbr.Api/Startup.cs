@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Laixer.Identity.Dapper.Extensions;
-using Laixer.Infra.Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,6 +38,7 @@ using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
+using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Utility;
 using System;

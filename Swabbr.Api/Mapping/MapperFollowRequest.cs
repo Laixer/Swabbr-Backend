@@ -1,6 +1,7 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Extensions;
 using System;
 
 namespace Swabbr.Api.Mapping

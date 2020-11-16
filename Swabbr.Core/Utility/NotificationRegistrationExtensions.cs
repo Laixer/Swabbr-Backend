@@ -1,5 +1,5 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Extensions;
 using System;
 
 namespace Swabbr.Core.Utility

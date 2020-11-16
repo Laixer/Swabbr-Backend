@@ -1,5 +1,4 @@
-﻿using Laixer.Infra.Npgsql;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swabbr.AzureMediaServices.Clients;
@@ -18,6 +17,7 @@ using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
+using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using System;
 

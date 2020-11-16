@@ -1,17 +1,17 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Microsoft.Azure.Management.Media;
 using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest.Azure.Authentication;
-using Npgsql;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Exceptions;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -80,7 +80,7 @@ namespace Swabbr.AzureMediaServices.Clients
                             }
                         }
                     },
-                    VanityUrl = false, // What does this do?
+                    // VanityUrl = false, // What does this do?
                     Encoding = new LiveEventEncoding
                     {
                         EncodingType = LiveEventEncodingType.None

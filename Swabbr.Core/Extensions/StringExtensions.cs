@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laixer.Utility.Extensions
+namespace Swabbr.Core.Extensions
 {
 
     /// <summary>

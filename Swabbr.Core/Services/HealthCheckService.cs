@@ -1,6 +1,5 @@
-﻿using Dapper;
-using Laixer.Infra.Npgsql;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;

@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Utility;

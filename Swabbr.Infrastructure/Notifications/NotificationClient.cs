@@ -1,11 +1,11 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.NotificationHubs;
+﻿using Microsoft.Azure.NotificationHubs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications;

@@ -1,5 +1,5 @@
-﻿using Laixer.Utility.Exceptions;
-using Swabbr.Core.Configuration;
+﻿using Swabbr.Core.Configuration;
+using Swabbr.Core.Exceptions;
 using System;
 
 namespace Swabbr.Core.Utility
