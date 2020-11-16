@@ -231,7 +231,7 @@ namespace Swabbr
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
                 // TODO Setup properly
-                setup.Password.RequiredLength = 8;
+                setup.Password.RequiredLength = 6;
                 setup.User.RequireUniqueEmail = true;
             })
             .AddDapperStores(options =>
