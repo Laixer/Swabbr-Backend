@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Enums;
-using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.JsonExtraction;
 using Swabbr.Core.Notifications.JsonWrappers;
@@ -7,12 +6,12 @@ using System;
 
 namespace Swabbr.Infrastructure.Notifications.JsonExtraction
 {
-
+    // TODO Static?
     /// <summary>
     /// Contains functionality to translate a <see cref="SwabbrNotification"/> to
     /// the correct JSON template based on the specified platform.
     /// </summary>
-    public sealed class NotificationJsonExtractor : INotificationJsonExtractor
+    public sealed class NotificationJsonExtractor
     {
 
         // TODO These are interchangeable - bug sensitive!

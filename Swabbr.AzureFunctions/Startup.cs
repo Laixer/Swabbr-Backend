@@ -7,8 +7,6 @@ using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
-using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
@@ -89,9 +87,9 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<IVlogTriggerService, VlogTriggerService>();
 
             // Configure DI for client services
-            builder.Services.AddTransient<INotificationClient, NotificationClient>();
-            builder.Services.AddTransient<INotificationBuilder, NotificationBuilder>();
-            builder.Services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
+            builder.Services.AddTransient<NotificationClient>();
+            builder.Services.AddTransient<NotificationBuilder>();
+            builder.Services.AddTransient<NotificationJsonExtractor>();
             builder.Services.AddTransient<IAMSClient, AMSClient>();
         }
     }
