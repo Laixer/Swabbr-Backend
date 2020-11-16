@@ -35,7 +35,7 @@ namespace Swabbr.Api.Controllers
         private readonly ITokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
-        private readonly IDeviceRegistrationService _deviceRegistrationService;
+        private readonly INotificationService _notificationService;
         private readonly ILogger logger;
 
         /// <summary>
@@ -45,14 +45,14 @@ namespace Swabbr.Api.Controllers
             ITokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager,
-            IDeviceRegistrationService deviceRegistrationService,
+            INotificationService notificationService,
             ILoggerFactory loggerFactory)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
-            _deviceRegistrationService = deviceRegistrationService ?? throw new ArgumentNullException(nameof(deviceRegistrationService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(AuthenticationController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
@@ -139,10 +139,12 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Sign in an already registered user.
+        ///     Sign in an already registered user.
         /// </summary>
+        /// <remarks>
+        ///     This also handles push notification registration.
+        /// </remarks>
         /// <param name="input"><see cref="UserLoginInputModel"/></param>
-        /// <returns><see cref="IActionResult"/></returns>
         [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
@@ -168,8 +170,8 @@ namespace Swabbr.Api.Controllers
                     var tokenWrapper = _tokenService.GenerateToken(identityUser);
 
                     // Manage device registration
-                    var pnp = (PushNotificationPlatformModel)input.PushNotificationPlatform;
-                    await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(pnp), input.Handle).ConfigureAwait(false);
+                    var platform = MapperEnum.Map((PushNotificationPlatformModel)input.PushNotificationPlatform);
+                    await _notificationService.RegisterAsync(identityUser.Id, platform, input.Handle).ConfigureAwait(false);
 
                     return Ok(new UserAuthenticationOutputModel
                     {
@@ -194,10 +196,9 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Used to update the user password.
+        ///     Used to update the user password.
         /// </summary>
-        /// <param name="input"><see cref="UserChangePasswordInputModel"/></param>
-        /// <returns><see cref="OkResult"/></returns>
+        /// <param name="input"><see cref="UserChangePasswordInputModel"/>.</param>
         [HttpPost("change_password")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
@@ -232,24 +233,14 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Deauthorizes the authenticated user.
+        ///     Deauthorizes the authenticated user.
         /// </summary>
-        /// <returns><see cref="NoContentResult"/></returns>
-        [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> LogoutAsync()
         {
             try
             {
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                {
-                    // Unregister device
-                    var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                    await _deviceRegistrationService.UnregisterAsync(user.Id).ConfigureAwait(false);
-                    scope.Complete();
-                }
-
                 await _signInManager.SignOutAsync().ConfigureAwait(false);
                 return NoContent();
             }

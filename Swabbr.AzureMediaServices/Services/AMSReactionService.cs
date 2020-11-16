@@ -231,6 +231,7 @@ namespace Swabbr.AzureMediaServices.Services
             // Internal checks
             var reaction = await GetReactionAsync(reactionId).ConfigureAwait(false);
             if (reaction.ReactionState != ReactionState.Processing) { throw new ReactionStateException($"Reaction not in {ReactionState.Processing.GetEnumMemberAttribute()} state"); }
+            var vlog = await _vlogRepository.GetAsync(reaction.TargetVlogId).ConfigureAwait(false);
 
             // External checks
             // TODO Implement
@@ -241,7 +242,7 @@ namespace Swabbr.AzureMediaServices.Services
 
             // Internal operations
             await _reactionRepository.MarkFinishedAsync(reactionId).ConfigureAwait(false);
-            await _notificationService.NotifyReactionPlacedAsync(reactionId).ConfigureAwait(false);
+            await _notificationService.NotifyReactionPlacedAsync(reaction.TargetVlogId, vlog.Id, reactionId).ConfigureAwait(false);
 
             scope.Complete();
         }
