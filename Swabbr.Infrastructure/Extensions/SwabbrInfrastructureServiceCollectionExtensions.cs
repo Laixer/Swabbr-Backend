@@ -40,6 +40,7 @@ namespace Swabbr.Infrastructure.Extensions
 
             // Add repositories
             services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
+            services.AddTransient<IHealthCheckRepository, HealthCheckRepository>();
             services.AddTransient<ILivestreamRepository, LivestreamRepository>();
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
             services.AddTransient<IReactionRepository, ReactionRepository>();
@@ -49,7 +50,8 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddTransient<IVlogRepository, VlogRepository>();
 
             // Add notification package
-            services.AddSingleton<INotificationService, NotificationService>();
+            services.AddTransient<INotificationService, NotificationService>();
+            services.AddSingleton<NotificationClient>();
             services.AddSingleton<NotificationJsonExtractor>();
             services.AddTransient<NotificationBuilder>();
 
