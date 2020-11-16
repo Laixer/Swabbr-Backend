@@ -86,7 +86,7 @@ namespace Swabbr.Api.Controllers
                     {
                         VlogId = vlogLikeSummary.VlogId,
                         TotalLikes = vlogLikeSummary.TotalLikes,
-                        SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                        SimplifiedUsers = vlogLikeSummary.Users.Select(x => new UserSimplifiedOutputModel
                         {
                             Id = x.Id,
                             NickName = x.Nickname
@@ -173,7 +173,7 @@ namespace Swabbr.Api.Controllers
                         {
                             VlogId = vlogLikeSummary.VlogId,
                             TotalLikes = vlogLikeSummary.TotalLikes,
-                            SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                            SimplifiedUsers = vlogLikeSummary.Users.Select(x => new UserSimplifiedOutputModel
                             {
                                 Id = x.Id,
                                 NickName = x.Nickname
@@ -374,7 +374,7 @@ namespace Swabbr.Api.Controllers
                         {
                             VlogId = vlogLikeSummary.VlogId,
                             TotalLikes = vlogLikeSummary.TotalLikes,
-                            SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                            SimplifiedUsers = vlogLikeSummary.Users.Select(x => new UserSimplifiedOutputModel
                             {
                                 Id = x.Id,
                                 NickName = x.Nickname

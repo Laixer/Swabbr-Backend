@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Core", "Swabbr.Core\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Infrastructure", "Swabbr.Infrastructure\Swabbr.Infrastructure.csproj", "{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contrib", "contrib", "{FB041A95-1F0E-4355-B716-F18E6BC60829}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.AzureFunctions", "Swabbr.AzureFunctions\Swabbr.AzureFunctions.csproj", "{FC34657C-5733-4C13-92FE-10C7B7519663}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.AzureMediaServices", "Swabbr.AzureMediaServices\Swabbr.AzureMediaServices.csproj", "{079ABA36-5ACA-4C04-94BF-32FF2AE33E61}"

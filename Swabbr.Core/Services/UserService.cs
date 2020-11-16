@@ -37,10 +37,11 @@ namespace Swabbr.Core.Services
         public Task<bool> ExistsNicknameAsync(string nickname) => _userRepository.NicknameExistsAsync(nickname);
 
         /// <summary>
-        /// Gets all vloggable users.
+        ///     Gets all users which are eligible for a vlog request.
         /// </summary>
-        /// <returns><see cref="SwabbrUserMinified"/> collection</returns>
-        public Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync() => _userRepository.GetAllVloggableUserMinifiedAsync();
+        /// <returns>Vloggable user collection</returns>
+        public Task<IEnumerable<SwabbrUser>> GetAllVloggableUsersAsync() 
+            => _userRepository.GetAllVloggableUsersAsync();
 
         public Task<SwabbrUser> GetAsync(Guid userId) => _userRepository.GetAsync(userId);
 

@@ -45,14 +45,14 @@ namespace Swabbr.Infrastructure.Repositories
         public Task DeleteAsync(Guid id) => throw new NotImplementedException();
 
         /// <summary>
-        /// Gets all <see cref="SwabbrUserMinified"/> from the database.
+        ///     Gets all users from the database which are eligible
+        ///     for a vlog request.
         /// </summary>
         /// <remarks>
-        /// This ignores all users that have <see cref="SwabbrUser.DailyVlogRequestLimit"/>
-        /// set to 0.
+        ///     This ignores all users that have request limit set to 0.
         /// </remarks>
-        /// <returns><see cref="SwabbrUserMinified"/> colletion</returns>
-        public async Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync()
+        /// <returns><see cref="SwabbrUser"/> colletion</returns>
+        public async Task<IEnumerable<SwabbrUser>> GetAllVloggableUsersAsync()
         {
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
@@ -62,7 +62,7 @@ namespace Swabbr.Infrastructure.Repositories
                         timezone
                     FROM {TableUser} 
                     WHERE daily_vlog_request_limit > 0";
-            return await connection.QueryAsync<SwabbrUserMinified>(sql).ConfigureAwait(false);
+            return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
         }
 
         /// <summary>

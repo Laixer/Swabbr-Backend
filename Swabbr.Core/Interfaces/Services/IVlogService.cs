@@ -36,7 +36,7 @@ namespace Swabbr.Core.Interfaces.Services
         ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
         /// </summary>
         /// <remarks>
-        ///     The <see cref="VlogLikeSummary.SimplifiedUsers"/> does not need
+        ///     The <see cref="VlogLikeSummary.Users"/> does not need
         ///     to contain all the <see cref="SwabbrUserSimplified"/> entries.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>

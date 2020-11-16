@@ -173,7 +173,7 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Gets a <see cref="VlogLikeSummary"/> for a <see cref="Vlog"/>.
         /// </summary>
         /// <remarks>
-        ///     The <see cref="VlogLikeSummary.SimplifiedUsers"/> field only
+        ///     The <see cref="VlogLikeSummary.Users"/> field only
         ///     contains the first 5 users that liked the <see cref="Vlog"/>.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
@@ -208,7 +208,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 return new VlogLikeSummary
                 {
-                    SimplifiedUsers = new List<SwabbrUserSimplified>(),
+                    Users = new List<SwabbrUser>(),
                     TotalLikes = 0,
                     VlogId = vlogId
                 };
@@ -219,7 +219,7 @@ namespace Swabbr.Infrastructure.Repositories
                 {
                     TotalLikes = metadata.First().Count,
                     VlogId = metadata.First().VlogId,
-                    SimplifiedUsers = metadata.Select(x => new SwabbrUserSimplified
+                    Users = metadata.Select(x => new SwabbrUser
                     {
                         Id = x.UserId,
                         Nickname = x.UserNickname
