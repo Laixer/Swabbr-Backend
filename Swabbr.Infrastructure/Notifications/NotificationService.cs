@@ -28,7 +28,6 @@ namespace Swabbr.Infrastructure.Notifications
         private readonly IUserRepository _userRepository;
         private readonly NotificationClient _notificationClient;
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
-        private readonly NotificationBuilder _notificationBuilder;
         private readonly ILogger<NotificationService> _logger;
 
         /// <summary>
@@ -37,15 +36,19 @@ namespace Swabbr.Infrastructure.Notifications
         public NotificationService(IUserRepository userRepository,
             NotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
-            NotificationBuilder notificationBuilder,
             ILogger<NotificationService> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
-            _notificationBuilder = notificationBuilder ?? throw new ArgumentNullException(nameof(notificationBuilder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        /// <summary>
+        ///     Checks if the notification service is online.
+        /// </summary>
+        public Task<bool> IsServiceOnlineAsync()
+            => _notificationClient.IsServiceAvailableAsync();
 
         /// <summary>
         ///     Notify all followers of a user that the user is live.
@@ -65,7 +68,7 @@ namespace Swabbr.Infrastructure.Notifications
             _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Attempting notifying followers for livestream {livestreamId} from user {userId}");
 
             // Notify each follower individually.
-            var notification = _notificationBuilder.BuildFollowedProfileLive(pars.LiveUserId, pars.LiveLivestreamId, pars.LiveVlogId);
+            var notification = NotificationBuilder.BuildFollowedProfileLive(pars.LiveUserId, pars.LiveLivestreamId, pars.LiveVlogId);
             var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
             foreach (var item in pushDetails)
             {
@@ -89,7 +92,7 @@ namespace Swabbr.Infrastructure.Notifications
             _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Attempting notifying followers for posted vlog {vlogId} from user {userId}");
 
             // Notify each follower individually.
-            var notification = _notificationBuilder.BuildFollowedProfileVlogPosted(vlogId, userId);
+            var notification = NotificationBuilder.BuildFollowedProfileVlogPosted(vlogId, userId);
             var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
             foreach (var item in pushDetails)
             {
@@ -116,7 +119,7 @@ namespace Swabbr.Infrastructure.Notifications
 
             if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
 
-            var notification = _notificationBuilder.BuildRecordVlog(livestreamId, pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
+            var notification = NotificationBuilder.BuildRecordVlog(livestreamId, pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
             await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
 
@@ -139,7 +142,7 @@ namespace Swabbr.Infrastructure.Notifications
             _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
-            var notification = _notificationBuilder.BuildVlogNewReaction(vlogId, reactionId);
+            var notification = NotificationBuilder.BuildVlogNewReaction(vlogId, reactionId);
             await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
 
             _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
@@ -164,7 +167,7 @@ namespace Swabbr.Infrastructure.Notifications
             _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
-            var notification = _notificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLikeId.UserId);
+            var notification = NotificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLikeId.UserId);
             await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
 
             _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
@@ -172,12 +175,6 @@ namespace Swabbr.Infrastructure.Notifications
 
         public Task NotifyVlogRecordTimeoutAsync(Guid userId)
             => throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
-
-        /// <summary>
-        ///     Checks if the notification service is online.
-        /// </summary>
-        public Task<bool> IsServiceOnlineAsync()
-            => _notificationClient.IsServiceAvailableAsync();
 
         /// <summary>
         ///     Registers a device in Azure Notification Hub.

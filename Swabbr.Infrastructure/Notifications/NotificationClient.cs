@@ -31,21 +31,18 @@ namespace Swabbr.Infrastructure.Notifications
     {
         private readonly NotificationHubConfiguration _options;
         private readonly NotificationHubClient _hubClient;
-        private readonly NotificationJsonExtractor _notificationJsonExtractor;
         private readonly ILogger<NotificationClient> _logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public NotificationClient(IOptions<NotificationHubConfiguration> options,
-            ILogger<NotificationClient> logger,
-            NotificationJsonExtractor notificationJsonExtractor)
-        {
+            ILogger<NotificationClient> logger)
+        { 
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-            _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
-
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _notificationJsonExtractor = notificationJsonExtractor ?? throw new ArgumentNullException(nameof(notificationJsonExtractor));
+
+            _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
         }
 
         /// <summary>
@@ -161,12 +158,12 @@ namespace Swabbr.Infrastructure.Notifications
             switch (platform)
             {
                 case PushNotificationPlatform.APNS:
-                    var objApns = _notificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
+                    var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
                     var jsonApns = JsonConvert.SerializeObject(objApns);
                     await _hubClient.SendAppleNativeNotificationAsync(jsonApns, userId.ToString()).ConfigureAwait(false);
                     return;
                 case PushNotificationPlatform.FCM:
-                    var objFcm = _notificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
+                    var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
                     var jsonFcm = JsonConvert.SerializeObject(objFcm);
                     await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, userId.ToString()).ConfigureAwait(false);
                     return;

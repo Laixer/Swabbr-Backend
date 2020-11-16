@@ -7,16 +7,10 @@ using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
-using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Infrastructure.Extensions;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
-using Swabbr.Infrastructure.Database;
-using Swabbr.Infrastructure.Notifications;
-using Swabbr.Infrastructure.Notifications.JsonExtraction;
-using Swabbr.Infrastructure.Providers;
-using Swabbr.Infrastructure.Repositories;
 using System;
 
 [assembly: FunctionsStartup(typeof(Swabbr.AzureFunctions.Startup))]
@@ -58,19 +52,8 @@ namespace Swabbr.AzureFunctions
                 configuration.GetSection("LogicAppsConfiguration").Bind(settings);
             });
 
-            // Add postgresql database functionality
-            NpgsqlSetup.Setup();
-            builder.Services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
-            builder.Services.AddOptions<NpgsqlDatabaseProviderOptions>().Configure<IConfiguration>((settings, configuration) =>
-                configuration.GetSection("DatabaseInternal").Bind(settings));
-
-            // Configure DI for data repositories
-            builder.Services.AddTransient<ILivestreamRepository, LivestreamRepository>();
-            builder.Services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
-            builder.Services.AddTransient<IReactionRepository, ReactionRepository>();
-            builder.Services.AddTransient<IUserRepository, UserRepository>();
-            builder.Services.AddTransient<IVlogRepository, VlogRepository>();
-            builder.Services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
+            // Configure Swabbr infrastructure
+            builder.Services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
             // Configure DI for services
             builder.Services.AddTransient<IAMSTokenService, AMSTokenService>();
@@ -78,7 +61,6 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             builder.Services.AddTransient<ILivestreamService, AMSLivestreamService>();
             builder.Services.AddTransient<IPlaybackService, AMSPlaybackService>();
-            builder.Services.AddTransient<INotificationService, NotificationService>();
             builder.Services.AddTransient<IReactionService, AMSReactionService>();
             builder.Services.AddTransient<IStorageService, AMSStorageService>();
             builder.Services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
@@ -87,9 +69,6 @@ namespace Swabbr.AzureFunctions
             builder.Services.AddTransient<IVlogTriggerService, VlogTriggerService>();
 
             // Configure DI for client services
-            builder.Services.AddTransient<NotificationClient>();
-            builder.Services.AddTransient<NotificationBuilder>();
-            builder.Services.AddTransient<NotificationJsonExtractor>();
             builder.Services.AddTransient<IAMSClient, AMSClient>();
         }
     }

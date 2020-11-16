@@ -52,8 +52,6 @@ namespace Swabbr.Infrastructure.Extensions
             // Add notification package
             services.AddTransient<INotificationService, NotificationService>();
             services.AddSingleton<NotificationClient>();
-            services.AddSingleton<NotificationJsonExtractor>();
-            services.AddTransient<NotificationBuilder>();
 
             return services;
         }

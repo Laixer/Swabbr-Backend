@@ -6,26 +6,20 @@ using System;
 
 namespace Swabbr.Infrastructure.Notifications.JsonExtraction
 {
-    // TODO Static?
     /// <summary>
-    /// Contains functionality to translate a <see cref="SwabbrNotification"/> to
-    /// the correct JSON template based on the specified platform.
+    ///     Contains functionality to translate a <see cref="SwabbrNotification"/> to
+    ///     the correct JSON template based on the specified platform.
     /// </summary>
-    public sealed class NotificationJsonExtractor
+    public static class NotificationJsonExtractor
     {
-
-        // TODO These are interchangeable - bug sensitive!
-        private readonly IPlatformSpecificJsonExtractor extractorFcm = new FcmJsonExtractor();
-        private readonly IPlatformSpecificJsonExtractor extractorApns = new ApnsJsonExtractor();
-
         /// <summary>
-        /// Extracts a <see cref="PushNotificationPlatform"/> specific template
-        /// for json from a <see cref="SwabbrNotification"/>.
+        ///     Extracts a <see cref="PushNotificationPlatform"/> specific template
+        ///     for json from a <see cref="SwabbrNotification"/>.
         /// </summary>
         /// <param name="platform"><see cref="PushNotificationPlatform"/></param>
         /// <param name="notification"><see cref="SwabbrNotification"/></param>
         /// <returns><see cref="NotificationJsonBase"/></returns>
-        public NotificationJsonBase Extract(PushNotificationPlatform platform, SwabbrNotification notification)
+        public static NotificationJsonBase Extract(PushNotificationPlatform platform, SwabbrNotification notification)
         {
             if (notification == null) { throw new ArgumentNullException(nameof(notification)); }
 
@@ -34,8 +28,8 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
 
             return platform switch
             {
-                PushNotificationPlatform.APNS => extractorApns.Extract(notification),
-                PushNotificationPlatform.FCM => extractorFcm.Extract(notification),
+                PushNotificationPlatform.APNS => FcmJsonExtractor.Extract(notification),
+                PushNotificationPlatform.FCM => ApnsJsonExtractor.Extract(notification),
                 _ => throw new InvalidOperationException(nameof(platform)),
             };
         }
