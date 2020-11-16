@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using Swabbr.Core.Exceptions;
 using System;
@@ -19,10 +20,16 @@ namespace Swabbr.Infrastructure.Providers
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public NpgsqlDatabaseProvider(IOptions<NpgsqlDatabaseProviderOptions> options)
+        public NpgsqlDatabaseProvider(IConfiguration configuration,
+            IOptions<NpgsqlDatabaseProviderOptions> options)
         {
-            if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
-            connectionString = options.Value.ConnectionString ?? throw new ConfigurationException("Missing Npgsql connection string");
+            var connectionStringName = options?.Value?.ConnectionStringName ?? throw new ConfigurationException("Missing Npgsql connection string name");
+
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+            connectionString = configuration.GetConnectionString(connectionStringName) ?? throw new ConfigurationException("Misisng Npgsql connection string");
         }
 
         /// <summary>

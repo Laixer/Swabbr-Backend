@@ -6,12 +6,10 @@ using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
-using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
-using Swabbr.Infrastructure.Utility;
+using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,24 +27,24 @@ namespace Swabbr.Infrastructure.Notifications
     /// The top-parameter of the <see cref="NotificationHubClient"/> is the index 
     /// of the first result we query. The maximum result count is 100.
     /// </remarks>
-    public class NotificationClient : INotificationClient
+    public class NotificationClient
     {
+        private readonly NotificationHubConfiguration _options;
         private readonly NotificationHubClient _hubClient;
-        private readonly INotificationJsonExtractor _notificationJsonExtractor;
-        private readonly ILogger logger;
+        private readonly NotificationJsonExtractor _notificationJsonExtractor;
+        private readonly ILogger<NotificationClient> _logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public NotificationClient(IOptions<NotificationHubConfiguration> options,
-            ILoggerFactory loggerFactory,
-            INotificationJsonExtractor notificationJsonExtractor)
+            ILogger<NotificationClient> logger,
+            NotificationJsonExtractor notificationJsonExtractor)
         {
-            if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
-            options.Value.ThrowIfInvalid();
-
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
-            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(NotificationClient)) : throw new ArgumentNullException(nameof(loggerFactory));
+
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _notificationJsonExtractor = notificationJsonExtractor ?? throw new ArgumentNullException(nameof(notificationJsonExtractor));
         }
 
@@ -67,7 +65,7 @@ namespace Swabbr.Infrastructure.Notifications
             }
             catch (Exception e)
             {
-                logger.LogError("Error while checking ANH health", e.Message);
+                _logger.LogError("Error while checking ANH health", e.Message);
                 return false;
             }
         }
@@ -136,9 +134,9 @@ namespace Swabbr.Infrastructure.Notifications
                 .ConfigureAwait(false));
             if (!externalRegistrations.Any())
             {
-                logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, cleaning all up before making new registration");
+                _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, cleaning all up before making new registration");
             }
-            if (externalRegistrations.Count > 1) { logger.LogWarning("User is registered multiple times in Azure Notification Hub, cleaning up all of them before making new registration"); }
+            if (externalRegistrations.Count > 1) { _logger.LogWarning("User is registered multiple times in Azure Notification Hub, cleaning up all of them before making new registration"); }
 
             // Remove the registrations
             foreach (var registration in externalRegistrations)

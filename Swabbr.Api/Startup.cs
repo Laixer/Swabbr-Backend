@@ -26,8 +26,6 @@ using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
-using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
@@ -35,12 +33,7 @@ using Swabbr.Core.Services;
 using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
-using Swabbr.Infrastructure.Database;
-using Swabbr.Infrastructure.Notifications;
-using Swabbr.Infrastructure.Notifications.JsonExtraction;
-using Swabbr.Infrastructure.Providers;
-using Swabbr.Infrastructure.Repositories;
-using Swabbr.Infrastructure.Utility;
+using Swabbr.Infrastructure.Extensions;
 using System;
 using System.IO;
 using System.Linq;
@@ -103,31 +96,16 @@ namespace Swabbr
             // Setup doc
             SetupSwagger(services);
 
-            // Add postgresql database functionality
-            NpgsqlSetup.Setup();
-            services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
-            services.Configure<NpgsqlDatabaseProviderOptions>(options => { options.ConnectionString = _configuration.GetConnectionString("DatabaseInternal"); });
-
-            // Configure DI for data repositories
-            services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
-            services.AddTransient<ILivestreamRepository, LivestreamRepository>();
-            services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
-            services.AddTransient<IReactionRepository, ReactionRepository>();
-            services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
-            services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
-            services.AddTransient<IVlogRepository, VlogRepository>();
+            // Add infrastructure services.
+            services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
             // Configure DI for services
             services.AddTransient<IAMSTokenService, AMSTokenService>();
-            services.AddTransient<IDeviceRegistrationService, DeviceRegistrationService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDistributionService>();
             services.AddTransient<IHealthCheckService, HealthCheckService>();
             services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
             services.AddTransient<ILivestreamService, AMSLivestreamService>();
-            services.AddTransient<INotificationService, NotificationService>();
-            services.AddTransient<INotificationTestingService, NotificationTestingService>();
             services.AddTransient<IPlaybackService, AMSPlaybackService>();
 
             // TODO This seems incorrect (other services still use IReactionService)
@@ -147,9 +125,6 @@ namespace Swabbr
             services.AddTransient<IUserWithStatsService, UserWithStatsService>();
 
             // Configure DI for clients and helpers
-            services.AddTransient<INotificationClient, NotificationClient>();
-            services.AddTransient<INotificationJsonExtractor, NotificationJsonExtractor>();
-            services.AddTransient<INotificationBuilder, NotificationBuilder>();
             services.AddSingleton<IAMSClient, AMSClient>();
         }
 
@@ -230,7 +205,11 @@ namespace Swabbr
             // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
-                setup.Password.RequiredLength = 6;
+                setup.Password.RequireDigit = true;
+                setup.Password.RequireUppercase = true;
+                setup.Password.RequireLowercase = true;
+                setup.Password.RequireNonAlphanumeric = true;
+                setup.Password.RequiredLength = 8;
                 setup.User.RequireUniqueEmail = true;
             })
             .AddDapperStores(options =>

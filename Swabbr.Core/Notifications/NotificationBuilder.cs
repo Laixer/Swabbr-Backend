@@ -1,19 +1,16 @@
 ﻿using Swabbr.Core.Extensions;
-using Swabbr.Core.Interfaces.Notifications;
 using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Utility;
 using System;
 
 namespace Swabbr.Core.Notifications
 {
-
+    // FUTURE Titles.
     /// <summary>
-    /// Builds <see cref="SwabbrNotification"/>s for us.
-    /// TODO Titles.
+    ///     Builds <see cref="SwabbrNotification"/>s for us.
     /// </summary>
-    public sealed class NotificationBuilder : INotificationBuilder
+    public class NotificationBuilder
     {
-
         public SwabbrNotification BuildFollowedProfileLive(Guid liveUserId, Guid livestreamId, Guid liveVlogId)
         {
             liveUserId.ThrowIfNullOrEmpty();
@@ -79,7 +76,5 @@ namespace Swabbr.Core.Notifications
                 VlogId = vlogId
             }, title: NotificationTextData.DefaultTitle, message: NotificationTextData.DefaultTitle);
         }
-
     }
-
 }
