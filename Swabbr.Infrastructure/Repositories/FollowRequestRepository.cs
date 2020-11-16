@@ -72,12 +72,12 @@ namespace Swabbr.Infrastructure.Repositories
             return result != null && result.Any();
         }
 
-        public Task<int> GetFollowerCountAsync(Guid userId)
+        public Task<uint> GetFollowerCountAsync(Guid userId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> GetFollowingCountAsync(Guid userId)
+        public Task<uint> GetFollowingCountAsync(Guid userId)
         {
             throw new NotImplementedException();
         }
