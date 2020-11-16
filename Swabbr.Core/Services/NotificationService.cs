@@ -219,7 +219,7 @@ namespace Swabbr.Core.Services
                     // First release, then push
                     scope.Complete();
 
-                    var notification = _notificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLike.UserId);
+                    var notification = _notificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLike.Id.UserId);
                     await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
                 }
 

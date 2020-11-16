@@ -16,9 +16,9 @@ namespace Swabbr.Api.Mapping
             if (vlogLike == null) { throw new ArgumentNullException(nameof(vlogLike)); }
             return new VlogLikeOutputModel
             {
-                UserId = vlogLike.UserId,
-                VlogId = vlogLike.VlogId,
-                TimeCreated = vlogLike.TimeCreated
+                UserId = vlogLike.Id.UserId,
+                VlogId = vlogLike.Id.VlogId,
+                TimeCreated = vlogLike.CreateDate
             };
         }
 

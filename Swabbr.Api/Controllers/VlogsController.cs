@@ -321,7 +321,7 @@ namespace Swabbr.Api.Controllers
                 if (!await _vlogWithThumbnailService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
                 var vlogLikes = await _vlogWithThumbnailService.GetAllVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
-                var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.UserId)).ConfigureAwait(false);
+                var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.Id.UserId)).ConfigureAwait(false);
 
                 return Ok(new VlogLikesWithUsersOutputModel
                 {

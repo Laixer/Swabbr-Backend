@@ -3,7 +3,7 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
-
+    // TODO Remove
     /// <summary>
     /// Personal settings and preferences for a user.
     /// TODO Move to types OR make entity in view (call UserId -> Id)

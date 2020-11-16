@@ -42,7 +42,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// </summary>
         /// <param name="userId">Unique identifier of the user that is being followed.</param>
         /// <returns></returns>
-        Task<int> GetFollowerCountAsync(Guid userId);
+        Task<uint> GetFollowerCountAsync(Guid userId);
 
         /// <summary>
         /// Returns the amount of users that the specified user is following.
@@ -51,7 +51,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// Unique identifier of the user to check the amount of followers for.
         /// </param>
         /// <returns></returns>
-        Task<int> GetFollowingCountAsync(Guid userId);
+        Task<uint> GetFollowingCountAsync(Guid userId);
 
         /// <summary>
         /// Updates the status for a single <see cref="FollowRequest"/> to the 

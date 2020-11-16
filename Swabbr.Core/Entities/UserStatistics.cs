@@ -2,7 +2,7 @@
 
 namespace Swabbr.Core.Entities
 {
-
+    // TODO Remove
     /// <summary>
     /// Contains statistics for a single <see cref="SwabbrUser"/>.
     /// </summary>

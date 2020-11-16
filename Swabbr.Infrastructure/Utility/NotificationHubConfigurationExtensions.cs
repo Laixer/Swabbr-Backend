@@ -15,8 +15,8 @@ namespace Swabbr.Infrastructure.Utility
         public static void ThrowIfInvalid(this NotificationHubConfiguration config)
         {
             if (config == null) { throw new ArgumentNullException(nameof(config)); }
-            if (config.ConnectionString.IsNullOrEmpty()) { throw new Laixer.Utility.Exceptions.ConfigurationException("ANH Connection string is not specified"); }
-            if (config.HubName.IsNullOrEmpty()) { throw new Laixer.Utility.Exceptions.ConfigurationException("ANH hub name is not specified"); }
+            if (config.ConnectionString.IsNullOrEmpty()) { throw new ConfigurationException("ANH Connection string is not specified"); }
+            if (config.HubName.IsNullOrEmpty()) { throw new ConfigurationException("ANH hub name is not specified"); }
         }
 
     }

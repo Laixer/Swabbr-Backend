@@ -37,7 +37,7 @@ namespace Swabbr.Api.ViewModels.Vlog
         /// <summary>
         /// The amount of views that this vlog has.
         /// </summary>
-        public int Views { get; set; }
+        public uint Views { get; set; }
 
     }
 

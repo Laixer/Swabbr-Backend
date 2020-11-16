@@ -35,8 +35,8 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<VlogLike> CreateAsync(VlogLike entity)
         {
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.VlogId.ThrowIfNullOrEmpty();
-            entity.UserId.ThrowIfNullOrEmpty();
+            entity.Id.VlogId.ThrowIfNullOrEmpty();
+            entity.Id.UserId.ThrowIfNullOrEmpty();
 
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
