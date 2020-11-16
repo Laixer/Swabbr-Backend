@@ -1,7 +1,7 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;

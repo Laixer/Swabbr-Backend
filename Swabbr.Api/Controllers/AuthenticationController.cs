@@ -56,8 +56,9 @@ namespace Swabbr.Api.Controllers
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(AuthenticationController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
+        // TODO This does too much, maybe let the UserService handle a bunch.
         /// <summary>
-        /// Create a new user account.
+        ///     Create a new user account.
         /// </summary>
         /// <param name="input"><see cref="UserRegisterInputModel"/></param>
         /// <returns><see cref="OkResult"/> or <see cref="BadRequestResult"/></returns>
@@ -72,50 +73,55 @@ namespace Swabbr.Api.Controllers
 
             try
             {
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                // Make this operation transactional
+                using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+                // Edge cases
+                if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
                 {
-                    // Edge cases
-                    if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
-                    {
-                        return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
-                    }
-
-                    if (await _userService.ExistsNicknameAsync(input.Nickname).ConfigureAwait(false))
-                    {
-                        return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname already exists"));
-                    }
-
-                    // Construct a new identity user for a new user based on the given input
-                    var identityUser = new SwabbrIdentityUser
-                    {
-                        Email = input.Email,
-                        Nickname = input.Nickname
-                    };
-
-                    var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
-                    if (!user.Succeeded) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator")); }
-
-                    // Update all other properties (if present)
-                    var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
-                    {
-                        UserId = identityUser.Id,
-                        BirthDate = input.BirthDate,
-                        Country = input.Country,
-                        FirstName = input.FirstName,
-                        Gender = MapperEnum.Map(input.Gender),
-                        IsPrivate = input.IsPrivate,
-                        LastName = input.LastName,
-                        //Nickname = input.Nickname, Done in creation call
-                        ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
-                    }).ConfigureAwait(false);
-
-                    // Map and return
-                    scope.Complete();
-                    return Ok(new UserAuthenticationOutputModel
-                    {
-                        User = MapperUser.Map(updatedUser)
-                    });
+                    return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
                 }
+                if (await _userService.ExistsNicknameAsync(input.Nickname).ConfigureAwait(false))
+                {
+                    return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname already exists"));
+                }
+
+                // Construct a new identity user for a new user based on the given input.
+                // The entity will also be created in our own data store.
+                var identityUser = new SwabbrIdentityUser
+                {
+                    Email = input.Email,
+                    Nickname = input.Nickname
+                };
+
+                // This call assigns the id to the identityUser object.
+                var identityResult = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
+                if (!identityResult.Succeeded)
+                {
+                    return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator"));
+                }
+
+                // Update all other properties.
+                // The nickname is handled by the creation call.
+                var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
+                
+                user.BirthDate = input.BirthDate;
+                user.Country = input.Country;
+                user.FirstName = input.FirstName;
+                user.Gender = MapperEnum.Map(input.Gender);
+                user.IsPrivate = input.IsPrivate;
+                user.LastName = input.LastName;
+                user.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded;
+
+                var updatedUser = await _userService.UpdateAsync(user).ConfigureAwait(false);
+
+                scope.Complete();
+
+                // Map.
+                var result = MapperUser.Map(updatedUser);
+
+                // Return.
+                return Ok(result);
             }
             catch (InvalidProfileImageStringException)
             {
@@ -173,7 +179,7 @@ namespace Swabbr.Api.Controllers
                         Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
                         Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
                         User = MapperUser.Map(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false)),
-                        UserSettings = MapperUser.Map(await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
+                        UserSettings = MapperUser.MapToSettings(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false))
                     });
                 }
 

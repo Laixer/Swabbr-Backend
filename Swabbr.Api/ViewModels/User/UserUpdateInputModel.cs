@@ -49,10 +49,11 @@ namespace Swabbr.Api.ViewModels.User
         /// </summary>
         public string ProfileImageBase64Encoded { get; set; }
 
+        // TODO Made non-nullable, is this correct?
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
-        public bool? IsPrivate { get; set; }
+        public bool IsPrivate { get; set; }
 
     }
 

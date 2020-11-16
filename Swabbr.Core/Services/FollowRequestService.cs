@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -49,7 +49,7 @@ namespace Swabbr.Core.Services
         /// <param name="requesterId">Requesting <see cref="SwabbrUser"/> internal id</param>
         /// <param name="receiverId">Receiving <see cref="SwabbrUser"/> internal id</param>
         /// <returns><see cref="FollowRequest"/></returns>
-        public async Task<FollowRequest> SendAsync(Guid requesterId, Guid receiverId)
+        public async Task<FollowRequestId> SendAsync(Guid requesterId, Guid receiverId)
         {
             receiverId.ThrowIfNullOrEmpty();
             requesterId.ThrowIfNullOrEmpty();
@@ -69,7 +69,7 @@ namespace Swabbr.Core.Services
 
                     // Commit and return
                     scope.Complete();
-                    return updatedEntity;
+                    return updatedEntity.Id;
                 }
 
                 // If we get here, a request that is either pending or accepted already exists between these users.
@@ -88,7 +88,7 @@ namespace Swabbr.Core.Services
 
             // Commit and return
             scope.Complete();
-            return result;
+            return result.Id;
         }
 
         /// <summary>
@@ -96,24 +96,24 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="id"><see cref="FollowRequestId"/></param>
         /// <returns></returns>
-        public async Task<FollowRequest> AcceptAsync(FollowRequestId id)
+        public async Task AcceptAsync(FollowRequestId id)
         {
             id.ThrowIfNullOrEmpty();
 
             var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
             if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
 
-            return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted).ConfigureAwait(false);
+            await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted).ConfigureAwait(false);
         }
 
-        public async Task<FollowRequest> DeclineAsync(FollowRequestId id)
+        public async Task DeclineAsync(FollowRequestId id)
         {
             id.ThrowIfNullOrEmpty();
 
             var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
             if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
 
-            return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
+            await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
         }
 
         public Task<FollowRequest> GetAsync(FollowRequestId id)
@@ -138,12 +138,12 @@ namespace Swabbr.Core.Services
             return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).FollowRequestStatus;
         }
 
-        public Task<int> GetFollowerCountAsync(Guid userId)
+        public Task<uint> GetFollowerCountAsync(Guid userId)
         {
             return _followRequestRepository.GetFollowerCountAsync(userId);
         }
 
-        public Task<int> GetFollowingCountAsync(Guid userId)
+        public Task<uint> GetFollowingCountAsync(Guid userId)
         {
             return _followRequestRepository.GetFollowingCountAsync(userId);
         }

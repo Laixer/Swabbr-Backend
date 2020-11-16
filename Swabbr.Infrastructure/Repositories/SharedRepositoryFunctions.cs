@@ -1,8 +1,8 @@
 ﻿using Dapper;
-using Laixer.Infra.Npgsql;
-using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
+using Swabbr.Infrastructure.Providers;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

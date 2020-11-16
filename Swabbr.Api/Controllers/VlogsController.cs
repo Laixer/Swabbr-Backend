@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -86,7 +86,7 @@ namespace Swabbr.Api.Controllers
                     {
                         VlogId = vlogLikeSummary.VlogId,
                         TotalLikes = vlogLikeSummary.TotalLikes,
-                        SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                        SimplifiedUsers = vlogLikeSummary.Users.Select(x => new UserSimplifiedOutputModel
                         {
                             Id = x.Id,
                             NickName = x.Nickname
@@ -173,7 +173,7 @@ namespace Swabbr.Api.Controllers
                         {
                             VlogId = vlogLikeSummary.VlogId,
                             TotalLikes = vlogLikeSummary.TotalLikes,
-                            SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                            SimplifiedUsers = vlogLikeSummary.Users.Select(x => new UserSimplifiedOutputModel
                             {
                                 Id = x.Id,
                                 NickName = x.Nickname
@@ -321,7 +321,7 @@ namespace Swabbr.Api.Controllers
                 if (!await _vlogWithThumbnailService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
                 var vlogLikes = await _vlogWithThumbnailService.GetAllVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
-                var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.UserId)).ConfigureAwait(false);
+                var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.Id.UserId)).ConfigureAwait(false);
 
                 return Ok(new VlogLikesWithUsersOutputModel
                 {
@@ -374,7 +374,7 @@ namespace Swabbr.Api.Controllers
                         {
                             VlogId = vlogLikeSummary.VlogId,
                             TotalLikes = vlogLikeSummary.TotalLikes,
-                            SimplifiedUsers = vlogLikeSummary.SimplifiedUsers.Select(x => new UserSimplifiedOutputModel
+                            SimplifiedUsers = vlogLikeSummary.Users.Select(x => new UserSimplifiedOutputModel
                             {
                                 Id = x.Id,
                                 NickName = x.Nickname

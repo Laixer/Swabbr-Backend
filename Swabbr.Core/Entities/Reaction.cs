@@ -3,48 +3,39 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
-
     /// <summary>
-    /// Represents a video reaction to a vlog.
+    ///     Represents a video reaction to a vlog.
     /// </summary>
     public class Reaction : EntityBase<Guid>
     {
-
         /// <summary>
-        /// Id of the user by whom this reaction was created.
+        ///     Id of the user by whom this reaction was created.
         /// </summary>
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// Id of the vlog the reaction responds to.
+        ///     Id of the vlog the reaction responds to.
         /// </summary>
         public Guid TargetVlogId { get; set; }
 
         /// <summary>
-        /// Duration of the video.
-        /// </summary>
-        public uint Duration { get; set; }
-
-        /// <summary>
-        /// The moment at which the reaction was posted.
+        ///     The moment at which the reaction was posted.
         /// </summary>
         public DateTime CreateDate { get; set; }
 
         /// <summary>
-        /// Indicates whether this reaction is public or private.
+        ///     Indicates whether this reaction is public or private.
         /// </summary>
         public bool IsPrivate { get; set; }
 
         /// <summary>
-        /// Represents the length in seconds for this reaction.
+        ///     Represents the length in seconds for this reaction.
         /// </summary>
-        public int LengthInSeconds { get; set; }
+        public uint LengthInSeconds { get; set; }
 
         /// <summary>
-        /// Indicates the state of this reaction.
+        ///     Indicates the state of this reaction.
         /// </summary>
         public ReactionState ReactionState { get; set; }
-
     }
-
 }

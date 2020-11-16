@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 
-namespace Laixer.Utility.Extensions
+namespace Swabbr.Core.Extensions
 {
 
     /// <summary>

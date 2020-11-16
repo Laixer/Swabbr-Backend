@@ -1,26 +1,43 @@
 ﻿namespace Swabbr.Core.Entities
 {
-
     /// <summary>
-    /// <see cref="SwabbrUser"/> including statistics.
+    ///     <see cref="SwabbrUser"/> including statistics.
     /// </summary>
     public sealed class SwabbrUserWithStats : SwabbrUser
     {
+        /// <summary>
+        ///     The total amount of accumulated likes for the vlogs of this user.
+        /// </summary>
+        public uint TotalLikes { get; set; }
 
         /// <summary>
-        /// Total amount of users following this user.
+        ///     The total amount of users that are following this user.
         /// </summary>
-        public int TotalFollowers { get; set; }
+        public uint TotalFollowers { get; set; }
 
         /// <summary>
-        /// Total amount of users that this user follows.
+        ///     The total amount of users this user is following.
         /// </summary>
-        public int TotalFollowing { get; set; }
+        public uint TotalFollowing { get; set; }
 
         /// <summary>
-        /// Total amount of vlogs that this user has uploaded.
+        ///     The total amount of placed reactions by this user.
         /// </summary>
-        public int TotalVlogs { get; set; }
+        public uint TotalReactionsGiven { get; set; }
 
+        /// <summary>
+        ///     The total amount of received reactions by this user.
+        /// </summary>
+        public uint TotalReactionsReceived { get; set; }
+
+        /// <summary>
+        ///     The total amount of placed vlogs by this user.
+        /// </summary>
+        public uint TotalVlogs { get; set; }
+
+        /// <summary>
+        ///     The total amount of accumulated views for the vlogs this user owns.
+        /// </summary>
+        public uint TotalViews { get; set; }
     }
 }

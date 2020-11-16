@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laixer.Utility.Exceptions
+namespace Swabbr.Core.Exceptions
 {
 
     /// <summary>

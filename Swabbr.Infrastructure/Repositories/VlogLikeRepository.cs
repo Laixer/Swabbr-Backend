@@ -1,10 +1,10 @@
 ﻿using Dapper;
-using Laixer.Infra.Npgsql;
-using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
+using Swabbr.Infrastructure.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,8 +35,8 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<VlogLike> CreateAsync(VlogLike entity)
         {
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.VlogId.ThrowIfNullOrEmpty();
-            entity.UserId.ThrowIfNullOrEmpty();
+            entity.Id.VlogId.ThrowIfNullOrEmpty();
+            entity.Id.UserId.ThrowIfNullOrEmpty();
 
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
@@ -173,7 +173,7 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Gets a <see cref="VlogLikeSummary"/> for a <see cref="Vlog"/>.
         /// </summary>
         /// <remarks>
-        ///     The <see cref="VlogLikeSummary.SimplifiedUsers"/> field only
+        ///     The <see cref="VlogLikeSummary.Users"/> field only
         ///     contains the first 5 users that liked the <see cref="Vlog"/>.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
@@ -208,7 +208,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 return new VlogLikeSummary
                 {
-                    SimplifiedUsers = new List<SwabbrUserSimplified>(),
+                    Users = new List<SwabbrUser>(),
                     TotalLikes = 0,
                     VlogId = vlogId
                 };
@@ -219,7 +219,7 @@ namespace Swabbr.Infrastructure.Repositories
                 {
                     TotalLikes = metadata.First().Count,
                     VlogId = metadata.First().VlogId,
-                    SimplifiedUsers = metadata.Select(x => new SwabbrUserSimplified
+                    Users = metadata.Select(x => new SwabbrUser
                     {
                         Id = x.UserId,
                         Nickname = x.UserNickname

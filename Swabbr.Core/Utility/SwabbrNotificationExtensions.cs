@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Swabbr.Core.Notifications;
 using System;
 

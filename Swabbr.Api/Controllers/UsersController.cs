@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,10 +24,9 @@ using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
-
     /// <summary>
-    /// Controller for handling requests related to users. This is NOT used for
-    /// processing any requests regarding the identity side of the users.
+    ///     Controller for handling requests related to users. This is NOT used for
+    ///     processing any requests regarding the identity side of the users.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -35,7 +34,6 @@ namespace Swabbr.Api.Controllers
     [Route("api/{version:apiVersion}/users")]
     public class UsersController : ControllerBase
     {
-
         private readonly IUserWithStatsRepository _userWithStatsRepository;
         private readonly IUserService _userService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
@@ -148,9 +146,9 @@ namespace Swabbr.Api.Controllers
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
+                var updatedUser = await _userService.UpdateAsync(new SwabbrUser
                 {
-                    UserId = identityUser.Id,
+                    Id = identityUser.Id,
                     BirthDate = input.BirthDate,
                     Country = input.Country,
                     FirstName = input.FirstName,
@@ -240,9 +238,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-                return Ok(MapperUser.Map(
-                    await _userService.GetUserStatisticsAsync(userId)
-                    .ConfigureAwait(false)));
+                return Ok(MapperUser.MapToStatistics(await _userService.GetWithStatisticsAsync(userId).ConfigureAwait(false)));
             }
             catch (Exception e)
             {
@@ -271,7 +267,5 @@ namespace Swabbr.Api.Controllers
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get statistics for self"));
             }
         }
-
     }
-
 }

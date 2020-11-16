@@ -1,5 +1,5 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Enums;
+using Swabbr.Core.Extensions;
 using System;
 
 namespace Swabbr.Core.Exceptions

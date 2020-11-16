@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Laixer.Identity.Dapper.Extensions;
-using Laixer.Infra.Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,6 +38,7 @@ using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
+using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Utility;
 using System;
@@ -230,11 +230,7 @@ namespace Swabbr
             // Add Identity middleware
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
-                setup.Password.RequireDigit = true;
-                setup.Password.RequireUppercase = true;
-                setup.Password.RequireLowercase = true;
-                setup.Password.RequireNonAlphanumeric = true;
-                setup.Password.RequiredLength = 8;
+                setup.Password.RequiredLength = 6;
                 setup.User.RequireUniqueEmail = true;
             })
             .AddDapperStores(options =>

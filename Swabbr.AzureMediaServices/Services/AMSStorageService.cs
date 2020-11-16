@@ -1,6 +1,6 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
+﻿using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;

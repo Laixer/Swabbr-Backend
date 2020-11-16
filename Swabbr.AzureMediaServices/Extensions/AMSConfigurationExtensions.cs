@@ -1,5 +1,5 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.AzureMediaServices.Configuration;
+﻿using Swabbr.AzureMediaServices.Configuration;
+using Swabbr.Core.Extensions;
 using System;
 
 namespace Swabbr.AzureMediaServices.Extensions

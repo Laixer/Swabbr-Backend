@@ -54,7 +54,7 @@ namespace Swabbr.AzureFunctions.Functions
 
             log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Getting users for trigger minute {wrapper.TriggerMinute}");
 
-            var users = await _userService.GetAllVloggableUserMinifiedAsync().ConfigureAwait(false);
+            var users = await _userService.GetAllVloggableUsersAsync().ConfigureAwait(false);
             var selectedUsers = _hashDistributionService.GetForMinute(users, wrapper.TriggerMinute);
 
             log.LogInformation($"{nameof(LogicAppGetUsersFunction)} - Returning {selectedUsers.Count()} users for trigger minute {wrapper.TriggerMinute}");

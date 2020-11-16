@@ -1,5 +1,4 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using System;

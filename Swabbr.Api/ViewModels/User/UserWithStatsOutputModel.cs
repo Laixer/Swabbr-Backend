@@ -14,17 +14,17 @@ namespace Swabbr.Api.ViewModels.User
         /// <summary>
         /// Total amount of followers the user has acquired.
         /// </summary>
-        public int TotalFollowers { get; set; }
+        public uint TotalFollowers { get; set; }
 
         /// <summary>
         /// Total amount of users the subject is following.
         /// </summary>
-        public int TotalFollowing { get; set; }
+        public uint TotalFollowing { get; set; }
 
         /// <summary>
         /// Total amount of vlogs posted by the user.
         /// </summary>
-        public int TotalVlogs { get; set; }
+        public uint TotalVlogs { get; set; }
 
     }
 

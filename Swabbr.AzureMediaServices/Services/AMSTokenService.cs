@@ -1,11 +1,11 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.Management.Media.Models;
+﻿using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Utility;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Utility;
 using System;
 using System.IdentityModel.Tokens.Jwt;

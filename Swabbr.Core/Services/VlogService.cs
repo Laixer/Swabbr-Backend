@@ -1,6 +1,6 @@
-﻿using Laixer.Utility.Extensions;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
@@ -238,7 +238,7 @@ namespace Swabbr.Core.Services
         ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
         /// </summary>
         /// <remarks>
-        ///     The <see cref="VlogLikeSummary.SimplifiedUsers"/> does not need
+        ///     The <see cref="VlogLikeSummary.Users"/> does not need
         ///     to contain all the <see cref="SwabbrUserSimplified"/> users.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>

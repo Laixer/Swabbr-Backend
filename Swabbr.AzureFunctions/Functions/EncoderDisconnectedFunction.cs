@@ -1,10 +1,10 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Azure.EventGrid.Models;
+﻿using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.EventGrid;
 using Microsoft.Extensions.Logging;
 using Swabbr.AzureFunctions.Utility;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;

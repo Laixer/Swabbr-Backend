@@ -1,4 +1,6 @@
-﻿using Swabbr.Core.Entities;
+﻿#if DEBUG
+
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
@@ -6,18 +8,16 @@ using System.Collections.ObjectModel;
 
 namespace Swabbr.Core.Services
 {
-
+    // TODO Remove
     /// <summary>
-    /// TODO Debug remove
-    /// This exists for testing purposes only.
+    ///     This exists for testing purposes only.
     /// </summary>
     public sealed class HashDebugDistributionService : IHashDistributionService
     {
-
-        private static DateTimeOffset? firstMinute = null;
+        private static DateTimeOffset? firstMinute;
         private static readonly object lockObject = new object();
 
-        public IEnumerable<SwabbrUserMinified> GetForMinute(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
+        public IEnumerable<SwabbrUser> GetForMinute(IEnumerable<SwabbrUser> users, DateTimeOffset time, TimeSpan? offset = null)
         {
             if (users == null) { throw new ArgumentNullException(nameof(users)); }
 
@@ -39,17 +39,16 @@ namespace Swabbr.Core.Services
                 {
                     if (user.Id == new Guid("e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee"))
                     {
-                        return new Collection<SwabbrUserMinified> { user };
+                        return new Collection<SwabbrUser> { user };
                     }
                 }
-                return new Collection<SwabbrUserMinified>();
+                return new Collection<SwabbrUser>();
             }
             else
             {
-                return new Collection<SwabbrUserMinified>();
+                return new Collection<SwabbrUser>();
             }
         }
-
     }
-
 }
+#endif

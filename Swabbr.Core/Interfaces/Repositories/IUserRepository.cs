@@ -12,15 +12,14 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// </summary>
     public interface IUserRepository : IRepository<SwabbrUser, Guid>, ICudFunctionality<SwabbrUser, Guid>
     {
-
-        Task<UserSettings> GetUserSettingsAsync(Guid userId);
-
-        Task<UserStatistics> GetUserStatisticsAsync(Guid userId);
-
-        // TODO Do we need this?
-        Task UpdateUserSettingsAsync(UserSettings userSettings);
-
         Task<SwabbrUser> GetByEmailAsync(string email);
+
+        /// <summary>
+        ///     Gets a user with its statistics.
+        /// </summary>
+        /// <param name="userId">The internal user id.</param>
+        /// <returns>The user entity with statistics.</returns>
+        Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId);
 
         Task<bool> UserExistsAsync(Guid userId);
 
@@ -38,7 +37,11 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task<IEnumerable<SwabbrUser>> GetVlogRequestableUsersAsync(DateTimeOffset from, TimeSpan timeSpan);
 
-        Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync();
+        /// <summary>
+        ///     Gets a collection of all users that are eligible
+        ///     for a vlog request.
+        /// </summary>
+        Task<IEnumerable<SwabbrUser>> GetAllVloggableUsersAsync();
 
         Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId);
 

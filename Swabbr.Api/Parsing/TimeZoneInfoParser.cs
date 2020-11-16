@@ -1,4 +1,4 @@
-﻿using Laixer.Utility.Extensions;
+﻿using Swabbr.Core.Extensions;
 using Swabbr.Api.Utility;
 using System;
 using System.Globalization;

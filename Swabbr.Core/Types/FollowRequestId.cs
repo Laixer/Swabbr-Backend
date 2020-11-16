@@ -2,23 +2,20 @@
 
 namespace Swabbr.Core.Types
 {
-
     /// <summary>
-    /// Functions as the primary key for a follow request.
+    ///     Id object containing a requesting
+    ///     user id and a receiving user id.
     /// </summary>
     public sealed class FollowRequestId
     {
-
         /// <summary>
-        /// Id of the requesting user.
+        ///     Id of the requesting user.
         /// </summary>
         public Guid RequesterId { get; set; }
 
         /// <summary>
-        /// Id of the receiving user.
+        ///     Id of the receiving user.
         /// </summary>
         public Guid ReceiverId { get; set; }
-
     }
-
 }

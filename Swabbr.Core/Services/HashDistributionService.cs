@@ -1,7 +1,7 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Utility;
 using System;
@@ -12,7 +12,7 @@ using System.Text;
 namespace Swabbr.Core.Services
 {
     /// <summary>
-    /// Handles our hash distribution.
+    ///     Handles our hash distribution for user selection.
     /// </summary>
     public sealed class HashDistributionService : IHashDistributionService
     {
@@ -35,11 +35,11 @@ namespace Swabbr.Core.Services
         /// <summary>
         /// Uses hash distribution to get all users which trigger in a given moment.
         /// </summary>
-        /// <param name="users"><see cref="SwabbrUserMinified"/></param>
+        /// <param name="users"><see cref="SwabbrUser"/></param>
         /// <param name="time"><see cref="DateTimeOffset"/></param>
         /// <param name="offset"><see cref="TimeSpan"/></param>
-        /// <returns><see cref="SwabbrUserMinified"/> collection</returns>
-        public IEnumerable<SwabbrUserMinified> GetForMinute(IEnumerable<SwabbrUserMinified> users, DateTimeOffset time, TimeSpan? offset = null)
+        /// <returns><see cref="SwabbrUser"/> collection</returns>
+        public IEnumerable<SwabbrUser> GetForMinute(IEnumerable<SwabbrUser> users, DateTimeOffset time, TimeSpan? offset = null)
         {
             if (users == null) { throw new ArgumentNullException(nameof(users)); }
             if (time == null) { throw new ArgumentNullException(nameof(time)); }
@@ -48,14 +48,14 @@ namespace Swabbr.Core.Services
             var timeUtc = time.ToUniversalTime() + (offset ?? TimeSpan.Zero);
             var thisMinute = GetMinutes(timeUtc);
 
-            var result = new List<SwabbrUserMinified>();
+            var result = new List<SwabbrUser>();
             foreach (var user in users)
             {
                 // Perform one check for each possible vlog request
                 for (int i = 1; i <= Math.Min(config.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
                 {
                     var userMinute = GetHashMinute(user, day, i);
-                    var userMinuteCorrected = userMinute - user.TimeZone.BaseUtcOffset.TotalMinutes;
+                    var userMinuteCorrected = userMinute - user.Timezone.BaseUtcOffset.TotalMinutes;
                     if (userMinuteCorrected < 0) { userMinuteCorrected += 60 * 24; }
 
                     if (userMinuteCorrected == thisMinute)
@@ -70,7 +70,7 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        /// Hashes a single <see cref="SwabbrUserMinified"/> into a corresponding minute
+        /// Hashes a single <see cref="SwabbrUser"/> into a corresponding minute
         /// of the day, represented as <see cref="int"/> value.
         /// </summary>
         /// <remarks>
@@ -82,17 +82,17 @@ namespace Swabbr.Core.Services
         /// by taking the <see cref="SwabbrConfiguration.VlogRequestStartTimeMinutes"/> plus
         /// the uint32 modulo <see cref="SwabbrConfiguration.VlogRequestEndTimeMinutes"/>.
         /// 
-        /// This ignores the <see cref="SwabbrUserMinified.TimeZone"/> value.
+        /// This ignores the <see cref="SwabbrUser.Timezone"/> value.
         /// </remarks>
-        /// <param name="user"><see cref="SwabbrUserMinified"/></param>
+        /// <param name="user"><see cref="SwabbrUser"/></param>
         /// <param name="day"><see cref="DateTime"/></param>
         /// <param name="requestIndex">Index of the request on the day</param>
         /// <returns>The minute in the day based on the inputs</returns>
-        private int GetHashMinute(SwabbrUserMinified user, DateTime day, int requestIndex)
+        private int GetHashMinute(SwabbrUser user, DateTime day, int requestIndex)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
             if (user.Id.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
-            if (user.TimeZone == null) { throw new ArgumentNullException(nameof(user.TimeZone)); }
+            if (user.Timezone == null) { throw new ArgumentNullException(nameof(user.Timezone)); }
 
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
             var hash = hasher.ComputeHash(encoder.GetBytes(hashString));

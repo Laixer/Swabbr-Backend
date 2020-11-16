@@ -1,10 +1,10 @@
 ﻿using Dapper;
-using Laixer.Infra.Npgsql;
-using Laixer.Utility.Extensions;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Infrastructure.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -240,7 +240,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE user_id = @UserId
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+                    AND vlog_state = '{VlogState.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 

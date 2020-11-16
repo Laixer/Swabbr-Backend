@@ -1,12 +1,12 @@
 ﻿using Dapper;
-using Laixer.Infra.Npgsql;
-using Laixer.Utility.Extensions;
 using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Utility;
+using Swabbr.Infrastructure.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

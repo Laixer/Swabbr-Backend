@@ -1,5 +1,4 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.AzureMediaServices.Interfaces.Clients;
@@ -7,6 +6,7 @@ using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using System;

@@ -65,7 +65,7 @@ namespace Swabbr.Api.ViewModels.User
         /// <summary>
         /// Indicates whether the profile of the user is publicly visible to other users.
         /// </summary>
-        public bool? IsPrivate { get; set; }
+        public bool IsPrivate { get; set; }
 
         /// <summary>
         /// Phone number of the user stored as text.
