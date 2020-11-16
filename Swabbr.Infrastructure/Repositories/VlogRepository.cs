@@ -240,7 +240,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE user_id = @UserId
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+                    AND vlog_state = '{VlogState.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
 
