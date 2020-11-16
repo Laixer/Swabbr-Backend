@@ -12,15 +12,14 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// </summary>
     public interface IUserRepository : IRepository<SwabbrUser, Guid>, ICudFunctionality<SwabbrUser, Guid>
     {
-
-        Task<UserSettings> GetUserSettingsAsync(Guid userId);
-
-        Task<UserStatistics> GetUserStatisticsAsync(Guid userId);
-
-        // TODO Do we need this?
-        Task UpdateUserSettingsAsync(UserSettings userSettings);
-
         Task<SwabbrUser> GetByEmailAsync(string email);
+
+        /// <summary>
+        ///     Gets a user with its statistics.
+        /// </summary>
+        /// <param name="userId">The internal user id.</param>
+        /// <returns>The user entity with statistics.</returns>
+        Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId);
 
         Task<bool> UserExistsAsync(Guid userId);
 

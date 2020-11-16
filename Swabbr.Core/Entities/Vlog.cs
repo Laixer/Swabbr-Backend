@@ -33,7 +33,6 @@ namespace Swabbr.Core.Entities
         /// </summary>
         public uint Views { get; set; }
 
-        // FUTURE Implement
         /// <summary>
         ///     The length of this vlog in seconds.
         /// </summary>

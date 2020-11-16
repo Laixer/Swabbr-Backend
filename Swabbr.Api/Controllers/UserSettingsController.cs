@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -9,6 +8,7 @@ using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using System;
@@ -54,17 +54,15 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
+                // Act.
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                if (identityUser == null) { throw new InvalidOperationException("Can't get user settings when no user is logged in"); }
+                var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
 
-                var result = await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false);
-                return Ok(new UserSettingsOutputModel
-                {
-                    DailyVlogRequestLimit = result.DailyVlogRequestLimit,
-                    FollowMode = result.FollowMode.GetEnumMemberAttribute(),
-                    IsPrivate = result.IsPrivate,
-                    UserId = result.UserId
-                });
+                // Map.
+                var result = MapperUser.MapToSettings(user);
+
+                // Return.
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -87,19 +85,21 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { throw new ArgumentNullException("Model can't be null"); }
                 if (!ModelState.IsValid) { throw new ArgumentException("Model isn't valid"); }
 
+                // Act.
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                if (identityUser == null) { throw new InvalidOperationException("Can't update user settings when no user is logged in"); }
+                var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
 
-                var settings = new UserSettings
-                {
-                    DailyVlogRequestLimit = (int)input.DailyVlogRequestLimit,
-                    FollowMode = MapperEnum.Map(input.FollowMode),
-                    UserId = identityUser.Id,
-                    IsPrivate = input.IsPrivate
-                };
-                await _userService.UpdateSettingsAsync(settings).ConfigureAwait(false);
+                user.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
+                user.FollowMode = MapperEnum.Map(input.FollowMode);
+                user.IsPrivate = input.IsPrivate;
+                
+                await _userService.UpdateAsync(user).ConfigureAwait(false);
 
-                return Ok(MapperUser.Map(await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false)));
+                // Map.
+                var result = MapperUser.MapToSettings(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false));
+
+                // Return.
+                return Ok(result);
             }
             catch (Exception e)
             {

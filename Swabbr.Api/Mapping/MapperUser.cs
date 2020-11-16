@@ -1,9 +1,9 @@
-﻿using Swabbr.Core.Extensions;
-using Swabbr.Api.Parsing;
+﻿using Swabbr.Api.Parsing;
 using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.Enums;
 using Swabbr.Api.ViewModels.User;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Extensions;
 using System;
 
 namespace Swabbr.Api.Mapping
@@ -56,34 +56,48 @@ namespace Swabbr.Api.Mapping
             };
         }
 
-        internal static UserSettingsOutputModel Map(UserSettings settings)
+        /// <summary>
+        ///     Extracts the user settings from an internal user
+        ///     object into a dedicated settings DTO.
+        /// </summary>
+        /// <param name="user">The user to extract from.</param>
+        /// <returns>The user settings DTO.</returns>
+        internal static UserSettingsOutputModel MapToSettings(SwabbrUser user)
         {
-            if (settings == null) { throw new ArgumentNullException(nameof(settings)); }
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             return new UserSettingsOutputModel
             {
-                DailyVlogRequestLimit = settings.DailyVlogRequestLimit,
-                FollowMode = MapperEnum.Map(settings.FollowMode).GetEnumMemberAttribute(),
-                IsPrivate = settings.IsPrivate,
-                UserId = settings.UserId
+                DailyVlogRequestLimit = user.DailyVlogRequestLimit,
+                FollowMode = MapperEnum.Map(user.FollowMode).GetEnumMemberAttribute(),
+                IsPrivate = user.IsPrivate,
+                UserId = user.Id
             };
         }
 
-        internal static UserStatisticsOutputModel Map(UserStatistics userStatistics)
+        /// <summary>
+        ///     Extracts the user statistics from an internal user
+        ///     object into a dedicated statistics DTO.
+        /// </summary>
+        /// <param name="userWithStats">The user to extract from.</param>
+        /// <returns>The user statistics DTO.</returns>
+        internal static UserStatisticsOutputModel MapToStatistics(SwabbrUserWithStats userWithStats)
         {
-            if (userStatistics == null) { throw new ArgumentNullException(nameof(userStatistics)); }
+            if (userWithStats == null) { throw new ArgumentNullException(nameof(userWithStats)); }
             return new UserStatisticsOutputModel
             {
-                UserId = userStatistics.Id,
-                TotalFollowers = userStatistics.TotalFollowers,
-                TotalFollowing = userStatistics.TotalFollowing,
-                TotalLikes = userStatistics.TotalLikes,
-                TotalReactionsGiven = userStatistics.TotalReactionsGiven,
-                TotalReactionsReceived = userStatistics.TotalReactionsReceived,
-                TotalViews = userStatistics.TotalViews,
-                TotalVlogs = userStatistics.TotalVlogs
+                UserId = userWithStats.Id,
+                TotalFollowers = userWithStats.TotalFollowers,
+                TotalFollowing = userWithStats.TotalFollowing,
+                TotalLikes = userWithStats.TotalLikes,
+                TotalReactionsGiven = userWithStats.TotalReactionsGiven,
+                TotalReactionsReceived = userWithStats.TotalReactionsReceived,
+                TotalViews = userWithStats.TotalViews,
+                TotalVlogs = userWithStats.TotalVlogs
             };
         }
-
     }
-
 }
