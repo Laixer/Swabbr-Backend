@@ -183,8 +183,8 @@ namespace Swabbr.Api.Controllers
                 // Try to perform the request
                 try
                 {
-                    var followRequest = await _followRequestService.SendAsync(requesterId, receiverId).ConfigureAwait(false);
-                    return Ok(MapperFollowRequest.Map(followRequest));
+                    var followRequestId = await _followRequestService.SendAsync(requesterId, receiverId).ConfigureAwait(false);
+                    return Ok(MapperFollowRequest.Map(await _followRequestService.GetAsync(followRequestId)));
                 }
                 catch (EntityAlreadyExistsException e)
                 {
