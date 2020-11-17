@@ -12,41 +12,41 @@
         /// <summary>
         ///     Indicates that a followed profile is live.
         /// </summary>
-        FollowedProfileLive,
+        FollowedProfileLive = 0,
 
         /// <summary>
         ///     Indicates a followed profile posted a new vlog.
         /// </summary>
-        FollowedProfileVlogPosted,
+        FollowedProfileVlogPosted = 1,
 
         /// <summary>
         ///     Used to motivate the user to be more active.
         /// </summary>
-        InactiveUserMotivate,
+        InactiveUserMotivate = 2,
 
         /// <summary>
         ///     Indicates the user has unwatched new vlogs.
         /// </summary>
-        InactiveUnwatchedVlogs,
+        InactiveUnwatchedVlogs = 3,
 
         /// <summary>
         ///     Indicates the user should record more vlogs.
         /// </summary>
-        InactiveVlogRecordRequest,
+        InactiveVlogRecordRequest = 4,
 
         /// <summary>
         ///     Indicates a user vlog gained a like.
         /// </summary>
-        VlogGainedLikes,
+        VlogGainedLikes = 5,
 
         /// <summary>
         ///     Indicates a user vlog gained a reaction.
         /// </summary>
-        VlogNewReaction,
+        VlogNewReaction = 6,
 
         /// <summary>
         ///     Requests the user to start vlogging.
         /// </summary>
-        VlogRecordRequest
+        VlogRecordRequest = 7
     }
 }
