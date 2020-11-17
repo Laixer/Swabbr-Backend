@@ -1,8 +1,9 @@
-﻿using Swabbr.Core.Notifications.JsonWrappers;
+﻿using Swabbr.Core.Notifications;
 using Swabbr.Core.Utility;
+using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
 
-namespace Swabbr.Core.Notifications.JsonExtraction
+namespace Swabbr.Infrastructure.Notifications.JsonExtraction
 {
     /// <summary>
     ///     Contains functionality for creating properly formatted JSON objects to 
@@ -16,7 +17,7 @@ namespace Swabbr.Core.Notifications.JsonExtraction
         /// </summary>
         /// <param name="swabbrNotification">The notification.</param>
         /// <returns>Formatted notification.</returns>
-        public static NotificationJsonBase Extract(SwabbrNotification swabbrNotification)
+        public static NotificationWrapperJsonBase Extract(SwabbrNotification swabbrNotification)
         {
             if (swabbrNotification == null)
             {
@@ -30,7 +31,7 @@ namespace Swabbr.Core.Notifications.JsonExtraction
                 {
                     Alert = new ApnsContentAlert
                     {
-                        // TODO Implement
+                        // FUTURE Implement and test
                     }
                 }
             };

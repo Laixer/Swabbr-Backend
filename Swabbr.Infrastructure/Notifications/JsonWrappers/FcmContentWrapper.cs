@@ -1,32 +1,26 @@
-﻿namespace Swabbr.Core.Notifications.JsonWrappers
+﻿using Swabbr.Core.Notifications;
+
+namespace Swabbr.Infrastructure.Notifications.JsonWrappers
 {
+    /// <summary>
+    ///     JSON wrapper template for Firebase Cloud Messaging.
+    /// </summary>
+    internal sealed class FcmContentWrapper : NotificationWrapperJsonBase
+    {
+        /// <summary>
+        ///     Subwrapper.
+        /// </summary>
+        public SubData Data { get; set; }
+    }
 
     /// <summary>
-    /// Content wrapper json object template for Firebase Cloud Messaging.
+    ///     Subwrapper to match expected Firebase format.
     /// </summary>
-    internal sealed class FcmContentWrapper : NotificationJsonBase
-    {
-
-        /// <summary>
-        /// Firebase specific properties.
-        /// TODO These seem optional so let's not use them!
-        /// </summary>
-        //public FcmContentNotification Notification { get; set; }
-
-        /// <summary>
-        /// Custom payload.
-        /// TODO Done as JSON wrapper, because this would just send the values.
-        /// The keys are lost.
-        /// </summary>
-        //public NotificationPayloadJsonWrapper Data { get; set; }
-
-        public SubData Data { get; set; }
-
-    }
-
     internal sealed class SubData
     {
+        /// <summary>
+        ///     Contains the actual notification.
+        /// </summary>
         public SwabbrNotification Payload { get; set; }
     }
-
 }

@@ -11,6 +11,9 @@ namespace Swabbr.Core.Notifications
     /// </summary>
     public static class NotificationBuilder
     {
+        internal static string DefaultTitle => "Default notification title";
+        internal static string DefaultMessage => "Default notification message";
+
         /// <summary>
         ///     Build a notification for indicating that a followed
         ///     profile is currently livestreaming.
@@ -30,7 +33,7 @@ namespace Swabbr.Core.Notifications
                 LiveLivestreamId = livestreamId,
                 LiveUserId = liveUserId,
                 LiveVlogId = liveVlogId
-            }, title: NotificationTextData.DefaultTitle, message: NotificationTextData.DefaultTitle);
+            }, title: DefaultTitle, message: DefaultTitle);
         }
 
         /// <summary>
@@ -49,7 +52,7 @@ namespace Swabbr.Core.Notifications
             {
                 VlogId = vlogId,
                 VlogOwnerUserId = vlogOwnerUserId
-            }, title: NotificationTextData.DefaultTitle, message: NotificationTextData.DefaultTitle);
+            }, title: DefaultTitle, message: DefaultTitle);
         }
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace Swabbr.Core.Notifications
                 RequestMoment = requestMoment,
                 RequestTimeout = requestTimeout,
                 VlogId = vlogId
-            }, title: NotificationTextData.DefaultTitle, message: NotificationTextData.DefaultTitle);
+            }, title: DefaultTitle, message: DefaultTitle);
         }
 
         /// <summary>
@@ -93,7 +96,7 @@ namespace Swabbr.Core.Notifications
             {
                 UserThatLikedId = userThatLikedId,
                 VlogId = vlogId
-            }, title: NotificationTextData.DefaultTitle, message: NotificationTextData.DefaultTitle);
+            }, title: DefaultTitle, message: DefaultTitle);
         }
 
         /// <summary>
@@ -112,7 +115,7 @@ namespace Swabbr.Core.Notifications
             {
                 ReactionId = reactionId,
                 VlogId = vlogId
-            }, title: NotificationTextData.DefaultTitle, message: NotificationTextData.DefaultTitle);
+            }, title: DefaultTitle, message: DefaultTitle);
         }
     }
 }

@@ -1,12 +1,13 @@
-﻿using Swabbr.Core.Notifications.JsonWrappers;
+﻿using Swabbr.Core.Notifications;
 using Swabbr.Core.Utility;
+using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
 
-namespace Swabbr.Core.Notifications.JsonExtraction
+namespace Swabbr.Infrastructure.Notifications.JsonExtraction
 {
     /// <summary>
-    /// Contains functionality for creating properly formatted JSON objects to 
-    /// be sent to our Azure Notification Hub for Firebase.
+    ///     Contains functionality for creating properly formatted JSON objects to 
+    ///     be sent to our Azure Notification Hub for Firebase.
     /// </summary>
     internal static class FcmJsonExtractor
     {
@@ -16,7 +17,7 @@ namespace Swabbr.Core.Notifications.JsonExtraction
         /// </summary>
         /// <param name="swabbrNotification"><see cref="SwabbrNotification"/></param>
         /// <returns><see cref="FcmContentWrapper"/></returns>
-        public static NotificationJsonBase Extract(SwabbrNotification swabbrNotification)
+        public static NotificationWrapperJsonBase Extract(SwabbrNotification swabbrNotification)
         {
             if (swabbrNotification == null)
             {

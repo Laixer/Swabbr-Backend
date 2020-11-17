@@ -23,12 +23,12 @@ namespace Swabbr.Infrastructure.Notifications
     ///     a notification is invoked. Ensure that the external state
     ///     is correct before sending any notification.
     /// </remarks>
-    public sealed class NotificationService : INotificationService
+    public class NotificationService : INotificationService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly NotificationClient _notificationClient;
-        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
-        private readonly ILogger<NotificationService> _logger;
+        protected readonly IUserRepository _userRepository;
+        protected readonly NotificationClient _notificationClient;
+        protected readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        protected readonly ILogger<NotificationService> _logger;
 
         /// <summary>
         ///     Create new instance.
@@ -47,7 +47,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <summary>
         ///     Checks if the notification service is online.
         /// </summary>
-        public Task<bool> IsServiceOnlineAsync()
+        public virtual Task<bool> IsServiceOnlineAsync()
             => _notificationClient.IsServiceAvailableAsync();
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="userId">User that is live.</param>
         /// <param name="livestreamId">The livestream id.</param>
         /// <param name="pars">The livestream parameters.</param>
-        public async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars)
+        public virtual async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars)
         {
             userId.ThrowIfNullOrEmpty();
             livestreamId.ThrowIfNullOrEmpty();
@@ -84,7 +84,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// </summary>
         /// <param name="userId">User that posted a vlog.</param>
         /// <param name="vlogId">The posted vlog id.</param>
-        public async Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
+        public virtual async Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
         {
             userId.ThrowIfNullOrEmpty();
             vlogId.ThrowIfNullOrEmpty();
@@ -109,7 +109,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="userId">User id to notify.</param>
         /// <param name="livestreamId">The livestream id.</param>
         /// <param name="pars">The recording parameters.</param>
-        public async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
+        public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
         {
             userId.ThrowIfNullOrEmpty();
             livestreamId.ThrowIfNullOrEmpty();
@@ -133,7 +133,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="receivingUserId">User that received the reaction.</param>
         /// <param name="vlogId">The id of the vlog.</param>
         /// <param name="reactionId">The placed reaction id.</param>
-        public async Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
+        public virtual async Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
             receivingUserId.ThrowIfNullOrEmpty();
             vlogId.ThrowIfNullOrEmpty();
@@ -154,7 +154,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// </summary>
         /// <param name="receivingUserId">User that received the vlog like.</param>
         /// <param name="vlogLikeId">The vlog like id.</param>
-        public async Task NotifyVlogLikedAsync(Guid receivingUserId, VlogLikeId vlogLikeId)
+        public virtual async Task NotifyVlogLikedAsync(Guid receivingUserId, VlogLikeId vlogLikeId)
         {
             if (vlogLikeId == null)
             {
@@ -173,7 +173,7 @@ namespace Swabbr.Infrastructure.Notifications
             _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
         }
 
-        public Task NotifyVlogRecordTimeoutAsync(Guid userId)
+        public virtual Task NotifyVlogRecordTimeoutAsync(Guid userId)
             => throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="userId">The user to subscribe.</param>
         /// <param name="platform">The push notification platform.</param>
         /// <param name="handle">Device handle.</param>
-        public async Task RegisterAsync(Guid userId, PushNotificationPlatform platform, string handle)
+        public virtual async Task RegisterAsync(Guid userId, PushNotificationPlatform platform, string handle)
         {
             userId.ThrowIfNullOrEmpty();
             handle.ThrowIfNullOrEmpty();
@@ -209,8 +209,7 @@ namespace Swabbr.Infrastructure.Notifications
             await _notificationRegistrationRepository.CreateAsync(registration).ConfigureAwait(false);
         }
 
-        // TODO Do we ever need this?
-        public Task UnregisterAsync(Guid userId)
+        public virtual Task UnregisterAsync(Guid userId)
             => throw new NotImplementedException();
     }
 }
