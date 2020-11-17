@@ -4,5 +4,5 @@
     ///     JSON wrapper abstract base class for all notification 
     ///     objects in Azure Notification Hub.
     /// </summary>
-    public abstract class NotificationWrapperJsonBase { }
+    internal abstract class NotificationWrapperJsonBase { }
 }
