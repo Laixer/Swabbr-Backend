@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
-using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using System;
@@ -31,6 +29,7 @@ namespace Swabbr.Infrastructure.Extensions
             }
 
             // Add postgresql database functionality
+            // TODO This is entirely Dapper specific. This will be removed in the future.
             NpgsqlSetup.Setup();
             services.AddTransient<IDatabaseProvider, NpgsqlDatabaseProvider>();
             services.Configure<NpgsqlDatabaseProviderOptions>(options =>
