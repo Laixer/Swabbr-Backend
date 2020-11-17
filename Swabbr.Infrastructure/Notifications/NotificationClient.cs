@@ -29,7 +29,6 @@ namespace Swabbr.Infrastructure.Notifications
     /// </remarks>
     public class NotificationClient
     {
-        private readonly NotificationHubConfiguration _options;
         private readonly NotificationHubClient _hubClient;
         private readonly ILogger<NotificationClient> _logger;
 
@@ -39,7 +38,10 @@ namespace Swabbr.Infrastructure.Notifications
         public NotificationClient(IOptions<NotificationHubConfiguration> options,
             ILogger<NotificationClient> logger)
         {
-            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            if (options == null || options.Value == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             // Instantiate new client only once, reuse every time.
@@ -52,7 +54,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <remarks>
         ///     This just gets registrations by some arbitrary tag.
         /// </remarks>
-        public async Task<bool> IsServiceAvailableAsync()
+        internal async Task<bool> IsServiceAvailableAsync()
         {
             try
             {
@@ -76,7 +78,7 @@ namespace Swabbr.Infrastructure.Notifications
         ///     registrations.
         /// </remarks>
         /// <param name="internalRegistration">Our internal registration object.</param>
-        public async Task<NotificationRegistration> RegisterAsync(NotificationRegistration internalRegistration)
+        internal async Task<NotificationRegistration> RegisterAsync(NotificationRegistration internalRegistration)
         {
             if (internalRegistration == null)
             {
@@ -108,7 +110,7 @@ namespace Swabbr.Infrastructure.Notifications
         ///     registrations.
         /// </remarks>
         /// <param name="internalRegistration">Internal registration object.</param>
-        public async Task UnregisterAsync(NotificationRegistration internalRegistration)
+        internal async Task UnregisterAsync(NotificationRegistration internalRegistration)
         {
             if (internalRegistration == null) { throw new ArgumentNullException(nameof(internalRegistration)); }
             internalRegistration.ThrowIfInvalid();
@@ -142,7 +144,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="userId">The user to notify.</param>
         /// <param name="platform">The user notification platform.</param>
         /// <param name="notification">The notification object.</param>
-        public async Task SendNotificationAsync(Guid userId, PushNotificationPlatform platform, SwabbrNotification notification)
+        internal async Task SendNotificationAsync(Guid userId, PushNotificationPlatform platform, SwabbrNotification notification)
         {
             userId.ThrowIfNullOrEmpty();
             if (notification == null)
