@@ -11,3 +11,6 @@ dotnet_diagnostic.CS1591.severity = none
 
 # CA1031: Specify Exception type in catch block
 dotnet_diagnostic.CA1031.severity = none
+
+# CA1051: Do not declare visible instance fields
+dotnet_code_quality.ca1051.api_surface = private, internal, protected
