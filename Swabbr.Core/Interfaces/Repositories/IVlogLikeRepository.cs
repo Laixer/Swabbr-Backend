@@ -19,7 +19,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         ///     Gets a <see cref="VlogLikeSummary"/> for a <see cref="Vlog"/>.
         /// </summary>
         /// <remarks>
-        ///     The <see cref="VlogLikeSummary.UsersMinified"/> field does not
+        ///     The <see cref="VlogLikeSummary.Users"/> field does not
         ///     need to contain all users that liked the <see cref="Vlog"/>.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>

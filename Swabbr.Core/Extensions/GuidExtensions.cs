@@ -26,7 +26,7 @@ namespace Swabbr.Core.Extensions
 
         /// <summary>
         /// Throws an <see cref="InvalidOperationException"/> if the <paramref name="self"/>
-        /// is not <see cref="null"/> and not equal to <see cref="Guid.Empty"/>.
+        /// is not null and not equal to <see cref="Guid.Empty"/>.
         /// </summary>
         /// <param name="self"><see cref="Guid"/></param>
         public static void ThrowIfNotNullOrEmpty(this Guid self)
@@ -35,20 +35,18 @@ namespace Swabbr.Core.Extensions
         }
 
         /// <summary>
-        /// Checks if a <see cref="Guid"/> is <see cref="null"/> or <see cref="Guid.Empty"/>.
+        /// Checks if a guid is null or <see cref="Guid.Empty"/>.
         /// </summary>
         /// <param name="self"><see cref="Guid"/></param>
-        /// <returns><see cref="true"/> if null or empty</returns>
         public static bool IsNullOrEmpty(this Guid self)
         {
             return self == null || self == Guid.Empty;
         }
 
         /// <summary>
-        /// Checks if a <see cref="Guid"/> is not <see cref="null"/> or <see cref="Guid.Empty"/>.
+        /// Checks if a guid is not null or <see cref="Guid.Empty"/>.
         /// </summary>
         /// <param name="self"><see cref="Guid"/></param>
-        /// <returns><see cref="true"/> if not null or empty</returns>
         public static bool IsNotNullOrEmpty(this Guid self)
         {
             return !IsNullOrEmpty(self);
