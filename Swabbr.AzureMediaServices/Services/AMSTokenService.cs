@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Utility;
@@ -17,7 +16,7 @@ namespace Swabbr.AzureMediaServices.Services
     /// <summary>
     /// Generates tokens for resource playback in AMS.
     /// </summary>
-    public sealed class AMSTokenService : IAMSTokenService
+    public sealed class AMSTokenService
     {
         private readonly AMSConfiguration config;
 

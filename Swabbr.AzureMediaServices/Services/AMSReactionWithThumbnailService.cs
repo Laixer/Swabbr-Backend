@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -7,7 +7,6 @@ using Swabbr.Core.Types;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Services
@@ -22,7 +21,7 @@ namespace Swabbr.AzureMediaServices.Services
             IUserRepository userRepository,
             IStorageService storageService,
             INotificationService notificationService,
-            IAMSClient amsClient,
+            AMSClient amsClient,
             IOptions<SwabbrConfiguration> optionsSwabbr)
             : base(reactionRepository, vlogRepository, userRepository, storageService, notificationService, amsClient, optionsSwabbr)
         {

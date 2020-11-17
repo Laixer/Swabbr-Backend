@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Management.Media.Models;
 using Microsoft.Extensions.Options;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
@@ -30,7 +30,7 @@ namespace Swabbr.AzureMediaServices.Services
         protected readonly IStorageService _storageService;
         protected readonly IUserRepository _userRepository;
         protected readonly INotificationService _notificationService;
-        protected readonly IAMSClient _amsClient;
+        protected readonly AMSClient _amsClient;
         protected readonly SwabbrConfiguration swabbrConfiguration;
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Swabbr.AzureMediaServices.Services
             IUserRepository userRepository,
             IStorageService storageService,
             INotificationService notificationService,
-            IAMSClient amsClient,
+            AMSClient amsClient,
             IOptions<SwabbrConfiguration> optionsSwabbr)
         {
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));

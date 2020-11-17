@@ -8,7 +8,6 @@ using Microsoft.Rest.Azure.Authentication;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Exceptions;
 using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Types;
@@ -25,7 +24,7 @@ namespace Swabbr.AzureMediaServices.Clients
     /// <summary>
     ///     Communicates with Azure Media Services.
     /// </summary>
-    public sealed class AMSClient : IAMSClient, IDisposable
+    public class AMSClient : IDisposable
     {
         private readonly AMSConfiguration _config;
         private readonly ILogger<AMSClient> _logger;

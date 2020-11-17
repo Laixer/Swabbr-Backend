@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +6,10 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.ViewModels.Notifications.JsonWrappers;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;

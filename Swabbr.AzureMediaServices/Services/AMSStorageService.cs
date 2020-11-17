@@ -1,4 +1,4 @@
-﻿using Swabbr.AzureMediaServices.Interfaces.Clients;
+﻿using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
@@ -12,12 +12,12 @@ namespace Swabbr.AzureMediaServices.Services
     /// </summary>
     public sealed class AMSStorageService : IStorageService
     {
-        private readonly IAMSClient _amsClient;
+        private readonly AMSClient _amsClient;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public AMSStorageService(IAMSClient amsClient) => _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
+        public AMSStorageService(AMSClient amsClient) => _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));
 
         /// <summary>
         /// Cleans up the remains of a reaction transcoding process in Azure

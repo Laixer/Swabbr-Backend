@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
-using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
@@ -21,11 +20,11 @@ namespace Swabbr.AzureMediaServices.Services
     public sealed class AMSPlaybackService : IPlaybackService
     {
         private readonly AMSConfiguration _config;
-        private readonly IAMSClient _amsClient;
+        private readonly AMSClient _amsClient;
         private readonly IReactionService _reactionService;
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly IVlogService _vlogService;
-        private readonly IAMSTokenService _amsTokenService;
+        private readonly AMSTokenService _amsTokenService;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -33,9 +32,9 @@ namespace Swabbr.AzureMediaServices.Services
         public AMSPlaybackService(IOptions<AMSConfiguration> config,
             ILivestreamRepository livestreamRepository,
             IReactionService reactionService,
-            IAMSClient amsClient,
+            AMSClient amsClient,
             IVlogService vlogService,
-            IAMSTokenService amsTokenService)
+            AMSTokenService amsTokenService)
         {
             if (config == null) { throw new ArgumentNullException(nameof(config)); }
             _config = config.Value ?? throw new ArgumentNullException(nameof(config.Value));

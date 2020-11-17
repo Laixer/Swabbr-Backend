@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
 using Swabbr.AzureMediaServices.Utility;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -25,14 +25,14 @@ namespace Swabbr.AzureMediaServices.Services
 
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly AMSConfiguration _config;
-        private readonly IAMSClient _amsClient;
+        private readonly AMSClient _amsClient;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
         public AMSLivestreamPoolService(ILivestreamRepository livestreamRepository,
             IOptions<AMSConfiguration> config,
-            IAMSClient amsClient)
+            AMSClient amsClient)
         {
             _livestreamRepository = livestreamRepository ?? throw new ArgumentNullException(nameof(livestreamRepository));
             _amsClient = amsClient ?? throw new ArgumentNullException(nameof(amsClient));

@@ -22,8 +22,6 @@ using Swabbr.Api.Services;
 using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
 using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
-using Swabbr.AzureMediaServices.Interfaces.Services;
 using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Interfaces.Repositories;
@@ -99,20 +97,17 @@ namespace Swabbr
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
+            // Add Azure Media Services to DI
+            services.AddSwabbrAmsServices();
+
             // Configure DI for services
-            services.AddTransient<IAMSTokenService, AMSTokenService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDistributionService>();
             services.AddTransient<IHealthCheckService, HealthCheckService>();
-            services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
-            services.AddTransient<ILivestreamService, AMSLivestreamService>();
-            services.AddTransient<IPlaybackService, AMSPlaybackService>();
+            
 
             // TODO This seems incorrect (other services still use IReactionService)
-            services.AddTransient<IReactionService, AMSReactionService>();
-            services.AddTransient<IReactionWithThumbnailService, AMSReactionWithThumbnailService>();
 
-            services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
 
             // TODO This seems incorrect (other services still use IVlogService)
@@ -123,9 +118,6 @@ namespace Swabbr
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
             services.AddTransient<IUserWithStatsService, UserWithStatsService>();
-
-            // Configure DI for clients and helpers
-            services.AddSingleton<IAMSClient, AMSClient>();
         }
 
         /// <summary>

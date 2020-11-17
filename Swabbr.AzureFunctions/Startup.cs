@@ -1,16 +1,13 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swabbr.AzureMediaServices.Clients;
 using Swabbr.AzureMediaServices.Configuration;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
-using Swabbr.AzureMediaServices.Interfaces.Services;
-using Swabbr.AzureMediaServices.Services;
+using Swabbr.AzureMediaServices.Extensions;
 using Swabbr.Core.Configuration;
-using Swabbr.Infrastructure.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Configuration;
+using Swabbr.Infrastructure.Extensions;
 using System;
 
 [assembly: FunctionsStartup(typeof(Swabbr.AzureFunctions.Startup))]
@@ -55,21 +52,15 @@ namespace Swabbr.AzureFunctions
             // Configure Swabbr infrastructure
             builder.Services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
+            // Add Azure Media Services to DI
+            builder.Services.AddSwabbrAmsServices();
+
             // Configure DI for services
-            builder.Services.AddTransient<IAMSTokenService, AMSTokenService>();
             builder.Services.AddTransient<IHashDistributionService, HashDistributionService>();
-            builder.Services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
-            builder.Services.AddTransient<ILivestreamService, AMSLivestreamService>();
-            builder.Services.AddTransient<IPlaybackService, AMSPlaybackService>();
-            builder.Services.AddTransient<IReactionService, AMSReactionService>();
-            builder.Services.AddTransient<IStorageService, AMSStorageService>();
             builder.Services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
             builder.Services.AddTransient<IUserService, UserService>();
             builder.Services.AddTransient<IVlogService, VlogService>();
             builder.Services.AddTransient<IVlogTriggerService, VlogTriggerService>();
-
-            // Configure DI for client services
-            builder.Services.AddTransient<IAMSClient, AMSClient>();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
+using Swabbr.AzureMediaServices.Clients;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
@@ -24,7 +24,7 @@ namespace Swabbr.AzureMediaServices.Services
     {
         private readonly ILivestreamRepository _livestreamRepository;
         private readonly ILivestreamPoolService _livestreamPoolService;
-        private readonly IAMSClient _amsClient;
+        private readonly AMSClient _amsClient;
         private readonly IVlogService _vlogService;
         private readonly IStorageService _storageService;
         private readonly SwabbrConfiguration _swabbrConfiguration;
@@ -34,7 +34,7 @@ namespace Swabbr.AzureMediaServices.Services
         /// </summary>
         public AMSLivestreamService(ILivestreamRepository livestreamRepository,
             ILivestreamPoolService livestreamPoolService,
-            IAMSClient amsClient,
+            AMSClient amsClient,
             IVlogService vlogService,
             IStorageService storageService,
             IOptions<SwabbrConfiguration> options)
@@ -64,10 +64,7 @@ namespace Swabbr.AzureMediaServices.Services
         /// </summary>
         /// <param name="externalId">External <see cref="Livestream"/> id</param>
         /// <returns><see cref="Livestream"/></returns>
-        public Task<Livestream> GetLivestreamFromExternalIdAsync(string externalId)
-        {
-            return _livestreamRepository.GetByExternalIdAsync(externalId);
-        }
+        public Task<Livestream> GetLivestreamFromExternalIdAsync(string externalId) => _livestreamRepository.GetByExternalIdAsync(externalId);
 
         /// <summary>
         /// Gets a <see cref="Livestream"/> based on the <see cref="SwabbrUser"/>
@@ -76,10 +73,7 @@ namespace Swabbr.AzureMediaServices.Services
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="triggerMinute">Trigger minute</param>
         /// <returns><see cref="Livestream"/></returns>
-        public Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute)
-        {
-            return _livestreamRepository.GetLivestreamFromTriggerMinute(userId, triggerMinute);
-        }
+        public Task<Livestream> GetLivestreamFromTriggerMinute(Guid userId, DateTimeOffset triggerMinute) => _livestreamRepository.GetLivestreamFromTriggerMinute(userId, triggerMinute);
 
         /// <summary>
         /// Generates <see cref="ParametersRecordVlog"/>.
@@ -136,20 +130,14 @@ namespace Swabbr.AzureMediaServices.Services
         /// Checks if the livestream service is externally available.
         /// </summary>
         /// <returns><see cref="bool"/> result</returns>
-        public Task<bool> IsServiceOnlineAsync()
-        {
-            return _amsClient.IsServiceAvailableAsync();
-        }
+        public Task<bool> IsServiceOnlineAsync() => _amsClient.IsServiceAvailableAsync();
 
         /// <summary>
         /// Checks if a <see cref="SwabbrUser"/> is in a livestream cycle.
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="bool"/> result</returns>
-        public Task<bool> IsUserInLivestreamCycleAsync(Guid userId)
-        {
-            return _livestreamRepository.IsUserInLivestreamCycleAsync(userId);
-        }
+        public Task<bool> IsUserInLivestreamCycleAsync(Guid userId) => _livestreamRepository.IsUserInLivestreamCycleAsync(userId);
 
         /// <summary>
         /// Called when the user connects to the actual <see cref="Livestream"/>.
@@ -417,7 +405,7 @@ namespace Swabbr.AzureMediaServices.Services
             if (livestream.LivestreamState != LivestreamState.Created) { throw new LivestreamStateException(livestream.LivestreamState.GetEnumMemberAttribute()); }
 
             await _livestreamRepository.MarkPendingUserAsync(livestream.Id, userId, triggerMinute).ConfigureAwait(false);
-            
+
             // TODO Extra read really required?
             return await _livestreamRepository.GetAsync(livestream.Id).ConfigureAwait(false);
         }
