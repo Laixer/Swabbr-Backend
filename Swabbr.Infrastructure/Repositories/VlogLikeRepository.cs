@@ -55,20 +55,20 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Deletes a <see cref="VlogLike"/> from our database.
         /// </summary>
-        /// <param name="vlogLikeId">Internal <see cref="VlogLike"/> id</param>
+        /// <param name="id">Internal <see cref="VlogLike"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task DeleteAsync(VlogLikeId vlogLikeId)
+        public async Task DeleteAsync(VlogLikeId id)
         {
-            if (vlogLikeId == null) { throw new ArgumentNullException(nameof(vlogLikeId)); }
-            vlogLikeId.VlogId.ThrowIfNullOrEmpty();
-            vlogLikeId.UserId.ThrowIfNullOrEmpty();
+            if (id == null) { throw new ArgumentNullException(nameof(id)); }
+            id.VlogId.ThrowIfNullOrEmpty();
+            id.UserId.ThrowIfNullOrEmpty();
 
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     DELETE FROM {TableVlogLike}
                     WHERE vlog_id = @VlogId
                     AND user_id = @UserId";
-            var rowsAffected = await connection.ExecuteAsync(sql, vlogLikeId).ConfigureAwait(false);
+            var rowsAffected = await connection.ExecuteAsync(sql, id).ConfigureAwait(false);
             if (rowsAffected == 0) { throw new EntityNotFoundException(); }
             if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple entities on single get"); }
         }
@@ -99,20 +99,20 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Gets a single <see cref="VlogLike"/> from our database.
         /// </summary>
-        /// <param name="vlogLikeId">Internal <see cref="VlogLike"/> id</param>
+        /// <param name="id">Internal <see cref="VlogLike"/> id</param>
         /// <returns><see cref="VlogLike"/></returns>
-        public async Task<VlogLike> GetAsync(VlogLikeId vlogLikeId)
+        public async Task<VlogLike> GetAsync(VlogLikeId id)
         {
-            if (vlogLikeId == null) { throw new ArgumentNullException(nameof(vlogLikeId)); }
-            vlogLikeId.VlogId.ThrowIfNullOrEmpty();
-            vlogLikeId.UserId.ThrowIfNullOrEmpty();
+            if (id == null) { throw new ArgumentNullException(nameof(id)); }
+            id.VlogId.ThrowIfNullOrEmpty();
+            id.UserId.ThrowIfNullOrEmpty();
 
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     SELECT * FROM {TableVlogLike}  
                     WHERE vlog_id = @VlogId
                     AND user_id = @UserId";
-            var result = await connection.QueryAsync<VlogLike>(sql, vlogLikeId).ConfigureAwait(false);
+            var result = await connection.QueryAsync<VlogLike>(sql, id).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
             return result.First();

@@ -38,18 +38,18 @@ namespace Swabbr.Infrastructure.Repositories
         /// <remarks>
         /// Throws an <see cref="EntityNotFoundException"/> if the entity doesn't exist.
         /// </remarks>
-        /// <param name="followRequestId">Internal id</param>
+        /// <param name="id">Internal id</param>
         /// <returns><see cref="FollowRequest"/></returns>
-        public async Task<FollowRequest> GetAsync(FollowRequestId followRequestId)
+        public async Task<FollowRequest> GetAsync(FollowRequestId id)
         {
-            followRequestId.ThrowIfNullOrEmpty();
+            id.ThrowIfNullOrEmpty();
 
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     SELECT * FROM {TableFollowRequest}  
                     WHERE receiver_id = @ReceiverId
                     AND requester_id = @RequesterId";
-            var result = await connection.QueryAsync<FollowRequest>(sql, followRequestId).ConfigureAwait(false);
+            var result = await connection.QueryAsync<FollowRequest>(sql, id).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
             return result.First();
@@ -163,18 +163,18 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Deletes a <see cref="FollowRequest"/> from our database.
         /// </summary>
-        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task DeleteAsync(FollowRequestId followRequestId)
+        public async Task DeleteAsync(FollowRequestId id)
         {
-            followRequestId.ThrowIfNullOrEmpty();
+            id.ThrowIfNullOrEmpty();
 
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     DELETE FROM {TableFollowRequest} 
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-            var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
+            var rowsAffected = await connection.ExecuteAsync(sql, id).ConfigureAwait(false);
             if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
             if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(FollowRequest)); }
         }
@@ -184,24 +184,24 @@ namespace Swabbr.Infrastructure.Repositories
         /// specified <see cref="FollowRequestStatus"/>. This will throw an
         /// <see cref="EntityNotFoundException"/> if we can't find the object.
         /// </summary>
-        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
+        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
         /// <param name="status"><see cref="FollowRequestStatus"/></param>
         /// <returns><see cref="Task"/></returns>
-        public async Task<FollowRequest> UpdateStatusAsync(FollowRequestId followRequestId, FollowRequestStatus status)
+        public async Task<FollowRequest> UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status)
         {
-            followRequestId.ThrowIfNullOrEmpty();
+            id.ThrowIfNullOrEmpty();
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
                     UPDATE {TableFollowRequest}
                     SET follow_request_status = '{status.GetEnumMemberAttribute()}'
                     WHERE requester_id = @RequesterId
                     AND receiver_id = @ReceiverId";
-            var rowsAffected = await connection.ExecuteAsync(sql, followRequestId).ConfigureAwait(false);
+            var rowsAffected = await connection.ExecuteAsync(sql, id).ConfigureAwait(false);
             if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
             else if (rowsAffected > 1) { throw new InvalidOperationException($"Affected {rowsAffected} while updating a single follow request, this should never happen"); }
             else
             {
-                return await GetAsync(followRequestId).ConfigureAwait(false);
+                return await GetAsync(id).ConfigureAwait(false);
             }
         }
 
