@@ -104,8 +104,6 @@ namespace Swabbr
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IHashDistributionService, HashDistributionService>();
             services.AddTransient<IHealthCheckService, HealthCheckService>();
-            services.AddTransient<ILivestreamPoolService, AMSLivestreamPoolService>();
-            services.AddTransient<ILivestreamService, AMSLivestreamService>();
             services.AddTransient<IPlaybackService, AMSPlaybackService>();
 
             // TODO This seems incorrect (other services still use IReactionService)

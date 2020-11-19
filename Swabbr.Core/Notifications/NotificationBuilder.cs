@@ -14,22 +14,6 @@ namespace Swabbr.Core.Notifications
 
         /// <summary>
         ///     Build a notification for indicating that a followed
-        ///     profile is currently livestreaming.
-        /// </summary>
-        /// <param name="liveUserId">The user that is live.</param>
-        /// <param name="livestreamId">The corresponding livestream.</param>
-        /// <param name="liveVlogId">The corresponding vlog.</param>
-        /// <returns>Notification object.</returns>
-        public static SwabbrNotification BuildFollowedProfileLive(Guid liveUserId, Guid livestreamId, Guid liveVlogId)
-            => new SwabbrNotification(NotificationAction.FollowedProfileLive, new ParametersFollowedProfileLive
-            {
-                LiveLivestreamId = livestreamId,
-                LiveUserId = liveUserId,
-                LiveVlogId = liveVlogId
-            }, title: DefaultTitle, message: DefaultTitle);
-
-        /// <summary>
-        ///     Build a notification for indicating that a followed
         ///     profile has posted a vlog.
         /// </summary>
         /// <param name="vlogId">The posted vlog.</param>

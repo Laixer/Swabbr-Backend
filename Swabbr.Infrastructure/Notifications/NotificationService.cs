@@ -50,32 +50,6 @@ namespace Swabbr.Infrastructure.Notifications
             => _notificationClient.IsServiceAvailableAsync();
 
         /// <summary>
-        ///     Notify all followers of a user that the user is live.
-        /// </summary>
-        /// <param name="userId">User that is live.</param>
-        /// <param name="pars">The livestream parameters.</param>
-        public virtual async Task NotifyFollowersProfileLiveAsync(Guid userId, ParametersFollowedProfileLive pars)
-        {
-            if (pars is null)
-            {
-                throw new ArgumentNullException(nameof(pars));
-            }
-
-            _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Attempting notifying followers from user {userId}");
-
-            // Notify each follower individually.
-            var notification = NotificationBuilder.BuildFollowedProfileLive(pars.LiveUserId, pars.LiveLivestreamId, pars.LiveVlogId);
-            var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
-            foreach (var item in pushDetails)
-            {
-                await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification).ConfigureAwait(false);
-                _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Notified user {item.UserId}");
-            }
-
-            _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Completed notifying followers from user {userId}");
-        }
-
-        /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
         /// <param name="userId">User that posted a vlog.</param>

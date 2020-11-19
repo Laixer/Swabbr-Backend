@@ -102,27 +102,6 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// Checks if a <see cref="Vlog"/> exists for a specified <see cref="Livestream"/>.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="true"/> if exists</returns>
-        public async Task<bool> ExistsForLivestreamAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT 1 FROM {TableVlog} 
-                    WHERE livestream_id = @Id
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-            var pars = new { Id = livestreamId };
-            var result = await connection.QueryAsync<int>(sql, pars).ConfigureAwait(false);
-            if (result == null || !result.Any()) { return false; }
-            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-            return true;
-        }
-
-        /// <summary>
         /// Gets a <see cref="Vlog"/> from our database.
         /// </summary>
         /// <param name="id">Internal <see cref="Vlog"/> id</param>
@@ -179,28 +158,6 @@ namespace Swabbr.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Gets a <see cref="Vlog"/> based on a <see cref="Livestream"/>, since
-        /// they are 1-1 linked.
-        /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Vlog"/> linked to the <see cref="Livestream"/></returns>
-        public async Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * 
-                    FROM {TableVlog} 
-                    WHERE livestream_id = @LivestreamId 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-            var pars = new { LivestreamId = livestreamId };
-            var result = await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
-            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-            return result.First();
-        }
 
         /// <summary>
         /// Gets a <see cref="Vlog"/> based on a <see cref="Reaction"/>.

@@ -40,7 +40,6 @@ namespace Swabbr.Infrastructure.Extensions
             // Add repositories
             services.AddTransient<IFollowRequestRepository, FollowRequestRepository>();
             services.AddTransient<IHealthCheckRepository, HealthCheckRepository>();
-            services.AddTransient<ILivestreamRepository, LivestreamRepository>();
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
             services.AddTransient<IReactionRepository, ReactionRepository>();
             services.AddTransient<IUserRepository, UserRepository>();

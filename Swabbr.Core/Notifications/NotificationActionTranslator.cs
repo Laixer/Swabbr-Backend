@@ -18,7 +18,6 @@ namespace Swabbr.Core.Notifications
         {
             return action switch
             {
-                NotificationAction.FollowedProfileLive => "followed_profile_live",
                 NotificationAction.FollowedProfileVlogPosted => "followed_profile_vlog_posted",
                 NotificationAction.InactiveUserMotivate => "inactive_user_motivate",
                 NotificationAction.InactiveUnwatchedVlogs => "inactive_unwatched_vlogs",

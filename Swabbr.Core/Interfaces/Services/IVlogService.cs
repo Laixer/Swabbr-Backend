@@ -43,7 +43,6 @@ namespace Swabbr.Core.Interfaces.Services
         /// <returns><see cref="VlogLikeSummary"/></returns>
         Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId);
 
-        Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId);
 
         Task<Vlog> UpdateAsync(Guid vlogId, Guid userId, bool isPrivate);
 

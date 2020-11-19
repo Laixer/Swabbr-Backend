@@ -17,11 +17,9 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public HealthCheckService(ILivestreamService livestreamService,
-            INotificationService notificationService,
+        public HealthCheckService(INotificationService notificationService,
             IHealthCheckRepository healthCheckRepository)
         {
-            _livestreamService = livestreamService ?? throw new ArgumentNullException(nameof(livestreamService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _healthCheckRepository = healthCheckRepository ?? throw new ArgumentNullException(nameof(healthCheckRepository));
         }
@@ -30,8 +28,7 @@ namespace Swabbr.Core.Services
         ///     Checks the livestream service, notification service and database.
         /// </summary>
         public async Task<bool> IsHealthyAsync()
-            => !await _livestreamService.IsServiceOnlineAsync().ConfigureAwait(false) ||
-                !await _notificationService.IsServiceOnlineAsync().ConfigureAwait(false) ||
-                !await _healthCheckRepository.IsAliveAsync().ConfigureAwait(false);
+            => !await _notificationService.IsServiceOnlineAsync().ConfigureAwait(false) ||
+               !await _healthCheckRepository.IsAliveAsync().ConfigureAwait(false);
     }
 }

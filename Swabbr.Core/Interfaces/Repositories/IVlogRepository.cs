@@ -23,12 +23,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<bool> ExistsAsync(Guid vlogId);
 
         /// <summary>
-        /// Checks to see if there is a <see cref="Vlog"/> that belongs to a
-        /// specified <see cref="Livestream"/>.
         /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns>True if exists</returns>
-        Task<bool> ExistsForLivestreamAsync(Guid livestreamId);
 
         /// <summary>
         /// Returns a collection of featured vlogs.
@@ -44,7 +39,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <returns></returns>
         Task<int> GetVlogCountForUserAsync(Guid userId);
 
-        Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId);
 
         Task<Vlog> GetVlogFromReactionAsync(Guid reactionId);
 

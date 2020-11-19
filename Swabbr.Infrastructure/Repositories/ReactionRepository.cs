@@ -217,8 +217,8 @@ namespace Swabbr.Infrastructure.Repositories
                     SET reaction_state = '{state.GetEnumMemberAttribute()}'
                     WHERE id = @ReactionId";
             var rowsAffected = await connection.ExecuteAsync(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
-            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
+            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Reaction)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
         }
 
     }

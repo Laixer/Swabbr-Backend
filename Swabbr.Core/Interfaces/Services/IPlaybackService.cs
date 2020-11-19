@@ -10,14 +10,6 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IPlaybackService
     {
         /// <summary>
-        ///     Get playback details for a livestream.
-        /// </summary>
-        /// <param name="livestreamId">The livestream to watch.</param>
-        /// <param name="watchingUserId">The user that watches.</param>
-        /// <returns>Playback details.</returns>
-        Task<LivestreamDownstreamDetails> GetLivestreamDownstreamParametersAsync(Guid livestreamId, Guid watchingUserId);
-
-        /// <summary>
         ///     Get playback details for a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to watch.</param>
@@ -32,7 +24,5 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="watchingUserId">The user that watches.</param>
         /// <returns>Playback details.</returns>
         Task<ReactionPlaybackDetails> GetReactionDownstreamParametersAsync(Guid reactionId, Guid watchingUserId);
-
     }
-
 }

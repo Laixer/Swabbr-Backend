@@ -204,21 +204,6 @@ namespace Swabbr.Core.Services
         public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount) => _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
 
         /// <summary>
-        /// Gets a <see cref="Vlog"/> that belongs to a <see cref="Livestream"/>.
-        /// </summary>
-        /// <remarks>
-        /// This returns <see cref="EntityNotFoundException"/> if no <see cref="Vlog"/>
-        /// is currently bound to the specified <see cref="Livestream"/>.
-        /// </remarks>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Vlog"/></returns>
-        public Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-            return _vlogRepository.GetVlogFromLivestreamAsync(livestreamId);
-        }
-
-        /// <summary>
         ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
         /// </summary>
         /// <remarks>
