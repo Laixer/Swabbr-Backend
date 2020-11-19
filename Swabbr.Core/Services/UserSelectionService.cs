@@ -8,41 +8,44 @@ using System;
 using System.Collections.Generic;
 using System.Data.HashFunction.MurmurHash;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
     /// <summary>
     ///     Handles our hash distribution for user selection.
     /// </summary>
-    public sealed class HashDistributionService : IHashDistributionService
+    public sealed class UserSelectionService : IUserSelectionService
     {
-        private readonly SwabbrConfiguration config;
+        private readonly IUserService _userService;
+        private readonly SwabbrConfiguration _options;
         private static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
         private static readonly UTF8Encoding encoder = new UTF8Encoding();
 
-        public uint ValidMinutes => config.VlogRequestEndTimeMinutes - config.VlogRequestStartTimeMinutes;
+        public uint ValidMinutes => _options.VlogRequestEndTimeMinutes - _options.VlogRequestStartTimeMinutes;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public HashDistributionService(IOptions<SwabbrConfiguration> options)
+        public UserSelectionService(IUserService userService,
+            IOptions<SwabbrConfiguration> options)
         {
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
             options.Value.ThrowIfInvalid();
-            config = options.Value;
+            _options = options.Value;
         }
 
         /// <summary>
-        /// Uses hash distribution to get all users which trigger in a given moment.
+        ///     Uses hash distribution to get all users 
+        ///     which trigger in a given moment.
         /// </summary>
-        /// <param name="users"><see cref="SwabbrUser"/></param>
         /// <param name="time"><see cref="DateTimeOffset"/></param>
         /// <param name="offset"><see cref="TimeSpan"/></param>
         /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public IEnumerable<SwabbrUser> GetForMinute(IEnumerable<SwabbrUser> users, DateTimeOffset time, TimeSpan? offset = null)
+        public async Task<IEnumerable<SwabbrUser>> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
         {
-            if (users == null) { throw new ArgumentNullException(nameof(users)); }
-            if (time == null) { throw new ArgumentNullException(nameof(time)); }
+            var users = await _userService.GetAllVloggableUsersAsync().ConfigureAwait(false);
 
             var day = new DateTime(time.Year, time.Month, time.Day);
             var timeUtc = time.ToUniversalTime() + (offset ?? TimeSpan.Zero);
@@ -52,7 +55,7 @@ namespace Swabbr.Core.Services
             foreach (var user in users)
             {
                 // Perform one check for each possible vlog request
-                for (int i = 1; i <= Math.Min(config.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
+                for (int i = 1; i <= Math.Min(_options.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
                 {
                     var userMinute = GetHashMinute(user, day, i);
                     var userMinuteCorrected = userMinute - user.Timezone.BaseUtcOffset.TotalMinutes;
@@ -70,19 +73,19 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        /// Hashes a single <see cref="SwabbrUser"/> into a corresponding minute
-        /// of the day, represented as <see cref="int"/> value.
+        ///     Hashes a single user into a corresponding minute
+        ///     of the day, represented as <see cref="int"/> value.
         /// </summary>
         /// <remarks>
-        /// This algorithm computes a Murmur3 hash of a composed string value which contains:
-        ///     - The user id
-        ///     - The day
-        ///     - The request index, ranging between 1 and the vlog request limit for that user
-        /// The computed hash is then converted to a uint32. The resulting minute is computed
-        /// by taking the <see cref="SwabbrConfiguration.VlogRequestStartTimeMinutes"/> plus
-        /// the uint32 modulo <see cref="SwabbrConfiguration.VlogRequestEndTimeMinutes"/>.
+        ///     This algorithm computes a Murmur3 hash of a composed string value which contains:
+        ///         - The user id
+        ///         - The day
+        ///         - The request index, ranging between 1 and the vlog request limit for that user
+        ///     The computed hash is then converted to a uint32. The resulting minute is computed
+        ///     by taking the <see cref="SwabbrConfiguration.VlogRequestStartTimeMinutes"/> plus
+        ///     the uint32 modulo <see cref="SwabbrConfiguration.VlogRequestEndTimeMinutes"/>.
         /// 
-        /// This ignores the <see cref="SwabbrUser.Timezone"/> value.
+        ///     This ignores the <see cref="SwabbrUser.Timezone"/> value.
         /// </remarks>
         /// <param name="user"><see cref="SwabbrUser"/></param>
         /// <param name="day"><see cref="DateTime"/></param>
@@ -100,14 +103,17 @@ namespace Swabbr.Core.Services
             // TODO Make sure we never exceed a byte[] length of 4
             var number = BitConverter.ToUInt32(hash.Hash, 0);
             // In theory this can overflow, but in practise we ALWAYS shrink this down to somewhere within 24*60 minutes
-            var minute = config.VlogRequestStartTimeMinutes + (number % ValidMinutes);
+            var minute = _options.VlogRequestStartTimeMinutes + (number % ValidMinutes);
             return (int)Math.Abs(minute);
         }
 
+        // TODO Move to helper
+        /// <summary>
+        ///     Extracts the minutes from a date time offset.
+        /// </summary>
+        /// <param name="date">The object to extract from.</param>
+        /// <returns>The amount of minutes in the object.</returns>
         private static int GetMinutes(DateTimeOffset date)
-        {
-            if (date.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(date)); }
-            return date.Hour * 60 + date.Minute;
-        }
+            => date.Hour * 60 + date.Minute;
     }
 }
