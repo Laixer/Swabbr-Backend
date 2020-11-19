@@ -1,28 +1,52 @@
 ﻿namespace Swabbr.Core.Notifications
 {
-
     /// <summary>
-    /// Enum that represents all possible notification actions.
+    ///     Enum that represents all possible notification actions.
     /// </summary>
+    /// <remarks>
+    ///     This is mainly used to explicitly indicate the kind of 
+    ///     notification to receiving parties.
+    /// </remarks>
     public enum NotificationAction
     {
+        /// <summary>
+        ///     Indicates that a followed profile is live.
+        /// </summary>
+        FollowedProfileLive = 0,
 
-        FollowedProfileLive,
+        /// <summary>
+        ///     Indicates a followed profile posted a new vlog.
+        /// </summary>
+        FollowedProfileVlogPosted = 1,
 
-        FollowedProfileVlogPosted,
+        /// <summary>
+        ///     Used to motivate the user to be more active.
+        /// </summary>
+        InactiveUserMotivate = 2,
 
-        InactiveUserMotivate,
+        /// <summary>
+        ///     Indicates the user has unwatched new vlogs.
+        /// </summary>
+        InactiveUnwatchedVlogs = 3,
 
-        InactiveUnwatchedVlogs,
+        /// <summary>
+        ///     Indicates the user should record more vlogs.
+        /// </summary>
+        InactiveVlogRecordRequest = 4,
 
-        InactiveVlogRecordRequest,
+        /// <summary>
+        ///     Indicates a user vlog gained a like.
+        /// </summary>
+        VlogGainedLikes = 5,
 
-        VlogGainedLikes,
+        /// <summary>
+        ///     Indicates a user vlog gained a reaction.
+        /// </summary>
+        VlogNewReaction = 6,
 
-        VlogNewReaction,
-
-        VlogRecordRequest
-
+        /// <summary>
+        ///     Requests the user to start vlogging.
+        /// </summary>
+        VlogRecordRequest = 7
     }
-
 }

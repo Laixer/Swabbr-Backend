@@ -9,6 +9,7 @@ namespace Swabbr.Core.Entities
     /// </summary>
     public class FollowRequest : EntityBase<FollowRequestId>
     {
+        // TODO Check this with Dapper.
         /// <summary>
         ///     Constructor to ensure <see cref="FollowRequestId"/> initialization.
         /// </summary>

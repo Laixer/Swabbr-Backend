@@ -80,7 +80,7 @@ namespace Swabbr.Core.Services
 
             // Process notifications
             var parameters = await _livestreamingService.GetParametersRecordVlogAsync(livestream.Id, triggerMinute).ConfigureAwait(false);
-            await _notificationService.NotifyVlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
+            await _notificationService.NotifyVlogRecordRequestAsync(userId, parameters).ConfigureAwait(false);
 
             // First commit, then log success
             scope.Complete();

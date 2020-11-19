@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.AzureMediaServices.Clients
 {
+    // TODO This is coupled with 111 different types from 24 different namespaces. Clean up?
     /// <summary>
     ///     Communicates with Azure Media Services.
     /// </summary>
@@ -417,13 +418,12 @@ namespace Swabbr.AzureMediaServices.Clients
         /// <summary>
         /// Gets <see cref="StreamingLocator"/> paths for a vlog.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id (can belong
-        /// to a <see cref="Core.Entities.Livestream"/>)</param>
-        /// <returns><see cref="StreamingLocator"/> paths</returns>
-        public Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid vlogId)
+        /// <param name="correspondingVlogId">Internal vlog id (can belong to a livestream).</param>
+        /// <returns>All streaming locator paths.</returns>
+        public Task<IEnumerable<string>> GetVlogStreamingLocatorPathsAsync(Guid correspondingVlogId)
         {
-            vlogId.ThrowIfNullOrEmpty();
-            return GettreamingLocatorPathsAsync(AMSNameGenerator.VlogStreamingLocatorName(vlogId));
+            correspondingVlogId.ThrowIfNullOrEmpty();
+            return GetStreamingLocatorPathsAsync(AMSNameGenerator.VlogStreamingLocatorName(correspondingVlogId));
         }
 
         /// <summary>
@@ -434,7 +434,7 @@ namespace Swabbr.AzureMediaServices.Clients
         public Task<IEnumerable<string>> GetReactionStreamingLocatorPathsAsync(Guid reactionId)
         {
             reactionId.ThrowIfNullOrEmpty();
-            return GettreamingLocatorPathsAsync(AMSNameGenerator.ReactionStreamingLocatorName(reactionId));
+            return GetStreamingLocatorPathsAsync(AMSNameGenerator.ReactionStreamingLocatorName(reactionId));
         }
 
         /// <summary>
@@ -756,7 +756,7 @@ namespace Swabbr.AzureMediaServices.Clients
             }
         }
 
-        private async Task<IEnumerable<string>> GettreamingLocatorPathsAsync(string streamingLocatorName)
+        private async Task<IEnumerable<string>> GetStreamingLocatorPathsAsync(string streamingLocatorName)
         {
             streamingLocatorName.ThrowIfNullOrEmpty();
 

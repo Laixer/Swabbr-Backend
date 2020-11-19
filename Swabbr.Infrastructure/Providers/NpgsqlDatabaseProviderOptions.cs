@@ -6,8 +6,8 @@
     public sealed class NpgsqlDatabaseProviderOptions
     {
         /// <summary>
-        /// The name of the connection string in the IConfigurations file.
+        ///     The name of the connection string as specified.
         /// </summary>
-        public string ConnectionString { get; set; }
+        public string ConnectionStringName { get; set; }
     }
 }

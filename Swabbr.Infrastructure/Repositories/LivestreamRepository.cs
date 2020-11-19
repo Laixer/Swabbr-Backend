@@ -261,13 +261,13 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Marks a <see cref="Livestream"/> as created.
         /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="id">Internal <see cref="Livestream"/> id</param>
         /// <param name="externalId">External <see cref="Livestream"/> id</param>
         /// <param name="broadcastLocation">External broadcasting location name</param>
         /// <returns><see cref="Task"/></returns>
-        public async Task MarkCreatedAsync(Guid livestreamId, string externalId, string broadcastLocation)
+        public async Task MarkCreatedAsync(Guid id, string externalId, string broadcastLocation)
         {
-            livestreamId.ThrowIfNullOrEmpty();
+            id.ThrowIfNullOrEmpty();
             externalId.ThrowIfNullOrEmpty();
             broadcastLocation.ThrowIfNullOrEmpty();
 
@@ -278,7 +278,7 @@ namespace Swabbr.Infrastructure.Repositories
                         external_id = @ExternalId,
                         livestream_state = '{LivestreamState.Created.GetEnumMemberAttribute()}'
                     WHERE id = @Id";
-            var pars = new { Id = livestreamId, BroadcastLocation = broadcastLocation, ExternalId = externalId };
+            var pars = new { Id = id, BroadcastLocation = broadcastLocation, ExternalId = externalId };
             var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
             if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(Livestream)); }
             if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Livestream)); }
@@ -287,11 +287,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         /// Marks a <see cref="Livestream"/> as <see cref="LivestreamState.Live"/>.
         /// </summary>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
+        /// <param name="id">Internal <see cref="Livestream"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public Task MarkLiveAsync(Guid livestreamId)
+        public Task MarkLiveAsync(Guid id)
         {
-            return MarkAsStateAsync(livestreamId, LivestreamState.Live);
+            return MarkAsStateAsync(id, LivestreamState.Live);
         }
 
         /// <summary>

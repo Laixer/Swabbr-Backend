@@ -45,10 +45,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="Task"/></returns>
-        public Task AddView(Guid vlogId)
-        {
-            return _vlogRepository.AddView(vlogId);
-        }
+        public Task AddView(Guid vlogId) => _vlogRepository.AddView(vlogId);
 
         /// <summary>
         /// Soft deletes a <see cref="Vlog"/> in our data store.
@@ -78,10 +75,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="Vlog"/></returns>
-        public Task<Vlog> GetAsync(Guid vlogId)
-        {
-            return _vlogRepository.GetAsync(vlogId);
-        }
+        public Task<Vlog> GetAsync(Guid vlogId) => _vlogRepository.GetAsync(vlogId);
 
         /// <summary>
         /// Gets all <see cref="VlogLike"/> entities that belong to a given
@@ -89,10 +83,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLike"/> collection</returns>
-        public Task<IEnumerable<VlogLike>> GetAllVlogLikesForVlogAsync(Guid vlogId)
-        {
-            return _vlogLikeRepository.GetAllForVlogAsync(vlogId);
-        }
+        public Task<IEnumerable<VlogLike>> GetAllVlogLikesForVlogAsync(Guid vlogId) => _vlogLikeRepository.GetAllForVlogAsync(vlogId);
 
         /// <summary>
         /// Creates a <see cref="VlogLike"/> between a <see cref="Vlog"/>
@@ -113,20 +104,22 @@ namespace Swabbr.Core.Services
             userId.ThrowIfNullOrEmpty();
 
             var vlogLikeId = new VlogLikeId { VlogId = vlogId, UserId = userId };
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            if (await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new OperationAlreadyExecutedException("User already liked given vlog"); }
+            if ((await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false)).UserId == userId) { throw new NotAllowedException("Can't like your own vlog"); }
+
+            await _vlogLikeRepository.CreateAsync(new VlogLike
             {
-                if (await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new OperationAlreadyExecutedException("User already liked given vlog"); }
-                if ((await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false)).UserId == userId) { throw new NotAllowedException("Can't like your own vlog"); }
+                Id = vlogLikeId
+            }).ConfigureAwait(false);
 
-                await _vlogLikeRepository.CreateAsync(new VlogLike
-                {
-                    Id = vlogLikeId
-                }).ConfigureAwait(false);
+            scope.Complete();
 
-                scope.Complete();
-            }
+            // We need the vlog id for our notification service.
+            var vlog = await GetAsync(vlogId).ConfigureAwait(false);
 
-            await _notificationService.NotifyVlogLikedAsync(vlogLikeId).ConfigureAwait(false);
+            await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -135,10 +128,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="Vlog"/> collection</returns>
-        public Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId)
-        {
-            return _vlogRepository.GetVlogsFromUserAsync(userId);
-        }
+        public Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId) => _vlogRepository.GetVlogsFromUserAsync(userId);
 
         /// <summary>
         /// Unlikes a <see cref="Vlog"/> by deleting the corresponding 
@@ -202,10 +192,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns>Boolean result</returns>
-        public Task<bool> ExistsAsync(Guid vlogId)
-        {
-            return _vlogRepository.ExistsAsync(vlogId);
-        }
+        public Task<bool> ExistsAsync(Guid vlogId) => _vlogRepository.ExistsAsync(vlogId);
 
         /// <summary>
         /// Gets a collection of recommended <see cref="Vlog"/>s for a given
@@ -214,10 +201,7 @@ namespace Swabbr.Core.Services
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <param name="maxCount">Maximum result count</param>
         /// <returns><see cref="Vlog"/> collection</returns>
-        public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount)
-        {
-            return _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
-        }
+        public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount) => _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
 
         /// <summary>
         /// Gets a <see cref="Vlog"/> that belongs to a <see cref="Livestream"/>.
@@ -239,7 +223,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <remarks>
         ///     The <see cref="VlogLikeSummary.Users"/> does not need
-        ///     to contain all the <see cref="SwabbrUserSimplified"/> users.
+        ///     to contain all the <see cref="SwabbrUser"/> users.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikeSummary"/></returns>
