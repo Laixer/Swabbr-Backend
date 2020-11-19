@@ -10,7 +10,6 @@ namespace Swabbr.Core.Services
     /// </summary>
     public sealed class HealthCheckService : IHealthCheckService
     {
-        private readonly ILivestreamService _livestreamService;
         private readonly INotificationService _notificationService;
         private readonly IHealthCheckRepository _healthCheckRepository;
 

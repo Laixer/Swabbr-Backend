@@ -30,13 +30,6 @@ namespace Swabbr.Core.Interfaces.Services
         Task NotifyVlogRecordTimeoutAsync(Guid userId);
 
         /// <summary>
-        ///     Notify all followers of a user that the user is live.
-        /// </summary>
-        /// <param name="userId">User that is live.</param>
-        /// <param name="pars">The livestream parameters.</param>
-        Task NotifyFollowersProfileLiveAsync(Guid userId, ParametersFollowedProfileLive pars);
-
-        /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
         /// <param name="userId">User that posted a vlog.</param>

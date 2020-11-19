@@ -19,13 +19,8 @@ using Microsoft.OpenApi.Models;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Configuration;
 using Swabbr.Api.Services;
-using Swabbr.AzureMediaServices.Clients;
-using Swabbr.AzureMediaServices.Configuration;
-using Swabbr.AzureMediaServices.Extensions;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
-using Swabbr.AzureMediaServices.Interfaces.Services;
-using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Configuration;
+using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
@@ -70,7 +65,6 @@ namespace Swabbr
                 _configuration.GetSection("NotificationHub").Bind(options);
                 options.ConnectionString = _configuration.GetConnectionString("AzureNotificationHub");
             });
-            services.Configure<AMSConfiguration>(_configuration.GetSection("AzureMediaServices"));
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
             services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
 
@@ -100,30 +94,13 @@ namespace Swabbr
             services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
             // Configure DI for services
-            services.AddTransient<IAMSTokenService, AMSTokenService>();
             services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<IHashDistributionService, HashDistributionService>();
+            services.AddTransient<IUserSelectionService, UserSelectionService>();
             services.AddTransient<IHealthCheckService, HealthCheckService>();
-            services.AddTransient<IPlaybackService, AMSPlaybackService>();
-
-            // TODO This seems incorrect (other services still use IReactionService)
-            services.AddTransient<IReactionService, AMSReactionService>();
-            services.AddTransient<IReactionWithThumbnailService, AMSReactionWithThumbnailService>();
-
-            services.AddTransient<IStorageService, AMSStorageService>();
             services.AddTransient<ITokenService, TokenService>();
-
-            // TODO This seems incorrect (other services still use IVlogService)
             services.AddTransient<IVlogService, VlogService>();
-            services.AddTransient<IVlogWithThumbnailService, VlogWithThumbnailService>();
-
-            services.AddTransient<IVlogTriggerService, VlogTriggerService>();
+            services.AddTransient<IVlogRequestService, VlogRequestService>();
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IUserStreamingHandlingService, UserStreamingHandlingService>();
-            services.AddTransient<IUserWithStatsService, UserWithStatsService>();
-
-            // Configure DI for clients and helpers
-            services.AddSingleton<IAMSClient, AMSClient>();
         }
 
         /// <summary>
