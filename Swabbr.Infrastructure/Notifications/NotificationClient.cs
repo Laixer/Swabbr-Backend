@@ -84,7 +84,6 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 throw new ArgumentNullException(nameof(internalRegistration));
             }
-            internalRegistration.Handle.ThrowIfNullOrEmpty();
 
             // Create new registration and return the converted result
             var externalRegistration = await _hubClient.CreateRegistrationAsync(ExtractForCreation(internalRegistration)).ConfigureAwait(false);
@@ -112,8 +111,10 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="internalRegistration">Internal registration object.</param>
         internal async Task UnregisterAsync(NotificationRegistration internalRegistration)
         {
-            if (internalRegistration == null) { throw new ArgumentNullException(nameof(internalRegistration)); }
-            internalRegistration.ThrowIfInvalid();
+            if (internalRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(internalRegistration));
+            }
 
             // Throw if no registration exists
             if (!await IsRegisteredAsync(internalRegistration.UserId).ConfigureAwait(false))
@@ -147,11 +148,6 @@ namespace Swabbr.Infrastructure.Notifications
         internal async Task SendNotificationAsync(Guid userId, PushNotificationPlatform platform, SwabbrNotification notification)
         {
             userId.ThrowIfNullOrEmpty();
-            if (notification == null)
-            {
-                throw new ArgumentNullException(nameof(notification));
-            }
-            // TODO Validate notification
 
             switch (platform)
             {
@@ -181,6 +177,9 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 throw new ArgumentNullException(nameof(notificationRegistration));
             }
+
+            // Prevent an invalid registration from being created
+            notificationRegistration.UserId.ThrowIfNullOrEmpty();
             notificationRegistration.Handle.ThrowIfNullOrEmpty();
 
             // Use the user id as tag (as recommended by Azure Notification Hub docs)
@@ -204,6 +203,11 @@ namespace Swabbr.Infrastructure.Notifications
         /// </remarks>
         /// <param name="userId">The internal user id to check.</param>
         private async Task<bool> IsRegisteredAsync(Guid userId)
-            => (await _hubClient.GetRegistrationsByTagAsync(userId.ToString(), 0).ConfigureAwait(false)).Any();
+        {
+            // Avoid checking for empty registrations
+            userId.ThrowIfNullOrEmpty();
+
+            return (await _hubClient.GetRegistrationsByTagAsync(userId.ToString(), 0).ConfigureAwait(false)).Any();
+        }
     }
 }

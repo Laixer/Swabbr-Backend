@@ -58,8 +58,6 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="pars">The livestream parameters.</param>
         public virtual async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars)
         {
-            userId.ThrowIfNullOrEmpty();
-            livestreamId.ThrowIfNullOrEmpty();
             if (pars == null)
             {
                 throw new ArgumentNullException(nameof(pars));
@@ -86,9 +84,6 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="vlogId">The posted vlog id.</param>
         public virtual async Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
         {
-            userId.ThrowIfNullOrEmpty();
-            vlogId.ThrowIfNullOrEmpty();
-
             _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Attempting notifying followers for posted vlog {vlogId} from user {userId}");
 
             // Notify each follower individually.
@@ -111,8 +106,6 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="pars">The recording parameters.</param>
         public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
         {
-            userId.ThrowIfNullOrEmpty();
-            livestreamId.ThrowIfNullOrEmpty();
             pars.Validate();
 
             _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request for livestream {livestreamId} to user {userId}");
@@ -135,10 +128,6 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="reactionId">The placed reaction id.</param>
         public virtual async Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
-            receivingUserId.ThrowIfNullOrEmpty();
-            vlogId.ThrowIfNullOrEmpty();
-            reactionId.ThrowIfNullOrEmpty();
-
             _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
@@ -160,9 +149,6 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 throw new ArgumentNullException(nameof(vlogLikeId));
             }
-            vlogLikeId.UserId.ThrowIfNullOrEmpty();
-            vlogLikeId.VlogId.ThrowIfNullOrEmpty();
-            receivingUserId.ThrowIfNullOrEmpty();
 
             _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
 
@@ -188,9 +174,6 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="handle">Device handle.</param>
         public virtual async Task RegisterAsync(Guid userId, PushNotificationPlatform platform, string handle)
         {
-            userId.ThrowIfNullOrEmpty();
-            handle.ThrowIfNullOrEmpty();
-
             // First clear the existing registration if it exists
             var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
             if (registrations.Any())
