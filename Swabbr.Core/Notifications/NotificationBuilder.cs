@@ -1,6 +1,4 @@
-﻿using Swabbr.Core.Extensions;
-using Swabbr.Core.Notifications.JsonWrappers;
-using Swabbr.Core.Utility;
+﻿using Swabbr.Core.Notifications.JsonWrappers;
 using System;
 
 namespace Swabbr.Core.Notifications
@@ -23,18 +21,12 @@ namespace Swabbr.Core.Notifications
         /// <param name="liveVlogId">The corresponding vlog.</param>
         /// <returns>Notification object.</returns>
         public static SwabbrNotification BuildFollowedProfileLive(Guid liveUserId, Guid livestreamId, Guid liveVlogId)
-        {
-            liveUserId.ThrowIfNullOrEmpty();
-            livestreamId.ThrowIfNullOrEmpty();
-            liveVlogId.ThrowIfNullOrEmpty();
-
-            return new SwabbrNotification(NotificationAction.FollowedProfileLive, new ParametersFollowedProfileLive
+            => new SwabbrNotification(NotificationAction.FollowedProfileLive, new ParametersFollowedProfileLive
             {
                 LiveLivestreamId = livestreamId,
                 LiveUserId = liveUserId,
                 LiveVlogId = liveVlogId
             }, title: DefaultTitle, message: DefaultTitle);
-        }
 
         /// <summary>
         ///     Build a notification for indicating that a followed
@@ -44,16 +36,11 @@ namespace Swabbr.Core.Notifications
         /// <param name="vlogOwnerUserId">The vlog owner.</param>
         /// <returns>Notification object.</returns>
         public static SwabbrNotification BuildFollowedProfileVlogPosted(Guid vlogId, Guid vlogOwnerUserId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-            vlogOwnerUserId.ThrowIfNullOrEmpty();
-
-            return new SwabbrNotification(NotificationAction.FollowedProfileVlogPosted, new ParametersFollowedProfileVlogPosted
+            => new SwabbrNotification(NotificationAction.FollowedProfileVlogPosted, new ParametersFollowedProfileVlogPosted
             {
                 VlogId = vlogId,
                 VlogOwnerUserId = vlogOwnerUserId
             }, title: DefaultTitle, message: DefaultTitle);
-        }
 
         /// <summary>
         ///     Build a notification for indicating that a user
@@ -65,20 +52,13 @@ namespace Swabbr.Core.Notifications
         /// <param name="requestTimeout">The timeout of the request.</param>
         /// <returns>Notification object.</returns>
         public static SwabbrNotification BuildRecordVlog(Guid livestreamId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-            vlogId.ThrowIfNullOrEmpty();
-            requestMoment.ThrowIfNullOrEmpty();
-            // TODO Timespan nullcheck
-
-            return new SwabbrNotification(NotificationAction.VlogRecordRequest, new ParametersRecordVlog
+            => new SwabbrNotification(NotificationAction.VlogRecordRequest, new ParametersRecordVlog
             {
                 LivestreamId = livestreamId,
                 RequestMoment = requestMoment,
                 RequestTimeout = requestTimeout,
                 VlogId = vlogId
             }, title: DefaultTitle, message: DefaultTitle);
-        }
 
         /// <summary>
         ///     Build a notification for indicating that a vlog
@@ -88,16 +68,11 @@ namespace Swabbr.Core.Notifications
         /// <param name="userThatLikedId">The user that liked.</param>
         /// <returns>Notification object.</returns>
         public static SwabbrNotification BuildVlogGainedLike(Guid vlogId, Guid userThatLikedId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-            userThatLikedId.ThrowIfNullOrEmpty();
-
-            return new SwabbrNotification(NotificationAction.VlogGainedLikes, new ParametersVlogGainedLike
+            => new SwabbrNotification(NotificationAction.VlogGainedLikes, new ParametersVlogGainedLike
             {
                 UserThatLikedId = userThatLikedId,
                 VlogId = vlogId
             }, title: DefaultTitle, message: DefaultTitle);
-        }
 
         /// <summary>
         ///     Build a notification for indicating that a user
@@ -107,15 +82,10 @@ namespace Swabbr.Core.Notifications
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>Notification object.</returns>
         public static SwabbrNotification BuildVlogNewReaction(Guid vlogId, Guid reactionId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-            reactionId.ThrowIfNullOrEmpty();
-
-            return new SwabbrNotification(NotificationAction.VlogNewReaction, new ParametersVlogNewReaction
+            => new SwabbrNotification(NotificationAction.VlogNewReaction, new ParametersVlogNewReaction
             {
                 ReactionId = reactionId,
                 VlogId = vlogId
             }, title: DefaultTitle, message: DefaultTitle);
-        }
     }
 }

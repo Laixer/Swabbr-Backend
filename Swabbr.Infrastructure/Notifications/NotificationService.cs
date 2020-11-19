@@ -2,7 +2,6 @@
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
@@ -54,16 +53,15 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Notify all followers of a user that the user is live.
         /// </summary>
         /// <param name="userId">User that is live.</param>
-        /// <param name="livestreamId">The livestream id.</param>
         /// <param name="pars">The livestream parameters.</param>
-        public virtual async Task NotifyFollowersProfileLiveAsync(Guid userId, Guid livestreamId, ParametersFollowedProfileLive pars)
+        public virtual async Task NotifyFollowersProfileLiveAsync(Guid userId, ParametersFollowedProfileLive pars)
         {
-            if (pars == null)
+            if (pars is null)
             {
                 throw new ArgumentNullException(nameof(pars));
             }
 
-            _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Attempting notifying followers for livestream {livestreamId} from user {userId}");
+            _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Attempting notifying followers from user {userId}");
 
             // Notify each follower individually.
             var notification = NotificationBuilder.BuildFollowedProfileLive(pars.LiveUserId, pars.LiveLivestreamId, pars.LiveVlogId);
@@ -74,7 +72,7 @@ namespace Swabbr.Infrastructure.Notifications
                 _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Notified user {item.UserId}");
             }
 
-            _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Completed notifying followers for livestream {livestreamId} from user {userId}");
+            _logger.LogTrace($"{nameof(NotifyFollowersProfileLiveAsync)} - Completed notifying followers from user {userId}");
         }
 
         /// <summary>
@@ -102,21 +100,23 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Send a vlog record request notification.
         /// </summary>
         /// <param name="userId">User id to notify.</param>
-        /// <param name="livestreamId">The livestream id.</param>
         /// <param name="pars">The recording parameters.</param>
-        public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, Guid livestreamId, ParametersRecordVlog pars)
+        public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, ParametersRecordVlog pars)
         {
-            pars.Validate();
+            if (pars is null)
+            {
+                throw new ArgumentNullException(nameof(pars));
+            }
 
-            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request for livestream {livestreamId} to user {userId}");
+            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request for livestream {pars.LivestreamId} to user {userId}");
 
             if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
 
-            var notification = NotificationBuilder.BuildRecordVlog(livestreamId, pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
+            var notification = NotificationBuilder.BuildRecordVlog(pars.LivestreamId, pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
             await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
 
-            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request for livestream {livestreamId} to user {userId}");
+            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request for livestream {pars.LivestreamId} to user {userId}");
         }
 
         /// <summary>

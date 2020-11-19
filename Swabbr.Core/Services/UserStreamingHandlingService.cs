@@ -82,7 +82,7 @@ namespace Swabbr.Core.Services
             await _livestreamingService.OnUserConnectedToLivestreamAsync(livestreamId, userId).ConfigureAwait(false);
 
             // Notify all followers
-            await _notificationService.NotifyFollowersProfileLiveAsync(userId, livestreamId, new ParametersFollowedProfileLive
+            await _notificationService.NotifyFollowersProfileLiveAsync(userId, new ParametersFollowedProfileLive
             {
                 LiveLivestreamId = livestreamId,
                 LiveUserId = userId,
