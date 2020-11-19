@@ -34,7 +34,7 @@ namespace Swabbr.Api.Controllers
 
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly IPlaybackService _livestreamPlaybackService;
-        private readonly IReactionWithThumbnailService _reactionService;
+        private readonly IReactionService _reactionService;
         private readonly IVlogService _vlogService;
         private readonly ILogger logger;
 
@@ -43,7 +43,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public ReactionsController(UserManager<SwabbrIdentityUser> userManager,
             IPlaybackService livestreamPlaybackService,
-            IReactionWithThumbnailService reactionService,
+            IReactionService reactionService,
             IVlogService vlogService,
             ILoggerFactory loggerFactory)
         {
@@ -69,7 +69,8 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _reactionService.DeleteReactionAsync(user.Id, reactionId).ConfigureAwait(false);
+                // TODO How to ensure we are allowed to this? --> do we own the vlog?
+                await _reactionService.DeleteReactionAsync(reactionId).ConfigureAwait(false);
                 return NoContent();
             }
             catch (NotAllowedException e)
@@ -99,7 +100,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reactionWithThumbnail = await _reactionService.GetWithThumbnailDetailsAsync(reactionId);
+                var reactionWithThumbnail = await _reactionService.GetWithThumbnailAsync(reactionId);
                 return Ok(new ReactionWrapperOutputModel
                 {
                     Reaction = MapperReaction.Map(reactionWithThumbnail.Reaction),
@@ -134,7 +135,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reactions = await _reactionService.GetWithThumbnailForVlogAsync(vlogId);
+                var reactions = await _reactionService.GetReactionsForVlogWithThumbnailsAsync(vlogId);
                 return Ok(new ReactionCollectionOutputModel
                 {
                     Reactions = reactions.Select(x => new ReactionWrapperOutputModel
@@ -208,7 +209,8 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                return Ok(await _reactionService.PostReactionAsync(user.Id, model.TargetVlogId, model.IsPrivate).ConfigureAwait(false));
+                // TODO Post new reaction
+                throw new NotImplementedException();
             }
             catch (EntityNotFoundException e)
             {
@@ -240,7 +242,7 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 return Ok(new ReactionUploadUrlOutputModel
                 {
-                    UploadUri = await _reactionService.GetNewUploadUriAsync(user.Id, reactionId).ConfigureAwait(false)
+                    UploadUri = _reactionService.GetUploadUri(reactionId)
                 });
             }
             catch (EntityNotFoundException e)
@@ -276,7 +278,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                await _reactionService.OnFinishedUploadingReactionAsync(reactionId).ConfigureAwait(false);
+                await _reactionService.OnReactionUploadedAsync(reactionId).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -308,14 +310,26 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
-                if (model == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model can't be null")); }
-                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model state is not valid")); }
+                if (model is null)
+                {
+                    throw new ArgumentNullException(nameof(model));
+                }
 
+                // Act.
+                // TODO Reaction update operation
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reaction = await _reactionService.UpdateReactionAsync(user.Id, reactionId, model.IsPrivate).ConfigureAwait(false);
-                return Ok(MapperReaction.Map(reaction));
+                var reaction = await _reactionService.GetAsync(reactionId).ConfigureAwait(false);
+                reaction.IsPrivate = model.IsPrivate;
+
+                await _reactionService.UpdateReactionAsync(reaction).ConfigureAwait(false);
+                var updatedReaction = await _reactionService.GetAsync(reactionId).ConfigureAwait(false);
+
+                // Map.
+                var result = MapperReaction.Map(updatedReaction);
+
+                // Return.
+                return Ok(result);
             }
             catch (NotAllowedException e)
             {

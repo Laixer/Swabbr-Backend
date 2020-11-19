@@ -13,8 +13,7 @@ using System.Transactions;
 namespace Swabbr.Core.Services
 {
     /// <summary>
-    /// Contains request processing functionality for <see cref="Vlog"/>s and
-    /// <see cref="VlogLike"/>s.
+    ///     Service that handles all vlog related operations.
     /// </summary>
     public class VlogService : IVlogService
     {
@@ -66,7 +65,7 @@ namespace Swabbr.Core.Services
             var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
             if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
 
-            await _vlogRepository.SoftDeleteAsync(vlogId).ConfigureAwait(false);
+            await _vlogRepository.DeleteAsync(vlogId).ConfigureAwait(false);
             scope.Complete();
         }
 
@@ -158,33 +157,25 @@ namespace Swabbr.Core.Services
             scope.Complete();
         }
 
+        // TODO Push functionality to repo?
         /// <summary>
-        /// Updates a <see cref="Vlog"/> in our data store.
-        /// TODO Is this optimal?
+        ///     Updates a vlog in our data store.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="isPrivate">Whether or not the <see cref="Vlog"/> should become
-        /// private</param>
-        /// <returns>Updated and queried <see cref="Vlog"/></returns>
-        public async Task<Vlog> UpdateAsync(Guid vlogId, Guid userId, bool isPrivate)
+        /// <param name="vlog">The vlog with updates properties.</param>
+        public async Task UpdateAsync(Vlog vlog)
         {
-            vlogId.ThrowIfNullOrEmpty();
-            userId.ThrowIfNullOrEmpty();
+            if (vlog is null)
+            {
+                throw new ArgumentNullException(nameof(vlog));
+            }
 
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
-            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
-            if (vlog.UserId != user.Id) { throw new NotAllowedException("User doesn't own vlog"); }
+            var currentVlog = await _vlogRepository.GetAsync(vlog.Id).ConfigureAwait(false);
 
-            vlog.IsPrivate = isPrivate;
-            // TODO Implement shared users here
+            // Copy all updateable properties.
+            // TODO Expand
+            currentVlog.IsPrivate = vlog.IsPrivate;
 
-            var updatedVlog = await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
-
-            // Commit and return
-            scope.Complete();
-            return updatedVlog;
+            await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -214,6 +205,18 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="VlogLikeSummary"/></returns>
         public Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
             => _vlogLikeRepository.GetVlogLikeSummaryForVlogAsync(vlogId);
+
+        public Task CleanupExpiredVlogAsync(Guid vlogId) => throw new NotImplementedException();
+        public Task<Vlog> CreateEmptyVlogForUserAsync(Guid userId) => throw new NotImplementedException();
+        public Task DeleteAsync(Guid vlogId) => throw new NotImplementedException();
+        public Uri GetUploadUriForVlog(Guid vlogId) => throw new NotImplementedException();
+        public Task OnTranscodingFailedAsync(Guid vlogId) => throw new NotImplementedException();
+        public Task OnTranscodingSucceededAsync(Guid vlogId) => throw new NotImplementedException();
+        public Task OnVlogUploadedAsync(Guid vlogId) => throw new NotImplementedException();
+        public Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId) => throw new NotImplementedException();
+        public Task<IEnumerable<VlogWithThumbnailDetails>> GetRecommendedForWithThumbnailUserAsync(Guid userId, uint maxCount) => throw new NotImplementedException();
+        public Task<IEnumerable<VlogWithThumbnailDetails>> GetVlogsFromUserWithThumbnailsAsync(Guid userId) => throw new NotImplementedException();
+        public Uri GetUploadUri(Guid vlogId) => throw new NotImplementedException();
     }
 }
 #pragma warning restore CA1051 // Do not declare visible instance fields

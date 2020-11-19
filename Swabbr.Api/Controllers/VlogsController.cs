@@ -36,8 +36,8 @@ namespace Swabbr.Api.Controllers
     public sealed class VlogsController : ControllerBase
     {
 
-        private readonly IVlogWithThumbnailService _vlogWithThumbnailService;
-        private readonly IUserWithStatsService _userWithStatsService;
+        private readonly IVlogService _vlogService;
+        private readonly IUserService _userService;
         private readonly IPlaybackService _livestreamPlaybackService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
@@ -45,14 +45,14 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public VlogsController(IVlogWithThumbnailService vlogWithThumbnailService,
-            IUserWithStatsService userWithStatsService,
+        public VlogsController(IVlogService vlogService,
+            IUserService userService,
             IPlaybackService livestreamPlaybackService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
-            _vlogWithThumbnailService = vlogWithThumbnailService ?? throw new ArgumentNullException(nameof(vlogWithThumbnailService));
-            _userWithStatsService = userWithStatsService ?? throw new ArgumentNullException(nameof(userWithStatsService));
+            _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogsController)) : throw new ArgumentNullException(nameof(loggerFactory));
@@ -75,8 +75,8 @@ namespace Swabbr.Api.Controllers
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
 
-                var vlogWithThumbnailDetails = await _vlogWithThumbnailService.GetWithThumbnailDetailsAsync(vlogId);
-                var vlogLikeSummary = await _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogId);
+                var vlogWithThumbnailDetails = await _vlogService.GetWithThumbnailAsync(vlogId);
+                var vlogLikeSummary = await _vlogService.GetVlogLikeSummaryForVlogAsync(vlogId);
 
                 return Ok(new VlogWrapperOutputModel
                 {
@@ -118,13 +118,26 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                if (input == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Body can't be null")); }
-                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Input model is invalid")); }
+                if (input is null)
+                {
+                    throw new ArgumentNullException(nameof(input));
+                }
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var vlog = await _vlogService.GetAsync(vlogId).ConfigureAwait(false);
 
-                return Ok(MapperVlog.Map(await _vlogWithThumbnailService.UpdateAsync(vlogId, user.Id, input.IsPrivate).ConfigureAwait(false)));
+                // Map properties
+                vlog.IsPrivate = input.IsPrivate;
+
+                // Act.
+                await _vlogService.UpdateAsync(vlog).ConfigureAwait(false);
+                var updatedVlog = await _vlogService.GetAsync(vlogId).ConfigureAwait(false);
+
+                // Map.
+                var result = MapperVlog.Map(updatedVlog);
+
+                // Return.
+                return Ok(result);
             }
             catch (EntityNotFoundException e)
             {
@@ -159,12 +172,12 @@ namespace Swabbr.Api.Controllers
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 // Get all vlogs.
-                var vlogsWithThumbnails = await _vlogWithThumbnailService.GetVlogsWithThumbnailDetailsFromUserAsync(userId);
+                var vlogsWithThumbnails = await _vlogService.GetVlogsFromUserWithThumbnailsAsync(userId);
 
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
                 {
-                    var vlogLikeSummary = Task.Run(() => _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
+                    var vlogLikeSummary = Task.Run(() => _vlogService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
                     mappedVlogs.Add(new VlogWrapperOutputModel
                     {
                         Vlog = MapperVlog.Map(vlogWithThumbnail.Vlog),
@@ -215,7 +228,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _vlogWithThumbnailService.DeleteAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogService.DeleteAsync(vlogId).ConfigureAwait(false);
 
                 return Ok();
             }
@@ -250,7 +263,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _vlogWithThumbnailService.LikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogService.LikeAsync(vlogId, user.Id).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -289,7 +302,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _vlogWithThumbnailService.UnlikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogService.UnlikeAsync(vlogId, user.Id).ConfigureAwait(false);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -318,10 +331,16 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                if (!await _vlogWithThumbnailService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
-                var vlogLikes = await _vlogWithThumbnailService.GetAllVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
-                var users = await _userWithStatsService.GetFromIdsAsync(vlogLikes.Select(x => x.Id.UserId)).ConfigureAwait(false);
+                var vlogLikes = await _vlogService.GetAllVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
+
+                // TODO Clean up
+                var users = new List<SwabbrUserWithStats>();
+                foreach (var userId in vlogLikes.Select(x => x.Id.UserId))
+                {
+                    users.Add(await _userService.GetWithStatisticsAsync(userId));
+                }
 
                 return Ok(new VlogLikesWithUsersOutputModel
                 {
@@ -358,14 +377,14 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
                 // Get all vlogs.
-                var vlogsWithThumbnails = await _vlogWithThumbnailService.GetRecommendedVlogsWithThumbnailDetailsForUserAsync(user.Id, maxCount);
+                var vlogsWithThumbnails = await _vlogService.GetRecommendedForWithThumbnailUserAsync(user.Id, maxCount);
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
 
                 // Process each vlog separately.
                 // TODO Duplicate code.
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
                 {
-                    var vlogLikeSummary = Task.Run(() => _vlogWithThumbnailService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
+                    var vlogLikeSummary = Task.Run(() => _vlogService.GetVlogLikeSummaryForVlogAsync(vlogWithThumbnail.Vlog.Id)).Result;
                     mappedVlogs.Add(new VlogWrapperOutputModel
                     {
                         Vlog = MapperVlog.Map(vlogWithThumbnail.Vlog),

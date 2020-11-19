@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core.Enums;
+using System;
 
 namespace Swabbr.Core.Entities
 {
@@ -11,12 +12,6 @@ namespace Swabbr.Core.Entities
         ///     Id of the user who created the vlog.
         /// </summary>
         public Guid UserId { get; set; }
-
-        // TODO This isn't vlog-info --> remove?
-        /// <summary>
-        ///     References the <see cref="Livestream"/> on which this vlog was created.
-        /// </summary>
-        public Guid LivestreamId { get; set; }
 
         /// <summary>
         ///     Indicates if the vlog should be publicly available to other users.
@@ -37,5 +32,10 @@ namespace Swabbr.Core.Entities
         ///     The length of this vlog in seconds.
         /// </summary>
         public uint LengthInSeconds { get; set; }
+
+        /// <summary>
+        ///     Indicates the state of this vlog.
+        /// </summary>
+        public VlogState VlogState { get; set; }
     }
 }

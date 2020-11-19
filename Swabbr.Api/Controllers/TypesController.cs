@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.ViewModels.Notifications.JsonWrappers;
-using Swabbr.AzureMediaServices.Interfaces.Clients;
-using Swabbr.AzureMediaServices.Services;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
@@ -25,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
-
+    // TODO This seems like very incorrect usage of Swagger.
     /// <summary>
     /// This contains information about the API types.
     /// </summary>
@@ -35,7 +33,6 @@ namespace Swabbr.Api.Controllers
     [Route("api/{version:apiVersion}/types")]
     public class TypesController : ApiControllerBase
     {
-
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
@@ -50,17 +47,6 @@ namespace Swabbr.Api.Controllers
         public IActionResult NotificationWrapper()
         {
             return Ok(new NotificationPayloadJsonWrapperModel());
-        }
-
-        /// <summary>
-        /// JSON wrapper for the data part of clickaction <see cref="NotificationAction.FollowedProfileLive"/>.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("get_notification_followed_profile_live")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ParametersFollowedProfileLive))]
-        public IActionResult NotificationDataFollowedProfileLive()
-        {
-            return Ok(new ParametersFollowedProfileLive());
         }
 
         /// <summary>
@@ -121,7 +107,5 @@ namespace Swabbr.Api.Controllers
             }
             return Ok(result);
         }
-
     }
-
 }

@@ -7,7 +7,7 @@
     public sealed class ReactionCountOutputModel
     {
 
-        public int ReactionCount { get; set; }
+        public uint ReactionCount { get; set; }
 
     }
 
