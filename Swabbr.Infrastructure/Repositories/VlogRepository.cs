@@ -9,27 +9,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
 using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
-
     /// <summary>
-    /// Repository for <see cref="Vlog"/> entities.
+    ///     Repository for vlog entities.
     /// </summary>
     public sealed class VlogRepository : IVlogRepository
     {
-
         private readonly IDatabaseProvider _databaseProvider;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public VlogRepository(IDatabaseProvider databaseProvider)
-        {
-            _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-        }
+        public VlogRepository(IDatabaseProvider databaseProvider) => _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
 
         /// <summary>
         /// Adds a single view to a <see cref="Vlog"/>.
@@ -82,6 +76,19 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        ///     Soft deletes a vlog in our data store.
+        /// </summary>
+        /// <param name="id">The vlog to delete.</param>
+        public async Task DeleteAsync(Guid id)
+        {
+            using var connection = _databaseProvider.GetConnectionScope();
+            var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogState.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
+            var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
+            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
+            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
+        }
+
+        /// <summary>
         /// Checks if a given <see cref="Vlog"/> exists.
         /// </summary>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
@@ -122,10 +129,7 @@ namespace Swabbr.Infrastructure.Repositories
             return result.First();
         }
 
-        public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync() => throw new NotImplementedException();
 
         /// <summary>
         /// Returns a collection of <see cref="Vlog"/>s based on a users 
@@ -153,11 +157,7 @@ namespace Swabbr.Infrastructure.Repositories
             return await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
         }
 
-        public Task<int> GetVlogCountForUserAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
+        public Task<int> GetVlogCountForUserAsync(Guid userId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets a <see cref="Vlog"/> based on a <see cref="Reaction"/>.
@@ -202,62 +202,34 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// Deletes a <see cref="Vlog"/> from our database.
-        /// </summary>
-        /// <remarks>
-        /// This throws an <see cref="Core.Exceptions.EntityNotFoundException"/> if we can't find the entity.
-        /// </remarks>
-        /// <param name="id">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task HardDeleteAsync(Guid id)
-        {
-            return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableVlog);
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Vlog"/> as <see cref="VlogState.Deleted"/>.
-        /// </summary>
-        /// <param name="id">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task SoftDeleteAsync(Guid id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogState.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
-            var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
-            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-        }
-
-        /// <summary>
         /// Updates a <see cref="Vlog"/> in our database.
         /// </summary>
         /// <param name="entity"><see cref="Vlog"/></param>
         /// <returns>Updated and queried <see cref="Vlog"/></returns>
-        public async Task<Vlog> UpdateAsync(Vlog entity)
+        public async Task UpdateAsync(Vlog entity)
         {
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
             entity.Id.ThrowIfNullOrEmpty();
 
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             using var connection = _databaseProvider.GetConnectionScope();
-            await GetAsync(entity.Id).ConfigureAwait(false); // FOR UPATE
+            await GetAsync(entity.Id).ConfigureAwait(false);
 
             var sql = $@"
                         UPDATE {TableVlog} SET
                             is_private = @IsPrivate
                         WHERE id = @Id
                         AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+
             int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
-            if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
-            if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple results on single get"); }
-
-            var result = await GetAsync(entity.Id).ConfigureAwait(false);
-            scope.Complete();
-            return result;
+            if (rowsAffected <= 0)
+            {
+                throw new EntityNotFoundException(nameof(Vlog));
+            }
+            if (rowsAffected > 1)
+            {
+                throw new MultipleEntitiesFoundException(nameof(Vlog));
+            }
         }
-
     }
 
 }

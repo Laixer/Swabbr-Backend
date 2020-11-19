@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
+    // TODO Remove this? Also make IBlobStorageService
     /// <summary>
     ///     Contract for managing storage.
     /// </summary>
