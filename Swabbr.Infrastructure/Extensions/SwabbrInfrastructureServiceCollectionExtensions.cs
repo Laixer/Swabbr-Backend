@@ -5,6 +5,7 @@ using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
+using Swabbr.Infrastructure.Storage;
 using System;
 
 namespace Swabbr.Infrastructure.Extensions
@@ -50,6 +51,9 @@ namespace Swabbr.Infrastructure.Extensions
             // Add notification package
             services.AddTransient<INotificationService, NotificationService>();
             services.AddSingleton<NotificationClient>();
+
+            // Add storage package
+            services.AddSingleton<IBlobStorageService, SpacesBlobStorageService>();
 
             return services;
         }
