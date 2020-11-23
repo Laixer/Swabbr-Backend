@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Swabbr.Infrastructure.Storage
+namespace Swabbr.Core.Storage
 {
     // TODO This might be too specific for S3.
     /// <summary>
