@@ -16,7 +16,7 @@ namespace Swabbr.Core.Services
     /// <remarks>
     ///     TODO This depends on <see cref="INotificationService"/> 
     ///     which seems incorrect, as this has nothing to do with
-    ///     livestreams themself. Use queue in future.
+    ///     vlogs themself. Use queue in future.
     /// </remarks>
     public class VlogService : IVlogService
     {

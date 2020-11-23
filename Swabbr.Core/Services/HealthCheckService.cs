@@ -24,7 +24,7 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        ///     Checks the livestream service, notification service and database.
+        ///     Checks the notification service and database.
         /// </summary>
         public async Task<bool> IsHealthyAsync()
             => !await _notificationService.IsServiceOnlineAsync().ConfigureAwait(false) ||

@@ -4,17 +4,22 @@ using System;
 
 namespace Swabbr.Core.Utility
 {
+    /// <summary>
+    ///     Contains extension functionality for <see cref="SwabbrConfiguration"/>.
+    /// </summary>
     public static class SwabbrConfigurationExtensions
     {
-
         /// <summary>
-        /// Validates a <see cref="SwabbrConfiguration"/>.
-        /// TODO These values are defaulted to 0, which doesn't always trigger an exception.
+        ///     Validates a <see cref="SwabbrConfiguration"/>.
         /// </summary>
-        /// <param name="config"><see cref="SwabbrConfiguration"/></param>
+        /// <param name="config">The configuration to check.</param>
         public static void ThrowIfInvalid(this SwabbrConfiguration config)
         {
-            if (config == null) { throw new ConfigurationException(nameof(config)); }
+            if (config is null)
+            {
+                throw new ConfigurationException(nameof(config));
+            }
+
             if (config.ReactionLengthMaxInSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.ReactionLengthMaxInSeconds)); }
             if (config.DailyVlogRequestLimit < 0) { throw new ConfigurationRangeException(nameof(config.DailyVlogRequestLimit)); }
             if (config.VlogLengthMaxSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.VlogLengthMaxSeconds)); }
@@ -25,9 +30,6 @@ namespace Swabbr.Core.Utility
             if (config.VlogRequestEndTimeMinutes <= 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestEndTimeMinutes)); }
             if (config.VlogRequestEndTimeMinutes >= TimeSpan.FromHours(24).TotalMinutes) { throw new ConfigurationRangeException(nameof(config.VlogRequestEndTimeMinutes)); }
             if (config.VlogRequestStartTimeMinutes >= config.VlogRequestEndTimeMinutes) { throw new ConfigurationException("Start time must be < end time"); }
-            if (config.UserConnectTimeoutSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.UserConnectTimeoutSeconds)); }
         }
-
     }
-
 }

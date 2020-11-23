@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Enums;
-using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Types;
 using System;
 using System.Threading.Tasks;
@@ -20,8 +19,9 @@ namespace Swabbr.Core.Interfaces.Services
         ///     Send a vlog record request notification.
         /// </summary>
         /// <param name="userId">User id to notify.</param>
-        /// <param name="pars">The recording parameters.</param>
-        Task NotifyVlogRecordRequestAsync(Guid userId, ParametersRecordVlog pars);
+        /// <param name="vlogId">The suggested vlog id to post.</param>
+        /// <param name="requestTimeout">The timeout time span for the request.</param>
+        Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout);
 
         /// <summary>
         ///     Send a vlog record timeout notification.

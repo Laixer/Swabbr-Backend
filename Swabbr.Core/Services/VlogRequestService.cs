@@ -1,4 +1,6 @@
-﻿using Swabbr.Core.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using Swabbr.Core.Configuration;
+using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -10,35 +12,35 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class VlogRequestService : IVlogRequestService
     {
-        protected readonly IVlogService _vlogService;
         protected readonly INotificationService _notificationService; // TODO To queue
         protected readonly IUserSelectionService _userSelectionService;
+        protected readonly SwabbrConfiguration _options;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public VlogRequestService(IVlogService vlogService,
-            INotificationService notificationService,
-            IUserSelectionService userSelectionService)
+        public VlogRequestService(INotificationService notificationService,
+            IUserSelectionService userSelectionService,
+            IOptions<SwabbrConfiguration> options)
         {
-            _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _userSelectionService = userSelectionService ?? throw new ArgumentNullException(nameof(userSelectionService));
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
         /// <summary>
-        ///     Claims a livestream for a user and sends
-        ///     that user a vlog record request.
+        ///     Process a vlog request for a single user.
         /// </summary>
-        /// <param name="userId">The user to request.</param>
+        /// <param name="userId">The user that should vlog.</param>
         public async Task SendVlogRequestToUserAsync(Guid userId)
         {
-            // TODO
-            //var livestream = await _livestreamService.ClaimLivestreamForUserAsync(userId).ConfigureAwait(false);
-            //var parameters = await _livestreamService.GetLivestreamParametersAsync(livestream.Id).ConfigureAwait(false);
+            // The vlog id that is created here does not exist in our data store
+            // yet, but should be used by the client as the uploading file name.
+            var vlogId = Guid.NewGuid();
+            var requestTimeout = TimeSpan.FromMinutes(_options.VlogRequestTimeoutMinutes);
 
             // TODO Enqueue
-            //await _notificationService.NotifyVlogRecordRequestAsync(userId, livestream.Id, parameters).ConfigureAwait(false);
+            await _notificationService.NotifyVlogRecordRequestAsync(userId, vlogId, requestTimeout).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -56,9 +58,5 @@ namespace Swabbr.Core.Services
                 await SendVlogRequestToUserAsync(user.Id).ConfigureAwait(false);
             }
         }
-
-        // TODO
-        public Task OnVlogRequestTimedOutAsync(Guid userId) 
-            => throw new NotImplementedException();
     }
 }

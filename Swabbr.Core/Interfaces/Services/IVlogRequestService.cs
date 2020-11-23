@@ -22,9 +22,7 @@ namespace Swabbr.Core.Interfaces
         Task SendVlogRequestsForMinuteAsync(DateTimeOffset minute);
 
         /// <summary>
-        ///     Process a vlog request for a single user. This will
-        ///     claim a livestream and then notify the user. A timeout
-        ///     will be started.
+        ///     Process a vlog request for a single user.
         /// </summary>
         /// <param name="userId">The user that should vlog.</param>
         Task SendVlogRequestToUserAsync(Guid userId);

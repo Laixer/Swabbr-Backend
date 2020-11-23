@@ -73,17 +73,13 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Send a vlog record request notification.
         /// </summary>
         /// <param name="userId">User id to notify.</param>
-        /// <param name="pars">The recording parameters.</param>
-        public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, ParametersRecordVlog pars)
+        /// <param name="vlogId">The suggested vlog id to post.</param>
+        /// <param name="requestTimeout">The timeout time span for the request.</param>
+        public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
         {
-            if (pars is null)
-            {
-                throw new ArgumentNullException(nameof(pars));
-            }
-
             _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request to user {userId}");
 
-            var notification = NotificationBuilder.BuildRecordVlog(pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
+            var notification = NotificationBuilder.BuildRecordVlog(vlogId, DateTimeOffset.Now, requestTimeout);
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
             await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
 
