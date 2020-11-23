@@ -25,51 +25,57 @@ namespace Swabbr.Core.Services
         public uint ValidMinutes => _options.VlogRequestEndTimeMinutes - _options.VlogRequestStartTimeMinutes;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
         public UserSelectionService(IUserService userService,
             IOptions<SwabbrConfiguration> options)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            if (options == null || options.Value == null) { throw new ArgumentNullException(nameof(options)); }
-            options.Value.ThrowIfInvalid();
-            _options = options.Value;
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _options.ThrowIfInvalid();
         }
 
         /// <summary>
-        ///     Uses hash distribution to get all users 
-        ///     which trigger in a given moment.
+        ///     Uses hash distribution to get all users which should 
+        ///     receive a request at a specified minute of the day.
         /// </summary>
+        /// <remarks>
+        ///     This will use a hash function to calculate all the minutes
+        ///     in a day for each user on which that user should receive a
+        ///     vlog record request. All users for which the specified 
+        ///     <paramref name="time"/> minute matches any of their calculated
+        ///     minutes get returned. This also takes timezones into account.
+        /// </remarks>
         /// <param name="time"><see cref="DateTimeOffset"/></param>
         /// <param name="offset"><see cref="TimeSpan"/></param>
         /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public async Task<IEnumerable<SwabbrUser>> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
+        public async IAsyncEnumerable<SwabbrUser> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
         {
-            var users = await _userService.GetAllVloggableUsersAsync().ConfigureAwait(false);
-
+            // Extract the current minute from the time parameter.
             var day = new DateTime(time.Year, time.Month, time.Day);
             var timeUtc = time.ToUniversalTime() + (offset ?? TimeSpan.Zero);
             var thisMinute = GetMinutes(timeUtc);
 
-            var result = new List<SwabbrUser>();
-            foreach (var user in users)
+            // This call gets all users which are eligible for a vlog request,
+            // meaning they have a vlog request limit greater than zero.
+            await foreach (var user in _userService.GetAllVloggableUsersAsync())
             {
-                // Perform one check for each possible vlog request
+                // Perform one check for each possible vlog request,
+                // since users can have more than one request per day.
                 for (int i = 1; i <= Math.Min(_options.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
                 {
+                    // Get the matching minute on which a user should receive 
+                    // a request and correct it using the users timezone.
                     var userMinute = GetHashMinute(user, day, i);
                     var userMinuteCorrected = userMinute - user.Timezone.BaseUtcOffset.TotalMinutes;
                     if (userMinuteCorrected < 0) { userMinuteCorrected += 60 * 24; }
 
                     if (userMinuteCorrected == thisMinute)
                     {
-                        // TODO Use yield
-                        result.Add(user);
+                        yield return user;
                     }
                 }
             }
-
-            return result;
         }
 
         /// <summary>

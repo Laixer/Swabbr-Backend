@@ -49,10 +49,10 @@ namespace Swabbr.Infrastructure.Repositories
         ///     for a vlog request.
         /// </summary>
         /// <remarks>
-        ///     This ignores all users that have request limit set to 0.
+        ///     This ignores all users with the vlog request limit set to 0.
         /// </remarks>
         /// <returns><see cref="SwabbrUser"/> colletion</returns>
-        public async Task<IEnumerable<SwabbrUser>> GetAllVloggableUsersAsync()
+        public async IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync()
         {
             using var connection = _databaseProvider.GetConnectionScope();
             var sql = $@"
@@ -62,7 +62,12 @@ namespace Swabbr.Infrastructure.Repositories
                         timezone
                     FROM {TableUser} 
                     WHERE daily_vlog_request_limit > 0";
-            return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
+
+            // TODO Implement async foreach in repo PR without dapper.
+            //var result = await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
+
+            yield break;
+            throw new NotImplementedException();
         }
 
         /// <summary>

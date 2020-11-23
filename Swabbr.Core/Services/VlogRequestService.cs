@@ -50,9 +50,7 @@ namespace Swabbr.Core.Services
         /// <param name="minute">The minute to check.</param>
         public async Task SendVlogRequestsForMinuteAsync(DateTimeOffset minute)
         {
-            var selectedUsers = await _userSelectionService.GetForMinuteAsync(minute).ConfigureAwait(false);
-
-            foreach (var user in selectedUsers)
+            await foreach (var user in _userSelectionService.GetForMinuteAsync(minute))
             {
                 // TODO Enqueue
                 await SendVlogRequestToUserAsync(user.Id).ConfigureAwait(false);
