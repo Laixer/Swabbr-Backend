@@ -91,7 +91,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableReaction} 
                     WHERE target_vlog_id = @VlogId 
-                    AND reaction_state = '{ReactionState.Finished.GetEnumMemberAttribute()}'";
+                    AND reaction_state = '{ReactionState.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Reaction>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
         }
 
@@ -109,7 +109,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT COUNT(*) 
                     FROM {TableReaction} 
                     WHERE target_vlog_id = @VlogId
-                    AND reaction_state = '{ReactionState.Finished.GetEnumMemberAttribute()}'";
+                    AND reaction_state = '{ReactionState.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.ExecuteScalarAsync<int>(sql, new { VlogID = vlogId }).ConfigureAwait(false);
         }
 
@@ -128,36 +128,6 @@ namespace Swabbr.Infrastructure.Repositories
             var rowsAffected = await connection.ExecuteAsync(sql, new { Id = reactionId }).ConfigureAwait(false);
             if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Reaction)); }
             if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Reaction"/> as <see cref="ReactionState.Failed"/>.
-        /// </summary>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task MarkFailedAsync(Guid reactionId)
-        {
-            return MarkAsStatusAsync(reactionId, ReactionState.Failed);
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Reaction"/> as <see cref="ReactionState.Finished"/>.
-        /// </summary>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task MarkFinishedAsync(Guid reactionId)
-        {
-            return MarkAsStatusAsync(reactionId, ReactionState.Finished);
-        }
-
-        /// <summary>
-        /// Marks a <see cref="Reaction"/> as <see cref="ReactionState.Processing"/>.
-        /// </summary>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task MarkProcessingAsync(Guid reactionId)
-        {
-            return MarkAsStatusAsync(reactionId, ReactionState.Processing);
         }
 
         /// <summary>
