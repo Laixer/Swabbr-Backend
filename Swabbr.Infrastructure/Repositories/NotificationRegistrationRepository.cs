@@ -35,10 +35,6 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<NotificationRegistration> CreateAsync(NotificationRegistration entity)
         {
             if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.ThrowIfNotNullOrEmpty();
-            entity.UserId.ThrowIfNullOrEmpty();
-            entity.Handle.ThrowIfNullOrEmpty();
-            entity.ExternalId.ThrowIfNullOrEmpty();
 
             // TODO Enum injection
             using var connection = _databaseProvider.GetConnectionScope();

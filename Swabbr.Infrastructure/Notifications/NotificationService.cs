@@ -154,7 +154,7 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 Handle = handle,
                 PushNotificationPlatform = platform,
-                UserId = userId
+                Id = userId
             }).ConfigureAwait(false);
             await _notificationRegistrationRepository.CreateAsync(registration).ConfigureAwait(false);
         }
