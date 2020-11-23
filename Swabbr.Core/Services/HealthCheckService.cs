@@ -24,10 +24,22 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
+        ///     Checks our database health.
+        /// </summary>
+        public Task<bool> IsDataStoreHealthyAsync()
+            => _healthCheckRepository.IsAliveAsync();
+
+        /// <summary>
         ///     Checks the notification service and database.
         /// </summary>
         public async Task<bool> IsHealthyAsync()
-            => !await _notificationService.IsServiceOnlineAsync().ConfigureAwait(false) ||
-               !await _healthCheckRepository.IsAliveAsync().ConfigureAwait(false);
+            => await IsDataStoreHealthyAsync().ConfigureAwait(false) &&
+               await IsNotificationServiceHealthyAsync().ConfigureAwait(false);
+
+        /// <summary>
+        ///     Checks our notification service health.
+        /// </summary>
+        public Task<bool> IsNotificationServiceHealthyAsync()
+            => _notificationService.IsServiceOnlineAsync();
     }
 }
