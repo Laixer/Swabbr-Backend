@@ -40,7 +40,7 @@ namespace Swabbr.Core.Services
         ///     Gets all users which are eligible for a vlog request.
         /// </summary>
         /// <returns>Vloggable user collection</returns>
-        public Task<IEnumerable<SwabbrUser>> GetAllVloggableUsersAsync() 
+        public IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync() 
             => _userRepository.GetAllVloggableUsersAsync();
 
         public Task<SwabbrUser> GetAsync(Guid userId) => _userRepository.GetAsync(userId);

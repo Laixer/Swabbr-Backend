@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Swabbr.AzureMediaServices\Swabbr.AzureMediaServices.csproj" />
     <ProjectReference Include="..\Swabbr.Core\Swabbr.Core.csproj" />
     <ProjectReference Include="..\Swabbr.Infrastructure\Swabbr.Infrastructure.csproj" />
   </ItemGroup>

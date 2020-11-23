@@ -20,12 +20,6 @@ namespace Swabbr.Core.Interfaces.Repositories
 
         Task HardDeleteAsync(Guid reactionId);
 
-        Task MarkProcessingAsync(Guid reactionId);
-
-        Task MarkFinishedAsync(Guid reactionId);
-
-        Task MarkFailedAsync(Guid reactionId);
-
         Task SoftDeleteAsync(Guid reactionId);
 
         Task<Reaction> UpdateAsync(Reaction entity);

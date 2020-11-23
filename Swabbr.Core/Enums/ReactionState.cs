@@ -8,29 +8,10 @@ namespace Swabbr.Core.Enums
     public enum ReactionState
     {
         /// <summary>
-        ///     Reaction has been created without content.
+        ///     The reaction is ready to be watched.
         /// </summary>
-        [EnumMember(Value = "created")]
-        Created,
-
-        /// <summary>
-        ///     Reaction content is being processed.
-        /// </summary>
-        [EnumMember(Value = "processing")]
-        Processing,
-
-        /// <summary>
-        ///     Transcoding the reaction finished. 
-        ///     This reaction is ready for playback.
-        /// </summary>
-        [EnumMember(Value = "finished")]
-        Finished,
-
-        /// <summary>
-        ///     Transcoding the reaction failed.
-        /// </summary>
-        [EnumMember(Value = "failed")]
-        Failed,
+        [EnumMember(Value = "up_to_date")]
+        UpToDate,
 
         /// <summary>
         ///     The reaction has been soft deleted.

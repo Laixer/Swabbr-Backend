@@ -26,7 +26,6 @@ namespace Swabbr.Infrastructure.Database
             NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowMode>("follow_mode");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowRequestStatus>("follow_request_status");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<Gender>("gender");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<LivestreamState>("livestream_state");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PushNotificationPlatform>("push_notification_platform");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ReactionState>("reaction_state");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<VlogState>("vlog_state");

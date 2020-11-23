@@ -1,53 +1,49 @@
 ﻿namespace Swabbr.Core.Configuration
 {
-
     /// <summary>
-    /// Contains <see cref="Swabbr"/> configuration parameters.
+    ///     Contains swabbr configuration parameters.
     /// </summary>
     public sealed class SwabbrConfiguration
     {
-
         /// <summary>
-        /// Maximum reaction length.
+        ///     Maximum reaction length.
         /// </summary>
         public uint ReactionLengthMaxInSeconds { get; set; }
 
         /// <summary>
-        /// Minimum vlog length.
+        ///     Minimum vlog length.
         /// </summary>
         public uint VlogLengthMinSeconds { get; set; }
 
         /// <summary>
-        /// Maximum vlog length.
+        ///     Maximum vlog length.
         /// </summary>
         public uint VlogLengthMaxSeconds { get; set; }
 
         /// <summary>
-        /// Timeout in minutes before a vlog record request times out.
+        ///     Timeout in minutes before a vlog record request times out.
         /// </summary>
         public uint VlogRequestTimeoutMinutes { get; set; }
 
         /// <summary>
-        /// Maximum daily vlog request count.
+        ///     Maximum daily vlog request count.
         /// </summary>
         public uint DailyVlogRequestLimit { get; set; }
 
         /// <summary>
-        /// Minute of the day that our vlog requests start.
+        ///     Minute of the day that our vlog requests start.
         /// </summary>
+        /// <remarks>
+        ///     This is not timezone dependent.
+        /// </remarks>
         public uint VlogRequestStartTimeMinutes { get; set; }
 
         /// <summary>
-        /// Minute of the day that our vlog requests end.
+        ///     Minute of the day that our vlog requests end.
         /// </summary>
+        /// <remarks>
+        ///     This is not timezone dependent.
+        /// </remarks>
         public uint VlogRequestEndTimeMinutes { get; set; }
-
-        /// <summary>
-        /// Timeout in seconds that the user has to connect to the livestream after
-        /// notifying the backend that he or she will start streaming.
-        /// </summary>
-        public uint UserConnectTimeoutSeconds { get; set; }
-
     }
-
 }

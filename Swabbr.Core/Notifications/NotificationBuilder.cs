@@ -14,22 +14,6 @@ namespace Swabbr.Core.Notifications
 
         /// <summary>
         ///     Build a notification for indicating that a followed
-        ///     profile is currently livestreaming.
-        /// </summary>
-        /// <param name="liveUserId">The user that is live.</param>
-        /// <param name="livestreamId">The corresponding livestream.</param>
-        /// <param name="liveVlogId">The corresponding vlog.</param>
-        /// <returns>Notification object.</returns>
-        public static SwabbrNotification BuildFollowedProfileLive(Guid liveUserId, Guid livestreamId, Guid liveVlogId)
-            => new SwabbrNotification(NotificationAction.FollowedProfileLive, new ParametersFollowedProfileLive
-            {
-                LiveLivestreamId = livestreamId,
-                LiveUserId = liveUserId,
-                LiveVlogId = liveVlogId
-            }, title: DefaultTitle, message: DefaultTitle);
-
-        /// <summary>
-        ///     Build a notification for indicating that a followed
         ///     profile has posted a vlog.
         /// </summary>
         /// <param name="vlogId">The posted vlog.</param>
@@ -46,15 +30,13 @@ namespace Swabbr.Core.Notifications
         ///     Build a notification for indicating that a user
         ///     should start recording a vlog.
         /// </summary>
-        /// <param name="livestreamId">The livestream id.</param>
         /// <param name="vlogId">The vlog id.</param>
         /// <param name="requestMoment">The moment of request.</param>
         /// <param name="requestTimeout">The timeout of the request.</param>
         /// <returns>Notification object.</returns>
-        public static SwabbrNotification BuildRecordVlog(Guid livestreamId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
+        public static SwabbrNotification BuildRecordVlog(Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
             => new SwabbrNotification(NotificationAction.VlogRecordRequest, new ParametersRecordVlog
             {
-                LivestreamId = livestreamId,
                 RequestMoment = requestMoment,
                 RequestTimeout = requestTimeout,
                 VlogId = vlogId

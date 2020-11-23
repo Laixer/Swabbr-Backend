@@ -41,7 +41,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         ///     Gets a collection of all users that are eligible
         ///     for a vlog request.
         /// </summary>
-        Task<IEnumerable<SwabbrUser>> GetAllVloggableUsersAsync();
+        IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync();
 
         Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId);
 

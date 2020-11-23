@@ -11,8 +11,17 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// </summary>
     public interface IVlogLikeRepository : IRepository<VlogLike, VlogLikeId>, ICudFunctionality<VlogLike, VlogLikeId>
     {
+        /// <summary>
+        ///     Checks if a given vlog like exists in our data store.
+        /// </summary>
+        /// <param name="vlogLikeId">The vlog like to check.</param>
         Task<bool> ExistsAsync(VlogLikeId vlogLikeId);
 
+        /// <summary>
+        ///     Gets all vlog likes for a vlog.
+        /// </summary>
+        /// <param name="vlogId">The vlog to get likes for.</param>
+        /// <returns>All vlog likes for the vlog.</returns>
         Task<IEnumerable<VlogLike>> GetAllForVlogAsync(Guid vlogId);
 
         /// <summary>
@@ -25,7 +34,5 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikeSummary"/></returns>
         Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId);
-
-        Task<int> GetCountForVlogAsync(Guid vlogId);
     }
 }

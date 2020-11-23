@@ -1,28 +1,30 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 
 #pragma warning disable CA1051 // Do not declare visible instance fields
 namespace Swabbr.Core.Services
 {
     /// <summary>
-    /// Contains request processing functionality for <see cref="Vlog"/>s and
-    /// <see cref="VlogLike"/>s.
+    ///     Service that handles all vlog related operations.
     /// </summary>
+    /// <remarks>
+    ///     TODO This depends on <see cref="INotificationService"/> 
+    ///     which seems incorrect, as this has nothing to do with
+    ///     vlogs themself. Use queue in future.
+    /// </remarks>
     public class VlogService : IVlogService
     {
         protected readonly IVlogRepository _vlogRepository;
         protected readonly IVlogLikeRepository _vlogLikeRepository;
         protected readonly IUserRepository _userRepository;
         protected readonly INotificationService _notificationService;
-        protected readonly IStorageService _storageService;
+        protected readonly IBlobStorageService _blobStorageService;
 
         /// <summary>
         /// Constructor for dependency injection.
@@ -31,192 +33,137 @@ namespace Swabbr.Core.Services
             IVlogLikeRepository vlogLikeRepository,
             IUserRepository userRepository,
             INotificationService notificationService,
-            IStorageService storageService)
+            IBlobStorageService blobStorageService)
         {
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
+            _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
         }
 
         /// <summary>
-        /// Adds a single view to a <see cref="Vlog"/>.
+        ///     Adds a view to a vlog.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task AddView(Guid vlogId) => _vlogRepository.AddView(vlogId);
+        /// <param name="vlogId">The vlog that is watched.</param>
+        public Task AddView(Guid vlogId)
+            => _vlogRepository.AddView(vlogId);
 
         /// <summary>
-        /// Soft deletes a <see cref="Vlog"/> in our data store.
+        ///     Cleans up a vlog from our system, removing it
+        ///     from the data store and performing all required
+        ///     cleanup operations for it.
         /// </summary>
         /// <remarks>
-        /// Throws a <see cref="UserNotOwnerException"/> if our <paramref name="userId"/>
-        /// does not own the <paramref name="vlogId"/>.
+        ///     Call this after a vlog request timed out.
         /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task DeleteAsync(Guid vlogId, Guid userId)
+        /// <param name="vlogId">The vlog to be cleaned up.</param>
+        public Task CleanupExpiredVlogAsync(Guid vlogId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Creates a new vlog in our data store with its status
+        ///     set to created. The vlog will be assigned to the user.
+        /// </summary>
+        /// <remarks>
+        ///     Use this before sending a vlog request to create the
+        ///     vlog for which the user should upload the content.
+        /// </remarks>
+        /// <param name="userId">The future owner of the vlog.</param>
+        /// <returns>The created vlog.</returns>
+        public Task<Vlog> CreateEmptyVlogForUserAsync(Guid userId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Soft deletes a vlog in our data store.
+        /// </summary>
+        /// <param name="vlogId">The vlog to delete.</param>
+        public Task DeleteAsync(Guid vlogId)
+            => _vlogRepository.DeleteAsync(vlogId);
+
+        /// <summary>
+        ///     Checks if a vlog exists in our data store.
+        /// </summary>
+        /// <param name="vlogId">The vlog id to check.</param>
+        public Task<bool> ExistsAsync(Guid vlogId)
+            => _vlogRepository.ExistsAsync(vlogId);
+
+        /// <summary>
+        ///     Gets a vlog from our data store.
+        /// </summary>
+        /// <param name="vlogId">The vlog id.</param>
+        /// <returns>The vlog.</returns>
+        public Task<Vlog> GetAsync(Guid vlogId)
+            => _vlogRepository.GetAsync(vlogId);
+
+        /// <summary>
+        ///     Gets all recommended vlogs for a user.
+        /// </summary>
+        /// <param name="userId">The corresponding user.</param>
+        /// <param name="maxCount">Maximum result set size.</param>
+        /// <returns>Recommended vlogs.</returns>
+        public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount)
+            => _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
+
+        /// <summary>
+        ///     Gets all recommended vlogs for a user including
+        ///     their thumbnail details.
+        /// </summary>
+        /// <param name="userId">The corresponding user.</param>
+        /// <param name="maxCount">Maximum result set count.</param>
+        /// <returns>Vlogs with thumbnail details.</returns>
+        public Task<IEnumerable<VlogWithThumbnailDetails>> GetRecommendedForUserWithThumbnailsAsync(Guid userId, uint maxCount) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Gets an upload uri for a vlog.
+        /// </summary>
+        /// <param name="vlogId">The vlog id.</param>
+        /// <returns>Upload uri.</returns>
+        public Uri GetUploadUri(Guid vlogId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Gets all vlogs that belong to a user.
+        /// </summary>
+        /// <param name="userId">The vlog owner.</param>
+        /// <returns>Vlog collection.</returns>
+        public Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId)
+            => _vlogRepository.GetVlogsFromUserAsync(userId);
+
+        /// <summary>
+        ///     Gets all vlogs that belong to a user including
+        ///     their thumbnail details.
+        /// </summary>
+        /// <param name="userId">The corresponding user.</param>
+        /// <returns>All vlogs belonging to the user.</returns>
+        public async Task<IEnumerable<VlogWithThumbnailDetails>> GetVlogsFromUserWithThumbnailsAsync(Guid userId)
         {
-            vlogId.ThrowIfNullOrEmpty();
-            userId.ThrowIfNullOrEmpty();
+            // TODO Async enumerable
+            var vlogs = await GetVlogsFromUserAsync(userId).ConfigureAwait(false);
 
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
-            if (vlog.UserId != userId) { throw new UserNotOwnerException(nameof(Vlog)); }
+            var result = new List<VlogWithThumbnailDetails>();
+            foreach (var vlog in vlogs)
+            {
+                result.Add(new VlogWithThumbnailDetails
+                {
+                    Vlog = vlog,
+                    // ThumbnailUri = GetThumbnailUri
+                });
+            }
 
-            await _vlogRepository.SoftDeleteAsync(vlogId).ConfigureAwait(false);
-            scope.Complete();
+            throw new NotImplementedException();
+            //return result;
         }
 
         /// <summary>
-        /// Gets a <see cref="Vlog"/> from our data store.
+        ///     Gets all the <see cref="VlogLike"/>s for a <see cref="Vlog"/>.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="Vlog"/></returns>
-        public Task<Vlog> GetAsync(Guid vlogId) => _vlogRepository.GetAsync(vlogId);
-
-        /// <summary>
-        /// Gets all <see cref="VlogLike"/> entities that belong to a given
-        /// <see cref="Vlog"/>.
-        /// </summary>
+        /// <remarks>
+        ///     This does not scale. If that is required, use an implementation
+        ///     of <see cref="GetVlogLikeSummaryForVlogAsync(Guid)"/> which does
+        ///     not return all <see cref="VlogLike"/> but only a subset.
+        /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLike"/> collection</returns>
-        public Task<IEnumerable<VlogLike>> GetAllVlogLikesForVlogAsync(Guid vlogId) => _vlogLikeRepository.GetAllForVlogAsync(vlogId);
-
-        /// <summary>
-        /// Creates a <see cref="VlogLike"/> between a <see cref="Vlog"/>
-        /// and a <see cref="SwabbrUser"/>.
-        /// </summary>
-        /// <remarks>
-        /// Throws an <see cref="OperationAlreadyExecutedException"/> if the user
-        /// already liked the vlog.
-        /// 
-        /// Throws an <see cref="NotAllowedException"/> if the user owns the vlog.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task LikeAsync(Guid vlogId, Guid userId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-            userId.ThrowIfNullOrEmpty();
-
-            var vlogLikeId = new VlogLikeId { VlogId = vlogId, UserId = userId };
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-            if (await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new OperationAlreadyExecutedException("User already liked given vlog"); }
-            if ((await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false)).UserId == userId) { throw new NotAllowedException("Can't like your own vlog"); }
-
-            await _vlogLikeRepository.CreateAsync(new VlogLike
-            {
-                Id = vlogLikeId
-            }).ConfigureAwait(false);
-
-            scope.Complete();
-
-            // We need the vlog id for our notification service.
-            var vlog = await GetAsync(vlogId).ConfigureAwait(false);
-
-            await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Lists all <see cref="Vlog"/> entities that are owned by a given
-        /// <see cref="SwabbrUser"/>.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="Vlog"/> collection</returns>
-        public Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId) => _vlogRepository.GetVlogsFromUserAsync(userId);
-
-        /// <summary>
-        /// Unlikes a <see cref="Vlog"/> by deleting the corresponding 
-        /// <see cref="VlogLike"/>.
-        /// </summary>
-        /// <remarks>
-        /// 
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task UnlikeAsync(Guid vlogId, Guid userId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-            userId.ThrowIfNullOrEmpty();
-
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            var vlogLikeId = new VlogLikeId
-            {
-                VlogId = vlogId,
-                UserId = userId
-            };
-            if (!await _vlogLikeRepository.ExistsAsync(vlogLikeId).ConfigureAwait(false)) { throw new EntityNotFoundException(); }
-
-            await _vlogLikeRepository.DeleteAsync(vlogLikeId).ConfigureAwait(false);
-
-            scope.Complete();
-        }
-
-        /// <summary>
-        /// Updates a <see cref="Vlog"/> in our data store.
-        /// TODO Is this optimal?
-        /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="isPrivate">Whether or not the <see cref="Vlog"/> should become
-        /// private</param>
-        /// <returns>Updated and queried <see cref="Vlog"/></returns>
-        public async Task<Vlog> UpdateAsync(Guid vlogId, Guid userId, bool isPrivate)
-        {
-            vlogId.ThrowIfNullOrEmpty();
-            userId.ThrowIfNullOrEmpty();
-
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            var user = await _userRepository.GetAsync(userId).ConfigureAwait(false);
-            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
-            if (vlog.UserId != user.Id) { throw new NotAllowedException("User doesn't own vlog"); }
-
-            vlog.IsPrivate = isPrivate;
-            // TODO Implement shared users here
-
-            var updatedVlog = await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
-
-            // Commit and return
-            scope.Complete();
-            return updatedVlog;
-        }
-
-        /// <summary>
-        /// Checks if a <see cref="Vlog"/> exists or not.
-        /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns>Boolean result</returns>
-        public Task<bool> ExistsAsync(Guid vlogId) => _vlogRepository.ExistsAsync(vlogId);
-
-        /// <summary>
-        /// Gets a collection of recommended <see cref="Vlog"/>s for a given
-        /// <paramref name="userId"/>.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="maxCount">Maximum result count</param>
-        /// <returns><see cref="Vlog"/> collection</returns>
-        public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount) => _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
-
-        /// <summary>
-        /// Gets a <see cref="Vlog"/> that belongs to a <see cref="Livestream"/>.
-        /// </summary>
-        /// <remarks>
-        /// This returns <see cref="EntityNotFoundException"/> if no <see cref="Vlog"/>
-        /// is currently bound to the specified <see cref="Livestream"/>.
-        /// </remarks>
-        /// <param name="livestreamId">Internal <see cref="Livestream"/> id</param>
-        /// <returns><see cref="Vlog"/></returns>
-        public Task<Vlog> GetVlogFromLivestreamAsync(Guid livestreamId)
-        {
-            livestreamId.ThrowIfNullOrEmpty();
-            return _vlogRepository.GetVlogFromLivestreamAsync(livestreamId);
-        }
+        public Task<IEnumerable<VlogLike>> GetVlogLikesForVlogAsync(Guid vlogId)
+            => _vlogLikeRepository.GetAllForVlogAsync(vlogId);
 
         /// <summary>
         ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
@@ -229,6 +176,94 @@ namespace Swabbr.Core.Services
         /// <returns><see cref="VlogLikeSummary"/></returns>
         public Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
             => _vlogLikeRepository.GetVlogLikeSummaryForVlogAsync(vlogId);
+
+        /// <summary>
+        ///     Gets a vlog including its thumbnail details.
+        /// </summary>
+        /// <param name="vlogId">The vlog id.</param>
+        /// <returns>Vlog with thumbnail details.</returns>
+        public Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Likes a vlog.
+        /// </summary>
+        /// <param name="vlogId">The vlog to like.</param>
+        /// <param name="userId">The user that likes the vlog.</param>
+        public async Task LikeAsync(Guid vlogId, Guid userId)
+        {
+            // It's not allowed to like your own vlog
+            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
+            if (vlog.UserId == userId)
+            {
+                throw new NotAllowedException("Can't like your own vlog");
+            }
+
+            // Explicitly define id because we need it for the notification service
+            var vlogLikeId = new VlogLikeId
+            {
+                VlogId = vlogId,
+                UserId = userId
+            };
+
+            await _vlogLikeRepository.CreateAsync(new VlogLike
+            {
+                Id = vlogLikeId
+            }).ConfigureAwait(false);
+
+            // TODO Move to some queue
+            await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        ///     Called when a vlog transcoding process failed.
+        /// </summary>
+        /// <param name="vlogId">The failed transcoded vlog.</param>
+        public Task OnTranscodingFailedAsync(Guid vlogId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Called when a vlog transcoding process succeeded.
+        /// </summary>
+        /// <param name="vlogId">The transcoded vlog.</param>
+        public Task OnTranscodingSucceededAsync(Guid vlogId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Called when a vlog has finished uploading.
+        /// </summary>
+        /// <param name="vlogId">The uploaded vlog.</param>
+        public Task PostVlogAsync(Guid vlogId) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Unlikes a vlog.
+        /// </summary>
+        /// <param name="vlogId">The vlog to unlike.</param>
+        /// <param name="userId">The user that unlikes the vlog.</param>
+        public Task UnlikeAsync(Guid vlogId, Guid userId)
+            => _vlogLikeRepository.DeleteAsync(new VlogLikeId
+            {
+                VlogId = vlogId,
+                UserId = userId
+            });
+
+        // TODO Push functionality to repo?
+        /// <summary>
+        ///     Updates a vlog in our data store.
+        /// </summary>
+        /// <param name="vlog">The vlog with updates properties.</param>
+        public async Task UpdateAsync(Vlog vlog)
+        {
+            if (vlog is null)
+            {
+                throw new ArgumentNullException(nameof(vlog));
+            }
+
+            var currentVlog = await _vlogRepository.GetAsync(vlog.Id).ConfigureAwait(false);
+
+            // Copy all updateable properties.
+            // TODO Expand
+            currentVlog.IsPrivate = vlog.IsPrivate;
+
+            await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
+        }
     }
 }
 #pragma warning restore CA1051 // Do not declare visible instance fields

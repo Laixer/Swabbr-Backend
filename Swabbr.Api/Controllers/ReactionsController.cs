@@ -21,9 +21,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
-
     /// <summary>
-    /// Controller for handling requests related to <see cref="Vlog"/> <see cref="Reaction"/>s.
+    ///     Controller for handling requests related to reactions.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -31,10 +30,8 @@ namespace Swabbr.Api.Controllers
     [Route("api/{version:apiVersion}/reactions")]
     public class ReactionsController : ControllerBase
     {
-
         private readonly UserManager<SwabbrIdentityUser> _userManager;
-        private readonly IPlaybackService _livestreamPlaybackService;
-        private readonly IReactionWithThumbnailService _reactionService;
+        private readonly IReactionService _reactionService;
         private readonly IVlogService _vlogService;
         private readonly ILogger logger;
 
@@ -42,13 +39,11 @@ namespace Swabbr.Api.Controllers
         /// Constructor for dependency injection.
         /// </summary>
         public ReactionsController(UserManager<SwabbrIdentityUser> userManager,
-            IPlaybackService livestreamPlaybackService,
-            IReactionWithThumbnailService reactionService,
+            IReactionService reactionService,
             IVlogService vlogService,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _reactionService = reactionService ?? throw new ArgumentNullException(nameof(reactionService));
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(ReactionsController)) : throw new ArgumentNullException(nameof(loggerFactory));
@@ -69,7 +64,8 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                await _reactionService.DeleteReactionAsync(user.Id, reactionId).ConfigureAwait(false);
+                // TODO How to ensure we are allowed to this? --> do we own the vlog?
+                await _reactionService.DeleteReactionAsync(reactionId).ConfigureAwait(false);
                 return NoContent();
             }
             catch (NotAllowedException e)
@@ -99,7 +95,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reactionWithThumbnail = await _reactionService.GetWithThumbnailDetailsAsync(reactionId);
+                var reactionWithThumbnail = await _reactionService.GetWithThumbnailAsync(reactionId);
                 return Ok(new ReactionWrapperOutputModel
                 {
                     Reaction = MapperReaction.Map(reactionWithThumbnail.Reaction),
@@ -134,7 +130,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reactions = await _reactionService.GetWithThumbnailForVlogAsync(vlogId);
+                var reactions = await _reactionService.GetReactionsForVlogWithThumbnailsAsync(vlogId);
                 return Ok(new ReactionCollectionOutputModel
                 {
                     Reactions = reactions.Select(x => new ReactionWrapperOutputModel
@@ -191,103 +187,35 @@ namespace Swabbr.Api.Controllers
         }
 
         /// <summary>
-        /// Create a new reaction to a vlog.
+        ///     Create a new reaction to a vlog.
         /// </summary>
-        /// <param name="model"><see cref="ReactionInputModel"/></param>
-        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
+        /// <remarks>
+        ///     This should be called after the reaction file has been uploaded.
+        /// </remarks>
+        /// <param name="model">Input model for posting a reaction.</param>
+        /// <returns>The actual created reaction object.</returns>
         [HttpPost("new")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> Post([FromBody] ReactionInputModel model)
+        public async Task<IActionResult> PostReactionAsync([FromBody] ReactionInputModel model)
         {
             try
             {
-                if (model == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model can't be null")); }
-                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model state is not valid")); }
-
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                return Ok(await _reactionService.PostReactionAsync(user.Id, model.TargetVlogId, model.IsPrivate).ConfigureAwait(false));
+                // Act.
+                await _reactionService.PostReactionAsync(model.TargetVlogId, model.ReactionId).ConfigureAwait(false);
+                var postedReaction = await _reactionService.GetAsync(model.ReactionId);
+
+                // Map.
+                var result = MapperReaction.Map(postedReaction);
+
+                // Return.
+                return Ok(result);
             }
             catch (EntityNotFoundException e)
             {
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find target vlog"));
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not post new reaction"));
-            }
-        }
-
-        /// <summary>
-        /// Refreshes the <see cref="Reaction"/> upload uri.
-        /// </summary>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="OkObjectResult"/></returns>
-        [HttpGet("refresh_upload_url")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReactionUploadUrlOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> RefreshUploadUrlAsync(Guid reactionId)
-        {
-            if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null")); }
-
-            try
-            {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                return Ok(new ReactionUploadUrlOutputModel
-                {
-                    UploadUri = await _reactionService.GetNewUploadUriAsync(user.Id, reactionId).ConfigureAwait(false)
-                });
-            }
-            catch (EntityNotFoundException e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find reaction"));
-            }
-            catch (ReactionStateException e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Reaction not in upload awaiting state"));
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not post new reaction"));
-            }
-        }
-
-        /// <summary>
-        /// Should be called when the user finishes uploading a <see cref="Reaction"/>.
-        /// </summary>
-        /// <param name="reactionId">Internal <see cref="Core.Entities.Reaction"/> id</param>
-        /// <returns><see cref="OkObjectResult"/> with <see cref="ReactionOutputModel"/></returns>
-        [HttpPost("finished_uploading")]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> OnFinishedUploading(Guid reactionId)
-        {
-            if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null")); }
-
-            try
-            {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                await _reactionService.OnFinishedUploadingReactionAsync(reactionId).ConfigureAwait(false);
-                return Ok();
-            }
-            catch (EntityNotFoundException e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.EntityNotFound, "Could not find reaction"));
-            }
-            catch (ReactionStateException e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Reaction not in upload awaiting state"));
             }
             catch (Exception e)
             {
@@ -308,14 +236,26 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
-                if (model == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model can't be null")); }
-                if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Model state is not valid")); }
+                if (model is null)
+                {
+                    throw new ArgumentNullException(nameof(model));
+                }
 
+                // Act.
+                // TODO Reaction update operation
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reaction = await _reactionService.UpdateReactionAsync(user.Id, reactionId, model.IsPrivate).ConfigureAwait(false);
-                return Ok(MapperReaction.Map(reaction));
+                var reaction = await _reactionService.GetAsync(reactionId).ConfigureAwait(false);
+                reaction.IsPrivate = model.IsPrivate;
+
+                await _reactionService.UpdateReactionAsync(reaction).ConfigureAwait(false);
+                var updatedReaction = await _reactionService.GetAsync(reactionId).ConfigureAwait(false);
+
+                // Map.
+                var result = MapperReaction.Map(updatedReaction);
+
+                // Return.
+                return Ok(result);
             }
             catch (NotAllowedException e)
             {
@@ -346,13 +286,8 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var pars = await _livestreamPlaybackService.GetReactionDownstreamParametersAsync(reactionId, user.Id).ConfigureAwait(false);
-                return Ok(new ReactionPlaybackDetailsOutputModel
-                {
-                    EndpointUrl = pars.EndpointUrl,
-                    Token = pars.Token,
-                    ReactionId = pars.ReactionId
-                });
+                // TODO Implement
+                throw new NotImplementedException();
             }
             catch (ReactionStateException e)
             {
@@ -370,7 +305,5 @@ namespace Swabbr.Api.Controllers
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get playback details for reaction"));
             }
         }
-
     }
-
 }
