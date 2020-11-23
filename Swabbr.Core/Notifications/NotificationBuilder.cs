@@ -30,15 +30,13 @@ namespace Swabbr.Core.Notifications
         ///     Build a notification for indicating that a user
         ///     should start recording a vlog.
         /// </summary>
-        /// <param name="livestreamId">The livestream id.</param>
         /// <param name="vlogId">The vlog id.</param>
         /// <param name="requestMoment">The moment of request.</param>
         /// <param name="requestTimeout">The timeout of the request.</param>
         /// <returns>Notification object.</returns>
-        public static SwabbrNotification BuildRecordVlog(Guid livestreamId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
+        public static SwabbrNotification BuildRecordVlog(Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
             => new SwabbrNotification(NotificationAction.VlogRecordRequest, new ParametersRecordVlog
             {
-                LivestreamId = livestreamId,
                 RequestMoment = requestMoment,
                 RequestTimeout = requestTimeout,
                 VlogId = vlogId

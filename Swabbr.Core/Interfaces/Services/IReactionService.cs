@@ -11,17 +11,7 @@ namespace Swabbr.Core.Interfaces.Services
     ///     related to <see cref="Reaction"/> entities.
     /// </summary>
     public interface IReactionService
-    {
-        /// <summary>
-        ///     Creates a new reaction in the data store with its
-        ///     status set to created. The reaction is assigned to
-        ///     the <paramref name="userId"/>.
-        /// </summary>
-        /// <param name="targetVlogId">Vlog of the reaction.</param>
-        /// <param name="userId">User posting the reaction.</param>
-        /// <returns>Created reaction.</returns>
-        Task<Reaction> CreateEmptyReactionAsync(Guid targetVlogId, Guid userId);
-        
+    {        
         /// <summary>
         ///     Soft deletes a reaction in our data store.
         /// </summary>
@@ -58,36 +48,20 @@ namespace Swabbr.Core.Interfaces.Services
         Task<IEnumerable<ReactionWithThumbnailDetails>> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId);
 
         /// <summary>
-        ///     Gets a new upload uri for a reaction.
-        /// </summary>
-        /// <param name="reactionId">The reaction id.</param>
-        /// <returns>Upload uri.</returns>
-        Uri GetUploadUri(Guid reactionId);
-
-        /// <summary>
         ///     Gets a reaction including its thumbnail details.
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction with thumbnail details.</returns>
         Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId);
 
+        // TODO Also return reaction?
         /// <summary>
-        ///     Called when a reaction transcoding process failed.
+        ///     Called when a reaction has been uploaded. This will
+        ///     actually post the reaction.
         /// </summary>
-        /// <param name="reactionId">The failed transcoding reaction.</param>
-        Task OnTranscodingFailedAsync(Guid reactionId);
-
-        /// <summary>
-        ///     Called when a reaction transcoding process succeeded.
-        /// </summary>
-        /// <param name="reactionId">The transcoded reaction.</param>
-        Task OnTranscodingSucceededAsync(Guid reactionId);
-
-        /// <summary>
-        ///     Called when a reaction has been uploaded.
-        /// </summary>
-        /// <param name="reactionId">The uploaded reaction.</param>
-        Task OnReactionUploadedAsync(Guid reactionId);
+        /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
+        /// <param name="reactionId">The uploaded reaction id.</param>
+        Task PostReactionAsync(Guid targetVlogId, Guid reactionId);
 
         /// <summary>
         ///     Updates a reaction in our data store.

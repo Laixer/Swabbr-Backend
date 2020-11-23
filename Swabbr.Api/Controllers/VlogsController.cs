@@ -25,9 +25,8 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
-
     /// <summary>
-    /// Controller for handling requests related to <see cref="Vlog"/> entities.
+    ///     Controller for handling requests vlog operations.
     /// </summary>
     [Authorize]
     [ApiController]
@@ -35,25 +34,21 @@ namespace Swabbr.Api.Controllers
     [Route("api/{version:apiVersion}/vlogs")]
     public sealed class VlogsController : ControllerBase
     {
-
         private readonly IVlogService _vlogService;
         private readonly IUserService _userService;
-        private readonly IPlaybackService _livestreamPlaybackService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
         public VlogsController(IVlogService vlogService,
             IUserService userService,
-            IPlaybackService livestreamPlaybackService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _livestreamPlaybackService = livestreamPlaybackService ?? throw new ArgumentNullException(nameof(livestreamPlaybackService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(VlogsController)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
@@ -333,7 +328,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
-                var vlogLikes = await _vlogService.GetAllVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
+                var vlogLikes = await _vlogService.GetVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
 
                 // TODO Clean up
                 var users = new List<SwabbrUserWithStats>();
@@ -377,7 +372,7 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
                 // Get all vlogs.
-                var vlogsWithThumbnails = await _vlogService.GetRecommendedForWithThumbnailUserAsync(user.Id, maxCount);
+                var vlogsWithThumbnails = await _vlogService.GetRecommendedForUserWithThumbnailsAsync(user.Id, maxCount);
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
 
                 // Process each vlog separately.
@@ -424,7 +419,7 @@ namespace Swabbr.Api.Controllers
         [HttpGet("{vlogId}/watch")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(VlogPlaybackDetailsOutputModel))]
         [ProducesResponseType((int)HttpStatusCode.Conflict)]
-        public async Task<IActionResult> GetPlayackDetailsAsync([FromRoute]Guid vlogId)
+        public async Task<IActionResult> WatchAsync([FromRoute]Guid vlogId)
         {
             try
             {
@@ -432,13 +427,8 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var pars = await _livestreamPlaybackService.GetVlogDownstreamParametersAsync(vlogId, user.Id).ConfigureAwait(false);
-                return Ok(new VlogPlaybackDetailsOutputModel
-                {
-                    EndpointUrl = pars.EndpointUrl,
-                    Token = pars.Token,
-                    VlogId = pars.VlogId
-                });
+                // TODO Build
+                throw new NotImplementedException();
             }
             catch (EntityNotFoundException e)
             {
@@ -451,7 +441,5 @@ namespace Swabbr.Api.Controllers
                 return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not get playback details for vlog"));
             }
         }
-
     }
-
 }

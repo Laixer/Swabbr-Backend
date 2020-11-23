@@ -2,7 +2,6 @@
 
 namespace Swabbr.Core.Notifications.JsonWrappers
 {
-
     /// <summary>
     ///     JSON Wrapper containing parameters we need to 
     ///     be able to start streaming to a livestream.
@@ -21,13 +20,12 @@ namespace Swabbr.Core.Notifications.JsonWrappers
         public TimeSpan RequestTimeout { get; set; }
 
         /// <summary>
-        ///     Internal livestream id.
-        /// </summary>
-        public Guid LivestreamId { get; set; }
-
-        /// <summary>
         ///     Internal vlog id.
         /// </summary>
+        /// <remarks>
+        ///     This is a suggestion, the id does not actually
+        ///     exist in our data store when this is sent.
+        /// </remarks>
         public Guid VlogId { get; set; }
     }
 }

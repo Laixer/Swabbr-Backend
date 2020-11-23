@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-
+    // TODO Check and merge
     /// <summary>
     /// Contract for a <see cref="SwabbrUserWithStats"/> repository.
     /// </summary>

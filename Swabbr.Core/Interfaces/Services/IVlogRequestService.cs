@@ -10,12 +10,6 @@ namespace Swabbr.Core.Interfaces
     public interface IVlogRequestService
     {
         /// <summary>
-        ///     Should be called when a vlog request timed out.
-        /// </summary>
-        /// <param name="userId">The user of the vlog request.</param>
-        Task OnVlogRequestTimedOutAsync(Guid userId);
-
-        /// <summary>
         ///     Get all users that should receive a vlog request for
         ///     the specified <paramref name="minute"/>. Each will
         ///     be sent a vlog record request.

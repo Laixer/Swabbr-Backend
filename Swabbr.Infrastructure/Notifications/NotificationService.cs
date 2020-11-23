@@ -7,7 +7,6 @@ using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -82,15 +81,13 @@ namespace Swabbr.Infrastructure.Notifications
                 throw new ArgumentNullException(nameof(pars));
             }
 
-            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request for livestream {pars.LivestreamId} to user {userId}");
+            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request to user {userId}");
 
-            if (!await _userRepository.UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
-
-            var notification = NotificationBuilder.BuildRecordVlog(pars.LivestreamId, pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
+            var notification = NotificationBuilder.BuildRecordVlog(pars.VlogId, pars.RequestMoment, pars.RequestTimeout);
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
             await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
 
-            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request for livestream {pars.LivestreamId} to user {userId}");
+            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request to user {userId}");
         }
 
         /// <summary>

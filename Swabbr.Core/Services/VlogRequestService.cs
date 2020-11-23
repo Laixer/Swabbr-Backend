@@ -10,15 +10,18 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class VlogRequestService : IVlogRequestService
     {
+        protected readonly IVlogService _vlogService;
         protected readonly INotificationService _notificationService; // TODO To queue
         protected readonly IUserSelectionService _userSelectionService;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public VlogRequestService(INotificationService notificationService,
+        public VlogRequestService(IVlogService vlogService,
+            INotificationService notificationService,
             IUserSelectionService userSelectionService)
         {
+            _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _userSelectionService = userSelectionService ?? throw new ArgumentNullException(nameof(userSelectionService));
         }
