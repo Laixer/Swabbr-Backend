@@ -12,6 +12,12 @@ namespace Swabbr.Core.Interfaces.Repositories
     public interface IUserRepository : IRepository<SwabbrUser, Guid>
     {
         /// <summary>
+        ///     Checks if a nickname already exists.
+        /// </summary>
+        /// <param name="nickname">The nickname to check for.</param>
+        Task<bool> ExistsNicknameAsync(string nickname);
+
+        /// <summary>
         ///     Gets a user with its statistics.
         /// </summary>
         /// <param name="userId">The internal user id.</param>
@@ -57,12 +63,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// </summary>
         /// <returns>Vloggable users.</returns>
         IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation);
-
-        /// <summary>
-        ///     Checks if a nickname already exists.
-        /// </summary>
-        /// <param name="nickname">The nickname to check for.</param>
-        Task<bool> NicknameExistsAsync(string nickname);
 
         /// <summary>
         ///     Search for users in our data store.

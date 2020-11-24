@@ -13,16 +13,13 @@ using System.Threading.Tasks;
 namespace Swabbr.Core.Services
 {
     /// <summary>
-    /// <see cref="SwabbrUser"/> service.
+    ///     Service to handle user related operations.
     /// </summary>
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly SwabbrConfiguration config;
 
-        /// <summary>
-        /// Constructor for dependency injection.
-        /// </summary>
         public UserService(IUserRepository userRepository,
             IOptions<SwabbrConfiguration> options)
         {
@@ -32,9 +29,19 @@ namespace Swabbr.Core.Services
             config = options.Value;
         }
 
-        public Task<bool> ExistsAsync(Guid userId) => _userRepository.ExistsAsync(userId);
+        /// <summary>
+        ///     Checks if a user exists in our data store.
+        /// </summary>
+        /// <param name="userId">The user id.</param>
+        public Task<bool> ExistsAsync(Guid userId) 
+            => _userRepository.ExistsAsync(userId);
 
-        public Task<bool> ExistsNicknameAsync(string nickname) => _userRepository.NicknameExistsAsync(nickname);
+        /// <summary>
+        ///     Checks if a nickname exists in our data store.
+        /// </summary>
+        /// <param name="nickname">The nickname to check.</param>
+        public Task<bool> ExistsNicknameAsync(string nickname) 
+            => _userRepository.ExistsNicknameAsync(nickname);
 
         /// <summary>
         ///     Gets all users which are eligible for a vlog request.
@@ -52,12 +59,29 @@ namespace Swabbr.Core.Services
         public Task<SwabbrUser> GetAsync(Guid userId) 
             => _userRepository.GetAsync(userId);
 
+        /// <summary>
+        ///     Gets all followers for a user.
+        /// </summary>
+        /// <param name="userId">The user to check.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>All followers.</returns>
         public IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation)
             => _userRepository.GetFollowersAsync(userId, navigation);
 
+        /// <summary>
+        ///     Gets all users a user is following.
+        /// </summary>
+        /// <param name="userId">The user to check.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>All users followed by <paramref name="userId"/>.</returns>
         public IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation)
             => _userRepository.GetFollowingAsync(userId, navigation);
 
+        /// <summary>
+        ///     Gets the details required to send a push notification.
+        /// </summary>
+        /// <param name="userId">The user to check.</param>
+        /// <returns>Push notification details.</returns>
         public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId) 
             => _userRepository.GetPushDetailsAsync(userId);
 
@@ -69,6 +93,12 @@ namespace Swabbr.Core.Services
         public Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId)
             => _userRepository.GetWithStatisticsAsync(userId);
 
+        /// <summary>
+        ///     Search for users in our data store.
+        /// </summary>
+        /// <param name="query">Search string.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>User search result set.</returns>
         public IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
             => _userRepository.SearchAsync(query, navigation);
 
@@ -82,12 +112,11 @@ namespace Swabbr.Core.Services
             => _userRepository.UpdateAsync(user);
 
         /// <summary>
-        /// Update the user location.
+        ///     Updates a user location in our data store.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="longitude"></param>
-        /// <param name="latitude"></param>
-        /// <returns></returns>
+        /// <param name="userId">The user to update.</param>
+        /// <param name="longitude">New longitude coordinate.</param>
+        /// <param name="latitude">New latitude coordinate.</param>
         public Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
         {
             userId.ThrowIfNullOrEmpty();
@@ -95,18 +124,15 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        /// Update the user timezone.
+        ///     Updates a user timezone in our data store.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="newTimeZone"></param>
-        /// <returns></returns>
+        /// <param name="userId">The user to update.</param>
+        /// <param name="newTimeZone">The new user timezone.</param>
         public Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
         {
             userId.ThrowIfNullOrEmpty();
             if (newTimeZone == null) { throw new ArgumentNullException(nameof(newTimeZone)); }
             return _userRepository.UpdateTimeZoneAsync(userId, newTimeZone);
         }
-
-        Task IUserService.UpdateAsync(SwabbrUser user) => throw new NotImplementedException();
     }
 }

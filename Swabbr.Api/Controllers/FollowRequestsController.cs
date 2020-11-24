@@ -25,7 +25,6 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
 {
-
     /// <summary>
     /// Controller for handling requests related to <see cref="FollowRequest"/> entities.
     /// </summary>

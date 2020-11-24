@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using System;
 using System.Data.Common;
@@ -38,10 +39,13 @@ namespace Swabbr.Infrastructure.Providers
         /// </summary>
         static NpgsqlDatabaseProvider()
         {
-            // TODO
-            // NpgsqlConnection.GlobalTypeMapper.MapEnum<EnumName>("schema.type");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowMode>("application.follow_mode");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowRequestStatus>("application.follow_request_status");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<Gender>("application.gender");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<PushNotificationPlatform>("application.push_notification_platform");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReactionStatus>("entities.reaction_status");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<VlogStatus>("entities.vlog_status");
         }
-
 
         /// <summary>
         ///     Creates a new postgresql connection.

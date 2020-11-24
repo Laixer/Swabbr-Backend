@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Common;
-using System.Text;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Swabbr.Infrastructure.Extensions
 {
@@ -186,6 +186,44 @@ namespace Swabbr.Infrastructure.Extensions
             }
 
             return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<TFieldType>(ordinal);
+        }
+
+        // TODO Centralize regex?
+        /// <summary>
+        ///     Return value as <typeparamref name="TimeZoneInfo"/>.
+        /// </summary>
+        /// <remarks>
+        ///     This uses our custom timezone storage format, being:
+        ///     UTC+xx:xx or UTC-xx:xx. A regex expression is used to
+        ///     check this format.
+        /// </remarks>
+        /// <typeparam name="TFieldType">Type to return value to.</typeparam>
+        /// <param name="reader">Input reader to extend.</param>
+        /// <param name="ordinal">Column ordinal.</param>
+        /// <returns>Value or null.</returns>
+        public static TimeZoneInfo GetTimeZoneInfo(this DbDataReader reader, int ordinal)
+        {
+            if (reader is null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            var asString = reader.GetString(ordinal);
+
+            // Perform regex matching to check the expected pattern.
+            if (!Regex.IsMatch(asString, @"^UTC(\+|-)\d\d:\d\d$")) 
+            { 
+                throw new FormatException();
+            }
+
+            bool isPlus = asString[3] == '+';
+
+            var hour = int.Parse(asString.Substring(4, 2), CultureInfo.InvariantCulture);
+            var minute = int.Parse(asString.Substring(7, 2), CultureInfo.InvariantCulture);
+
+            var timeSpan = new TimeSpan(hours: isPlus ? hour : -hour, minutes: minute, seconds: 0);
+
+            return TimeZoneInfo.CreateCustomTimeZone(asString, timeSpan, asString, asString);
         }
     }
 }

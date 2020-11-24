@@ -197,7 +197,7 @@ namespace Swabbr
             .AddDapperStores(options =>
             {
                 options.UserTable = "user";
-                options.Schema = "public";
+                options.Schema = "application";
                 options.MatchWithUnderscore = true;
                 options.UseNpgsql<IdentityQueryRepository>(_configuration.GetConnectionString("DatabaseInternal"));
             })
