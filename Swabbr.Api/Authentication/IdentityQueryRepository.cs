@@ -20,7 +20,7 @@ namespace Swabbr.Api.Authentication
             if (queryRepository == null) { throw new ArgumentNullException(nameof(queryRepository)); }
 
             queryRepository.CreateAsync = $@"
-                INSERT INTO public.user (
+                INSERT INTO application.user (
                     email,
                     normalized_email,
                     email_confirmed,
@@ -42,11 +42,11 @@ namespace Swabbr.Api.Authentication
 
             queryRepository.FindByNameAsync = @"
                 SELECT *
-                FROM public.user
+                FROM application.user
                 WHERE normalized_email=@NormalizedUserName";
 
             queryRepository.UpdateAsync = @"
-                UPDATE public.user
+                UPDATE application.user
                 SET    email = @Email,
                        normalized_email = @NormalizedEmail,
                        email_confirmed = @EmailConfirmed,
@@ -61,27 +61,27 @@ namespace Swabbr.Api.Authentication
 
             queryRepository.FindByIdAsync = $@"
                 SELECT *
-                FROM public.user
+                FROM application.user
                 WHERE Id=@Id::uuid
                 LIMIT 1";
 
             queryRepository.AddToRoleAsync = $@"
-                UPDATE public.user
+                UPDATE application.user
                 SET role = @Role
                 WHERE id=@Id";
 
             queryRepository.GetRolesAsync = $@"
                 SELECT role
-                FROM public.user
+                FROM application.user
                 WHERE id=@Id";
 
             queryRepository.GetUsersInRoleAsync = $@"
                 SELECT *
-                FROM public.user
+                FROM application.user
                 WHERE role=@Role";
 
             queryRepository.RemoveFromRoleAsync = $@"
-                UPDATE public.user
+                UPDATE application.user
                 SET role = 'user'
                 WHERE id=@Id";
         }
