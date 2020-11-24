@@ -17,9 +17,31 @@ namespace Swabbr.Infrastructure.Repositories
     /// </summary>
     internal class UserRepository : RepositoryBase, IUserRepository
     {
+        // TODO Remove?
         public Task<Guid> CreateAsync(SwabbrUser entity) => throw new NotImplementedException();
+
+        // TODO Remove?
         public Task DeleteAsync(Guid id) => throw new NotImplementedException();
-        public Task<bool> ExistsAsync(Guid id) => throw new NotImplementedException();
+
+        // TODO Do we ever need this due to forein key constraints?
+        /// <summary>
+        ///     Checks if a user exists in our data store.
+        /// </summary>
+        /// <param name="id">The user id.</param>
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            var sql = @"
+                    SELECT  EXISTS (
+                    SELECT  1
+                    FROM    application.user AS u
+                    WHERE   u.id = @id)";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            return await context.ScalarAsync<bool>();
+        }
 
         /// <summary>
         ///     Checks if a nickname already exists.
@@ -27,12 +49,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="nickname">The nickname to check for.</param>
         public async Task<bool> ExistsNicknameAsync(string nickname)
         {
-            // TODO Ugly format imo
             var sql = @"
                     SELECT  EXISTS (
                     SELECT  1
-                    FROM    application.user
-                    WHERE   nickname = @nickname)";
+                    FROM    application.user AS u
+                    WHERE   u.nickname = @nickname)";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -41,8 +62,75 @@ namespace Swabbr.Infrastructure.Repositories
             return await context.ScalarAsync<bool>();
         }
 
-        public IAsyncEnumerable<SwabbrUser> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
-        public IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation) => throw new NotImplementedException();
+        /// <summary>
+        ///     Gets a collection of users from our database.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Collection of users.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets a collection of all users that are eligible
+        ///     for a vlog request.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vloggable users.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    WHERE   u.vlog_request_limit > 0";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
 
         /// <summary>
         ///     Gets a user from our database.
@@ -52,22 +140,22 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<SwabbrUser> GetAsync(Guid id)
         {
             var sql = @"
-                    SELECT  birth_date,
-                            country,
-                            daily_vlog_request_limit,
-                            first_name,
-                            follow_mode,
-                            gender,
-                            id,
-                            is_private,
-                            last_name,
-                            latitude,
-                            longitude,
-                            nickname,
-                            profile_image_base64_encoded,
-                            timezone
-                    FROM    application.user
-                    WHERE   id = @id
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    WHERE   u.id = @id
                     LIMIT   1";
 
             await using var context = await CreateNewDatabaseContext(sql);
@@ -79,12 +167,219 @@ namespace Swabbr.Infrastructure.Repositories
             return MapFromReader(reader);
         }
 
-        public IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
-        public IAsyncEnumerable<UserPushNotificationDetails> GetFollowersPushDetailsAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
-        public IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
-        public Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId) => throw new NotImplementedException();
-        public Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId) => throw new NotImplementedException();
-        public IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation) => throw new NotImplementedException();
+        /// <summary>
+        ///     Gets the followers of a given user.
+        /// </summary>
+        /// <param name="userId">The user that is being followed.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Followers of the specified user.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    JOIN    application.follow_request AS fr
+                    ON      fr.receiver_id = u.id
+                    WHERE   u.id = @id
+                    AND     fr.follow_request_status = 'accepted'";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets the push notification details of the 
+        ///     followers for a given user.
+        /// </summary>
+        /// <param name="userId">The user id.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Followers push notification details.</returns>
+        public async IAsyncEnumerable<UserPushNotificationDetails> GetFollowersPushDetailsAsync(Guid userId, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  upnd.user_id,
+                            upnd.push_notification_platform
+                    FROM    application.user_push_notification_details AS upnd
+                    JOIN    application.follow_request AS fr
+                    ON      fr.receiver_id = upnd.id
+                    WHERE   u.id = @id
+                    AND     fr.follow_request_status = 'accepted'";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapPushNotificationDetailsFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets users that are being followed by a given user.
+        /// </summary>
+        /// <param name="userId">The user that is following.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Users that the user is following.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    JOIN    application.follow_request AS fr
+                    ON      fr.requester_id = u.id
+                    WHERE   u.id = @id
+                    AND     fr.follow_request_status = 'accepted'";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets the push notification details for a
+        ///     given user.
+        /// </summary>
+        /// <param name="userId">The user id.</param>
+        /// <returns>Push notification details.</returns>
+        public async Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId)
+        {
+            var sql = @"
+                    SELECT  upnd.user_id,
+                            upnd.push_notification_platform
+                    FROM    application.user_push_notification_details AS upnd
+                    WHERE   upnd.id = @id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapPushNotificationDetailsFromReader(reader);
+        }
+
+        /// <summary>
+        ///     Gets a user with its statistics.
+        /// </summary>
+        /// <param name="userId">The internal user id.</param>
+        /// <returns>The user entity with statistics.</returns>
+        public async Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId)
+        {
+            var sql = @"
+                    SELECT  uws.birth_date,
+                            uws.country,
+                            uws.daily_vlog_request_limit,
+                            uws.first_name,
+                            uws.follow_mode,
+                            uws.gender,
+                            uws.id,
+                            uws.is_private,
+                            uws.last_name,
+                            uws.latitude,
+                            uws.longitude,
+                            uws.nickname,
+                            uws.profile_image_base64_encoded,
+                            uws.timezone,
+                            uws.total_followers,
+                            uws.total_following,
+                            uws.total_vlogs
+                    FROM    application.user_with_stats AS uws
+                    WHERE   uws.id = @id
+                    LIMIT   1";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapWithStatsFromReader(reader);
+        }
+
+        /// <summary>
+        ///     Search for users in our data store.
+        /// </summary>
+        /// <param name="query">Search string.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>User search result set.</returns>
+        public async IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  uws.birth_date,
+                            uws.country,
+                            uws.daily_vlog_request_limit,
+                            uws.first_name,
+                            uws.follow_mode,
+                            uws.gender,
+                            uws.id,
+                            uws.is_private,
+                            uws.last_name,
+                            uws.latitude,
+                            uws.longitude,
+                            uws.nickname,
+                            uws.profile_image_base64_encoded,
+                            uws.timezone,
+                            uws.total_followers,
+                            uws.total_following,
+                            uws.total_vlogs
+                    FROM    application.user_with_stats AS uws
+                    WHERE   LOWER(uws.nickname) LIKE LOWER(@query%)";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("query", query);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapWithStatsFromReader(reader);
+            }
+        }
 
         // TODO Separate call for timezone and longlat, but timezone can be updated here as well. Consistency!
         /// <summary>
@@ -154,6 +449,45 @@ namespace Swabbr.Infrastructure.Repositories
                 Nickname = reader.GetString(11),
                 ProfileImageBase64Encoded = reader.GetSafeString(12),
                 Timezone = reader.GetTimeZoneInfo(13)
+            };
+
+        /// <summary>
+        ///     Maps a reader to a user with stats object.
+        /// </summary>
+        /// <param name="reader">The reader to map from.</param>
+        /// <returns>The mapped user with stats object.</returns>
+        private static SwabbrUserWithStats MapWithStatsFromReader(DbDataReader reader)
+            => new SwabbrUserWithStats
+            {
+                BirthDate = reader.GetSafeDateTime(0),
+                Country = reader.GetSafeString(1),
+                DailyVlogRequestLimit = reader.GetUInt(2),
+                FirstName = reader.GetSafeString(3),
+                FollowMode = reader.GetFieldValue<FollowMode>(4),
+                Gender = reader.GetFieldValue<Gender?>(5),
+                Id = reader.GetGuid(6),
+                IsPrivate = reader.GetBoolean(7),
+                LastName = reader.GetSafeString(8),
+                Latitude = reader.GetSafeFloat(9),
+                Longitude = reader.GetSafeFloat(10),
+                Nickname = reader.GetString(11),
+                ProfileImageBase64Encoded = reader.GetSafeString(12),
+                Timezone = reader.GetTimeZoneInfo(13),
+                TotalFollowers = reader.GetUInt(14),
+                TotalFollowing = reader.GetUInt(15),
+                TotalVlogs = reader.GetUInt(16)
+            };
+
+        /// <summary>
+        ///     Maps a reader to a push notification details object.
+        /// </summary>
+        /// <param name="reader">The reader to map from.</param>
+        /// <returns>The mapped push notification details object.</returns>
+        private static UserPushNotificationDetails MapPushNotificationDetailsFromReader(DbDataReader reader)
+            =>  new UserPushNotificationDetails()
+            {
+                UserId = reader.GetGuid(0),
+                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(1)
             };
 
         /// <summary>

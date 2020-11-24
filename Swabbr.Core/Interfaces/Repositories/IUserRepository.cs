@@ -61,6 +61,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         ///     Gets a collection of all users that are eligible
         ///     for a vlog request.
         /// </summary>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable users.</returns>
         IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation);
 
