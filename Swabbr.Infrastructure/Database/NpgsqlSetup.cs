@@ -20,15 +20,14 @@ namespace Swabbr.Infrastructure.Database
             // Setup custom mappers
             SqlMapper.AddTypeHandler(new UriHandler());
             SqlMapper.AddTypeHandler(new TimeZoneInfoHandler());
-            SqlMapper.AddTypeHandler(new GenderHandler());
 
             // Setup (Dapper) enums
             NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowMode>("follow_mode");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<FollowRequestStatus>("follow_request_status");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<Gender>("gender");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PushNotificationPlatform>("push_notification_platform");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReactionState>("reaction_state");
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<VlogState>("vlog_state");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReactionStatus>("reaction_state");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<VlogStatus>("vlog_state");
 
             // Setup Dapper name matching
             Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;

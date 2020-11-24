@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
-using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Types;
 using System;
 using System.Linq;
@@ -57,10 +55,10 @@ namespace Swabbr.Infrastructure.Notifications
         {
             _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Attempting notifying followers for posted vlog {vlogId} from user {userId}");
 
-            // Notify each follower individually.
             var notification = NotificationBuilder.BuildFollowedProfileVlogPosted(vlogId, userId);
-            var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
-            foreach (var item in pushDetails)
+
+            // Notify each follower individually.
+            await foreach (var item in _userRepository.GetFollowersPushDetailsAsync(userId, Navigation.All))
             {
                 await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification).ConfigureAwait(false);
                 _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Notified user {item.UserId}");
@@ -142,11 +140,11 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual async Task RegisterAsync(Guid userId, PushNotificationPlatform platform, string handle)
         {
             // First clear the existing registration if it exists
-            var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
-            if (registrations.Any())
+            if (await _notificationRegistrationRepository.UserHasRegistrationAsync(userId).ConfigureAwait(false))
             {
-                await _notificationClient.UnregisterAsync(registrations.First()).ConfigureAwait(false);
-                await _notificationRegistrationRepository.DeleteAsync(registrations.First().Id).ConfigureAwait(false);
+                var currentRegistration = await _notificationRegistrationRepository.GetAsync(userId).ConfigureAwait(false);
+                await _notificationClient.UnregisterAsync(currentRegistration).ConfigureAwait(false);
+                await _notificationRegistrationRepository.DeleteAsync(currentRegistration.Id).ConfigureAwait(false);
             }
 
             // Create new registration and assign external id

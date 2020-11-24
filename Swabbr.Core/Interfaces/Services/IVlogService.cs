@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace Swabbr.Core.Interfaces.Services
 {
     /// <summary>
-    /// Service for processing <see cref="Vlog"/> and <see cref="VlogLike"/> 
-    /// related requests.
+    /// Service for processing vlog and vlog like related requests.
     /// </summary>
     public interface IVlogService
     {
@@ -38,58 +37,57 @@ namespace Swabbr.Core.Interfaces.Services
         Task<Vlog> GetAsync(Guid vlogId);
 
         /// <summary>
-        ///     Gets all recommended vlogs for a user.
+        ///     Gets recommended vlogs for a user.
         /// </summary>
         /// <param name="userId">The corresponding user.</param>
-        /// <param name="maxCount">Maximum result set size.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Recommended vlogs.</returns>
-        Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount);
+        IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Guid userId, Navigation navigation);
 
         /// <summary>
-        ///     Gets all recommended vlogs for a user including
+        ///     Gets recommended vlogs for a user including
         ///     their thumbnail details.
         /// </summary>
         /// <param name="userId">The corresponding user.</param>
-        /// <param name="maxCount">Maximum result set count.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlogs with thumbnail details.</returns>
-        Task<IEnumerable<VlogWithThumbnailDetails>> GetRecommendedForUserWithThumbnailsAsync(Guid userId, uint maxCount);
+        IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Guid userId, Navigation navigation);
 
         /// <summary>
-        ///     Gets all vlogs that belong to a user.
+        ///     Gets vlogs that belong to a user.
         /// </summary>
         /// <param name="userId">The vlog owner.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog collection.</returns>
-        Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId);
+        IAsyncEnumerable<Vlog> GetVlogsFromUserAsync(Guid userId, Navigation navigation);
 
         /// <summary>
-        ///     Gets all vlogs that belong to a user including
+        ///     Gets vlogs that belong to a user including
         ///     their thumbnail details.
         /// </summary>
         /// <param name="userId">The corresponding user.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlogs belonging to the user.</returns>
-        Task<IEnumerable<VlogWithThumbnailDetails>> GetVlogsFromUserWithThumbnailsAsync(Guid userId);
+        IAsyncEnumerable<VlogWithThumbnailDetails> GetVlogsFromUserWithThumbnailsAsync(Guid userId, Navigation navigation);
 
         /// <summary>
-        ///     Gets all the <see cref="VlogLike"/>s for a <see cref="Vlog"/>.
+        ///     Gets the likes for a vlog.
         /// </summary>
         /// <remarks>
         ///     This does not scale. If that is required, use an implementation
         ///     of <see cref="GetVlogLikeSummaryForVlogAsync(Guid)"/> which does
-        ///     not return all <see cref="VlogLike"/> but only a subset.
+        ///     not return all vlog likes but only a subset.
         /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogLike"/> collection</returns>
-        Task<IEnumerable<VlogLike>> GetVlogLikesForVlogAsync(Guid vlogId);
+        /// <param name="vlogId">Internal vlog id</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlog like collection</returns>
+        IAsyncEnumerable<VlogLike> GetVlogLikesForVlogAsync(Guid vlogId, Navigation navigation);
 
         /// <summary>
-        ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
+        ///     Gets a like summery for a given vlog.
         /// </summary>
-        /// <remarks>
-        ///     The <see cref="VlogLikeSummary.Users"/> does not need
-        ///     to contain all the <see cref="SwabbrUser"/> entries.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogLikeSummary"/></returns>
+        /// <param name="vlogId">Internal vlog id</param>
+        /// <returns>Vlog like summary.</returns>
         Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId);
 
         /// <summary>

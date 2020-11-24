@@ -4,6 +4,7 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Providers;
 using System;
 using System.Collections.Generic;
@@ -82,7 +83,7 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task DeleteAsync(Guid id)
         {
             using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogState.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
+            var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogStatus.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
             var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
             if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
             if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
@@ -101,12 +102,14 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableVlog} 
                     WHERE id = @Id 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+                    AND vlog_state != '{VlogStatus.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Vlog>(sql, new { Id = vlogId }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
             if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
             return result.Count() == 1;
         }
+
+        public IAsyncEnumerable<Vlog> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets a <see cref="Vlog"/> from our database.
@@ -122,7 +125,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE id = @Id 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+                    AND vlog_state != '{VlogStatus.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Vlog>(sql, new { Id = id }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
@@ -130,6 +133,7 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync() => throw new NotImplementedException();
+        public IAsyncEnumerable<Vlog> GetFeaturedVlogsAsync(Navigation navigation) => throw new NotImplementedException();
 
         /// <summary>
         /// Returns a collection of <see cref="Vlog"/>s based on a users 
@@ -150,13 +154,14 @@ namespace Swabbr.Infrastructure.Repositories
                         ON v.user_id = f.receiver_id
                     WHERE f.requester_id = @UserId
                         AND f.follow_request_status = '{FollowRequestStatus.Accepted.GetEnumMemberAttribute()}'
-                        AND v.vlog_state = '{VlogState.UpToDate.GetEnumMemberAttribute()}'
+                        AND v.vlog_state = '{VlogStatus.UpToDate.GetEnumMemberAttribute()}'
                     ORDER BY v.start_date DESC
                     LIMIT @MaxCount";
             var pars = new { UserId = userId, MaxCount = (int)maxCount };
             return await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
         }
 
+        public IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
         public Task<int> GetVlogCountForUserAsync(Guid userId) => throw new NotImplementedException();
 
         /// <summary>
@@ -175,7 +180,7 @@ namespace Swabbr.Infrastructure.Repositories
                     JOIN {TableVlog} AS v
                         ON r.target_vlog_id = v.id
                     WHERE r.id = @ReactionId
-                        AND v.vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+                        AND v.vlog_state != '{VlogStatus.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Vlog>(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
@@ -197,9 +202,11 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT * 
                     FROM {TableVlog} 
                     WHERE user_id = @UserId
-                    AND vlog_state = '{VlogState.UpToDate.GetEnumMemberAttribute()}'";
+                    AND vlog_state = '{VlogStatus.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
         }
+
+        public IAsyncEnumerable<Vlog> GetVlogsFromUserAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
 
         /// <summary>
         /// Updates a <see cref="Vlog"/> in our database.
@@ -218,7 +225,7 @@ namespace Swabbr.Infrastructure.Repositories
                         UPDATE {TableVlog} SET
                             is_private = @IsPrivate
                         WHERE id = @Id
-                        AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
+                        AND vlog_state != '{VlogStatus.Deleted.GetEnumMemberAttribute()}'";
 
             int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
             if (rowsAffected <= 0)
@@ -230,6 +237,8 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new MultipleEntitiesFoundException(nameof(Vlog));
             }
         }
+
+        Task<Guid> IRepository<Vlog, Guid>.CreateAsync(Vlog entity) => throw new NotImplementedException();
     }
 
 }

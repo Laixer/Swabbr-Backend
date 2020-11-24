@@ -34,7 +34,6 @@ namespace Swabbr.Api.Controllers
     [Route("api/{version:apiVersion}/users")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserWithStatsRepository _userWithStatsRepository;
         private readonly IUserService _userService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
@@ -42,12 +41,10 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public UsersController(IUserWithStatsRepository userWithStatsRepository,
-            IUserService userService,
+        public UsersController(IUserService userService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
-            _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(UsersController)) : throw new ArgumentNullException(nameof(loggerFactory));
@@ -67,7 +64,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-                var user = await _userWithStatsRepository.GetAsync(userId).ConfigureAwait(false);
+                var user = await _userService.GetWithStatisticsAsync(userId).ConfigureAwait(false);
                 return Ok(MapperUser.Map(user));
             }
             catch (EntityNotFoundException e)
@@ -100,7 +97,7 @@ namespace Swabbr.Api.Controllers
                 if (itemsPerPage < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Items per page must be greater than one")); }
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var users = await _userWithStatsRepository.SearchAsync(query, user.Id, page, itemsPerPage).ConfigureAwait(false);
+                var users = await _userService.SearchAsync(query, Navigation.Default).ToListAsync();
                 return Ok(users.Select(x => MapperUser.Map(x)));
             }
             catch (Exception e)
@@ -121,7 +118,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var userWithStats = await _userWithStatsRepository.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var userWithStats = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
                 return Ok(MapperUser.Map(userWithStats));
             }
             catch (Exception e)
@@ -146,7 +143,9 @@ namespace Swabbr.Api.Controllers
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var updatedUser = await _userService.UpdateAsync(new SwabbrUser
+
+                // Act.
+                await _userService.UpdateAsync(new SwabbrUser
                 {
                     Id = identityUser.Id,
                     BirthDate = input.BirthDate,
@@ -158,9 +157,13 @@ namespace Swabbr.Api.Controllers
                     Nickname = input.Nickname,
                     ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
                 }).ConfigureAwait(false);
+                var updatedUser = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
 
-                // Return updated values
-                return Ok(MapperUser.Map(updatedUser));
+                // Map.
+                var result = MapperUser.Map(updatedUser);
+
+                // Return.
+                return Ok(result);
             }
             catch (InvalidProfileImageStringException)
             {
@@ -190,7 +193,7 @@ namespace Swabbr.Api.Controllers
 
                 return Ok(new FollowingOutputModel
                 {
-                    Following = (await _userService.GetFollowingAsync(userId)
+                    Following = (await _userService.GetFollowingAsync(userId, Navigation.Default).ToListAsync()
                         .ConfigureAwait(false))
                         .Select(x => MapperUser.Map(x))
                 });
@@ -215,7 +218,7 @@ namespace Swabbr.Api.Controllers
 
                 return Ok(new FollowersOutputModel
                 {
-                    Followers = (await _userService.GetFollowersAsync(userId)
+                    Followers = (await _userService.GetFollowersAsync(userId, Navigation.Default).ToListAsync()
                         .ConfigureAwait(false))
                         .Select(x => MapperUser.Map(x))
                 });

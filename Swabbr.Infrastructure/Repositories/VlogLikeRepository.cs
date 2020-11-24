@@ -178,7 +178,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikeSummary"/></returns>
-        public async Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
+        public async Task<VlogLikeSummary> GetSummaryForVlogAsync(Guid vlogId)
         {
             vlogId.ThrowIfNullOrEmpty();
 
@@ -228,5 +228,9 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
+        public IAsyncEnumerable<VlogLike> GetForVlogAsync(Guid vlogId, Navigation navigation) => throw new NotImplementedException();
+        Task<VlogLikeId> IRepository<VlogLike, VlogLikeId>.CreateAsync(VlogLike entity) => throw new NotImplementedException();
+        public IAsyncEnumerable<VlogLike> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+        Task IRepository<VlogLike, VlogLikeId>.UpdateAsync(VlogLike entity) => throw new NotImplementedException();
     }
 }

@@ -205,6 +205,12 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
+        public IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+        Task IFollowRequestRepository.UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status) => throw new NotImplementedException();
+        Task<FollowRequestId> IRepository<FollowRequest, FollowRequestId>.CreateAsync(FollowRequest entity) => throw new NotImplementedException();
+        public IAsyncEnumerable<FollowRequest> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+        Task IRepository<FollowRequest, FollowRequestId>.UpdateAsync(FollowRequest entity) => throw new NotImplementedException();
     }
 
 }

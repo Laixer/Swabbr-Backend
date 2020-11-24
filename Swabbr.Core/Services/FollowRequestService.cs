@@ -1,8 +1,8 @@
-﻿using Swabbr.Core.Extensions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
@@ -65,7 +65,8 @@ namespace Swabbr.Core.Services
                 if (existingRequest.FollowRequestStatus == FollowRequestStatus.Declined)
                 {
                     existingRequest.FollowRequestStatus = FollowRequestStatus.Pending;
-                    var updatedEntity = await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
+                    await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
+                    var updatedEntity = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
 
                     // Commit and return
                     scope.Complete();
@@ -88,7 +89,7 @@ namespace Swabbr.Core.Services
 
             // Commit and return
             scope.Complete();
-            return result.Id;
+            return result;
         }
 
         /// <summary>
@@ -116,10 +117,7 @@ namespace Swabbr.Core.Services
             await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
         }
 
-        public Task<FollowRequest> GetAsync(FollowRequestId id)
-        {
-            return _followRequestRepository.GetAsync(id);
-        }
+        public Task<FollowRequest> GetAsync(FollowRequestId id) => _followRequestRepository.GetAsync(id);
 
         /// <summary>
         /// Gets the <see cref="FollowRequestStatus"/> for a <see cref="FollowRequest"/>
@@ -138,35 +136,15 @@ namespace Swabbr.Core.Services
             return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).FollowRequestStatus;
         }
 
-        public Task<uint> GetFollowerCountAsync(Guid userId)
-        {
-            return _followRequestRepository.GetFollowerCountAsync(userId);
-        }
+        public Task<uint> GetFollowerCountAsync(Guid userId) => _followRequestRepository.GetFollowerCountAsync(userId);
 
-        public Task<uint> GetFollowingCountAsync(Guid userId)
-        {
-            return _followRequestRepository.GetFollowingCountAsync(userId);
-        }
+        public Task<uint> GetFollowingCountAsync(Guid userId) => _followRequestRepository.GetFollowingCountAsync(userId);
 
-        /// <summary>
-        /// Lists incoming <see cref="FollowRequest"/>s.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="FollowRequest"/> collection</returns>
-        public Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId)
-        {
-            return _followRequestRepository.GetIncomingForUserAsync(userId);
-        }
+        public IAsyncEnumerable<FollowRequest> GetPendingIncomingForUserAsync(Guid userId, Navigation navigation) 
+            => _followRequestRepository.GetIncomingForUserAsync(userId, navigation);
 
-        /// <summary>
-        /// Lists outgoing <see cref="FollowRequest"/>s.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="FollowRequest"/> collection</returns>
-        public Task<IEnumerable<FollowRequest>> GetPendingOutgoingForUserAsync(Guid userId)
-        {
-            return _followRequestRepository.GetOutgoingForUserAsync(userId);
-        }
+        public IAsyncEnumerable<FollowRequest> GetPendingOutgoingForUserAsync(Guid userId, Navigation navigation) 
+            => _followRequestRepository.GetOutgoingForUserAsync(userId, navigation);
 
         /// <summary>
         /// Cancels a <see cref="FollowRequest"/>.

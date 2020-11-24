@@ -3,9 +3,9 @@
 namespace Swabbr.Core.Enums
 {
     /// <summary>
-    ///     Represents the processing state of a reaction.
+    ///     Represents status of a reaction.
     /// </summary>
-    public enum ReactionState
+    public enum ReactionStatus
     {
         /// <summary>
         ///     The reaction is ready to be watched.

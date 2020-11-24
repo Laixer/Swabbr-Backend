@@ -36,6 +36,6 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     Indicates the state of this reaction.
         /// </summary>
-        public ReactionState ReactionState { get; set; }
+        public ReactionStatus ReactionStatus { get; set; }
     }
 }

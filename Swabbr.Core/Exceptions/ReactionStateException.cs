@@ -18,7 +18,7 @@ namespace Swabbr.Core.Exceptions
 
         public ReactionStateException(string message, Exception innerException) : base(message, innerException) { }
 
-        public ReactionStateException(ReactionState notInThisState)
+        public ReactionStateException(ReactionStatus notInThisState)
             : base($"Reaction not in {notInThisState.GetEnumMemberAttribute()} state") { }
 
     }

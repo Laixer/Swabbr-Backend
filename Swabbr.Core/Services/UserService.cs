@@ -32,41 +32,34 @@ namespace Swabbr.Core.Services
             config = options.Value;
         }
 
-        public Task<bool> ExistsAsync(Guid userId) => _userRepository.UserExistsAsync(userId);
+        public Task<bool> ExistsAsync(Guid userId) => _userRepository.ExistsAsync(userId);
 
         public Task<bool> ExistsNicknameAsync(string nickname) => _userRepository.NicknameExistsAsync(nickname);
 
         /// <summary>
         ///     Gets all users which are eligible for a vlog request.
         /// </summary>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable user collection</returns>
-        public IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync() 
-            => _userRepository.GetAllVloggableUsersAsync();
-
-        public Task<SwabbrUser> GetAsync(Guid userId) => _userRepository.GetAsync(userId);
-
-        public Task<SwabbrUser> GetByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
+        public IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation) 
+            => _userRepository.GetAllVloggableUsersAsync(navigation);
 
         /// <summary>
-        /// Get all followers for a <paramref name="userId"/>.
+        ///     Get a single user from our data store.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId) => _userRepository.GetFollowersAsync(userId);
+        /// <param name="userId">The user id.</param>
+        /// <returns>The user.</returns>
+        public Task<SwabbrUser> GetAsync(Guid userId) 
+            => _userRepository.GetAsync(userId);
 
-        /// <summary>
-        /// Get all users that <paramref name="userId"/> is following.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId) => _userRepository.GetFollowingAsync(userId);
+        public IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation)
+            => _userRepository.GetFollowersAsync(userId, navigation);
 
-        /// <summary>
-        /// Gets the notification details for a user.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="UserPushNotificationDetails"/></returns>
-        public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId) => _userRepository.GetPushDetailsAsync(userId);
+        public IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation)
+            => _userRepository.GetFollowingAsync(userId, navigation);
+
+        public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId) 
+            => _userRepository.GetPushDetailsAsync(userId);
 
         /// <summary>
         ///     Gets a user with corresponding statistics.
@@ -76,13 +69,16 @@ namespace Swabbr.Core.Services
         public Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId)
             => _userRepository.GetWithStatisticsAsync(userId);
 
+        public IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
+            => _userRepository.SearchAsync(query, navigation);
+
         // TODO Should this do any of the work that UserSettingsController.UpdateAsync does?
         /// <summary>
         ///     This updates a user in our database.
         /// </summary>
         /// <param name="user">The updated user entity.</param>
         /// <returns>The user entity after the update operation.</returns>
-        public Task<SwabbrUser> UpdateAsync(SwabbrUser user)
+        public Task UpdateAsync(SwabbrUser user)
             => _userRepository.UpdateAsync(user);
 
         /// <summary>
@@ -110,5 +106,7 @@ namespace Swabbr.Core.Services
             if (newTimeZone == null) { throw new ArgumentNullException(nameof(newTimeZone)); }
             return _userRepository.UpdateTimeZoneAsync(userId, newTimeZone);
         }
+
+        Task IUserService.UpdateAsync(SwabbrUser user) => throw new NotImplementedException();
     }
 }

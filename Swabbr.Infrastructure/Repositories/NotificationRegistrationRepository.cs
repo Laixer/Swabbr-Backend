@@ -2,6 +2,7 @@
 using Swabbr.Core.Entities;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Providers;
 using System;
 using System.Collections.Generic;
@@ -66,6 +67,9 @@ namespace Swabbr.Infrastructure.Repositories
             return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableNotificationRegistration);
         }
 
+        public Task<bool> ExistsAsync(Guid id) => throw new NotImplementedException();
+        public IAsyncEnumerable<NotificationRegistration> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+
         /// <summary>
         /// Gets a single <see cref="NotificationRegistration"/> from our database.
         /// </summary>
@@ -83,7 +87,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="NotificationRegistration"/> collection</returns>
-        public async Task<IEnumerable<NotificationRegistration>> GetRegistrationsForUserAsync(Guid userId)
+        public async Task<IEnumerable<NotificationRegistration>> GetForUserAsync(Guid userId)
         {
             userId.ThrowIfNullOrEmpty();
 
@@ -96,5 +100,9 @@ namespace Swabbr.Infrastructure.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<bool> UserHasRegistrationAsync(Guid userId) => throw new NotImplementedException();
+        Task<Guid> IRepository<NotificationRegistration, Guid>.CreateAsync(NotificationRegistration entity) => throw new NotImplementedException();
+        Task IRepository<NotificationRegistration, Guid>.UpdateAsync(NotificationRegistration entity) => throw new NotImplementedException();
     }
 }

@@ -44,7 +44,6 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddTransient<INotificationRegistrationRepository, NotificationRegistrationRepository>();
             services.AddTransient<IReactionRepository, ReactionRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IUserWithStatsRepository, UserWithStatsRepository>();
             services.AddTransient<IVlogLikeRepository, VlogLikeRepository>();
             services.AddTransient<IVlogRepository, VlogRepository>();
 

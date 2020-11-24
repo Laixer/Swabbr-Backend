@@ -68,7 +68,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var incoming = await _followRequestService.GetPendingIncomingForUserAsync(user.Id).ConfigureAwait(false);
+                var incoming = await _followRequestService.GetPendingIncomingForUserAsync(user.Id, Navigation.Default).ToListAsync();
                 return Ok(new FollowRequestCollectionOutputModel
                 {
                     FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
@@ -95,7 +95,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(user.Id).ConfigureAwait(false);
+                var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(user.Id, Navigation.Default).ToListAsync();
                 return Ok(new FollowRequestCollectionOutputModel
                 {
                     FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
@@ -128,7 +128,7 @@ namespace Swabbr.Api.Controllers
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
                 if (user.Id == receiverId) { return Conflict(this.Error(ErrorCodes.InvalidOperation, "Can't request follow request between user and himself")); }
 
-                if (!await _userRepository.UserExistsAsync(receiverId).ConfigureAwait(false))
+                if (!await _userRepository.ExistsAsync(receiverId).ConfigureAwait(false))
                 {
                     return Conflict(this.Error(ErrorCodes.EntityNotFound, "Receiving user id does not exist"));
                 }
@@ -175,7 +175,7 @@ namespace Swabbr.Api.Controllers
                 }
 
                 // We can't follow a user that doesn't exist
-                if (!await _userRepository.UserExistsAsync(receiverId).ConfigureAwait(false))
+                if (!await _userRepository.ExistsAsync(receiverId).ConfigureAwait(false))
                 {
                     return Conflict(this.Error(ErrorCodes.EntityNotFound, "Specified user does not exist"));
                 }

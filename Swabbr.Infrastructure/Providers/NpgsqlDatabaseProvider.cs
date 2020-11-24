@@ -36,6 +36,7 @@ namespace Swabbr.Infrastructure.Providers
         ///     Gets a connection scope.
         /// </summary>
         /// <returns>New npgsql connection.</returns>
-        public IDbConnection GetConnectionScope() => new NpgsqlConnection(connectionString);
+        public IDbConnection GetConnectionScope() 
+            => new NpgsqlConnection(connectionString);
     }
 }

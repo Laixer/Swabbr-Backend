@@ -36,6 +36,6 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     Indicates the state of this vlog.
         /// </summary>
-        public VlogState VlogState { get; set; }
+        public VlogStatus VlogStatus { get; set; }
     }
 }

@@ -167,7 +167,7 @@ namespace Swabbr.Api.Controllers
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 // Get all vlogs.
-                var vlogsWithThumbnails = await _vlogService.GetVlogsFromUserWithThumbnailsAsync(userId);
+                var vlogsWithThumbnails = await _vlogService.GetVlogsFromUserWithThumbnailsAsync(userId, Navigation.Default).ToListAsync();
 
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
@@ -328,7 +328,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
-                var vlogLikes = await _vlogService.GetVlogLikesForVlogAsync(vlogId).ConfigureAwait(false);
+                var vlogLikes = await _vlogService.GetVlogLikesForVlogAsync(vlogId, Navigation.All).ToListAsync();
 
                 // TODO Clean up
                 var users = new List<SwabbrUserWithStats>();
@@ -372,9 +372,15 @@ namespace Swabbr.Api.Controllers
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
                 // Get all vlogs.
-                var vlogsWithThumbnails = await _vlogService.GetRecommendedForUserWithThumbnailsAsync(user.Id, maxCount);
+                var navigation = new Navigation
+                {
+                    Limit = maxCount,
+                    Offset = 0,
+                };
+                var vlogsWithThumbnails = await _vlogService.GetRecommendedForUserWithThumbnailsAsync(user.Id, navigation).ToListAsync();
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
 
+                // TODO Use await foreach
                 // Process each vlog separately.
                 // TODO Duplicate code.
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>

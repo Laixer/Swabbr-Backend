@@ -13,24 +13,10 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IFollowRequestService
     {
         /// <summary>
-        ///     Send a follow request from a requesting user to a receiving user.
-        /// </summary>
-        /// <param name="requesterId">User id that follows.</param>
-        /// <param name="receiverId">User id that is being followed.</param>
-        /// <returns>The created follow request id.</returns>
-        Task<FollowRequestId> SendAsync(Guid requesterId, Guid receiverId);
-
-        /// <summary>
         ///     Accept an existing follow request.
         /// </summary>
         /// <param name="id">The follow request id.</param>
         Task AcceptAsync(FollowRequestId id);
-
-        /// <summary>
-        ///     Decline an existing follow request.
-        /// </summary>
-        /// <param name="id">The follow request id.</param>
-        Task DeclineAsync(FollowRequestId id);
 
         /// <summary>
         ///     Cancel an existing follow request.
@@ -39,10 +25,10 @@ namespace Swabbr.Core.Interfaces.Services
         Task CancelAsync(FollowRequestId id);
 
         /// <summary>
-        ///     Unfollows a requester from a receiver.
+        ///     Decline an existing follow request.
         /// </summary>
         /// <param name="id">The follow request id.</param>
-        Task UnfollowAsync(FollowRequestId id);
+        Task DeclineAsync(FollowRequestId id);
 
         /// <summary>
         ///     Gets a follow request from our data store.
@@ -63,15 +49,17 @@ namespace Swabbr.Core.Interfaces.Services
         ///     Returns all pending incoming follow requests for a specific user.
         /// </summary>
         /// <param name="userId">Id of user that receives the requests.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Follow request collection.</returns>
-        Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId);
+        IAsyncEnumerable<FollowRequest> GetPendingIncomingForUserAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Returns all pending outgoing follow requests from a specific user.
         /// </summary>
         /// <param name="userId">Id of user that sent out the requests.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Follow request collection.</returns>
-        Task<IEnumerable<FollowRequest>> GetPendingOutgoingForUserAsync(Guid userId);
+        IAsyncEnumerable<FollowRequest> GetPendingOutgoingForUserAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Returns the amount of users that follow the specified user.
@@ -86,5 +74,19 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="userId">Id of user to check the amount of followers for.</param>
         /// <returns>User following count.</returns>
         Task<uint> GetFollowingCountAsync(Guid userId);
+
+        /// <summary>
+        ///     Send a follow request from a requesting user to a receiving user.
+        /// </summary>
+        /// <param name="requesterId">User id that follows.</param>
+        /// <param name="receiverId">User id that is being followed.</param>
+        /// <returns>The created follow request id.</returns>
+        Task<FollowRequestId> SendAsync(Guid requesterId, Guid receiverId);
+
+        /// <summary>
+        ///     Unfollows a requester from a receiver.
+        /// </summary>
+        /// <param name="id">The follow request id.</param>
+        Task UnfollowAsync(FollowRequestId id);
     }
 }

@@ -43,6 +43,8 @@ namespace Swabbr.Infrastructure.Repositories
             throw new InvalidOperationException("Creation of users should ONLY be done by the identity framework!");
 
         public Task DeleteAsync(Guid id) => throw new NotImplementedException();
+        public Task<bool> ExistsAsync(Guid id) => throw new NotImplementedException();
+        public IAsyncEnumerable<SwabbrUser> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
 
         /// <summary>
         ///     Gets all users from the database which are eligible
@@ -69,6 +71,8 @@ namespace Swabbr.Infrastructure.Repositories
             yield break;
             throw new NotImplementedException();
         }
+
+        public IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets a single <see cref="SwabbrUser"/> from the database based on its internal id.
@@ -133,6 +137,8 @@ namespace Swabbr.Infrastructure.Repositories
             return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
         }
 
+        public IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+
         /// <summary>
         /// Gets the <see cref="UserPushNotificationDetails"/> for all followers 
         /// of a specified <paramref name="userId"/>.
@@ -159,6 +165,8 @@ namespace Swabbr.Infrastructure.Repositories
             return await connection.QueryAsync<UserPushNotificationDetails>(sql, new { Id = userId }).ConfigureAwait(false);
         }
 
+        public IAsyncEnumerable<UserPushNotificationDetails> GetFollowersPushDetailsAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+
         /// <summary>
         /// Gets all <see cref="SwabbrUser"/> entities that a given
         /// <see cref="SwabbrUser"/> specified by <paramref name="userId"/>
@@ -180,6 +188,8 @@ namespace Swabbr.Infrastructure.Repositories
                     WHERE f.requester_id = @Id";
             return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
         }
+
+        public IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets the <see cref="UserPushNotificationDetails"/> for a given 
@@ -294,6 +304,8 @@ namespace Swabbr.Infrastructure.Repositories
             return result.Any();
         }
 
+        public IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation) => throw new NotImplementedException();
+
         /// <summary>
         ///     Updates a <see cref="SwabbrUser"/> in our database.
         /// </summary>
@@ -390,5 +402,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
         /// <returns><see cref="true"/> if it exists</returns>
         public Task<bool> UserExistsAsync(Guid userId) => SharedRepositoryFunctions.ExistsAsync(_databaseProvider, TableUser, userId);
+        Task<Guid> IRepository<SwabbrUser, Guid>.CreateAsync(SwabbrUser entity) => throw new NotImplementedException();
+        Task IRepository<SwabbrUser, Guid>.UpdateAsync(SwabbrUser entity) => throw new NotImplementedException();
     }
 }

@@ -4,6 +4,7 @@ using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Providers;
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,10 @@ namespace Swabbr.Infrastructure.Repositories
             return await GetAsync(id).ConfigureAwait(false);
         }
 
+        public Task DeleteAsync(Guid id) => throw new NotImplementedException();
+        public Task<bool> ExistsAsync(Guid id) => throw new NotImplementedException();
+        public IAsyncEnumerable<Reaction> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+
         /// <summary>
         /// Gets a <see cref="Reaction"/> from our database.
         /// </summary>
@@ -71,12 +76,14 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT *
                     FROM {TableReaction} 
                     WHERE id = @Id
-                    AND reaction_state != '{ReactionState.Deleted.GetEnumMemberAttribute()}'";
+                    AND reaction_state != '{ReactionStatus.Deleted.GetEnumMemberAttribute()}'";
             var result = await connection.QueryAsync<Reaction>(sql, new { Id = id }).ConfigureAwait(false);
             if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Reaction)); }
             if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
             return result.First();
         }
+
+        public Task<uint> GetCountForVlogAsync(Guid vlogId) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets all <see cref="Reaction"/>s for a given <see cref="Vlog"/>.
@@ -91,7 +98,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = $@"
                     SELECT * FROM {TableReaction} 
                     WHERE target_vlog_id = @VlogId 
-                    AND reaction_state = '{ReactionState.UpToDate.GetEnumMemberAttribute()}'";
+                    AND reaction_state = '{ReactionStatus.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.QueryAsync<Reaction>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
         }
 
@@ -109,7 +116,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT COUNT(*) 
                     FROM {TableReaction} 
                     WHERE target_vlog_id = @VlogId
-                    AND reaction_state = '{ReactionState.UpToDate.GetEnumMemberAttribute()}'";
+                    AND reaction_state = '{ReactionStatus.UpToDate.GetEnumMemberAttribute()}'";
             return await connection.ExecuteScalarAsync<int>(sql, new { VlogID = vlogId }).ConfigureAwait(false);
         }
 
@@ -132,21 +139,21 @@ namespace Swabbr.Infrastructure.Repositories
 
         /// <summary>
         /// Soft deletes a <see cref="Reaction"/> from our database. The reaction
-        /// will be marked as <see cref="ReactionState.Deleted"/>.
+        /// will be marked as <see cref="ReactionStatus.Deleted"/>.
         /// </summary>
         /// <param name="reactionId"></param>
         /// <returns></returns>
         public Task SoftDeleteAsync(Guid reactionId)
         {
-            return MarkAsStatusAsync(reactionId, ReactionState.Deleted);
+            return MarkAsStatusAsync(reactionId, ReactionStatus.Deleted);
         }
 
         /// <summary>
         /// Updates a <see cref="Reaction"/> in our database.
         /// </summary>
         /// <remarks>
-        /// This can't update the <see cref="Reaction.ReactionState"/>.
-        /// TODO This should never be able to update a reaction in <see cref="ReactionState.Deleted"/>.
+        /// This can't update the <see cref="Reaction.ReactionStatus"/>.
+        /// TODO This should never be able to update a reaction in <see cref="ReactionStatus.Deleted"/>.
         /// </remarks>
         /// <param name="entity"><see cref="Reaction"/></param>
         /// <returns>Updated and queried <see cref="Reaction"/></returns>
@@ -167,6 +174,9 @@ namespace Swabbr.Infrastructure.Repositories
             return await GetAsync(entity.Id).ConfigureAwait(false);
         }
 
+        Task<Guid> IRepository<Reaction, Guid>.CreateAsync(Reaction entity) => throw new NotImplementedException();
+        IAsyncEnumerable<Reaction> IReactionRepository.GetForVlogAsync(Guid vlogId) => throw new NotImplementedException();
+
         /// <summary>
         /// Marks a <see cref="Reaction"/> as <paramref name="state"/>.
         /// </summary>
@@ -174,9 +184,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// This will throw if the database determines an invalid state change.
         /// </remarks>
         /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <param name="state"><see cref="ReactionState"/></param>
+        /// <param name="state"><see cref="ReactionStatus"/></param>
         /// <returns><see cref="Task"/></returns>
-        private async Task MarkAsStatusAsync(Guid reactionId, ReactionState state)
+        private async Task MarkAsStatusAsync(Guid reactionId, ReactionStatus state)
         {
             reactionId.ThrowIfNullOrEmpty();
 
@@ -191,6 +201,7 @@ namespace Swabbr.Infrastructure.Repositories
             if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Reaction)); }
         }
 
+        Task IRepository<Reaction, Guid>.UpdateAsync(Reaction entity) => throw new NotImplementedException();
     }
 
 }
