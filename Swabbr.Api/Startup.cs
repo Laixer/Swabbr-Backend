@@ -16,11 +16,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swabbr.Api;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Configuration;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.Services;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
@@ -37,15 +40,17 @@ using System.Text;
 
 namespace Swabbr
 {
+    // TODO Clean this entire class up
     /// <summary>
-    /// Startup configuration for all dependency injections.
+    ///     Called on application startup to configure
+    ///     service container and request pipeline.
     /// </summary>
     public class Startup
     {
         private readonly IConfiguration _configuration;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
         public Startup(IConfiguration configuration)
         {
@@ -53,7 +58,7 @@ namespace Swabbr
         }
 
         /// <summary>
-        /// Sets up all our dependency injection.
+        ///     Sets up all our dependency injection.
         /// </summary>
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
@@ -66,7 +71,6 @@ namespace Swabbr
                 options.ConnectionString = _configuration.GetConnectionString("AzureNotificationHub");
             });
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
-            services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
 
             // Setup request related services
             services.AddCors();
@@ -89,6 +93,9 @@ namespace Swabbr
 
             // Setup doc
             SetupSwagger(services);
+
+            // Add app context factory
+            services.AddOrReplace<IAppContextFactory, AppContextFactory>(ServiceLifetime.Singleton);
 
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal");

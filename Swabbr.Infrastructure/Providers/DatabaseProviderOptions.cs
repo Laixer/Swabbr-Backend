@@ -1,9 +1,9 @@
 ﻿namespace Swabbr.Infrastructure.Providers
 {
     /// <summary>
-    ///     Contains all options for our <see cref="NpgsqlDatabaseProvider"/>.
+    ///     Contains options for our database provider.
     /// </summary>
-    public sealed class NpgsqlDatabaseProviderOptions
+    internal class DatabaseProviderOptions
     {
         /// <summary>
         ///     The name of the connection string as specified.
