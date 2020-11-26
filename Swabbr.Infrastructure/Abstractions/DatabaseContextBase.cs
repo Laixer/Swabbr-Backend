@@ -37,8 +37,8 @@ namespace Swabbr.Infrastructure.Abstractions
 
         // FUTURE: Maybe too npgsql specific.
         /// <summary>
-        ///     Append our navigation properties to the
-        ///     specified sql command text.
+        ///     Append our navigation properties to the specified 
+        ///     sql command text.
         /// </summary>
         /// <remarks>
         ///     Call this last in the sql query definition process.

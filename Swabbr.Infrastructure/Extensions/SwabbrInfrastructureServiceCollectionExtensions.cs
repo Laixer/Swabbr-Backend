@@ -3,7 +3,6 @@ using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Infrastructure.Abstractions;
-using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
