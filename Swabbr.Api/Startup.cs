@@ -99,8 +99,6 @@ namespace Swabbr
 
             // Add app context
             services.AddOrReplace<IAppContextFactory, AppContextFactory>(ServiceLifetime.Singleton);
-            // TODO Is this right?
-            
 
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal");

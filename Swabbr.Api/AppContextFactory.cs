@@ -38,13 +38,18 @@ namespace Swabbr.Api
                 // Return an empty context if we have no http context.
                 return new Core.AppContext();
             }
+            if (httpContextAccessor.HttpContext?.User is null)
+            {
+                // This would be undefined behaviour.
+                throw new InvalidOperationException();
+            }
 
             var httpContext = httpContextAccessor.HttpContext;
             return new Core.AppContext
             {
                 CancellationToken = httpContext.RequestAborted,
                 ServiceProvider = httpContext.RequestServices,
-                UserId = IsSignedIn(httpContext.User) ? GetUserIdOrThrow(httpContext.User) : Guid.Empty // TODO Ugly
+                UserId = IsSignedIn(httpContext.User) ? GetUserIdOrThrow(httpContext.User) : Guid.Empty
             };
         }
 
@@ -69,13 +74,6 @@ namespace Swabbr.Api
         /// </summary>
         /// <param name="principal">The claims principal.</param>
         private static bool IsSignedIn(ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentNullException(nameof(principal));
-            }
-
-            return principal?.Identities != null && principal.Identities.Any(i => i.IsAuthenticated);
-        }
+            => principal?.Identities != null && principal.Identities.Any(i => i.IsAuthenticated);
     }
 }

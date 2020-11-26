@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Swabbr.Core.Abstractions;
 using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Extensions;
@@ -15,14 +16,19 @@ namespace Swabbr.Core.Services
     /// <summary>
     ///     Service to handle user related operations.
     /// </summary>
-    public class UserService : IUserService
+    public class UserService :  AppServiceBase, IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly SwabbrConfiguration config;
 
-        public UserService(IUserRepository userRepository,
+        /// <summary>
+        ///     Create new instance.
+        /// </summary>
+        public UserService(AppContext appContext,
+            IUserRepository userRepository,
             IOptions<SwabbrConfiguration> options)
         {
+            AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             if (options == null) { throw new ArgumentNullException(nameof(options)); }
             options.Value.ThrowIfInvalid();
@@ -117,10 +123,19 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to update.</param>
         /// <param name="longitude">New longitude coordinate.</param>
         /// <param name="latitude">New latitude coordinate.</param>
-        public Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
+        public async Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
         {
-            userId.ThrowIfNullOrEmpty();
-            return _userRepository.UpdateLocationAsync(userId, longitude, latitude);
+            if (!AppContext.HasUser)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var user = await _userRepository.GetAsync(AppContext.UserId);
+
+            user.Longitude = longitude;
+            user.Latitude = latitude;
+
+            await UpdateAsync(user);
         }
 
         /// <summary>
@@ -128,11 +143,18 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The user to update.</param>
         /// <param name="newTimeZone">The new user timezone.</param>
-        public Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
+        public async Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
         {
-            userId.ThrowIfNullOrEmpty();
-            if (newTimeZone == null) { throw new ArgumentNullException(nameof(newTimeZone)); }
-            return _userRepository.UpdateTimeZoneAsync(userId, newTimeZone);
+            if (!AppContext.HasUser)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var user = await _userRepository.GetAsync(AppContext.UserId);
+
+            user.Timezone = newTimeZone;
+
+            await UpdateAsync(user);
         }
     }
 }

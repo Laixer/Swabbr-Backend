@@ -14,7 +14,7 @@ using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
-
+    // TODO Clean up
     /// <summary>
     /// Contains functionality to handle <see cref="FollowRequest"/> operations.
     /// </summary>

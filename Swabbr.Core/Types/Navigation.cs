@@ -14,7 +14,7 @@
         /// <summary>
         ///     The amount of items to fetch.
         /// </summary>
-        public uint Limit { get; set; } = 25;
+        public uint Limit { get; set; }
 
         /// <summary>
         ///     Default navigation implementation.
@@ -25,7 +25,6 @@
             Offset = 0,
         };
 
-        // TODO
         /// <summary>
         ///     Navigation indicating we want 
         ///     the complete result set.

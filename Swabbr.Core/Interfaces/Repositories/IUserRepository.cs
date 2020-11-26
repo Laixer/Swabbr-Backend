@@ -72,20 +72,5 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
         IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation);
-
-        /// <summary>
-        ///     Updates the location for a user.
-        /// </summary>
-        /// <param name="userId">The user id.</param>
-        /// <param name="longitude">The new longitude coordinate.</param>
-        /// <param name="latitude">The new latitude coordinate.</param>
-        Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
-
-        /// <summary>
-        ///     Updates the timezone for a user.
-        /// </summary>
-        /// <param name="userId">The user id.</param>
-        /// <param name="newTimeZone">The new timezone.</param>
-        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
     }
 }

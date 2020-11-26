@@ -393,7 +393,6 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-        // TODO Separate call for timezone and longlat, but timezone can be updated here as well. Consistency!
         /// <summary>
         ///     Update a user in our database.
         /// </summary>
@@ -419,6 +418,8 @@ namespace Swabbr.Infrastructure.Repositories
                             gender = @gender,
                             is_private = @is_private,
                             last_name = @last_name,
+                            latitude = @latitude,
+                            longitude = @longitude,
                             nickname = @nickname,
                             profile_image_base64_encoded = @profile_image_base64_encoded,
                             timezone = @timezone
@@ -432,12 +433,6 @@ namespace Swabbr.Infrastructure.Repositories
 
             await context.NonQueryAsync();
         }
-
-        // TODO Why separate call?
-        public Task UpdateLocationAsync(Guid userId, double longitude, double latitude) => throw new NotImplementedException();
-
-        // TODO Why separate call?
-        public Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone) => throw new NotImplementedException();
 
         /// <summary>
         ///     Maps a reader to a user object.
@@ -457,8 +452,8 @@ namespace Swabbr.Infrastructure.Repositories
                 Id = reader.GetGuid(6 + offset),
                 IsPrivate = reader.GetBoolean(7 + offset),
                 LastName = reader.GetSafeString(8 + offset),
-                Latitude = reader.GetSafeFloat(9 + offset),
-                Longitude = reader.GetSafeFloat(10 + offset),
+                Latitude = reader.GetSafeDouble(9 + offset),
+                Longitude = reader.GetSafeDouble(10 + offset),
                 Nickname = reader.GetString(11 + offset),
                 ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
                 Timezone = reader.GetTimeZoneInfo(13 + offset)
@@ -520,9 +515,11 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("gender", user.Gender);
             context.AddParameterWithValue("is_private", user.IsPrivate);
             context.AddParameterWithValue("last_name", user.LastName);
+            context.AddParameterWithValue("latitude", user.Latitude);
+            context.AddParameterWithValue("longitude", user.Longitude);
             context.AddParameterWithValue("nickname", user.Nickname);
             context.AddParameterWithValue("profile_image_base64_encoded", user.ProfileImageBase64Encoded);
-            context.AddParameterWithValue("timezone", MapTimeZoneToString(user.Timezone));
+            context.AddParameterWithValue("timezone", MapTimeZoneToStringOrNull(user.Timezone));
         }
 
         // TODO Move to helper
@@ -536,7 +533,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </remarks>
         /// <param name="timeZoneInfo">The timezone object.</param>
         /// <returns>Formatted string.</returns>
-        private static string MapTimeZoneToString(TimeZoneInfo timeZoneInfo)
+        private static string MapTimeZoneToStringOrNull(TimeZoneInfo timeZoneInfo)
         {
             if (timeZoneInfo is null)
             {

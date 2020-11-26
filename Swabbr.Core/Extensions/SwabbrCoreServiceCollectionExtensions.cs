@@ -2,6 +2,7 @@
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
+using System;
 
 namespace Swabbr.Core.Extensions
 {
@@ -20,14 +21,21 @@ namespace Swabbr.Core.Extensions
         /// <returns>Service container with swabbr core services.</returns>
         public static IServiceCollection AddSwabbrCoreServices(this IServiceCollection services)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             // Make appcontext injectable.
+            // TODO QUESTION We might want to pick a single method of implementing this,
+            //               Either with the factory, with the context itself or with
+            //               explicit assignment as done in Swabbr.Infrastructure.Extensions.SwabbrInfrastructureServiceCollectionExtensions
             services.AddScoped((services) =>
             {
                 var factory = services.GetRequiredService<IAppContextFactory>();
                 return factory.CreateAppContext();
             });
 
-            // TODO Move this to core extension
             // Configure DI for services
             services.AddTransient<IFollowRequestService, FollowRequestService>();
             services.AddTransient<IUserSelectionService, UserSelectionService>();

@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 
 namespace Swabbr.Infrastructure.Extensions
 {
-    // TODO Copied, check and remove what we don't need
     /// <summary>
     ///     DbDataReader extensions.
     /// </summary>

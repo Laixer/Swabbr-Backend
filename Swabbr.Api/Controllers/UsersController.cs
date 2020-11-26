@@ -149,8 +149,6 @@ namespace Swabbr.Api.Controllers
 
                 // Act.
                 var userId = (await _userManager.GetUserAsync(User).ConfigureAwait(false)).Id;
-
-                // Act.
                 var user = await _userService.GetAsync(userId);
 
                 // Only map changed properties.
@@ -187,7 +185,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
-        // TODO This does nothing with non-existent user ids
+        // TODO This (and any services down the line) does nothing with non-existent user ids
         /// <summary>
         /// Returns a collection of users that the specified user is following.
         /// </summary>
@@ -213,7 +211,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
-        // TODO This does nothing with non-existent user ids
+        // TODO This (and any services down the line) does nothing with non-existent user ids
         /// <summary>
         /// Get the followers of a single <see cref="SwabbrUser"/>.
         /// </summary>

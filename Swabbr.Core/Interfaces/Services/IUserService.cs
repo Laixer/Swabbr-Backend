@@ -84,6 +84,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="user">The user with updated properties.</param>
         Task UpdateAsync(SwabbrUser user);
 
+        // TODO Do we really need a separate call for this?
         /// <summary>
         ///     Updates a user location in our data store.
         /// </summary>
@@ -92,6 +93,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="latitude">New latitude coordinate.</param>
         Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
 
+        // TODO Do we really need a separate call for this?
         /// <summary>
         ///     Updates a user timezone in our data store.
         /// </summary>
