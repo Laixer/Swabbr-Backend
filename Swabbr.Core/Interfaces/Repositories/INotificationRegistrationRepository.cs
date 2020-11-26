@@ -9,11 +9,6 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// </summary>
     public interface INotificationRegistrationRepository : IRepository<NotificationRegistration, Guid>
     {
-        /// <summary>
-        ///     Checks if a user has an existing 
-        ///     notification registration.
-        /// </summary>
-        /// <param name="userId">The user id.</param>
-        Task<bool> UserHasRegistrationAsync(Guid userId);
+        // TODO What to put here
     }
 }

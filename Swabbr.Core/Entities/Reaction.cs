@@ -21,7 +21,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     The moment at which the reaction was posted.
         /// </summary>
-        public DateTime CreateDate { get; set; }
+        public DateTime DateCreated { get; set; }
 
         /// <summary>
         ///     Indicates whether this reaction is public or private.
@@ -31,7 +31,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     Represents the length in seconds for this reaction.
         /// </summary>
-        public uint LengthInSeconds { get; set; }
+        public uint? LengthInSeconds { get; set; }
 
         /// <summary>
         ///     Indicates the state of this reaction.

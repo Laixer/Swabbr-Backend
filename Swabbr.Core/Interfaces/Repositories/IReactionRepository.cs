@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,7 +22,8 @@ namespace Swabbr.Core.Interfaces.Repositories
         ///     Gets reactions that belong to a vlog.
         /// </summary>
         /// <param name="vlogId">The corresponding vlog.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Reactions for the vlog.</returns>
-        IAsyncEnumerable<Reaction> GetForVlogAsync(Guid vlogId);
+        IAsyncEnumerable<Reaction> GetForVlogAsync(Guid vlogId, Navigation navigation);
     }
 }

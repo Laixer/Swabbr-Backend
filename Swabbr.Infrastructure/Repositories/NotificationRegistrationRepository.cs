@@ -41,12 +41,14 @@ namespace Swabbr.Infrastructure.Repositories
                         external_id,
                         handle,
                         id,
-                        push_notification_platform)
+                        push_notification_platform
+                    )
                     VALUES (
                         @external_id,
                         @handle,
                         @id,
-                        @push_notification_platform)
+                        @push_notification_platform
+                    )
                     RETURNING id";
 
             await using var context = await CreateNewDatabaseContext(sql);
@@ -77,12 +79,51 @@ namespace Swabbr.Infrastructure.Repositories
             await context.NonQueryAsync();
         }
 
-        // TODO Same as UserHasRegistrationAsync
-        public Task<bool> ExistsAsync(Guid id)
-            => UserHasRegistrationAsync(id);
+        /// <summary>
+        ///     Checks if a notification registration with a
+        ///     given id exists, which actually checks if a 
+        ///     user has an existing notification registration.
+        /// </summary>
+        /// <param name="id">The user id.</param>
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    application.notification_registration AS nr
+                        WHERE   nr.id = @user_id
+                    )";
 
-        // TODO Remove?
-        public IAsyncEnumerable<NotificationRegistration> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", id);
+
+            return await context.ScalarAsync<bool>();
+        }
+
+        /// <summary>
+        ///     Gets all notification registrations from our database.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Notification registration result set.</returns>
+        public async IAsyncEnumerable<NotificationRegistration> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  nr.external_id,
+                            nr.handle,
+                            nr.id,
+                            nr.push_notification_platform
+                    FROM    application.notification_registration AS nr";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
 
         /// <summary>
         ///     Gets a notification registration from our database.
@@ -109,41 +150,28 @@ namespace Swabbr.Infrastructure.Repositories
             return MapFromReader(reader);
         }
 
-        // TODO Remove?
-        public Task UpdateAsync(NotificationRegistration entity) => throw new NotImplementedException();
-
         /// <summary>
-        ///     Checks if a user has an existing 
-        ///     notification registration.
+        ///     Update a notification registration in the data store.
         /// </summary>
-        /// <param name="userId">The user id.</param>
-        public async Task<bool> UserHasRegistrationAsync(Guid userId)
-        {
-            var sql = @"
-                    SELECT  EXISTS (
-                    SELECT  1
-                    FROM    application.notification_registration AS nr
-                    WHERE   nr.id = @id)";
-
-            await using var context = await CreateNewDatabaseContext(sql);
-
-            context.AddParameterWithValue("id", userId);
-
-            return await context.ScalarAsync<bool>();
-        }
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task UpdateAsync(NotificationRegistration entity)
+            => throw new InvalidOperationException();
 
         /// <summary>
         ///     Maps a reader to a notification registration.
         /// </summary>
         /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped registration.</returns>
-        private static NotificationRegistration MapFromReader(DbDataReader reader)
+        private static NotificationRegistration MapFromReader(DbDataReader reader, int offset = 0)
             => new NotificationRegistration
             {
-                ExternalId = reader.GetString(0),
-                Handle = reader.GetString(1),
-                Id = reader.GetGuid(2),
-                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(3)
+                ExternalId = reader.GetString(0 + offset),
+                Handle = reader.GetString(1 + offset),
+                Id = reader.GetGuid(2 + offset),
+                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(3 + offset)
             };
 
         /// <summary>

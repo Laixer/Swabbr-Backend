@@ -17,13 +17,24 @@ namespace Swabbr.Infrastructure.Repositories
     /// </summary>
     internal class UserRepository : RepositoryBase, IUserRepository
     {
-        // TODO Remove?
-        public Task<Guid> CreateAsync(SwabbrUser entity) => throw new NotImplementedException();
+        /// <summary>
+        ///     Create a user.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task<Guid> CreateAsync(SwabbrUser entity)
+            => throw new InvalidOperationException();
 
-        // TODO Remove?
-        public Task DeleteAsync(Guid id) => throw new NotImplementedException();
+        /// <summary>
+        ///     Delete a user.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task DeleteAsync(Guid id)
+            => throw new InvalidOperationException();
 
-        // TODO Do we ever need this due to forein key constraints?
         /// <summary>
         ///     Checks if a user exists in our data store.
         /// </summary>
@@ -32,9 +43,10 @@ namespace Swabbr.Infrastructure.Repositories
         {
             var sql = @"
                     SELECT  EXISTS (
-                    SELECT  1
-                    FROM    application.user AS u
-                    WHERE   u.id = @id)";
+                        SELECT  1
+                        FROM    application.user AS u
+                        WHERE   u.id = @id
+                    )";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -51,9 +63,10 @@ namespace Swabbr.Infrastructure.Repositories
         {
             var sql = @"
                     SELECT  EXISTS (
-                    SELECT  1
-                    FROM    application.user AS u
-                    WHERE   u.nickname = @nickname)";
+                        SELECT  1
+                        FROM    application.user AS u
+                        WHERE   u.nickname = @nickname
+                    )";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -191,10 +204,9 @@ namespace Swabbr.Infrastructure.Repositories
                             u.profile_image_base64_encoded,
                             u.timezone
                     FROM    application.user AS u
-                    JOIN    application.follow_request AS fr
-                    ON      fr.receiver_id = u.id
-                    WHERE   u.id = @id
-                    AND     fr.follow_request_status = 'accepted'";
+                    JOIN    application.follow_request_accepted AS fra
+                    ON      fra.receiver_id = u.id
+                    WHERE   u.id = @id";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -221,10 +233,9 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  upnd.user_id,
                             upnd.push_notification_platform
                     FROM    application.user_push_notification_details AS upnd
-                    JOIN    application.follow_request AS fr
-                    ON      fr.receiver_id = upnd.id
-                    WHERE   u.id = @id
-                    AND     fr.follow_request_status = 'accepted'";
+                    JOIN    application.follow_request_accepted AS fra
+                    ON      fra.receiver_id = upnd.id
+                    WHERE   u.id = @id";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -262,10 +273,9 @@ namespace Swabbr.Infrastructure.Repositories
                             u.profile_image_base64_encoded,
                             u.timezone
                     FROM    application.user AS u
-                    JOIN    application.follow_request AS fr
-                    ON      fr.requester_id = u.id
-                    WHERE   u.id = @id
-                    AND     fr.follow_request_status = 'accepted'";
+                    JOIN    application.follow_request_accepted AS fra
+                    ON      fra.requester_id = u.id
+                    WHERE   u.id = @id";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -431,63 +441,66 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Maps a reader to a user object.
         /// </summary>
         /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped user object.</returns>
-        private static SwabbrUser MapFromReader(DbDataReader reader)
+        internal static SwabbrUser MapFromReader(DbDataReader reader, int offset = 0)
             => new SwabbrUser
             {
-                BirthDate = reader.GetSafeDateTime(0),
-                Country = reader.GetSafeString(1),
-                DailyVlogRequestLimit = reader.GetUInt(2),
-                FirstName = reader.GetSafeString(3),
-                FollowMode = reader.GetFieldValue<FollowMode>(4),
-                Gender = reader.GetFieldValue<Gender?>(5),
-                Id = reader.GetGuid(6),
-                IsPrivate = reader.GetBoolean(7),
-                LastName = reader.GetSafeString(8),
-                Latitude = reader.GetSafeFloat(9),
-                Longitude = reader.GetSafeFloat(10),
-                Nickname = reader.GetString(11),
-                ProfileImageBase64Encoded = reader.GetSafeString(12),
-                Timezone = reader.GetTimeZoneInfo(13)
+                BirthDate = reader.GetSafeDateTime(0 + offset),
+                Country = reader.GetSafeString(1 + offset),
+                DailyVlogRequestLimit = reader.GetUInt(2 + offset),
+                FirstName = reader.GetSafeString(3 + offset),
+                FollowMode = reader.GetFieldValue<FollowMode>(4 + offset),
+                Gender = reader.GetFieldValue<Gender?>(5 + offset),
+                Id = reader.GetGuid(6 + offset),
+                IsPrivate = reader.GetBoolean(7 + offset),
+                LastName = reader.GetSafeString(8 + offset),
+                Latitude = reader.GetSafeFloat(9 + offset),
+                Longitude = reader.GetSafeFloat(10 + offset),
+                Nickname = reader.GetString(11 + offset),
+                ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
+                Timezone = reader.GetTimeZoneInfo(13 + offset)
             };
 
         /// <summary>
         ///     Maps a reader to a user with stats object.
         /// </summary>
         /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped user with stats object.</returns>
-        private static SwabbrUserWithStats MapWithStatsFromReader(DbDataReader reader)
+        internal static SwabbrUserWithStats MapWithStatsFromReader(DbDataReader reader, int offset = 0)
             => new SwabbrUserWithStats
             {
-                BirthDate = reader.GetSafeDateTime(0),
-                Country = reader.GetSafeString(1),
-                DailyVlogRequestLimit = reader.GetUInt(2),
-                FirstName = reader.GetSafeString(3),
-                FollowMode = reader.GetFieldValue<FollowMode>(4),
-                Gender = reader.GetFieldValue<Gender?>(5),
-                Id = reader.GetGuid(6),
-                IsPrivate = reader.GetBoolean(7),
-                LastName = reader.GetSafeString(8),
-                Latitude = reader.GetSafeFloat(9),
-                Longitude = reader.GetSafeFloat(10),
-                Nickname = reader.GetString(11),
-                ProfileImageBase64Encoded = reader.GetSafeString(12),
-                Timezone = reader.GetTimeZoneInfo(13),
-                TotalFollowers = reader.GetUInt(14),
-                TotalFollowing = reader.GetUInt(15),
-                TotalVlogs = reader.GetUInt(16)
+                BirthDate = reader.GetSafeDateTime(0 + offset),
+                Country = reader.GetSafeString(1 + offset),
+                DailyVlogRequestLimit = reader.GetUInt(2 + offset),
+                FirstName = reader.GetSafeString(3 + offset),
+                FollowMode = reader.GetFieldValue<FollowMode>(4 + offset),
+                Gender = reader.GetFieldValue<Gender?>(5 + offset),
+                Id = reader.GetGuid(6 + offset),
+                IsPrivate = reader.GetBoolean(7 + offset),
+                LastName = reader.GetSafeString(8 + offset),
+                Latitude = reader.GetSafeFloat(9 + offset),
+                Longitude = reader.GetSafeFloat(10 + offset),
+                Nickname = reader.GetString(11 + offset),
+                ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
+                Timezone = reader.GetTimeZoneInfo(13 + offset),
+                TotalFollowers = reader.GetUInt(14 + offset),
+                TotalFollowing = reader.GetUInt(15 + offset),
+                TotalVlogs = reader.GetUInt(16 + offset)
             };
 
         /// <summary>
         ///     Maps a reader to a push notification details object.
         /// </summary>
         /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped push notification details object.</returns>
-        private static UserPushNotificationDetails MapPushNotificationDetailsFromReader(DbDataReader reader)
+        internal static UserPushNotificationDetails MapPushNotificationDetailsFromReader(DbDataReader reader, int offset = 0)
             =>  new UserPushNotificationDetails()
             {
-                UserId = reader.GetGuid(0),
-                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(1)
+                UserId = reader.GetGuid(0 + offset),
+                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(1 + offset)
             };
 
         /// <summary>

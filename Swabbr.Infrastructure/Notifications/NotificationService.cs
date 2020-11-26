@@ -140,7 +140,7 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual async Task RegisterAsync(Guid userId, PushNotificationPlatform platform, string handle)
         {
             // First clear the existing registration if it exists
-            if (await _notificationRegistrationRepository.UserHasRegistrationAsync(userId).ConfigureAwait(false))
+            if (await _notificationRegistrationRepository.ExistsAsync(userId).ConfigureAwait(false))
             {
                 var currentRegistration = await _notificationRegistrationRepository.GetAsync(userId).ConfigureAwait(false);
                 await _notificationClient.UnregisterAsync(currentRegistration).ConfigureAwait(false);

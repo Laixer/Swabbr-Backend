@@ -18,7 +18,7 @@ namespace Swabbr.Api.Mapping
             {
                 UserId = vlogLike.Id.UserId,
                 VlogId = vlogLike.Id.VlogId,
-                TimeCreated = vlogLike.CreateDate
+                TimeCreated = vlogLike.DateCreated
             };
         }
 

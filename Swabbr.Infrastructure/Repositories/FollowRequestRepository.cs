@@ -37,20 +37,21 @@ namespace Swabbr.Infrastructure.Repositories
                     INSERT INTO application.follow_request(
                         receiver_id,
                         requester_id
+                    )
                     VALUES (
                         @receiver_id,
-                        @requester_id)";
+                        @requester_id
+                    )";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
             MapToWriter(context, entity);
 
-            await using var reader = await context.ReaderAsync();
+            await context.NonQueryAsync();
 
             return entity.Id;
         }
 
-        // TODO Soft delete this?
         /// <summary>
         ///     Deletes a follow request from our data store.
         /// </summary>
@@ -89,10 +90,11 @@ namespace Swabbr.Infrastructure.Repositories
 
             var sql = @"
                     SELECT  EXISTS (
-                    SELECT  1
-                    FROM    application.follow_request AS fr
-                    WHERE   fr.receiver_id = @receiver_id
-                    AND     fr.requester_id = @requester_id)";
+                        SELECT  1
+                        FROM    application.follow_request AS fr
+                        WHERE   fr.receiver_id = @receiver_id
+                        AND     fr.requester_id = @requester_id
+                    )";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -102,8 +104,28 @@ namespace Swabbr.Infrastructure.Repositories
             return await context.ScalarAsync<bool>();
         }
 
-        // TODO Remove?
-        public IAsyncEnumerable<FollowRequest> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+        /// <summary>
+        ///     Gets all follow requests from our database.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Follow request result set.</returns>
+        public async IAsyncEnumerable<FollowRequest> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  fr.date_created,
+                            fr.date_updated,
+                            fr.follow_request_status,
+                            fr.receiver_id,
+                            fr.requester_id
+                    FROM    application.follow_request AS fr";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
         
         /// <summary>
         ///     Get a follow request from our data store.
@@ -147,10 +169,9 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<uint> GetFollowerCountAsync(Guid userId)
         {
             var sql = @"
-                    SELECT  COUNT(*)
-                    FROM    application.follow_request AS fr
-                    WHERE   fr.receiver_id = @receiver_id
-                    AND     fr.follow_request_status = 'accepted'";
+                    SELECT  COUNT(fra.*)
+                    FROM    application.follow_request_accepted AS fra
+                    WHERE   fra.receiver_id = @receiver_id";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -168,10 +189,9 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<uint> GetFollowingCountAsync(Guid userId)
         {
             var sql = @"
-                    SELECT  COUNT(*)
-                    FROM    application.follow_request AS fr
-                    WHERE   fr.requester_id = @requester_id
-                    AND     fr.follow_request_status = 'accepted'";
+                    SELECT  COUNT(fra.*)
+                    FROM    application.follow_request_accepted AS fra
+                    WHERE   fra.requester_id = @requester_id";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -240,8 +260,15 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-        // TODO Remove?
-        public Task UpdateAsync(FollowRequest entity) => throw new NotImplementedException();
+
+        /// <summary>
+        ///     Update a follow request in our database.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task UpdateAsync(FollowRequest entity)
+            => throw new InvalidOperationException();
 
         /// <summary>
         ///     Updates the status of a follow request.
@@ -274,17 +301,18 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Maps a reader to a follow request.
         /// </summary>
         /// <param name="reader">The open reader.</param>
+        /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped follow request.</returns>
-        private static FollowRequest MapFromReader(DbDataReader reader)
+        internal static FollowRequest MapFromReader(DbDataReader reader, int offset = 0)
             => new FollowRequest
             {
-                DateCreated = reader.GetDateTime(0),
-                DateUpdated = reader.GetSafeDateTime(1),
-                FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus>(2),
+                DateCreated = reader.GetDateTime(0 + offset),
+                DateUpdated = reader.GetSafeDateTime(1 + offset),
+                FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus>(2 + offset),
                 Id = new FollowRequestId
                 {
-                    ReceiverId = reader.GetGuid(3),
-                    RequesterId = reader.GetGuid(4)
+                    ReceiverId = reader.GetGuid(3 + offset),
+                    RequesterId = reader.GetGuid(4 + offset)
                 },
             };
 
