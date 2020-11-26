@@ -1,5 +1,4 @@
-﻿using Dapper;
-using Laixer.Identity.Dapper.Extensions;
+﻿using Laixer.Identity.Dapper.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

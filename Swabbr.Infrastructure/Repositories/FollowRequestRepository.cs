@@ -33,6 +33,9 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new ArgumentNullException(nameof(entity));
             }
 
+            // Only create the follow request if we are the requester
+            
+
             var sql = @"
                     INSERT INTO application.follow_request(
                         receiver_id,
