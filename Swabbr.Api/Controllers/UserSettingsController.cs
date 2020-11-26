@@ -89,6 +89,7 @@ namespace Swabbr.Api.Controllers
                 var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
                 var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
 
+                // Map only properties which should be updated
                 user.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
                 user.FollowMode = MapperEnum.Map(input.FollowMode);
                 user.IsPrivate = input.IsPrivate;

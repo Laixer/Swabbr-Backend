@@ -77,6 +77,13 @@ namespace Swabbr.Infrastructure.Notifications
         {
             _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request to user {userId}");
 
+            // Log and return if we can't reach our user.
+            if (!await _notificationRegistrationRepository.ExistsAsync(userId))
+            {
+                _logger.LogTrace($"Couldn't get notification registration for user {userId}");
+                return;
+            }
+
             var notification = NotificationBuilder.BuildRecordVlog(vlogId, DateTimeOffset.Now, requestTimeout);
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
             await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
@@ -94,6 +101,13 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual async Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
             _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
+
+            // Log and return if we can't reach our user.
+            if (!await _notificationRegistrationRepository.ExistsAsync(receivingUserId))
+            {
+                _logger.LogTrace($"Couldn't get notification registration for user {receivingUserId}");
+                return;
+            }
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
             var notification = NotificationBuilder.BuildVlogNewReaction(vlogId, reactionId);
@@ -116,6 +130,13 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
+
+            // Log and return if we can't reach our user.
+            if (!await _notificationRegistrationRepository.ExistsAsync(receivingUserId))
+            {
+                _logger.LogTrace($"Couldn't get notification registration for user {receivingUserId}");
+                return;
+            }
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
             var notification = NotificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLikeId.UserId);

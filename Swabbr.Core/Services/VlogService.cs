@@ -50,29 +50,6 @@ namespace Swabbr.Core.Services
             => _vlogRepository.AddView(vlogId);
 
         /// <summary>
-        ///     Cleans up a vlog from our system, removing it
-        ///     from the data store and performing all required
-        ///     cleanup operations for it.
-        /// </summary>
-        /// <remarks>
-        ///     Call this after a vlog request timed out.
-        /// </remarks>
-        /// <param name="vlogId">The vlog to be cleaned up.</param>
-        public Task CleanupExpiredVlogAsync(Guid vlogId) => throw new NotImplementedException();
-
-        /// <summary>
-        ///     Creates a new vlog in our data store with its status
-        ///     set to created. The vlog will be assigned to the user.
-        /// </summary>
-        /// <remarks>
-        ///     Use this before sending a vlog request to create the
-        ///     vlog for which the user should upload the content.
-        /// </remarks>
-        /// <param name="userId">The future owner of the vlog.</param>
-        /// <returns>The created vlog.</returns>
-        public Task<Vlog> CreateEmptyVlogForUserAsync(Guid userId) => throw new NotImplementedException();
-
-        /// <summary>
         ///     Soft deletes a vlog in our data store.
         /// </summary>
         /// <param name="vlogId">The vlog to delete.</param>
@@ -110,14 +87,16 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The corresponding user.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlogs with thumbnail details.</returns>
-        public IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
-
-        /// <summary>
-        ///     Gets an upload uri for a vlog.
-        /// </summary>
-        /// <param name="vlogId">The vlog id.</param>
-        /// <returns>Upload uri.</returns>
-        public Uri GetUploadUri(Guid vlogId) => throw new NotImplementedException();
+        public async IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Guid userId, Navigation navigation)
+        {
+            await foreach (var vlog in GetRecommendedForUserAsync(userId, navigation))
+            {
+                yield return new VlogWithThumbnailDetails {
+                    Vlog = vlog,
+                    ThumbnailUri = null // TODO Implement
+                };
+            }
+        }
 
         /// <summary>
         ///     Gets all vlogs that belong to a user.
@@ -142,8 +121,7 @@ namespace Swabbr.Core.Services
                 yield return new VlogWithThumbnailDetails
                 {
                     Vlog = vlog,
-                    // TODO
-                    // ThumbnailUri = GetThumbnailUri
+                    ThumbnailUri = null // TODO Implement
                 };
             }
         }
@@ -179,7 +157,12 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>Vlog with thumbnail details.</returns>
-        public Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId) => throw new NotImplementedException();
+        public async Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId)
+            => new VlogWithThumbnailDetails
+            {
+                Vlog = await GetAsync(vlogId),
+                ThumbnailUri = null // TODO
+            };
 
         /// <summary>
         ///     Likes a vlog.
@@ -210,18 +193,6 @@ namespace Swabbr.Core.Services
             // TODO Move to some queue
             await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId).ConfigureAwait(false);
         }
-
-        /// <summary>
-        ///     Called when a vlog transcoding process failed.
-        /// </summary>
-        /// <param name="vlogId">The failed transcoded vlog.</param>
-        public Task OnTranscodingFailedAsync(Guid vlogId) => throw new NotImplementedException();
-
-        /// <summary>
-        ///     Called when a vlog transcoding process succeeded.
-        /// </summary>
-        /// <param name="vlogId">The transcoded vlog.</param>
-        public Task OnTranscodingSucceededAsync(Guid vlogId) => throw new NotImplementedException();
 
         /// <summary>
         ///     Called when a vlog has finished uploading.

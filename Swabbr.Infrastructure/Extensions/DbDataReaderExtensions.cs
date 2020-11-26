@@ -65,6 +65,27 @@ namespace Swabbr.Infrastructure.Extensions
         }
 
         /// <summary>
+        ///     Return value as nullable unsigned integer.
+        /// </summary>
+        /// <param name="reader">Input reader to extend.</param>
+        /// <param name="ordinal">Column ordinal.</param>
+        /// <returns>Value as nullable unsigned integer.</returns>
+        public static uint? GetSafeUInt(this DbDataReader reader, int ordinal)
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            if (reader.IsDBNull(ordinal))
+            {
+                return null;
+            }
+
+            return reader.GetUInt(ordinal);
+        }
+
+        /// <summary>
         ///     Return value as nullable double.
         /// </summary>
         /// <param name="reader">Input reader to extend.</param>

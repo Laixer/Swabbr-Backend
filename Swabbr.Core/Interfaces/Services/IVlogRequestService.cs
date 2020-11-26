@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.Core.Interfaces
+namespace Swabbr.Core.Interfaces.Services
 {
     /// <summary>
     ///     Contract for sending and timeout-processing

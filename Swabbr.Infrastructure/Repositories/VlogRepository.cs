@@ -25,7 +25,7 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task AddView(Guid vlogId)
         {
             var sql = @"
-                    UPDATE  entities.vlog AS v
+                    UPDATE  entities.vlog_up_to_date AS v
                     SET     views = views + 1
                     WHERE   v.id = @id";
 
@@ -106,7 +106,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     SELECT  EXISTS (
                         SELECT  1
-                        FROM    entities.vlog AS v
+                        FROM    entities.vlog_up_to_date AS v
                         WHERE   v.id = @id
                     )";
 
@@ -132,7 +132,7 @@ namespace Swabbr.Infrastructure.Repositories
                         v.user_id,
                         v.views,
                         v.vlog_status
-                FROM    entities.vlog AS v";
+                FROM    entities.vlog_up_to_date AS v";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -159,7 +159,7 @@ namespace Swabbr.Infrastructure.Repositories
                             v.user_id,
                             v.views,
                             v.vlog_status
-                    FROM    entities.vlog AS v
+                    FROM    entities.vlog_up_to_date AS v
                     WHERE   v.id = @id
                     LIMIT   1";
 
@@ -201,7 +201,7 @@ namespace Swabbr.Infrastructure.Repositories
                             v.user_id,
                             v.views,
                             v.vlog_status
-                FROM        entities.vlog AS v
+                FROM        entities.vlog_up_to_date AS v
                 JOIN        application.follow_request_accepted AS fra
                 ON          fra.requester_id = @user_id
                 WHERE       fra.requester_id = @user_id
@@ -239,7 +239,7 @@ namespace Swabbr.Infrastructure.Repositories
                             v.user_id,
                             v.views,
                             v.vlog_status
-                FROM        entities.vlog AS v
+                FROM        entities.vlog_up_to_date AS v
                 WHERE       v.user_id = @user_id
                 ORDER BY    v.date_created DESC";
 
@@ -267,7 +267,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                    UPDATE  entities.vlog AS v
+                    UPDATE  entities.vlog_up_to_date AS v
                     SET     is_private = @is_private,
                             length_in_seconds = @length_in_seconds
                     WHERE   v.id = @id";

@@ -205,8 +205,8 @@ namespace Swabbr.Infrastructure.Repositories
                             u.timezone
                     FROM    application.user AS u
                     JOIN    application.follow_request_accepted AS fra
-                    ON      fra.receiver_id = u.id
-                    WHERE   u.id = @id";
+                    ON      fra.requester_id = u.id
+                    WHERE   fra.receiver_id = @id";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -234,8 +234,8 @@ namespace Swabbr.Infrastructure.Repositories
                             upnd.push_notification_platform
                     FROM    application.user_push_notification_details AS upnd
                     JOIN    application.follow_request_accepted AS fra
-                    ON      fra.receiver_id = upnd.id
-                    WHERE   u.id = @id";
+                    ON      fra.requester_id = upnd.user_id
+                    WHERE   fra.receiver_id = @id";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -274,8 +274,8 @@ namespace Swabbr.Infrastructure.Repositories
                             u.timezone
                     FROM    application.user AS u
                     JOIN    application.follow_request_accepted AS fra
-                    ON      fra.requester_id = u.id
-                    WHERE   u.id = @id";
+                    ON      fra.receiver_id = u.id
+                    WHERE   fra.requester_id = @id";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -289,6 +289,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
+        // TODO This throws if we have no push details for the user.
         /// <summary>
         ///     Gets the push notification details for a
         ///     given user.
@@ -301,7 +302,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  upnd.user_id,
                             upnd.push_notification_platform
                     FROM    application.user_push_notification_details AS upnd
-                    WHERE   upnd.id = @id";
+                    WHERE   upnd.user_id = @id";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -377,13 +378,14 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.total_following,
                             uws.total_vlogs
                     FROM    application.user_with_stats AS uws
-                    WHERE   LOWER(uws.nickname) LIKE LOWER(@query%)";
+                    WHERE   LOWER(uws.nickname) LIKE LOWER(@query)";
 
             ConstructNavigation(ref sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("query", query);
+            // Manually append the % wildcard
+            context.AddParameterWithValue("query", $"{query}%");
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
@@ -512,7 +514,7 @@ namespace Swabbr.Infrastructure.Repositories
         {
             context.AddParameterWithValue("birth_date", user.BirthDate);
             context.AddParameterWithValue("country", user.Country);
-            context.AddParameterWithValue("daily_vlog_request_limit", (int) user.DailyVlogRequestLimit); // Uint is not supported by postgresql.
+            context.AddParameterWithValue("daily_vlog_request_limit", (int) user.DailyVlogRequestLimit);
             context.AddParameterWithValue("first_name", user.FirstName);
             context.AddParameterWithValue("follow_mode", user.FollowMode);
             context.AddParameterWithValue("gender", user.Gender);
@@ -528,10 +530,19 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Converts a timezone object to the expected
         ///     database format timezone.
         /// </summary>
+        /// <remarks>
+        ///     If <paramref name="timeZoneInfo"/> is null, 
+        ///     this returns null.
+        /// </remarks>
         /// <param name="timeZoneInfo">The timezone object.</param>
         /// <returns>Formatted string.</returns>
         private static string MapTimeZoneToString(TimeZoneInfo timeZoneInfo)
         {
+            if (timeZoneInfo is null)
+            {
+                return null;
+            }
+
             var offset = timeZoneInfo.BaseUtcOffset;
 
             var hours = (offset.Hours >= 10) ? $"{offset.Hours}" : $"0{offset.Hours}";

@@ -22,5 +22,10 @@ namespace Swabbr.Core
         ///     User id that belongs to the context.
         /// </summary>
         public Guid UserId { get; set; }
+
+        /// <summary>
+        ///     Checks if we have a signed in user.
+        /// </summary>
+        public bool HasUser => UserId != Guid.Empty;
     }
 }

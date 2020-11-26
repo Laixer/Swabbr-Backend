@@ -21,12 +21,14 @@ using Swabbr.Api.Configuration;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Services;
 using Swabbr.Core.Configuration;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
+using Swabbr.Core.Storage;
 using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
@@ -70,6 +72,8 @@ namespace Swabbr
                 options.ConnectionString = _configuration.GetConnectionString("AzureNotificationHub");
             });
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
+            // TODO Configure this in the extension in the infrastructure package?
+            services.Configure<BlobStorageOptions>(_configuration.GetSection("BlobStorage"));
 
             // Setup request related services
             services.AddCors();
@@ -93,20 +97,19 @@ namespace Swabbr
             // Setup doc
             SetupSwagger(services);
 
-            // Add app context factory
+            // Add app context
             services.AddOrReplace<IAppContextFactory, AppContextFactory>(ServiceLifetime.Singleton);
+            // TODO Is this right?
+            
 
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
-            // Configure DI for services
-            services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<IUserSelectionService, UserSelectionService>();
-            services.AddTransient<IHealthCheckService, HealthCheckService>();
-            services.AddTransient<ITokenService, TokenService>();
-            services.AddTransient<IVlogService, VlogService>();
-            services.AddTransient<IVlogRequestService, VlogRequestService>();
-            services.AddTransient<IUserService, UserService>();
+            // Add core services.
+            services.AddSwabbrCoreServices();
+
+            // Add asp specific services
+            services.AddSingleton<ITokenService, TokenService>();
         }
 
         /// <summary>

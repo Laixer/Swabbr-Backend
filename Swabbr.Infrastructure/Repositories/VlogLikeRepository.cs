@@ -116,7 +116,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  vl.date_created,
                             vl.user_id,
                             vl.vlog_id
-                    FROM    entities.vlog_like AS vl";
+                    FROM    entities.vlog_like_nondeleted AS vl";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -139,7 +139,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  vl.date_created,
                             vl.user_id,
                             vl.vlog_id
-                    FROM    entities.vlog_like AS vl
+                    FROM    entities.vlog_like_nondeleted AS vl
                     WHERE   vl.id = @id
                     LIMIT   1";
 
@@ -164,7 +164,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  vl.date_created,
                             vl.user_id,
                             vl.vlog_id
-                    FROM    entities.vlog_like AS vl
+                    FROM    entities.vlog_like_nondeleted AS vl
                     WHERE   vl.target_vlog_id = @target_vlog_id";
 
             ConstructNavigation(ref sql, navigation);
@@ -187,38 +187,38 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<VlogLikeSummary> GetSummaryForVlogAsync(Guid vlogId)
         {
             var sql = @"
-                    WITH cnt AS (
-                        SELECT  count(vl.vlog_id) AS count
-                        FROM    vlog_like AS vl
-                        WHERE   vl.vlog_id = @vlog_id
-                    )
-                    SELECT      cnt.count,
-		                        u.birth_date,
-                                u.country,
-                                u.daily_vlog_request_limit,
-                                u.first_name,
-                                u.follow_mode,
-                                u.gender,
-                                u.id,
-                                u.is_private,
-                                u.last_name,
-                                u.latitude,
-                                u.longitude,
-                                u.nickname,
-                                u.profile_image_base64_encoded,
-                                u.timezone
-                    FROM        cnt AS cnt
-                    LEFT JOIN (
-                        SELECT      vl.user_id,
-    		                        vl.vlog_id
-                        FROM        vlog_like AS vl
-                        WHERE       vl.vlog_id = @vlog_id
-                        LIMIT       5
-                    )
-                    AS      	vlog_likes
-                    ON 			vlog_likes.vlog_id = @vlog_id
-                    LEFT JOIN   application.user AS u 
-                    ON      	vlog_likes.user_id = u.id";
+                WITH cnt AS (
+                    SELECT  count(vl.vlog_id) AS count
+                    FROM    entities.vlog_like_nondeleted AS vl
+                    WHERE   vl.vlog_id = @vlog_id
+                )
+                SELECT      cnt.count,
+		                    u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                FROM        cnt AS cnt
+                LEFT JOIN (
+                    SELECT      vl.user_id,
+    		                    vl.vlog_id
+                    FROM        entities.vlog_like_nondeleted AS vl
+                    WHERE       vl.vlog_id = @vlog_id
+                    LIMIT       5
+                )
+                AS      	vlog_likes
+                ON 			vlog_likes.vlog_id = @vlog_id
+                LEFT JOIN   application.user AS u 
+                ON      	vlog_likes.user_id = u.id";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -235,12 +235,12 @@ namespace Swabbr.Infrastructure.Repositories
 
             // Else, extract each user.
             var users = new List<SwabbrUser>();
-            while (reader.HasRows)
+            do
             {
                 // Pass an offset of 1 since the first column is the count.
                 users.Add(UserRepository.MapFromReader(reader, 1));
-                reader.Read();
             }
+            while (await reader.NextResultAsync());
 
             // Compose and return.
             return new VlogLikeSummary
@@ -251,8 +251,14 @@ namespace Swabbr.Infrastructure.Repositories
             };
         }
 
-        // TODO Remove
-        public Task UpdateAsync(VlogLike entity) => throw new NotImplementedException();
+        /// <summary>
+        ///     Update a vlog like in our database.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task UpdateAsync(VlogLike entity)
+            => throw new InvalidOperationException();
 
         /// <summary>
         ///     Maps a vlog like from a reader.

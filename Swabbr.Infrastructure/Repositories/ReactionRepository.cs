@@ -89,7 +89,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     SELECT  EXISTS (
                         SELECT  1
-                        FROM    entities.reaction AS r
+                        FROM    entities.reaction_up_to_date AS r
                         WHERE   r.id = @id
                     )";
 
@@ -115,7 +115,7 @@ namespace Swabbr.Infrastructure.Repositories
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
-                    FROM    entities.reaction AS r";
+                    FROM    entities.reaction_up_to_date AS r";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -142,7 +142,7 @@ namespace Swabbr.Infrastructure.Repositories
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
-                    FROM    entities.reaction AS r
+                    FROM    entities.reaction_up_to_date AS r
                     WHERE   r.id = @id
                     LIMIT   1";
 
@@ -164,12 +164,14 @@ namespace Swabbr.Infrastructure.Repositories
         {
             var sql = @"
                     SELECT  count(r.*)
-                    FROM    entities.reaction AS r
+                    FROM    entities.reaction_up_to_date AS r
                     WHERE   r.target_vlog_id = @target_vlog_id";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            return (uint) await context.ScalarAsync<int>();
+            context.AddParameterWithValue("target_vlog_id", vlogId);
+
+            return (uint) await context.ScalarAsync<long>();
         }
 
         /// <summary>
@@ -188,7 +190,7 @@ namespace Swabbr.Infrastructure.Repositories
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
-                    FROM    entities.reaction AS r";
+                    FROM    entities.reaction_up_to_date AS r";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -212,7 +214,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                    UPDATE  entities.reaction AS r
+                    UPDATE  entities.reaction_up_to_date AS r
                     SET     is_private = @is_private,
                             length_in_seconds = @length_in_seconds,
                             reaction_status = @reaction_status,
@@ -241,7 +243,7 @@ namespace Swabbr.Infrastructure.Repositories
                 DateCreated = reader.GetDateTime(0 + offset),
                 Id = reader.GetGuid(1 + offset),
                 IsPrivate = reader.GetBoolean(2 + offset),
-                LengthInSeconds = reader.GetUInt(3 + offset),
+                LengthInSeconds = reader.GetSafeUInt(3 + offset),
                 ReactionStatus = reader.GetFieldValue<ReactionStatus>(4 + offset),
                 TargetVlogId = reader.GetGuid(5 + offset),
                 UserId = reader.GetGuid(6 + offset)

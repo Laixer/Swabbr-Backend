@@ -27,11 +27,6 @@ namespace Swabbr.Api.ViewModels.User
         public string LastName { get; set; }
 
         /// <summary>
-        /// Email address.
-        /// </summary>
-        public string Email { get; set; }
-
-        /// <summary>
         /// Selected gender of the user.
         /// </summary>
         public string Gender { get; set; }

@@ -233,6 +233,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO QUESTION This does not invalidate the access token, is that ever a problem?
         /// <summary>
         ///     Deauthorizes the authenticated user.
         /// </summary>

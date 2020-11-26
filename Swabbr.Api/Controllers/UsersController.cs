@@ -88,7 +88,7 @@ namespace Swabbr.Api.Controllers
         /// <returns><see cref="OkObjectResult"/></returns>
         [HttpGet("search")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<UserWithStatsOutputModel>))]
-        public async Task<IActionResult> SearchAsync([FromQuery]string query, [FromQuery]int page = 1, [FromQuery]int itemsPerPage = 50)
+        public async Task<IActionResult> SearchAsync([FromQuery]string query, [FromQuery]uint page = 1, [FromQuery]uint itemsPerPage = 50)
         {
             try
             {
@@ -97,7 +97,8 @@ namespace Swabbr.Api.Controllers
                 if (itemsPerPage < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Items per page must be greater than one")); }
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var users = await _userService.SearchAsync(query, Navigation.Default).ToListAsync();
+                // TODO Navigation will be cleaned up
+                var users = await _userService.SearchAsync(query, new Navigation { Limit =  itemsPerPage, Offset = page - 1 }).ToListAsync();
                 return Ok(users.Select(x => MapperUser.Map(x)));
             }
             catch (Exception e)
@@ -128,8 +129,12 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO Is this the right location for this behaviour? --> IUserService?
+        // TODO What you can update where is very inconsistent and random.
+        //      Reconsider the settings anyways, the entire chaos exists because
+        //      of the original UserSettings concept. Maybe remove this entirely?
         /// <summary>
-        /// Updates the authenticated user.
+        ///     Updates the authenticated user.
         /// </summary>
         [HttpPost("update")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserWithStatsOutputModel))]
@@ -142,22 +147,24 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is null")); }
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                // Act.
+                var userId = (await _userManager.GetUserAsync(User).ConfigureAwait(false)).Id;
 
                 // Act.
-                await _userService.UpdateAsync(new SwabbrUser
-                {
-                    Id = identityUser.Id,
-                    BirthDate = input.BirthDate,
-                    Country = input.Country,
-                    FirstName = input.FirstName,
-                    Gender = MapperEnum.Map(input.Gender),
-                    IsPrivate = input.IsPrivate,
-                    LastName = input.LastName,
-                    Nickname = input.Nickname,
-                    ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
-                }).ConfigureAwait(false);
-                var updatedUser = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var user = await _userService.GetAsync(userId);
+
+                // Only map changed properties.
+                user.BirthDate = input.BirthDate ?? user.BirthDate;
+                user.Country = input.Country ?? user.Country;
+                user.FirstName = input.FirstName ?? user.FirstName;
+                user.Gender = MapperEnum.Map(input.Gender) ?? user.Gender;
+                user.LastName = input.LastName ?? user.LastName;
+                user.Nickname = input.Nickname ?? user.Nickname;
+                user.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded ?? user.ProfileImageBase64Encoded;
+
+                // Perform updates and get the result.
+                await _userService.UpdateAsync(user);
+                var updatedUser = await _userService.GetAsync(userId).ConfigureAwait(false);
 
                 // Map.
                 var result = MapperUser.Map(updatedUser);
@@ -180,6 +187,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO This does nothing with non-existent user ids
         /// <summary>
         /// Returns a collection of users that the specified user is following.
         /// </summary>
@@ -205,6 +213,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO This does nothing with non-existent user ids
         /// <summary>
         /// Get the followers of a single <see cref="SwabbrUser"/>.
         /// </summary>
