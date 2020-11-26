@@ -1,0 +1,2043 @@
+{
+	"info": {
+		"_postman_id": "c577a067-0e46-4be1-a941-9eb26bed1d15",
+		"name": "Swabbr Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Swabbr Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"tabeckers96@gmail.com\",\n\t\"nickname\": \"Mr Bekers 2\",\n\t\"password\": \"Welkom01!\",\n\t\"firstName\": \"Jeroni\",\n\t\"lastName\": \"Pepperoni\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"gender\": \"male\",\n\t\"isPrivate\": \"true\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/register",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Swabbr Login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\":\"mok@laixer.com\",\n\t\"handle\":\"d5wksxFlQSmUuhiMR0T56_:APA91bGEnPY5Ku7Os7FkowPl_NXAlLol4yeeW2ES9P4Bs7x5cdu0B27O4z6DwWi8B_QMtBccoVOsM5kjECuuXO-akg253eIAL2LUOm9QVDpBpKqLBKqmW0PBWmNHRdo6uWvXpOOlYXdb\",\n\t\"password\":\"Test123!\",\n\t\"pushNotificationPlatform\":\"fcm\",\n\t\"rememberMe\":false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/login",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Swabbr Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmM4YjNmMy02ODgyLTRkMTItYmZjZi1hYzQ2YjFiM2QyZWUiLCJqdGkiOiJkNTE4MjgzNy0yYjY3LTRhMjgtODQyYi02ODgwODI3ZDZkOTMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0YWJlY2tlcnM5NUBnbWFpbC5jb20iLCJleHAiOjE1ODQwMTk4MjYsImlzcyI6Imh0dHA6Ly9zd2FiYnIuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiJodHRwOi8vc3dhYmJyLmF6dXJld2Vic2l0ZXMubmV0In0.yWfzBwIyD4gMeyTENCKw_0VOREmvPZzmsy7XhN8LgGA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/authentication/logout",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Swabbr User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/users/self",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"self"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"currentPassword\": \"Welkom01!\",\n\t\"newPassword\": \"Welkom01!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/change_password",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"change_password"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Follow Requests",
+			"item": [
+				{
+					"name": "Send",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/send?receiverId=4ee07d14-430c-489e-9490-f696540784b4",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"send"
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/cancel/?receiverId=4ee07d14-430c-489e-9490-f696540784b4",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"cancel",
+								""
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unfollow",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/unfollow/?receiverId=4ee07d14-430c-489e-9490-f696540784b4",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"unfollow",
+								""
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/accept?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"accept"
+							],
+							"query": [
+								{
+									"key": "requesterId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Decline",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/decline?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"decline"
+							],
+							"query": [
+								{
+									"key": "requesterId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Incoming",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/incoming",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"incoming"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Outgoing",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/outgoing",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"outgoing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequests/outgoing/status/?receiverId=700ea8f4-3a4e-4d53-829d-a53947169c8c",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequests",
+								"outgoing",
+								"status",
+								""
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "700ea8f4-3a4e-4d53-829d-a53947169c8c"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Livestreams",
+			"item": [
+				{
+					"name": "Events & Logic app",
+					"item": [
+						{
+							"name": "PRODUCTION Trigger swabbr-logic-app-vlogtrigger",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"userId\": \"1d45768e-75c7-435b-a8ab-a4e5f6645fa1\",\n\t\"userTriggerMinute\": \"3/28/2007 7:13:50 PM +00:00\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://prod-106.westeurope.logic.azure.com:443/workflows/a6462384cfc94c88ab482d35d11cb97b/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=_dEGuf_Xn7uXIGpMYYwv065QTee0P-WJk90bymvCCh4",
+									"protocol": "https",
+									"host": [
+										"prod-106",
+										"westeurope",
+										"logic",
+										"azure",
+										"com"
+									],
+									"port": "443",
+									"path": [
+										"workflows",
+										"a6462384cfc94c88ab482d35d11cb97b",
+										"triggers",
+										"manual",
+										"paths",
+										"invoke"
+									],
+									"query": [
+										{
+											"key": "api-version",
+											"value": "2016-10-01"
+										},
+										{
+											"key": "sp",
+											"value": "%2Ftriggers%2Fmanual%2Frun"
+										},
+										{
+											"key": "sv",
+											"value": "1.0"
+										},
+										{
+											"key": "sig",
+											"value": "_dEGuf_Xn7uXIGpMYYwv065QTee0P-WJk90bymvCCh4"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEVELOPMENT Trigger swabbr-logic-app-vlogtrigger",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"userId\": \"e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee\",\n\t\"userTriggerMinute\": \"3/28/2007 7:13:50 PM +00:00\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://prod-73.westeurope.logic.azure.com:443/workflows/6fa95969dafe49eb9f168b9762e34389/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zEladL1ai5aQ5wVGFJ4dAUMJhkj22z-SdlvIkrpkDrI",
+									"protocol": "https",
+									"host": [
+										"prod-73",
+										"westeurope",
+										"logic",
+										"azure",
+										"com"
+									],
+									"port": "443",
+									"path": [
+										"workflows",
+										"6fa95969dafe49eb9f168b9762e34389",
+										"triggers",
+										"manual",
+										"paths",
+										"invoke"
+									],
+									"query": [
+										{
+											"key": "api-version",
+											"value": "2016-10-01"
+										},
+										{
+											"key": "sp",
+											"value": "%2Ftriggers%2Fmanual%2Frun"
+										},
+										{
+											"key": "sv",
+											"value": "1.0"
+										},
+										{
+											"key": "sig",
+											"value": "zEladL1ai5aQ5wVGFJ4dAUMJhkj22z-SdlvIkrpkDrI"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "LOCAL [NOTIMEOUT] Trigger swabbr-logic-app-vlogtrigger",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{apiBaseLocal}}/api/1/debug/trigger_vlog?userId=e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+									"host": [
+										"{{apiBaseLocal}}"
+									],
+									"path": [
+										"api",
+										"1",
+										"debug",
+										"trigger_vlog"
+									],
+									"query": [
+										{
+											"key": "userId",
+											"value": "e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "User Start Livestream",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/livestreams/b157a536-79fe-476f-bef7-6cbe3a139ef2/start_streaming",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"livestreams",
+								"b157a536-79fe-476f-bef7-6cbe3a139ef2",
+								"start_streaming"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Stop Livestream",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/livestreams/cdab8221-4524-43d7-88c6-d2723acfbbd3/stop_streaming",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"livestreams",
+								"cdab8221-4524-43d7-88c6-d2723acfbbd3",
+								"stop_streaming"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Watch Livestream",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/livestreams/0ae51cd8-979f-4c07-836b-28ace058eff0/watch",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"livestreams",
+								"0ae51cd8-979f-4c07-836b-28ace058eff0",
+								"watch"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Trigger Timeout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"type": "text",
+								"value": "",
+								"warning": "Key contains invalid characters."
+							}
+						],
+						"url": {
+							"raw": "https://localhost:44311/debug/trigger_timeout?userId=e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "44311",
+							"path": [
+								"debug",
+								"trigger_timeout"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/users/e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/users/search?query=xx&page=1&itemsperpage=30",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "xx"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "itemsperpage",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Self User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/users/self",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"self"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"nickname\": \"Jerooon2\",\n\t\"timezone\": \"UTC+06:00\",\n\t\"firstName\": \"Jeronironi\",\n\t\"lastName\": \"Pepperonironi\",\n\t\"birthDate\": \"09-01-1994\",\n\t\"gender\": \"female\",\n\t\"isPrivate\": \"false\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/users/update",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Followers",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/users/e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee/followers",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+								"followers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Following",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/users/e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee/following",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+								"following"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Self Statistics",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/users/self/statistics",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"self",
+								"statistics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Statistics",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/users/e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee/statistics",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+								"statistics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Settings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/users/self/settings",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"self",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Settings",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"dailyVlogRequestLimit\": 2,\n    \"followMode\": \"manual\",\n    \"isPrivate\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/users/self/settings",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"users",
+								"self",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "User Data",
+			"item": [
+				{
+					"name": "Update User Location",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"longitude\": 20,\n\t\"latitude\": 40\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/userdata/update_location",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"userdata",
+								"update_location"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User TimeZone",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"timezone\": \"UTC+08:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/userdata/update_timezone",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"userdata",
+								"update_timezone"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Vlogs",
+			"item": [
+				{
+					"name": "Get Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/0c751882-b458-4e75-a519-4901ef2be371",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"0c751882-b458-4e75-a519-4901ef2be371"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recommended Vlogs",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/recommended",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"recommended"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vlog Likes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/75fbcb4f-f5fe-4705-befa-4364d7a34243/vlog_likes",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"75fbcb4f-f5fe-4705-befa-4364d7a34243",
+								"vlog_likes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"isPrivate\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Vlog",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/a4cb4319-8ea1-4a7e-8e70-318a260e6574",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"a4cb4319-8ea1-4a7e-8e70-318a260e6574"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vlogs For User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/foruser/3d462155-7c1b-4f9f-bffc-822b31ecafaf",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"foruser",
+								"3d462155-7c1b-4f9f-bffc-822b31ecafaf"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Like Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/814b42cf-9ff4-4818-864c-8c94feffbd05/like",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"814b42cf-9ff4-4818-864c-8c94feffbd05",
+								"like"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unlike Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/75fbcb4f-f5fe-4705-befa-4364d7a34243/unlike",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"75fbcb4f-f5fe-4705-befa-4364d7a34243",
+								"unlike"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Watch vlog",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/vlogs/27c32436-5b94-45cd-b81e-839e2774fd00/watch",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlogs",
+								"27c32436-5b94-45cd-b81e-839e2774fd00",
+								"watch"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Reactions",
+			"item": [
+				{
+					"name": "Delete Reaction",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/81e7d096-e86f-4fcb-9d40-60b0a3871e79",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"81e7d096-e86f-4fcb-9d40-60b0a3871e79"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reaction",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/f0948a92-db35-4031-949c-bc0fd060f1e5",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"f0948a92-db35-4031-949c-bc0fd060f1e5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Watch Reaction",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/f0948a92-db35-4031-949c-bc0fd060f1e5/watch",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"f0948a92-db35-4031-949c-bc0fd060f1e5",
+								"watch"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reactions For Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/for_vlog/27c32436-5b94-45cd-b81e-839e2774fd00",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"for_vlog",
+								"27c32436-5b94-45cd-b81e-839e2774fd00"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Reaction Upload Url",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/refresh_upload_url?reactionId=d9a00316-29be-4643-a890-a791098aa320",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"refresh_upload_url"
+							],
+							"query": [
+								{
+									"key": "reactionId",
+									"value": "d9a00316-29be-4643-a890-a791098aa320"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Reaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"isPrivate\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/f47991d9-9ab2-4edf-bb1b-b07441c9463a/update",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"f47991d9-9ab2-4edf-bb1b-b07441c9463a",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reaction Count For Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/for_vlog/a4cb4319-8ea1-4a7e-8e70-318a260e6574/count",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"for_vlog",
+								"a4cb4319-8ea1-4a7e-8e70-318a260e6574",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post Reaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"targetVlogId\": \"a78b0685-466a-4dfe-a942-71d7f5645376\",\n\t\"isPrivate\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reactions/new",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "[LOCAL FIXED] DEBUG Upload Video",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmM4YjNmMy02ODgyLTRkMTItYmZjZi1hYzQ2YjFiM2QyZWUiLCJqdGkiOiJkNmUzNjcwZC03ZDhhLTQxMDEtYjVhZS0xNGEwNjA1MDRmMzgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0YWJlY2tlcnM5NUBnbWFpbC5jb20iLCJleHAiOjE2MDIxNzAyNDEsImlzcyI6Imh0dHBzOi8vc3dhYmJyLWFwaS1kZXZlbG9wbWVudC5henVyZXdlYnNpdGVzLm5ldCIsImF1ZCI6Imh0dHBzOi8vc3dhYmJyLWFwaS1kZXZlbG9wbWVudC5henVyZXdlYnNpdGVzLm5ldCJ9.K7UQog_vZNPFSfPl7smwQJYF-AIqDagx51YSRMn1WDs",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiBaseLocal}}/api/1/debug/upload_reaction_video?reactionId=8a40a3b1-8ffe-444f-b570-4dc9a5e051bf&sasUri=https://swabbramsstorage.blob.core.windows.net/asset-b7f539cb-1916-49d6-adfc-88c5cff0fd9a?sv=2019-02-02%26sr=c%26sig=gS%2FPJun3qUREVOCxdGytrnUoJ7AZq5cKj3mUi1IW4QU%3D%26se=2020-06-10T15:31:16Z%26sp=rwl",
+							"host": [
+								"{{apiBaseLocal}}"
+							],
+							"path": [
+								"api",
+								"1",
+								"debug",
+								"upload_reaction_video"
+							],
+							"query": [
+								{
+									"key": "reactionId",
+									"value": "8a40a3b1-8ffe-444f-b570-4dc9a5e051bf"
+								},
+								{
+									"key": "sasUri",
+									"value": "https://swabbramsstorage.blob.core.windows.net/asset-b7f539cb-1916-49d6-adfc-88c5cff0fd9a?sv=2019-02-02&sr=c&sig=gS%2FPJun3qUREVOCxdGytrnUoJ7AZq5cKj3mUi1IW4QU%3D&se=2020-06-10T15:31:16Z&sp=rwl"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Finished Uploading Reaction",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/reactions/finished_uploading?reactionId=921285e9-8947-40b3-87a2-b10e6907ddc2",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reactions",
+								"finished_uploading"
+							],
+							"query": [
+								{
+									"key": "reactionId",
+									"value": "921285e9-8947-40b3-87a2-b10e6907ddc2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Azure Notifications Hub",
+					"item": [
+						{
+							"name": "ANH Push Message",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": ""
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Debug Test Notification",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/testing_endpoints/request_test_notification?actionAsString=followed_profile_live",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"testing_endpoints",
+								"request_test_notification"
+							],
+							"query": [
+								{
+									"key": "actionAsString",
+									"value": "followed_profile_live"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Device Registration",
+			"item": [
+				{
+					"name": "Debug Register Device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmM4YjNmMy02ODgyLTRkMTItYmZjZi1hYzQ2YjFiM2QyZWUiLCJqdGkiOiJmMmFmMWQ1ZS1hMzMwLTRjYjgtYTZhNi03MTM0ZTBjMDA1MGIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0YWJlY2tlcnM5NUBnbWFpbC5jb20iLCJleHAiOjE1ODQ0NDgzMDIsImlzcyI6Imh0dHA6Ly9zd2FiYnIuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiJodHRwOi8vc3dhYmJyLmF6dXJld2Vic2l0ZXMubmV0In0.-vW6K3K071ouXBasZNmzM-CYoPrhJ58s24PeD8lqURQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:44311/debug/register_device_for_user?userId=4ee07d14-430c-489e-9490-f696540784b4&deviceHandle=d5wksxFlQSmUuhiMR0T56_:APA91bGEnPY5Ku7Os7FkowPl_NXAlLol4yeeW2ES9P4Bs7x5cdu0B27O4z6DwWi8B_QMtBccoVOsM5kjECuuXO-akg253eIAL2LUOm9QVDpBpKqLBKqmW0PBWmNHRdo6uWvXpOOlYXdb",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "44311",
+							"path": [
+								"debug",
+								"register_device_for_user"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4"
+								},
+								{
+									"key": "deviceHandle",
+									"value": "d5wksxFlQSmUuhiMR0T56_:APA91bGEnPY5Ku7Os7FkowPl_NXAlLol4yeeW2ES9P4Bs7x5cdu0B27O4z6DwWi8B_QMtBccoVOsM5kjECuuXO-akg253eIAL2LUOm9QVDpBpKqLBKqmW0PBWmNHRdo6uWvXpOOlYXdb"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Transcoding",
+			"item": [
+				{
+					"name": "Transcoder Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmM4YjNmMy02ODgyLTRkMTItYmZjZi1hYzQ2YjFiM2QyZWUiLCJqdGkiOiJhMDU4NWQxMi1kYTEzLTQwYjktYWFiZS04NDFiMTU0YTdkYzciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0YWJlY2tlcnM5NUBnbWFpbC5jb20iLCJleHAiOjE1ODYzMzk3OTMsImlzcyI6Imh0dHA6Ly9zd2FiYnIuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiJodHRwOi8vc3dhYmJyLmF6dXJld2Vic2l0ZXMubmV0In0.Seyc-OH3aDR-4dM3fh0sfuNcMxZms4OhK8f_noTvcLw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://localhost:44311/debug/transcoder_test",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "44311",
+							"path": [
+								"debug",
+								"transcoder_test"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmM4YjNmMy02ODgyLTRkMTItYmZjZi1hYzQ2YjFiM2QyZWUiLCJqdGkiOiI0OTMzNTJmOC1mY2E4LTQ2YWEtYWRlNi1lMjRmYzdhNzQ5ZGIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0YWJlY2tlcnM5NUBnbWFpbC5jb20iLCJleHAiOjE1ODY5NDUwMTEsImlzcyI6Imh0dHA6Ly9zd2FiYnIuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiJodHRwOi8vc3dhYmJyLmF6dXJld2Vic2l0ZXMubmV0In0.H6Jb8J2uBwJ43J6gYRi_YP4FhwBIDOki9rjFFabDhtA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/thoma/Videos/SampleVideo_1280x720_1mb.mp4"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:44311/debug/upload_test/2e8598b3-ed71-47da-8e33-28dae3782a74",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "44311",
+							"path": [
+								"debug",
+								"upload_test",
+								"2e8598b3-ed71-47da-8e33-28dae3782a74"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reaction Cleanup Test",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMmM4YjNmMy02ODgyLTRkMTItYmZjZi1hYzQ2YjFiM2QyZWUiLCJqdGkiOiI0OTMzNTJmOC1mY2E4LTQ2YWEtYWRlNi1lMjRmYzdhNzQ5ZGIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0YWJlY2tlcnM5NUBnbWFpbC5jb20iLCJleHAiOjE1ODY5NDUwMTEsImlzcyI6Imh0dHA6Ly9zd2FiYnIuYXp1cmV3ZWJzaXRlcy5uZXQiLCJhdWQiOiJodHRwOi8vc3dhYmJyLmF6dXJld2Vic2l0ZXMubmV0In0.H6Jb8J2uBwJ43J6gYRi_YP4FhwBIDOki9rjFFabDhtA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://localhost:44311/debug/amsstoragetest?reactionId=0c069814-11a3-4b75-bc7e-1211032b26ec",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "44311",
+							"path": [
+								"debug",
+								"amsstoragetest"
+							],
+							"query": [
+								{
+									"key": "reactionId",
+									"value": "0c069814-11a3-4b75-bc7e-1211032b26ec"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Debug",
+			"item": [
+				{
+					"name": "Remove AMS Assets",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/debug/clear_ams_assets",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"debug",
+								"clear_ams_assets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "[LOCAL FIXED] AMS Debug",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiBaseLocal}}/api/1/debug/ams_debug",
+							"host": [
+								"{{apiBaseLocal}}"
+							],
+							"path": [
+								"api",
+								"1",
+								"debug",
+								"ams_debug"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Local health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:44311/api/1/health/check",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "44311",
+					"path": [
+						"api",
+						"1",
+						"health",
+						"check"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0Yzk5Zjg1Yy02MzgyLTRiZjUtYjJlMS03NzU3ZmZlNmU3MWYiLCJqdGkiOiI1OTY2NmNiMS04YmEzLTRkNGMtOGMwZS04ZDNmZjIyMTY1OTciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtb2tAbGFpeGVyLmNvbSIsImV4cCI6MTYwMzM3Nzg3MSwiaXNzIjoiaHR0cHM6Ly9zd2FiYnItYXBpLWRldmVsb3BtZW50LmF6dXJld2Vic2l0ZXMubmV0IiwiYXVkIjoiaHR0cHM6Ly9zd2FiYnItYXBpLWRldmVsb3BtZW50LmF6dXJld2Vic2l0ZXMubmV0In0.ahhGkD6OCZkxCmEJHHJ9rduqiFXRVHFH1jWatY5upq0",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "4b50df9d-5f1a-420b-b51a-e18fda2558b3",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c237263c-321b-4441-b6ca-a7ab132a40d3",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "d8c0874c-882d-4b9e-9569-0a830f2709e4",
+			"key": "apiBaseLocal",
+			"value": ""
+		},
+		{
+			"id": "4d77c696-f2ab-479d-a033-b994e91ac614",
+			"key": "apiBaseProduction",
+			"value": ""
+		},
+		{
+			"id": "1509e92a-070c-4d0e-8a9a-9a73d7ef2c86",
+			"key": "apiBaseDevelopment",
+			"value": ""
+		},
+		{
+			"id": "6bdbe4ca-dd13-4b9c-b99b-b9a98659a831",
+			"key": "apiBaseDevelopment",
+			"value": ""
+		},
+		{
+			"id": "98a5be63-37c4-48f3-915a-90fe57e51d6b",
+			"key": "apiVersion",
+			"value": ""
+		},
+		{
+			"id": "d8fa95c1-d71b-4147-809f-23dbb87141b0",
+			"key": "apiUrl",
+			"value": ""
+		}
+	],
+	"protocolProfileBehavior": {}
+}
