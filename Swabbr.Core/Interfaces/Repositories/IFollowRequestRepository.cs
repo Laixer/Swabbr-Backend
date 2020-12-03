@@ -10,6 +10,10 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     ///     Contract for a follow request repository.
     /// </summary>
+    /// <remarks>
+    ///     Whenever possible the current user id should
+    ///     be extracted from some context.
+    /// </remarks>
     public interface IFollowRequestRepository : IRepository<FollowRequest, FollowRequestId>
     {
         /// <summary>
@@ -31,18 +35,16 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <summary>
         ///     Gets incoming follow requests for a user.
         /// </summary>
-        /// <param name="userId">The user that will be followed.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Incoming follow requests.</returns>
-        IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Navigation navigation);
         
         /// <summary>
         ///     Gets outgoing follow requests for a user.
         /// </summary>
-        /// <param name="userId">The user that will follow.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Outgoing follow requests.</returns>
-        IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Navigation navigation);
 
         /// <summary>
         ///     Updates the status of a follow request.

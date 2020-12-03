@@ -7,8 +7,12 @@ using System.Threading.Tasks;
 namespace Swabbr.Core.Interfaces.Services
 {
     /// <summary>
-    /// Contract for <see cref="SwabbrUser"/> related operations.
+    ///     Contract for user related operations.
     /// </summary>
+    /// <remarks>
+    ///     The executing user id is never passed. Whenever possible,
+    ///     this id is extracted from the context.
+    /// </remarks>
     public interface IUserService
     {
         /// <summary>
@@ -76,7 +80,7 @@ namespace Swabbr.Core.Interfaces.Services
         IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation);
 
         /// <summary>
-        ///     Update a user in our data store.
+        ///     Update the current user in our data store.
         /// </summary>
         /// <remarks>
         ///     This can also be used to update user settings.
@@ -86,19 +90,17 @@ namespace Swabbr.Core.Interfaces.Services
 
         // TODO Do we really need a separate call for this?
         /// <summary>
-        ///     Updates a user location in our data store.
+        ///     Updates the current users location in our data store.
         /// </summary>
-        /// <param name="userId">The user to update.</param>
         /// <param name="longitude">New longitude coordinate.</param>
         /// <param name="latitude">New latitude coordinate.</param>
-        Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
+        Task UpdateLocationAsync(double longitude, double latitude);
 
         // TODO Do we really need a separate call for this?
         /// <summary>
-        ///     Updates a user timezone in our data store.
+        ///     Updates the current users timezone in our data store.
         /// </summary>
-        /// <param name="userId">The user to update.</param>
         /// <param name="newTimeZone">The new user timezone.</param>
-        Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone);
+        Task UpdateTimeZoneAsync(TimeZoneInfo newTimeZone);
     }
 }

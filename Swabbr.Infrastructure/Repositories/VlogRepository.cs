@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -18,6 +19,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// </summary>
     internal class VlogRepository : RepositoryBase, IVlogRepository
     {
+        // FUTURE: Check if the current user is allowed to watch the requested vlog.
         /// <summary>
         ///     Adds a view to a vlog.
         /// </summary>
@@ -69,10 +71,11 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            // Explicitly add the id.
             context.AddParameterWithValue("id", entity.Id);
 
             MapToWriter(context, entity);
+
+
 
             await using var reader = await context.ReaderAsync();
 
@@ -172,12 +175,17 @@ namespace Swabbr.Infrastructure.Repositories
             return MapFromReader(reader);
         }
 
-        // FUTURE Implement
+        // FUTURE: Implement
         /// <summary>
         ///     Returns a collection of featured vlogs.
         /// </summary>
         /// <remarks>
-        ///     This currently just returns all vlogs.
+        ///     <para>
+        ///         The user id is extracted from the context.    
+        ///     </para>
+        ///     <para>
+        ///         This currently just returns all vlogs.
+        ///     </para>
         /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Featured vlogs.</returns>
@@ -188,10 +196,9 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Gets a collection of most recent vlogs for a user
         ///     based on all users the user follows.
         /// </summary>
-        /// <param name="userId">The owner of the vlogs.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>The most recent vlogs owned by the user.</returns>
-        public async IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Navigation navigation)
         {
             var sql = @"
                 SELECT      v.date_created,
@@ -204,14 +211,13 @@ namespace Swabbr.Infrastructure.Repositories
                 FROM        entities.vlog_up_to_date AS v
                 JOIN        application.follow_request_accepted AS fra
                 ON          fra.requester_id = @user_id
-                WHERE       fra.requester_id = @user_id
                 ORDER BY    v.date_created DESC";
 
             ConstructNavigation(ref sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("user_id", userId);
+            context.AddParameterWithValue("user_id", AppContext.UserId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
@@ -224,12 +230,17 @@ namespace Swabbr.Infrastructure.Repositories
         ///     owned by the specified user.
         /// </summary>
         /// <remarks>
-        ///     This also sorts by most recent.
+        ///     <para>
+        ///         The user id is extracted from the context.
+        ///     </para>
+        ///     <para>
+        ///         This also sorts by most recent.
+        ///     </para>
         /// </remarks>
         /// <param name="userId">Owner user id.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlogs that belong to the user.</returns>
-        public async IAsyncEnumerable<Vlog> GetVlogsFromUserAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation)
         {
             var sql = @"
                 SELECT      v.date_created,
@@ -258,12 +269,19 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Updates a vlog in our database.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the vlog.
+        /// </remarks>
         /// <param name="entity">The vlog with updated properties.</param>
         public async Task UpdateAsync(Vlog entity)
         {
             if (entity is null)
             {
                 throw new ArgumentNullException(nameof(entity));
+            }
+            if (!AppContext.HasUser || entity.UserId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
             }
 
             var sql = @"

@@ -24,8 +24,8 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Creates a new notification registration.
         /// </summary>
         /// <remarks>
-        ///     The entity.Id property of <paramref name="entity"/>
-        ///     should be the registering users id.
+        ///     The notification registration id will be assigned
+        ///     to the current user id.
         /// </remarks>
         /// <param name="entity">The populated entity.</param>
         /// <returns>The created id.</returns>
@@ -55,11 +55,15 @@ namespace Swabbr.Infrastructure.Repositories
 
             MapToWriter(context, entity);
 
+            // Extract the current user from the context
+            context.AddParameterWithValue("id", AppContext.UserId);
+
             await using var reader = await context.ReaderAsync();
 
             return reader.GetGuid(0);
         }
 
+        // TODO Also check for context user id?
         /// <summary>
         ///     Delete a notification registration from
         ///     the database.

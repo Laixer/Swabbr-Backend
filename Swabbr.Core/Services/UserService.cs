@@ -1,12 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using Swabbr.Core.Abstractions;
-using Swabbr.Core.Configuration;
+﻿using Swabbr.Core.Abstractions;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,20 +15,15 @@ namespace Swabbr.Core.Services
     public class UserService :  AppServiceBase, IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly SwabbrConfiguration config;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
         public UserService(AppContext appContext,
-            IUserRepository userRepository,
-            IOptions<SwabbrConfiguration> options)
+            IUserRepository userRepository)
         {
             AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            if (options == null) { throw new ArgumentNullException(nameof(options)); }
-            options.Value.ThrowIfInvalid();
-            config = options.Value;
         }
 
         /// <summary>
@@ -110,7 +101,7 @@ namespace Swabbr.Core.Services
 
         // TODO Should this do any of the work that UserSettingsController.UpdateAsync does?
         /// <summary>
-        ///     This updates a user in our database.
+        ///     This updates the current user in our database.
         /// </summary>
         /// <param name="user">The updated user entity.</param>
         /// <returns>The user entity after the update operation.</returns>
@@ -120,10 +111,12 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Updates a user location in our data store.
         /// </summary>
-        /// <param name="userId">The user to update.</param>
+        /// <remarks>
+        ///     The user id is extracted from the context.
+        /// </remarks>
         /// <param name="longitude">New longitude coordinate.</param>
         /// <param name="latitude">New latitude coordinate.</param>
-        public async Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
+        public async Task UpdateLocationAsync(double longitude, double latitude)
         {
             if (!AppContext.HasUser)
             {
@@ -141,9 +134,11 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Updates a user timezone in our data store.
         /// </summary>
-        /// <param name="userId">The user to update.</param>
+        /// <remarks>
+        ///     The user id is extracted from the context.
+        /// </remarks>
         /// <param name="newTimeZone">The new user timezone.</param>
-        public async Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
+        public async Task UpdateTimeZoneAsync(TimeZoneInfo newTimeZone)
         {
             if (!AppContext.HasUser)
             {
