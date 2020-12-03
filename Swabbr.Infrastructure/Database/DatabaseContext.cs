@@ -142,7 +142,7 @@ namespace Swabbr.Infrastructure.Database
         {
             try
             {
-                Reader = await Command.ExecuteReaderAsync(AppContext.CancellationToken).ConfigureAwait(false);
+                Reader = await Command.ExecuteReaderAsync(AppContext.CancellationToken);
                 if (!Reader.HasRows && hasRowsGuard)
                 {
                     throw new EntityNotFoundException();
@@ -150,7 +150,7 @@ namespace Swabbr.Infrastructure.Database
 
                 if (readAhead)
                 {
-                    await Reader.ReadAsync(AppContext.CancellationToken).ConfigureAwait(false);
+                    await Reader.ReadAsync(AppContext.CancellationToken);
                 }
 
                 return Reader;
@@ -170,7 +170,7 @@ namespace Swabbr.Infrastructure.Database
         {
             try
             {
-                Reader = await Command.ExecuteReaderAsync(AppContext.CancellationToken).ConfigureAwait(false);
+                Reader = await Command.ExecuteReaderAsync(AppContext.CancellationToken);
                 if (!Reader.HasRows && hasRowsGuard)
                 {
                     throw new EntityNotFoundException();
@@ -185,7 +185,7 @@ namespace Swabbr.Infrastructure.Database
             // NOTE: An unfortunate consequence of the yield return is the incapability
             //       of running inside a try-catch block. It should be rare for an exception
             //       to occur after the command has been executed, but not impossible.
-            while (await Reader.ReadAsync(AppContext.CancellationToken).ConfigureAwait(false))
+            while (await Reader.ReadAsync(AppContext.CancellationToken))
             {
                 yield return Reader;
             }

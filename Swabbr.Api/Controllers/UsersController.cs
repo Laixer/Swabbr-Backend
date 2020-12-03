@@ -64,7 +64,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-                var user = await _userService.GetWithStatisticsAsync(userId).ConfigureAwait(false);
+                var user = await _userService.GetWithStatisticsAsync(userId);
                 return Ok(MapperUser.Map(user));
             }
             catch (EntityNotFoundException e)
@@ -96,7 +96,7 @@ namespace Swabbr.Api.Controllers
                 if (page < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Page number must be greater than one")); }
                 if (itemsPerPage < 1) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Items per page must be greater than one")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 // TODO Navigation will be cleaned up
                 var users = await _userService.SearchAsync(query, new Navigation { Limit =  itemsPerPage, Offset = page - 1 }).ToListAsync();
                 return Ok(users.Select(x => MapperUser.Map(x)));
@@ -118,8 +118,8 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var userWithStats = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var identityUser = await _userManager.GetUserAsync(User);
+                var userWithStats = await _userService.GetAsync(identityUser.Id);
                 return Ok(MapperUser.Map(userWithStats));
             }
             catch (Exception e)
@@ -148,7 +148,7 @@ namespace Swabbr.Api.Controllers
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
                 // Act.
-                var userId = (await _userManager.GetUserAsync(User).ConfigureAwait(false)).Id;
+                var userId = (await _userManager.GetUserAsync(User)).Id;
                 var user = await _userService.GetAsync(userId);
 
                 // Only map changed properties.
@@ -162,7 +162,7 @@ namespace Swabbr.Api.Controllers
 
                 // Perform updates and get the result.
                 await _userService.UpdateAsync(user);
-                var updatedUser = await _userService.GetAsync(userId).ConfigureAwait(false);
+                var updatedUser = await _userService.GetAsync(userId);
 
                 // Map.
                 var result = MapperUser.Map(updatedUser);
@@ -200,7 +200,7 @@ namespace Swabbr.Api.Controllers
                 return Ok(new FollowingOutputModel
                 {
                     Following = (await _userService.GetFollowingAsync(userId, Navigation.Default).ToListAsync()
-                        .ConfigureAwait(false))
+                        )
                         .Select(x => MapperUser.Map(x))
                 });
             }
@@ -226,7 +226,7 @@ namespace Swabbr.Api.Controllers
                 return Ok(new FollowersOutputModel
                 {
                     Followers = (await _userService.GetFollowersAsync(userId, Navigation.Default).ToListAsync()
-                        .ConfigureAwait(false))
+                        )
                         .Select(x => MapperUser.Map(x))
                 });
             }
@@ -248,7 +248,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
-                return Ok(MapperUser.MapToStatistics(await _userService.GetWithStatisticsAsync(userId).ConfigureAwait(false)));
+                return Ok(MapperUser.MapToStatistics(await _userService.GetWithStatisticsAsync(userId)));
             }
             catch (Exception e)
             {
@@ -266,10 +266,10 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 user.Id.ThrowIfNullOrEmpty();
 
-                return await GetStatisticsAsync(user.Id).ConfigureAwait(false);
+                return await GetStatisticsAsync(user.Id);
             }
             catch (Exception e)
             {

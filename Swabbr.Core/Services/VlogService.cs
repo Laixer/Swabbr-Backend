@@ -172,7 +172,7 @@ namespace Swabbr.Core.Services
         public async Task LikeAsync(Guid vlogId, Guid userId)
         {
             // It's not allowed to like your own vlog
-            var vlog = await _vlogRepository.GetAsync(vlogId).ConfigureAwait(false);
+            var vlog = await _vlogRepository.GetAsync(vlogId);
             if (vlog.UserId == userId)
             {
                 throw new NotAllowedException("Can't like your own vlog");
@@ -188,10 +188,10 @@ namespace Swabbr.Core.Services
             await _vlogLikeRepository.CreateAsync(new VlogLike
             {
                 Id = vlogLikeId
-            }).ConfigureAwait(false);
+            });
 
             // TODO Move to some queue
-            await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId).ConfigureAwait(false);
+            await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId);
         }
 
         /// <summary>
@@ -224,13 +224,13 @@ namespace Swabbr.Core.Services
                 throw new ArgumentNullException(nameof(vlog));
             }
 
-            var currentVlog = await _vlogRepository.GetAsync(vlog.Id).ConfigureAwait(false);
+            var currentVlog = await _vlogRepository.GetAsync(vlog.Id);
 
             // Copy all updateable properties.
             // TODO Expand
             currentVlog.IsPrivate = vlog.IsPrivate;
 
-            await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
+            await _vlogRepository.UpdateAsync(vlog);
         }
     }
 }

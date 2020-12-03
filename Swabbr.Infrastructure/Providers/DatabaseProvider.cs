@@ -36,7 +36,7 @@ namespace Swabbr.Infrastructure.Providers
         public virtual async Task<DbConnection> OpenConnectionScopeAsync(CancellationToken token = default)
         {
             var connection = CreateConnectionScope();
-            await connection.OpenAsync(token).ConfigureAwait(false);
+            await connection.OpenAsync(token);
             return connection;
         }
 

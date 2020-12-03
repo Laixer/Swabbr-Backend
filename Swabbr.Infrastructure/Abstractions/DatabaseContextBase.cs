@@ -30,7 +30,7 @@ namespace Swabbr.Infrastructure.Abstractions
             };
 
             // This opens the connection and creates a command.
-            await context.InitializeAsync(cmdText).ConfigureAwait(false);
+            await context.InitializeAsync(cmdText);
 
             return context;
         }

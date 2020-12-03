@@ -66,7 +66,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 var incoming = await _followRequestService.GetPendingIncomingForUserAsync(user.Id, Navigation.Default).ToListAsync();
                 return Ok(new FollowRequestCollectionOutputModel
                 {
@@ -93,7 +93,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(user.Id, Navigation.Default).ToListAsync();
                 return Ok(new FollowRequestCollectionOutputModel
                 {
@@ -123,11 +123,11 @@ namespace Swabbr.Api.Controllers
             {
                 receiverId.ThrowIfNullOrEmpty();
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
                 if (user.Id == receiverId) { return Conflict(this.Error(ErrorCodes.InvalidOperation, "Can't request follow request between user and himself")); }
 
-                if (!await _userRepository.ExistsAsync(receiverId).ConfigureAwait(false))
+                if (!await _userRepository.ExistsAsync(receiverId))
                 {
                     return Conflict(this.Error(ErrorCodes.EntityNotFound, "Receiving user id does not exist"));
                 }
@@ -135,7 +135,7 @@ namespace Swabbr.Api.Controllers
                 var id = new FollowRequestId { RequesterId = user.Id, ReceiverId = receiverId };
                 return Ok(new FollowRequestStatusOutputModel
                 {
-                    Status = MapperEnum.Map(await _followRequestService.GetStatusAsync(id).ConfigureAwait(false)).GetEnumMemberAttribute()
+                    Status = MapperEnum.Map(await _followRequestService.GetStatusAsync(id)).GetEnumMemberAttribute()
                 });
             }
             catch (EntityNotFoundException)
@@ -167,14 +167,14 @@ namespace Swabbr.Api.Controllers
                 receiverId.ThrowIfNullOrEmpty();
 
                 // We can't follow ourself
-                var requesterId = (await _userManager.GetUserAsync(User).ConfigureAwait(false)).Id;
+                var requesterId = (await _userManager.GetUserAsync(User)).Id;
                 if (requesterId == receiverId)
                 {
                     return Forbidden(this.Error(ErrorCodes.InvalidOperation, "Users cannot follow themselves"));
                 }
 
                 // We can't follow a user that doesn't exist
-                if (!await _userRepository.ExistsAsync(receiverId).ConfigureAwait(false))
+                if (!await _userRepository.ExistsAsync(receiverId))
                 {
                     return Conflict(this.Error(ErrorCodes.EntityNotFound, "Specified user does not exist"));
                 }
@@ -182,7 +182,7 @@ namespace Swabbr.Api.Controllers
                 // Try to perform the request
                 try
                 {
-                    var followRequestId = await _followRequestService.SendAsync(requesterId, receiverId).ConfigureAwait(false);
+                    var followRequestId = await _followRequestService.SendAsync(requesterId, receiverId);
                     return Ok(MapperFollowRequest.Map(await _followRequestService.GetAsync(followRequestId)));
                 }
                 catch (EntityAlreadyExistsException e)
@@ -211,11 +211,11 @@ namespace Swabbr.Api.Controllers
             try
             {
                 receiverId.ThrowIfNullOrEmpty();
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = user.Id, ReceiverId = receiverId };
-                await _followRequestService.CancelAsync(id).ConfigureAwait(false);
+                await _followRequestService.CancelAsync(id);
                 return Ok();
             }
             catch (Exception e)
@@ -239,11 +239,11 @@ namespace Swabbr.Api.Controllers
             {
                 receiverId.ThrowIfNullOrEmpty();
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = user.Id, ReceiverId = receiverId };
-                await _followRequestService.UnfollowAsync(id).ConfigureAwait(false);
+                await _followRequestService.UnfollowAsync(id);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -272,11 +272,11 @@ namespace Swabbr.Api.Controllers
             {
                 requesterId.ThrowIfNullOrEmpty();
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = user.Id };
-                await _followRequestService.AcceptAsync(id).ConfigureAwait(false);
+                await _followRequestService.AcceptAsync(id);
                 return Ok();
             }
             catch (EntityNotFoundException)
@@ -304,11 +304,11 @@ namespace Swabbr.Api.Controllers
             {
                 requesterId.ThrowIfNullOrEmpty();
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = user.Id };
-                await _followRequestService.DeclineAsync(id).ConfigureAwait(false);
+                await _followRequestService.DeclineAsync(id);
                 return Ok();
             }
             catch (EntityNotFoundException)
