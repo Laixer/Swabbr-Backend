@@ -2,11 +2,10 @@
 
 namespace Swabbr.Core.Exceptions
 {
-
     /// <summary>
-    /// Indicates our configuration is incorrect.
+    ///     Indicates our configuration is invalid.
     /// </summary>
-    public class ConfigurationException : Exception
+    public class ConfigurationException : SwabbrCoreException
     {
 
         public ConfigurationException(string message) : base(message)
