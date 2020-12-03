@@ -62,7 +62,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
+                if (userId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 var user = await _userService.GetWithStatisticsAsync(userId);
                 return Ok(MapperUser.Map(user));
@@ -195,7 +195,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
+                if (userId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 return Ok(new FollowingOutputModel
                 {
@@ -221,7 +221,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
+                if (userId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 return Ok(new FollowersOutputModel
                 {
@@ -246,7 +246,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
+                if (userId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 return Ok(MapperUser.MapToStatistics(await _userService.GetWithStatisticsAsync(userId)));
             }
@@ -267,7 +267,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                user.Id.ThrowIfNullOrEmpty();
+                user.Id.ThrowIfEmpty();
 
                 return await GetStatisticsAsync(user.Id);
             }

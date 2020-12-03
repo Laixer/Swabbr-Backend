@@ -16,12 +16,12 @@ namespace Swabbr.Core.Services
     /// <summary>
     ///     Handles our hash distribution for user selection.
     /// </summary>
-    public sealed class UserSelectionService : IUserSelectionService
+    public class UserSelectionService : IUserSelectionService
     {
-        private readonly IUserService _userService;
-        private readonly SwabbrConfiguration _options;
-        private static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
-        private static readonly UTF8Encoding encoder = new UTF8Encoding();
+        protected readonly IUserService _userService;
+        protected readonly SwabbrConfiguration _options;
+        protected static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
+        protected static readonly UTF8Encoding encoder = new UTF8Encoding();
 
         public uint ValidMinutes => _options.VlogRequestEndTimeMinutes - _options.VlogRequestStartTimeMinutes;
 
@@ -50,7 +50,7 @@ namespace Swabbr.Core.Services
         /// <param name="time"><see cref="DateTimeOffset"/></param>
         /// <param name="offset"><see cref="TimeSpan"/></param>
         /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public async IAsyncEnumerable<SwabbrUser> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
+        public virtual async IAsyncEnumerable<SwabbrUser> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
         {
             // Extract the current minute from the time parameter.
             var day = new DateTime(time.Year, time.Month, time.Day);
@@ -98,10 +98,10 @@ namespace Swabbr.Core.Services
         /// <param name="day"><see cref="DateTime"/></param>
         /// <param name="requestIndex">Index of the request on the day</param>
         /// <returns>The minute in the day based on the inputs</returns>
-        private int GetHashMinute(SwabbrUser user, DateTime day, int requestIndex)
+        protected virtual int GetHashMinute(SwabbrUser user, DateTime day, int requestIndex)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
-            if (user.Id.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
+            if (user.Id.IsEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
             if (user.Timezone == null) { throw new ArgumentNullException(nameof(user.Timezone)); }
 
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";

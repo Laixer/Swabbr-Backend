@@ -61,7 +61,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
+                if (reactionId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
 
                 var user = await _userManager.GetUserAsync(User);
 
@@ -92,7 +92,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
+                if (reactionId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
 
                 var user = await _userManager.GetUserAsync(User);
 
@@ -126,7 +126,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                if (vlogId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 if (!await _vlogService.ExistsAsync(vlogId)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
                 var user = await _userManager.GetUserAsync(User);
@@ -165,7 +165,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
+                if (vlogId.IsEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 if (!await _vlogService.ExistsAsync(vlogId)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
                 var user = await _userManager.GetUserAsync(User);
@@ -283,7 +283,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                if (reactionId.IsNullOrEmpty()) { Conflict(this.Error(ErrorCodes.InvalidInput, "Vlog id is invalid or missing")); }
+                if (reactionId.IsEmpty()) { Conflict(this.Error(ErrorCodes.InvalidInput, "Vlog id is invalid or missing")); }
 
                 var user = await _userManager.GetUserAsync(User);
 

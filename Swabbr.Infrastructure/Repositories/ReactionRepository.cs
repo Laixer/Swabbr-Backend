@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Swabbr.Infrastructure.Repositories
 {
@@ -52,10 +54,12 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            // Explicitly add the id.
             context.AddParameterWithValue("id", entity.Id);
 
             MapToWriter(context, entity);
+
+            // Override the user id by extracting it from the context.
+            context.AddParameterWithValue("user_id", AppContext.UserId);
 
             await context.NonQueryAsync();
 
@@ -65,19 +69,35 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Soft deletes a reaction from our data store.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the reaction.
+        ///     If not, an <see cref="NotAllowedException"/> is 
+        ///     thrown.
+        /// </remarks>
         /// <param name="id">The reaction id to delete.</param>
         public async Task DeleteAsync(Guid id)
         {
             var sql = @"
-                    UPDATE  entities.reaction AS r
-                    SET     reaction_status = 'deleted'
-                    WHERE   r.id = @id";
+                    UPDATE      entities.reaction AS r
+                    SET         reaction_status = 'deleted'
+                    WHERE       r.id = @id
+                    RETURNING   user_id";
+
+            // Note: To validate user ownership without an extra 
+            //       db roundtrip this has to be transactional.
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
             context.AddParameterWithValue("id", id);
 
-            await context.NonQueryAsync();
+            var userId = await context.ScalarAsync<Guid>();
+            if (userId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
+            }
+
+            scope.Complete();
         }
 
         /// <summary>
@@ -205,6 +225,10 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Updates a reaction in our data store.
         /// </summary>
+        /// <remarks>
+        ///     This throws a <see cref="NotAllowedException"/> 
+        ///     if the reaction is not owned by the current user.
+        /// </remarks>
         /// <param name="entity">The reaction with updated properties.</param>
         public async Task UpdateAsync(Reaction entity)
         {
@@ -213,13 +237,15 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new ArgumentNullException(nameof(entity));
             }
 
+            if (!AppContext.HasUser || entity.UserId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql = @"
                     UPDATE  entities.reaction_up_to_date AS r
                     SET     is_private = @is_private,
-                            length_in_seconds = @length_in_seconds,
-                            reaction_status = @reaction_status,
-                            target_vlog_id = @target_vlog_id,
-                            user_id = @user_id
+                            length_in_seconds = @length_in_seconds
                     WHERE   r.id = @id";
 
             await using var context = await CreateNewDatabaseContext(sql);

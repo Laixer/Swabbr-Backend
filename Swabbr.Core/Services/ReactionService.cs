@@ -1,7 +1,9 @@
 ﻿using Swabbr.Core.Abstractions;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Storage;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -9,27 +11,26 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
-    // TODO Implement.
     /// <summary>
     ///     Reaction related operations.
     /// </summary>
     public class ReactionService : AppServiceBase, IReactionService
     {
         protected readonly INotificationService _notificationService;
+        protected readonly IBlobStorageService _blobStorageService;
         protected readonly IReactionRepository _reactionRepository;
         protected readonly IVlogRepository _vlogRepository;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public ReactionService(AppContext appContext,
-            INotificationService notificationService, 
+        public ReactionService(INotificationService notificationService, 
+            IBlobStorageService blobStorageService,
             IReactionRepository reactionRepository,
             IVlogRepository vlogRepository)
         {
-            // TODO Is this correct usage? Not sure, since this implementation doesn't guarantee to be scoped.
-            AppContext = appContext ?? throw new ArgumentNullException();
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
         }
@@ -37,8 +38,11 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Soft deletes a reaction in our data store.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the reaction.
+        /// </remarks>
         /// <param name="reactionId">The reaction to be deleted.</param>
-        public Task DeleteReactionAsync(Guid reactionId)
+        public virtual Task DeleteReactionAsync(Guid reactionId)
             => _reactionRepository.DeleteAsync(reactionId);
 
         /// <summary>
@@ -46,7 +50,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction.</returns>
-        public Task<Reaction> GetAsync(Guid reactionId)
+        public virtual Task<Reaction> GetAsync(Guid reactionId)
             => _reactionRepository.GetAsync(reactionId);
 
         /// <summary>
@@ -54,7 +58,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The amount of reactions.</returns>
-        public Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
+        public virtual Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
             => _reactionRepository.GetCountForVlogAsync(vlogId);
 
         /// <summary>
@@ -63,7 +67,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions.</returns>
-        public IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
+        public virtual IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
             => _reactionRepository.GetForVlogAsync(vlogId, navigation);
 
         /// <summary>
@@ -73,7 +77,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions with their thumbnails.</returns>
-        public async IAsyncEnumerable<ReactionWithThumbnailDetails> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId, Navigation navigation)
+        public virtual async IAsyncEnumerable<ReactionWithThumbnailDetails> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId, Navigation navigation)
         {
             await foreach (var reaction in GetReactionsForVlogAsync(vlogId, navigation))
             {
@@ -90,7 +94,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction with thumbnail details.</returns>
-        public async Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId)
+        public virtual async Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId)
             => new ReactionWithThumbnailDetails
             {
                 Reaction = await GetAsync(reactionId),
@@ -101,36 +105,47 @@ namespace Swabbr.Core.Services
         ///     Called when a reaction has been uploaded. This will
         ///     actually post the reaction.
         /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         If the file does not exist in our blob storage this
+        ///         throws a <see cref="FileNotFoundException"/>.
+        ///     </para>
+        ///     <para>
+        ///         The reaction will belong to the current user.
+        ///     </para>
+        /// </remarks>
         /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
         /// <param name="reactionId">The uploaded reaction id.</param>
-        public async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
+        public virtual async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
         {
-            // This can never happen if we aren't logged in.
-            if (!AppContext.HasUser)
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, reactionId.ToString())) 
             {
-                throw new InvalidOperationException();
+                throw new FileNotFoundException();
             }
 
             var reaction = new Reaction
             {
                 Id = reactionId,
                 TargetVlogId = targetVlogId,
-                UserId = AppContext.UserId
             };
 
+            // Note: The user id is assigned by the reaction repository based on the context.
+            // TODO This comment could not have been made without full knowledge of the repo, which we can't always have!
             await _reactionRepository.CreateAsync(reaction);
 
             var targetVlog = await _vlogRepository.GetAsync(targetVlogId);
+            // FUTURE: Enqueue
             await _notificationService.NotifyReactionPlacedAsync(targetVlog.UserId, targetVlogId, reactionId);                
         }
 
-        // TODO Look at this
         /// <summary>
         ///     Updates a reaction in our data store.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the reaction.
+        /// </remarks>
         /// <param name="reaction">The reaction with updated properties.</param>
-        public Task UpdateReactionAsync(Reaction reaction)
+        public virtual Task UpdateReactionAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
-
     }
 }

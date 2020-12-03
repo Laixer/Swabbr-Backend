@@ -58,7 +58,7 @@ namespace Swabbr.Api.Controllers
                 if (!ModelState.IsValid) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Post body is invalid")); }
 
                 var user = await _userManager.GetUserAsync(User);
-                await _userService.UpdateLocationAsync(user.Id, input.Longitude, input.Latitude);
+                await _userService.UpdateLocationAsync(input.Longitude, input.Latitude);
 
                 return Ok();
             }
@@ -84,7 +84,7 @@ namespace Swabbr.Api.Controllers
 
                 var parsedTimeZone = TimeZoneInfoParser.Parse(input.Timezone);
                 var user = await _userManager.GetUserAsync(User);
-                await _userService.UpdateTimeZoneAsync(user.Id, parsedTimeZone);
+                await _userService.UpdateTimeZoneAsync(parsedTimeZone);
 
                 return Ok();
             }

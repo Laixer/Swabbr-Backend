@@ -10,6 +10,10 @@ namespace Swabbr.Core.Interfaces.Services
     ///     Contract for a service that handles everything 
     ///     related to <see cref="Reaction"/> entities.
     /// </summary>
+    /// <remarks>
+    ///     The executing user id is never passed. Whenever possible,
+    ///     this id is extracted from the context.
+    /// </remarks>
     public interface IReactionService
     {        
         /// <summary>

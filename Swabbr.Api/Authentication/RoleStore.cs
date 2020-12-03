@@ -23,8 +23,6 @@ namespace Swabbr.Api.Authentication
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
         };
 
-#pragma warning disable CS1591
-
         public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
             // TODO THOMAS This should throw! I suspect this is to enable endpoint calling for iOS and Android? --> yorick: kan met de user manager te maken hebben
@@ -121,5 +119,3 @@ namespace Swabbr.Api.Authentication
         #endregion IDisposable Support
     }
 }
-
-#pragma warning restore CS1591

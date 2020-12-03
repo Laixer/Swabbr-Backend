@@ -8,10 +8,10 @@ namespace Swabbr.Core.Services
     /// <summary>
     ///     Checks the health of our backend.
     /// </summary>
-    public sealed class HealthCheckService : IHealthCheckService
+    public class HealthCheckService : IHealthCheckService
     {
-        private readonly INotificationService _notificationService;
-        private readonly IHealthCheckRepository _healthCheckRepository;
+        protected readonly INotificationService _notificationService;
+        protected readonly IHealthCheckRepository _healthCheckRepository;
 
         /// <summary>
         ///     Create new instance.
@@ -26,20 +26,20 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Checks our database health.
         /// </summary>
-        public Task<bool> IsDataStoreHealthyAsync()
+        public virtual Task<bool> IsDataStoreHealthyAsync()
             => _healthCheckRepository.IsAliveAsync();
 
         /// <summary>
         ///     Checks the notification service and database.
         /// </summary>
-        public async Task<bool> IsHealthyAsync()
+        public virtual async Task<bool> IsHealthyAsync()
             => await IsDataStoreHealthyAsync() &&
                await IsNotificationServiceHealthyAsync();
 
         /// <summary>
         ///     Checks our notification service health.
         /// </summary>
-        public Task<bool> IsNotificationServiceHealthyAsync()
+        public virtual Task<bool> IsNotificationServiceHealthyAsync()
             => _notificationService.IsServiceOnlineAsync();
     }
 }

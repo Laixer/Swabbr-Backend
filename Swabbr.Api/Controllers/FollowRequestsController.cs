@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -11,14 +10,12 @@ using Swabbr.Api.ViewModels;
 using Swabbr.Api.ViewModels.Enums;
 using Swabbr.Api.ViewModels.FollowRequest;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -66,8 +63,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var incoming = await _followRequestService.GetPendingIncomingForUserAsync(user.Id, Navigation.Default).ToListAsync();
+                var incoming = await _followRequestService.GetPendingIncomingForUserAsync(Navigation.Default).ToListAsync();
                 return Ok(new FollowRequestCollectionOutputModel
                 {
                     FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
@@ -93,8 +89,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(user.Id, Navigation.Default).ToListAsync();
+                var incoming = await _followRequestService.GetPendingOutgoingForUserAsync(Navigation.Default).ToListAsync();
                 return Ok(new FollowRequestCollectionOutputModel
                 {
                     FollowRequests = incoming.Select(x => MapperFollowRequest.Map(x))
@@ -121,7 +116,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
@@ -164,7 +159,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
 
                 // We can't follow ourself
                 var requesterId = (await _userManager.GetUserAsync(User)).Id;
@@ -180,16 +175,8 @@ namespace Swabbr.Api.Controllers
                 }
 
                 // Try to perform the request
-                try
-                {
-                    var followRequestId = await _followRequestService.SendAsync(requesterId, receiverId);
-                    return Ok(MapperFollowRequest.Map(await _followRequestService.GetAsync(followRequestId)));
-                }
-                catch (EntityAlreadyExistsException e)
-                {
-                    logger.LogError(e.Message);
-                    return Conflict(this.Error(ErrorCodes.EntityAlreadyExists, "Follow request already exists (either pending or accepted)"));
-                }
+                var followRequestId = await _followRequestService.SendAsync(receiverId);
+                return Ok(MapperFollowRequest.Map(await _followRequestService.GetAsync(followRequestId)));
             }
             catch (Exception e)
             {
@@ -210,12 +197,12 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = user.Id, ReceiverId = receiverId };
-                await _followRequestService.CancelAsync(id);
+                await _followRequestService.CancelAsync(receiverId);
                 return Ok();
             }
             catch (Exception e)
@@ -237,13 +224,13 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = user.Id, ReceiverId = receiverId };
-                await _followRequestService.UnfollowAsync(id);
+                await _followRequestService.UnfollowAsync(receiverId);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -270,13 +257,13 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                requesterId.ThrowIfNullOrEmpty();
+                requesterId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = user.Id };
-                await _followRequestService.AcceptAsync(id);
+                await _followRequestService.AcceptAsync(requesterId);
                 return Ok();
             }
             catch (EntityNotFoundException)
@@ -302,13 +289,13 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                requesterId.ThrowIfNullOrEmpty();
+                requesterId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
                 var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = user.Id };
-                await _followRequestService.DeclineAsync(id);
+                await _followRequestService.DeclineAsync(requesterId);
                 return Ok();
             }
             catch (EntityNotFoundException)

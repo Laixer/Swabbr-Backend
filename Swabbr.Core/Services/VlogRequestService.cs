@@ -32,7 +32,7 @@ namespace Swabbr.Core.Services
         ///     Process a vlog request for a single user.
         /// </summary>
         /// <param name="userId">The user that should vlog.</param>
-        public async Task SendVlogRequestToUserAsync(Guid userId)
+        public virtual async Task SendVlogRequestToUserAsync(Guid userId)
         {
             // The vlog id that is created here does not exist in our data store
             // yet, but should be used by the client as the uploading file name.
@@ -48,7 +48,7 @@ namespace Swabbr.Core.Services
         ///     should get a request in the given <paramref name="minute"/>.
         /// </summary>
         /// <param name="minute">The minute to check.</param>
-        public async Task SendVlogRequestsForMinuteAsync(DateTimeOffset minute)
+        public virtual async Task SendVlogRequestsForMinuteAsync(DateTimeOffset minute)
         {
             await foreach (var user in _userSelectionService.GetForMinuteAsync(minute))
             {

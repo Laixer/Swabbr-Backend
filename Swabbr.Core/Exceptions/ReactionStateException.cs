@@ -7,7 +7,7 @@ namespace Swabbr.Core.Exceptions
     ///     Indicates the reaction status is invalid for
     ///     a given operation.
     /// </summary>
-    public sealed class ReactionStateException : Exception
+    public sealed class ReactionStateException : SwabbrCoreException
     {
         public ReactionStateException() 
         { 
