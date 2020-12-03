@@ -24,7 +24,7 @@ namespace Swabbr.Core.Notifications
             {
                 VlogId = vlogId,
                 VlogOwnerUserId = vlogOwnerUserId
-            }, title: DefaultTitle, message: DefaultTitle);
+            }, title: DefaultTitle, message: DefaultMessage);
 
         /// <summary>
         ///     Build a notification for indicating that a user
@@ -40,7 +40,7 @@ namespace Swabbr.Core.Notifications
                 RequestMoment = requestMoment,
                 RequestTimeout = requestTimeout,
                 VlogId = vlogId
-            }, title: DefaultTitle, message: DefaultTitle);
+            }, title: DefaultTitle, message: DefaultMessage);
 
         /// <summary>
         ///     Build a notification for indicating that a vlog
@@ -54,7 +54,7 @@ namespace Swabbr.Core.Notifications
             {
                 UserThatLikedId = userThatLikedId,
                 VlogId = vlogId
-            }, title: DefaultTitle, message: DefaultTitle);
+            }, title: DefaultTitle, message: DefaultMessage);
 
         /// <summary>
         ///     Build a notification for indicating that a user
@@ -68,6 +68,6 @@ namespace Swabbr.Core.Notifications
             {
                 ReactionId = reactionId,
                 VlogId = vlogId
-            }, title: DefaultTitle, message: DefaultTitle);
+            }, title: DefaultTitle, message: DefaultMessage);
     }
 }

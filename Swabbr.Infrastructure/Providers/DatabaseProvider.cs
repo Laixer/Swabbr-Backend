@@ -54,7 +54,9 @@ namespace Swabbr.Infrastructure.Providers
             }
 
             var cmd = connection.CreateCommand();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             cmd.CommandText = cmdText;
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
             return cmd;
         }
 

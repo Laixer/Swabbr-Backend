@@ -20,7 +20,6 @@ namespace Swabbr.Core.Extensions
         /// <param name="self"><see cref="Guid"/></param>
         public static void ThrowIfNullOrEmpty(this Guid self)
         {
-            if (self == null) { throw new ArgumentNullException(nameof(self)); }
             if (self == Guid.Empty) { throw new ArgumentNullException("Guid is empty"); }
         }
 
@@ -40,7 +39,7 @@ namespace Swabbr.Core.Extensions
         /// <param name="self"><see cref="Guid"/></param>
         public static bool IsNullOrEmpty(this Guid self)
         {
-            return self == null || self == Guid.Empty;
+            return self == Guid.Empty;
         }
 
         /// <summary>

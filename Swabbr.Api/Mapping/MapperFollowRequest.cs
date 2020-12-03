@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Extensions;
-using Swabbr.Api.ViewModels;
+﻿using Swabbr.Api.ViewModels;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Extensions;
 using System;
@@ -26,9 +25,6 @@ namespace Swabbr.Api.Mapping
             };
         }
 
-        internal static FollowRequest Map(FollowRequestOutputModel followRequest)
-        {
-            throw new NotImplementedException();
-        }
+        internal static FollowRequest Map(FollowRequestOutputModel followRequest) => throw new NotImplementedException();
     }
 }
