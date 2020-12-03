@@ -1,4 +1,4 @@
-name: Swabbr .NET Core Build & Test
+name: Swabbr Build & Test
 
 on:
   push:
