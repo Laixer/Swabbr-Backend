@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Extensions
 {
-
+    // TODO Remove.
     /// <summary>
     /// Extension methods for <see cref="Enum"/> items.
     /// </summary>

@@ -116,7 +116,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
@@ -159,7 +159,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
 
                 // We can't follow ourself
                 var requesterId = (await _userManager.GetUserAsync(User)).Id;
@@ -197,7 +197,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
 
@@ -224,7 +224,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                receiverId.ThrowIfNullOrEmpty();
+                receiverId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
@@ -257,7 +257,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                requesterId.ThrowIfNullOrEmpty();
+                requesterId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }
@@ -289,7 +289,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                requesterId.ThrowIfNullOrEmpty();
+                requesterId.ThrowIfEmpty();
 
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) { throw new InvalidOperationException("User can't be null"); }

@@ -101,7 +101,7 @@ namespace Swabbr.Core.Services
         protected virtual int GetHashMinute(SwabbrUser user, DateTime day, int requestIndex)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
-            if (user.Id.IsNullOrEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
+            if (user.Id.IsEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
             if (user.Timezone == null) { throw new ArgumentNullException(nameof(user.Timezone)); }
 
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
