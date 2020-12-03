@@ -1,6 +1,8 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Storage;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -195,17 +197,27 @@ namespace Swabbr.Core.Services
             await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId);
         }
 
-        // FUTURE: First check vlog file existence in the blob storage
         /// <summary>
         ///     Called when a vlog has finished uploading.
         /// </summary>
         /// <remarks>
-        ///     The vlog will be owned by the current user.
+        ///     <para>
+        ///         The vlog will be owned by the current user.
+        ///     </para>
+        ///     <para>
+        ///         If the file does not exist in our blob storage this
+        ///         throws a <see cref="FileNotFoundException"/>.
+        ///     </para>
         /// </remarks>
         /// <param name="vlogId">The uploaded vlog.</param>
         /// <param name="isPrivate">Accessibility of the vlog.</param>
         public virtual async Task PostVlogAsync(Guid vlogId, bool isPrivate = false)
         {
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, vlogId.ToString())) 
+            {
+                throw new FileNotFoundException();
+            }
+
             var vlog = new Vlog
             {
                 Id = vlogId,
