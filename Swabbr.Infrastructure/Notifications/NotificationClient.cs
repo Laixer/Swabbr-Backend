@@ -92,7 +92,6 @@ namespace Swabbr.Infrastructure.Notifications
                 Handle = internalRegistration.Handle,
                 Id = internalRegistration.Id,
                 PushNotificationPlatform = internalRegistration.PushNotificationPlatform,
-                UserId = internalRegistration.UserId
             };
         }
 
@@ -115,13 +114,13 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             // Throw if no registration exists
-            if (!await IsRegisteredAsync(internalRegistration.UserId).ConfigureAwait(false))
+            if (!await IsRegisteredAsync(internalRegistration.Id).ConfigureAwait(false))
             {
                 _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, cleaning all up before making new registration");
             }
             else
             {
-                var externalRegistrations = await _hubClient.GetRegistrationsByTagAsync(internalRegistration.UserId.ToString(), 0).ConfigureAwait(false);
+                var externalRegistrations = await _hubClient.GetRegistrationsByTagAsync(internalRegistration.Id.ToString(), 0).ConfigureAwait(false);
 
                 // Having multiple registrations should never happen, log a warning and skip.
                 if (externalRegistrations.Count() > 1)
@@ -175,7 +174,7 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             // Use the user id as tag (as recommended by Azure Notification Hub docs)
-            var tags = new List<string> { notificationRegistration.UserId.ToString() };
+            var tags = new List<string> { notificationRegistration.Id.ToString() };
 
             return notificationRegistration.PushNotificationPlatform switch
             {

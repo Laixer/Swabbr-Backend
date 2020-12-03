@@ -23,6 +23,11 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     Timestamp of when the request was initiated.
         /// </summary>
-        public DateTimeOffset TimeCreated { get; set; }
+        public DateTimeOffset DateCreated { get; set; }
+
+        /// <summary>
+        ///     Timestamp of when the request was updated.
+        /// </summary>
+        public DateTimeOffset? DateUpdated { get; set; }
     }
 }

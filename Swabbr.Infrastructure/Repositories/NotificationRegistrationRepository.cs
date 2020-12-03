@@ -1,104 +1,190 @@
-﻿using Dapper;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Extensions;
+﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
-using Swabbr.Infrastructure.Providers;
+using Swabbr.Core.Types;
+using Swabbr.Infrastructure.Abstractions;
+using Swabbr.Infrastructure.Database;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
-using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
-
     /// <summary>
-    /// Repository for <see cref="NotificationRegistration"/> entities.
+    ///     Repository for notification registrations.
     /// </summary>
-    public sealed class NotificationRegistrationRepository : INotificationRegistrationRepository
+    /// <remarks>
+    ///     For notification registations in the database
+    ///     the id property is used as the user id.
+    /// </remarks>
+    internal class NotificationRegistrationRepository : RepositoryBase, INotificationRegistrationRepository
     {
-
-        private readonly IDatabaseProvider _databaseProvider;
-
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Creates a new notification registration.
         /// </summary>
-        public NotificationRegistrationRepository(IDatabaseProvider databaseProvider)
+        /// <remarks>
+        ///     The entity.Id property of <paramref name="entity"/>
+        ///     should be the registering users id.
+        /// </remarks>
+        /// <param name="entity">The populated entity.</param>
+        /// <returns>The created id.</returns>
+        public async Task<Guid> CreateAsync(NotificationRegistration entity)
         {
-            _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-        }
+            if (entity is null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
 
-        /// <summary>
-        /// Creates a new <see cref="NotificationRegistration"/> in our database.
-        /// </summary>
-        /// <param name="entity"><see cref="NotificationRegistration"/></param>
-        /// <returns>Created and queried <see cref="NotificationRegistration"/></returns>
-        public async Task<NotificationRegistration> CreateAsync(NotificationRegistration entity)
-        {
-            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.ThrowIfNotNullOrEmpty();
-            entity.UserId.ThrowIfNullOrEmpty();
-            entity.Handle.ThrowIfNullOrEmpty();
-            entity.ExternalId.ThrowIfNullOrEmpty();
-
-            // TODO Enum injection
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    INSERT INTO {TableNotificationRegistration} (
+            var sql = @"
+                    INSERT INTO application.notification_registration(
                         external_id,
                         handle,
-                        push_notification_platform,
-                        user_id
-                    ) VALUES (
-                        @ExternalId,
-                        @Handle,
-                        '{entity.PushNotificationPlatform.GetEnumMemberAttribute()}',
-                        @UserId
-                    ) RETURNING id";
-            var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
-            id.ThrowIfNullOrEmpty();
-            return await GetAsync(id).ConfigureAwait(false);
+                        id,
+                        push_notification_platform
+                    )
+                    VALUES (
+                        @external_id,
+                        @handle,
+                        @id,
+                        @push_notification_platform
+                    )
+                    RETURNING id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            MapToWriter(context, entity);
+
+            await using var reader = await context.ReaderAsync();
+
+            return reader.GetGuid(0);
         }
 
         /// <summary>
-        /// Deletes a <see cref="NotificationRegistration"/> from our database.
+        ///     Delete a notification registration from
+        ///     the database.
         /// </summary>
-        /// <param name="id">Internal <see cref="NotificationRegistration"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        public Task DeleteAsync(Guid id)
+        /// <param name="id">The user id.</param>
+        public async Task DeleteAsync(Guid id)
         {
-            id.ThrowIfNullOrEmpty();
-            return SharedRepositoryFunctions.DeleteAsync(_databaseProvider, id, TableNotificationRegistration);
+            var sql = @"
+                    DELETE  
+                    FROM    application.notification_registration AS nr
+                    WHERE   nr.id = @id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await context.NonQueryAsync();
         }
 
         /// <summary>
-        /// Gets a single <see cref="NotificationRegistration"/> from our database.
+        ///     Checks if a notification registration with a
+        ///     given id exists, which actually checks if a 
+        ///     user has an existing notification registration.
         /// </summary>
-        /// <param name="id">Internal <see cref="NotificationRegistration"/> id</param>
-        /// <returns><see cref="NotificationRegistration"/></returns>
-        public Task<NotificationRegistration> GetAsync(Guid id)
+        /// <param name="id">The user id.</param>
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            id.ThrowIfNullOrEmpty();
-            return SharedRepositoryFunctions.GetAsync<NotificationRegistration>(_databaseProvider, id, TableNotificationRegistration);
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    application.notification_registration AS nr
+                        WHERE   nr.id = @user_id
+                    )";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", id);
+
+            return await context.ScalarAsync<bool>();
         }
 
         /// <summary>
-        /// Gets all <see cref="NotificationRegistration"/>s that belong to a
-        /// specified <paramref name="userId"/>.
+        ///     Gets all notification registrations from our database.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="NotificationRegistration"/> collection</returns>
-        public async Task<IEnumerable<NotificationRegistration>> GetRegistrationsForUserAsync(Guid userId)
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Notification registration result set.</returns>
+        public async IAsyncEnumerable<NotificationRegistration> GetAllAsync(Navigation navigation)
         {
-            userId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  nr.external_id,
+                            nr.handle,
+                            nr.id,
+                            nr.push_notification_platform
+                    FROM    application.notification_registration AS nr";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT * FROM {TableNotificationRegistration} WHERE user_id = @UserId";
-            return await connection.QueryAsync<NotificationRegistration>(sql, new { UserId = userId }).ConfigureAwait(false);
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
         }
 
-        public Task<NotificationRegistration> UpdateAsync(NotificationRegistration entity)
+        /// <summary>
+        ///     Gets a notification registration from our database.
+        /// </summary>
+        /// <param name="id">The user id.</param>
+        /// <returns>The notification registration.</returns>
+        public async Task<NotificationRegistration> GetAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var sql = @"
+                    SELECT  nr.external_id,
+                            nr.handle,
+                            nr.id,
+                            nr.push_notification_platform
+                    FROM    application.notification_registration AS nr
+                    WHERE   nr.id = @id
+                    LIMIT   1";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapFromReader(reader);
+        }
+
+        /// <summary>
+        ///     Update a notification registration in the data store.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task UpdateAsync(NotificationRegistration entity)
+            => throw new InvalidOperationException();
+
+        /// <summary>
+        ///     Maps a reader to a notification registration.
+        /// </summary>
+        /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped registration.</returns>
+        private static NotificationRegistration MapFromReader(DbDataReader reader, int offset = 0)
+            => new NotificationRegistration
+            {
+                ExternalId = reader.GetString(0 + offset),
+                Handle = reader.GetString(1 + offset),
+                Id = reader.GetGuid(2 + offset),
+                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(3 + offset)
+            };
+
+        /// <summary>
+        ///     Maps a registration to a context.
+        /// </summary>
+        /// <param name="context">The context to map to.</param>
+        /// <param name="entity">The entity to map from.</param>
+        private static void MapToWriter(DatabaseContext context, NotificationRegistration entity)
+        {
+            context.AddParameterWithValue("external_id", entity.ExternalId);
+            context.AddParameterWithValue("handle", entity.Handle);
+            context.AddParameterWithValue("id", entity.Id);
+            context.AddParameterWithValue("push_notification_platform", entity.PushNotificationPlatform);
         }
     }
 }

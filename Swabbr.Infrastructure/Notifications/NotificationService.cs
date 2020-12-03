@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
-using Swabbr.Core.Notifications.JsonWrappers;
 using Swabbr.Core.Types;
 using System;
 using System.Linq;
@@ -57,10 +55,10 @@ namespace Swabbr.Infrastructure.Notifications
         {
             _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Attempting notifying followers for posted vlog {vlogId} from user {userId}");
 
-            // Notify each follower individually.
             var notification = NotificationBuilder.BuildFollowedProfileVlogPosted(vlogId, userId);
-            var pushDetails = await _userRepository.GetFollowersPushDetailsAsync(userId).ConfigureAwait(false);
-            foreach (var item in pushDetails)
+
+            // Notify each follower individually.
+            await foreach (var item in _userRepository.GetFollowersPushDetailsAsync(userId, Navigation.All))
             {
                 await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification).ConfigureAwait(false);
                 _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Notified user {item.UserId}");
@@ -79,6 +77,13 @@ namespace Swabbr.Infrastructure.Notifications
         {
             _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request to user {userId}");
 
+            // Log and return if we can't reach our user.
+            if (!await _notificationRegistrationRepository.ExistsAsync(userId))
+            {
+                _logger.LogTrace($"Couldn't get notification registration for user {userId}");
+                return;
+            }
+
             var notification = NotificationBuilder.BuildRecordVlog(vlogId, DateTimeOffset.Now, requestTimeout);
             var pushDetails = await _userRepository.GetPushDetailsAsync(userId).ConfigureAwait(false);
             await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification).ConfigureAwait(false);
@@ -96,6 +101,13 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual async Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
             _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
+
+            // Log and return if we can't reach our user.
+            if (!await _notificationRegistrationRepository.ExistsAsync(receivingUserId))
+            {
+                _logger.LogTrace($"Couldn't get notification registration for user {receivingUserId}");
+                return;
+            }
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
             var notification = NotificationBuilder.BuildVlogNewReaction(vlogId, reactionId);
@@ -118,6 +130,13 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
+
+            // Log and return if we can't reach our user.
+            if (!await _notificationRegistrationRepository.ExistsAsync(receivingUserId))
+            {
+                _logger.LogTrace($"Couldn't get notification registration for user {receivingUserId}");
+                return;
+            }
 
             var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId).ConfigureAwait(false);
             var notification = NotificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLikeId.UserId);
@@ -142,11 +161,11 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual async Task RegisterAsync(Guid userId, PushNotificationPlatform platform, string handle)
         {
             // First clear the existing registration if it exists
-            var registrations = await _notificationRegistrationRepository.GetRegistrationsForUserAsync(userId).ConfigureAwait(false);
-            if (registrations.Any())
+            if (await _notificationRegistrationRepository.ExistsAsync(userId).ConfigureAwait(false))
             {
-                await _notificationClient.UnregisterAsync(registrations.First()).ConfigureAwait(false);
-                await _notificationRegistrationRepository.DeleteAsync(registrations.First().Id).ConfigureAwait(false);
+                var currentRegistration = await _notificationRegistrationRepository.GetAsync(userId).ConfigureAwait(false);
+                await _notificationClient.UnregisterAsync(currentRegistration).ConfigureAwait(false);
+                await _notificationRegistrationRepository.DeleteAsync(currentRegistration.Id).ConfigureAwait(false);
             }
 
             // Create new registration and assign external id
@@ -154,7 +173,7 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 Handle = handle,
                 PushNotificationPlatform = platform,
-                UserId = userId
+                Id = userId
             }).ConfigureAwait(false);
             await _notificationRegistrationRepository.CreateAsync(registration).ConfigureAwait(false);
         }

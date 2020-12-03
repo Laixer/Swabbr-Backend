@@ -1,235 +1,314 @@
-﻿using Dapper;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
-using Swabbr.Infrastructure.Providers;
+using Swabbr.Core.Types;
+using Swabbr.Infrastructure.Abstractions;
+using Swabbr.Infrastructure.Database;
+using Swabbr.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
-using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
     /// <summary>
-    ///     Repository for vlog entities.
+    ///     Repository for vlogs.
     /// </summary>
-    public sealed class VlogRepository : IVlogRepository
+    internal class VlogRepository : RepositoryBase, IVlogRepository
     {
-        private readonly IDatabaseProvider _databaseProvider;
-
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Adds a view to a vlog.
         /// </summary>
-        public VlogRepository(IDatabaseProvider databaseProvider) => _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-
-        /// <summary>
-        /// Adds a single view to a <see cref="Vlog"/>.
-        /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="Task"/></returns>
+        /// <param name="vlogId">The vlog that has been watched.</param>
         public async Task AddView(Guid vlogId)
         {
-            vlogId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    UPDATE  entities.vlog_up_to_date AS v
+                    SET     views = views + 1
+                    WHERE   v.id = @id";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    UPDATE {TableVlog}
-                    SET views = views + 1
-                    WHERE id = @Id";
-            var rowsAffected = await connection.ExecuteAsync(sql, new { Id = vlogId }).ConfigureAwait(false);
-            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", vlogId);
+
+            await context.NonQueryAsync();
         }
 
         /// <summary>
-        /// Creates a new <see cref="Vlog"/> in our database.
+        ///     Creates a new vlog in our database.
         /// </summary>
-        /// <param name="entity"><see cref="Vlog"/></param>
-        /// <returns><see cref="Vlog"/> with id assigned to it</returns>
-        public async Task<Vlog> CreateAsync(Vlog entity)
+        /// <remarks>
+        ///     The returned id is the id of the given
+        ///     <paramref name="entity"/> since this is
+        ///     used as primary key in the database.
+        /// </remarks>
+        /// <param name="entity">The vlog to create.</param>
+        /// <returns>The created vlogs id.</returns>
+        public async Task<Guid> CreateAsync(Vlog entity)
         {
-            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.ThrowIfNotNullOrEmpty();
-            entity.UserId.ThrowIfNullOrEmpty();
+            if (entity is null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            // TODO DRY
-            // TODO Inserting a new vlog that is a reaction should never get a livestream id
-            // This will create a possibility where the livestream_id will be {0000-00-00...}.
-            var sql = $@"
-                    INSERT INTO {TableVlog} (
+            var sql = @"
+                    INSERT INTO entities.vlog (
+                        id,
                         is_private,
-                        user_id,
-                        livestream_id
-                    ) VALUES (
-                        @IsPrivate,
-                        @UserId,
-                        @LivestreamId
-                    ) RETURNING id";
-            var id = await connection.ExecuteScalarAsync<Guid>(sql, entity).ConfigureAwait(false);
-            id.ThrowIfNullOrEmpty();
-            entity.Id = id;
-            return entity;
+                        length_in_seconds,
+                        user_id
+                    )
+                    VALUES (
+                        @id,
+                        @is_private,
+                        @length_in_seconds,
+                        @user_id
+                    )";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            // Explicitly add the id.
+            context.AddParameterWithValue("id", entity.Id);
+
+            MapToWriter(context, entity);
+
+            await using var reader = await context.ReaderAsync();
+
+            return entity.Id;
         }
 
         /// <summary>
-        ///     Soft deletes a vlog in our data store.
+        ///     Soft deletes a vlog in our database.
         /// </summary>
-        /// <param name="id">The vlog to delete.</param>
+        /// <param name="id">The vlog id to delete.</param>
         public async Task DeleteAsync(Guid id)
         {
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"UPDATE {TableVlog} SET vlog_state = '{VlogState.Deleted.GetEnumMemberAttribute()}' WHERE id = @Id";
-            var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }).ConfigureAwait(false);
-            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(Vlog)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
+            var sql = @"
+                    UPDATE  entities.vlog AS v
+                    SET     vlog_status = 'deleted'
+                    WHERE   v.id = @id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await context.NonQueryAsync();
         }
 
         /// <summary>
-        /// Checks if a given <see cref="Vlog"/> exists.
+        ///     Checks if a vlog with given id exists.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns>Bool result</returns>
-        public async Task<bool> ExistsAsync(Guid vlogId)
+        /// <param name="id">The id to check for.</param>
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            vlogId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    entities.vlog_up_to_date AS v
+                        WHERE   v.id = @id
+                    )";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableVlog} 
-                    WHERE id = @Id 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-            var result = await connection.QueryAsync<Vlog>(sql, new { Id = vlogId }).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-            return result.Count() == 1;
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            return await context.ScalarAsync<bool>();
         }
 
         /// <summary>
-        /// Gets a <see cref="Vlog"/> from our database.
+        ///     Gets all vlogs from our data store.
         /// </summary>
-        /// <param name="id">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="Vlog"/>/returns>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlog result set.</returns>
+        public async IAsyncEnumerable<Vlog> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                SELECT  v.date_created,
+                        v.id,
+                        v.is_private,
+                        v.length_in_seconds,
+                        v.user_id,
+                        v.views,
+                        v.vlog_status
+                FROM    entities.vlog_up_to_date AS v";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets a vlog from our database.
+        /// </summary>
+        /// <param name="id">The vlog id.</param>
+        /// <returns>The vlog.</returns>
         public async Task<Vlog> GetAsync(Guid id)
         {
-            id.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  v.date_created,
+                            v.id,
+                            v.is_private,
+                            v.length_in_seconds,
+                            v.user_id,
+                            v.views,
+                            v.vlog_status
+                    FROM    entities.vlog_up_to_date AS v
+                    WHERE   v.id = @id
+                    LIMIT   1";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * 
-                    FROM {TableVlog} 
-                    WHERE id = @Id 
-                    AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-            var result = await connection.QueryAsync<Vlog>(sql, new { Id = id }).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
-            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-            return result.First();
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapFromReader(reader);
         }
 
-        public Task<IEnumerable<Vlog>> GetFeaturedVlogsAsync() => throw new NotImplementedException();
+        // FUTURE Implement
+        /// <summary>
+        ///     Returns a collection of featured vlogs.
+        /// </summary>
+        /// <remarks>
+        ///     This currently just returns all vlogs.
+        /// </remarks>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Featured vlogs.</returns>
+        public IAsyncEnumerable<Vlog> GetFeaturedVlogsAsync(Navigation navigation)
+            => GetAllAsync(navigation);
 
         /// <summary>
-        /// Returns a collection of <see cref="Vlog"/>s based on a users 
-        /// following.
+        ///     Gets a collection of most recent vlogs for a user
+        ///     based on all users the user follows.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="maxCount">Max result count</param>
-        /// <returns><see cref="Vlog"/> collection</returns>
-        public async Task<IEnumerable<Vlog>> GetMostRecentVlogsForUserAsync(Guid userId, uint maxCount)
+        /// <param name="userId">The owner of the vlogs.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>The most recent vlogs owned by the user.</returns>
+        public async IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Guid userId, Navigation navigation)
         {
-            userId.ThrowIfNullOrEmpty();
+            var sql = @"
+                SELECT      v.date_created,
+                            v.id,
+                            v.is_private,
+                            v.length_in_seconds,
+                            v.user_id,
+                            v.views,
+                            v.vlog_status
+                FROM        entities.vlog_up_to_date AS v
+                JOIN        application.follow_request_accepted AS fra
+                ON          fra.requester_id = @user_id
+                WHERE       fra.requester_id = @user_id
+                ORDER BY    v.date_created DESC";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            // TODO SQL injection for enum
-            var sql = $@"
-                    SELECT v.* FROM {TableVlog} AS v
-                    JOIN {TableFollowRequest} AS f
-                        ON v.user_id = f.receiver_id
-                    WHERE f.requester_id = @UserId
-                        AND f.follow_request_status = '{FollowRequestStatus.Accepted.GetEnumMemberAttribute()}'
-                        AND v.vlog_state = '{VlogState.UpToDate.GetEnumMemberAttribute()}'
-                    ORDER BY v.start_date DESC
-                    LIMIT @MaxCount";
-            var pars = new { UserId = userId, MaxCount = (int)maxCount };
-            return await connection.QueryAsync<Vlog>(sql, pars).ConfigureAwait(false);
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
         }
 
-        public Task<int> GetVlogCountForUserAsync(Guid userId) => throw new NotImplementedException();
-
         /// <summary>
-        /// Gets a <see cref="Vlog"/> based on a <see cref="Reaction"/>.
+        ///     Returns a collection of vlogs that are 
+        ///     owned by the specified user.
         /// </summary>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Vlog"/></returns>
-        public async Task<Vlog> GetVlogFromReactionAsync(Guid reactionId)
+        /// <remarks>
+        ///     This also sorts by most recent.
+        /// </remarks>
+        /// <param name="userId">Owner user id.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlogs that belong to the user.</returns>
+        public async IAsyncEnumerable<Vlog> GetVlogsFromUserAsync(Guid userId, Navigation navigation)
         {
-            reactionId.ThrowIfNullOrEmpty();
+            var sql = @"
+                SELECT      v.date_created,
+                            v.id,
+                            v.is_private,
+                            v.length_in_seconds,
+                            v.user_id,
+                            v.views,
+                            v.vlog_status
+                FROM        entities.vlog_up_to_date AS v
+                WHERE       v.user_id = @user_id
+                ORDER BY    v.date_created DESC";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT v.* 
-                    FROM {TableReaction} AS r
-                    JOIN {TableVlog} AS v
-                        ON r.target_vlog_id = v.id
-                    WHERE r.id = @ReactionId
-                        AND v.vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-            var result = await connection.QueryAsync<Vlog>(sql, new { ReactionId = reactionId }).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(Vlog)); }
-            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(Vlog)); }
-            return result.First();
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
         }
 
         /// <summary>
-        /// Gets all <see cref="Vlog"/> entities owned by a specified
-        /// <see cref="SwabbrUser"/>.
+        ///     Updates a vlog in our database.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="Vlog"/> collection</returns>
-        public async Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * 
-                    FROM {TableVlog} 
-                    WHERE user_id = @UserId
-                    AND vlog_state = '{VlogState.UpToDate.GetEnumMemberAttribute()}'";
-            return await connection.QueryAsync<Vlog>(sql, new { UserId = userId }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Updates a <see cref="Vlog"/> in our database.
-        /// </summary>
-        /// <param name="entity"><see cref="Vlog"/></param>
-        /// <returns>Updated and queried <see cref="Vlog"/></returns>
+        /// <param name="entity">The vlog with updated properties.</param>
         public async Task UpdateAsync(Vlog entity)
         {
-            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            await GetAsync(entity.Id).ConfigureAwait(false);
-
-            var sql = $@"
-                        UPDATE {TableVlog} SET
-                            is_private = @IsPrivate
-                        WHERE id = @Id
-                        AND vlog_state != '{VlogState.Deleted.GetEnumMemberAttribute()}'";
-
-            int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
-            if (rowsAffected <= 0)
+            if (entity is null)
             {
-                throw new EntityNotFoundException(nameof(Vlog));
+                throw new ArgumentNullException(nameof(entity));
             }
-            if (rowsAffected > 1)
+
+            var sql = @"
+                    UPDATE  entities.vlog_up_to_date AS v
+                    SET     is_private = @is_private,
+                            length_in_seconds = @length_in_seconds
+                    WHERE   v.id = @id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", entity.Id);
+
+            MapToWriter(context, entity);
+
+            await context.NonQueryAsync();
+        }
+
+        /// <summary>
+        ///     Maps a reader to a vlog.
+        /// </summary>
+        /// <param name="reader">The reader to vlog from.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped vlog.</returns>
+        internal static Vlog MapFromReader(DbDataReader reader, int offset = 0)
+            => new Vlog
             {
-                throw new MultipleEntitiesFoundException(nameof(Vlog));
-            }
+                DateCreated = reader.GetDateTime(0 + offset),
+                Id = reader.GetGuid(1 + offset),
+                IsPrivate = reader.GetBoolean(2 + offset),
+                LengthInSeconds = reader.GetUInt(3 + offset),
+                UserId = reader.GetGuid(4 + offset),
+                Views = reader.GetUInt(5 + offset),
+                VlogStatus = reader.GetFieldValue<VlogStatus>(6 + offset)
+            };
+
+        /// <summary>
+        ///     Maps a vlog to a database context.
+        /// </summary>
+        /// <param name="context">The context to map to.</param>
+        /// <param name="entity">The entity to map from.</param>
+        internal static void MapToWriter(DatabaseContext context, Vlog entity)
+        {
+            context.AddParameterWithValue("is_private", entity.IsPrivate);
+            context.AddParameterWithValue("length_in_seconds", entity.LengthInSeconds);
+            context.AddParameterWithValue("user_id", entity.UserId);
         }
     }
-
 }

@@ -1,232 +1,293 @@
-﻿using Dapper;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
-using Swabbr.Infrastructure.Providers;
+using Swabbr.Infrastructure.Abstractions;
+using Swabbr.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data.Common;
 using System.Threading.Tasks;
-using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
-
     /// <summary>
-    /// Repository for <see cref="VlogLike"/> entities.
+    ///     Repository for vlog likes.
     /// </summary>
-    public sealed class VlogLikeRepository : IVlogLikeRepository
+    internal class VlogLikeRepository : RepositoryBase, IVlogLikeRepository
     {
-
-        private readonly IDatabaseProvider _databaseProvider;
-
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create a new vlog like in the database.
         /// </summary>
-        public VlogLikeRepository(IDatabaseProvider databaseProvider) => _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-
-        /// <summary>
-        /// Creates a new <see cref="VlogLike"/> in our database.
-        /// </summary>
-        /// <param name="entity"><see cref="VlogLike"/></param>
-        /// <returns>Created and queried <see cref="VlogLike"/></returns>
-        public async Task<VlogLike> CreateAsync(VlogLike entity)
+        /// <remarks>
+        ///     This returns the existing id property of
+        ///     <paramref name="entity"/> since this is 
+        ///     used as primary key in the database.
+        /// </remarks>
+        /// <param name="entity">The vlog like to create.</param>
+        /// <returns>The created vlog like id.</returns>
+        public async Task<VlogLikeId> CreateAsync(VlogLike entity)
         {
-            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.VlogId.ThrowIfNullOrEmpty();
-            entity.Id.UserId.ThrowIfNullOrEmpty();
+            if (entity is null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    INSERT INTO {TableVlogLike} (
-                        vlog_id,
-                        user_id
-                    ) VALUES (
-                        @VlogId,
-                        @UserId
+            var sql = @"
+                    INSERT INTO entities.vlog_like (
+                        user_id,
+                        vlog_id
+                    )
+                    VALUES (
+                        @user_id,
+                        @vlog_id
                     )";
-            await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
 
-            return await GetAsync(entity.Id).ConfigureAwait(false);
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", entity.Id.UserId);
+            context.AddParameterWithValue("vlog_id", entity.Id.VlogId);
+
+            await context.NonQueryAsync();
+
+            // We already know the id.
+            return entity.Id;
         }
 
         /// <summary>
-        /// Deletes a <see cref="VlogLike"/> from our database.
+        ///     Deletes a vlog like in our database.
         /// </summary>
-        /// <param name="id">Internal <see cref="VlogLike"/> id</param>
-        /// <returns><see cref="Task"/></returns>
+        /// <param name="id">The vlog like id.</param>
         public async Task DeleteAsync(VlogLikeId id)
         {
-            if (id == null) { throw new ArgumentNullException(nameof(id)); }
-            id.VlogId.ThrowIfNullOrEmpty();
-            id.UserId.ThrowIfNullOrEmpty();
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    DELETE FROM {TableVlogLike}
-                    WHERE vlog_id = @VlogId
-                    AND user_id = @UserId";
-            var rowsAffected = await connection.ExecuteAsync(sql, id).ConfigureAwait(false);
-            if (rowsAffected == 0) { throw new EntityNotFoundException(); }
-            if (rowsAffected > 1) { throw new InvalidOperationException("Found multiple entities on single get"); }
+            var sql = @"
+                    DELETE 
+                    FROM    entities.vlog_like AS vl
+                    WHERE   vl.user_id = @user_id
+                    AND     vl.vlog_id = @vlog_id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", id.UserId);
+            context.AddParameterWithValue("vlog_id", id.VlogId);
+
+            await context.NonQueryAsync();
         }
 
         /// <summary>
-        /// Checks if a <see cref="VlogLike"/> relation between a 
-        /// <see cref="SwabbrUser"/> and a <see cref="Vlog"/> exists or not.
+        ///     Checks if a vlog like with given id exists.
         /// </summary>
-        /// <param name="vlogLikeId">Internal <see cref="VlogLike"/> id</param>
-        /// <returns><see cref="bool"/> if exists</returns>
-        public async Task<bool> ExistsAsync(VlogLikeId vlogLikeId)
+        /// <param name="id">The id to check for.</param>
+        public async Task<bool> ExistsAsync(VlogLikeId id)
         {
-            if (vlogLikeId == null) { throw new ArgumentNullException(nameof(vlogLikeId)); }
-            vlogLikeId.VlogId.ThrowIfNullOrEmpty();
-            vlogLikeId.UserId.ThrowIfNullOrEmpty();
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableVlogLike}
-                    WHERE vlog_id = @VlogId
-                    AND user_id = @UserId";
-            var rowsAffected = await connection.QueryAsync(sql, vlogLikeId).ConfigureAwait(false);
-            if (rowsAffected == null) { throw new InvalidOperationException("Something went wrong during exists query"); }
-            if (rowsAffected.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); }
-            return rowsAffected.Count() == 1;
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    application.vlog_like AS vl
+                        WHERE   vl.user_id = @user_id
+                        AND     vl.vlog_id = @vlog_id
+                    )";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", id.UserId);
+            context.AddParameterWithValue("vlog_id", id.VlogId);
+
+            return await context.ScalarAsync<bool>();
         }
 
         /// <summary>
-        /// Gets a single <see cref="VlogLike"/> from our database.
+        ///     Gets all vlog likes from our database.
         /// </summary>
-        /// <param name="id">Internal <see cref="VlogLike"/> id</param>
-        /// <returns><see cref="VlogLike"/></returns>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlog like return set.</returns>
+        public async IAsyncEnumerable<VlogLike> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  vl.date_created,
+                            vl.user_id,
+                            vl.vlog_id
+                    FROM    entities.vlog_like_nondeleted AS vl";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets a vlog like from our database.
+        /// </summary>
+        /// <param name="id">The vlog like id.</param>
+        /// <returns>The vlog like.</returns>
         public async Task<VlogLike> GetAsync(VlogLikeId id)
         {
-            if (id == null) { throw new ArgumentNullException(nameof(id)); }
-            id.VlogId.ThrowIfNullOrEmpty();
-            id.UserId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  vl.date_created,
+                            vl.user_id,
+                            vl.vlog_id
+                    FROM    entities.vlog_like_nondeleted AS vl
+                    WHERE   vl.id = @id
+                    LIMIT   1";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableVlogLike}  
-                    WHERE vlog_id = @VlogId
-                    AND user_id = @UserId";
-            var result = await connection.QueryAsync<VlogLike>(sql, id).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(); }
-            return result.First();
-        }
+            await using var context = await CreateNewDatabaseContext(sql);
 
-        // TODO This is not used.
-        /// <summary>
-        /// Gets the amount of <see cref="VlogLike"/>s given to a certain
-        /// <see cref="Vlog"/>.
-        /// </summary>
-        /// <remarks>
-        /// This does NOT check for <see cref="Vlog"/> existence.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns>Count</returns>
-        public async Task<int> GetCountForVlogAsync(Guid vlogId)
-        {
-            vlogId.ThrowIfNullOrEmpty();
+            context.AddParameterWithValue("id", id);
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT COUNT(*) FROM {TableVlogLike} WHERE vlog_id = @VlogId";
-            return await connection.ExecuteScalarAsync<int>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+            await using var reader = await context.ReaderAsync();
+
+            return MapFromReader(reader);
         }
 
         /// <summary>
-        /// Gets all <see cref="VlogLike"/> entities that belong to a given
-        /// <see cref="Vlog"/>.
+        ///     Gets all vlog likes for a vlog.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogLike"/> collection</returns>
-        public async Task<IEnumerable<VlogLike>> GetAllForVlogAsync(Guid vlogId)
+        /// <param name="vlogId">The vlog to get likes for.</param>
+        /// <param name="navigation">Navigation control./param>
+        /// <returns>Vlog likes for the vlog.</returns>
+        public async IAsyncEnumerable<VlogLike> GetForVlogAsync(Guid vlogId, Navigation navigation)
         {
-            vlogId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  vl.date_created,
+                            vl.user_id,
+                            vl.vlog_id
+                    FROM    entities.vlog_like_nondeleted AS vl
+                    WHERE   vl.target_vlog_id = @target_vlog_id";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT * FROM {TableVlogLike} WHERE vlog_id = @VlogId";
-            return await connection.QueryAsync<VlogLike>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
-        }
+            ConstructNavigation(ref sql, navigation);
 
-        public Task<VlogLike> UpdateAsync(VlogLike entity) => throw new NotImplementedException();
+            await using var context = await CreateNewDatabaseContext(sql);
 
-        // TODO This should be cleaned up.
-        /// <summary>
-        ///     This is used by <see cref="GetVlogLikeDetailsForVlogAsync(Guid)"/>.
-        /// </summary>
-        private class VlogLikeMetadata
-        {
-            public uint Count { get; set; }
+            context.AddParameterWithValue("target_vlog_id", vlogId);
 
-            public Guid VlogId { get; set; }
-
-            public Guid UserId { get; set; }
-
-            public string UserNickname { get; set; }
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
         }
 
         /// <summary>
-        ///     Gets a <see cref="VlogLikeSummary"/> for a <see cref="Vlog"/>.
+        ///     Gets a vlog like summary for a vlog.
         /// </summary>
-        /// <remarks>
-        ///     The <see cref="VlogLikeSummary.Users"/> field only
-        ///     contains the first 5 users that liked the <see cref="Vlog"/>.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogLikeSummary"/></returns>
-        public async Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
+        /// <param name="vlogId">The vlog to summarize.</param>
+        /// <returns>The vlog like summary.</returns>
+        public async Task<VlogLikeSummary> GetSummaryForVlogAsync(Guid vlogId)
         {
-            vlogId.ThrowIfNullOrEmpty();
-
-            // TODO Table public.user should be in quotes.
             var sql = @"
                 WITH cnt AS (
-	                SELECT count(vlog_id) AS c FROM  vlog_like AS vl
-	                WHERE vl.vlog_id = @VlogId
+                    SELECT  count(vl.vlog_id) AS count
+                    FROM    entities.vlog_like_nondeleted AS vl
+                    WHERE   vl.vlog_id = @vlog_id
                 )
-                SELECT 
-	                cnt.c AS count,
-	                vlog_likes.vlog_id,
-	                u.id AS user_id,
-	                u.nickname AS user_nickname
-                FROM cnt
-                CROSS JOIN (
-	                SELECT * FROM vlog_like
-	                WHERE vlog_id = @VlogId
-	                LIMIT 5
-                ) AS vlog_likes
-                JOIN public.user AS u ON vlog_likes.user_id = u.id";
+                SELECT      cnt.count,
+		                    u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                FROM        cnt AS cnt
+                LEFT JOIN (
+                    SELECT      vl.user_id,
+    		                    vl.vlog_id
+                    FROM        entities.vlog_like_nondeleted AS vl
+                    WHERE       vl.vlog_id = @vlog_id
+                    LIMIT       5
+                )
+                AS      	vlog_likes
+                ON 			vlog_likes.vlog_id = @vlog_id
+                LEFT JOIN   application.user AS u 
+                ON      	vlog_likes.user_id = u.id";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var metadata = await connection.QueryAsync<VlogLikeMetadata>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
+            await using var context = await CreateNewDatabaseContext(sql);
 
-            if (!metadata.Any())
+            context.AddParameterWithValue("vlog_id", vlogId);
+
+            await using var reader = await context.ReaderAsync();
+
+            // If no vlog likes exist, return an empty summary
+            var count = reader.GetUInt(0);
+            if (count == 0)
             {
-                return new VlogLikeSummary
-                {
-                    Users = new List<SwabbrUser>(),
-                    TotalLikes = 0,
-                    VlogId = vlogId
-                };
+                return EmptyVlogLikeSummary(vlogId);
             }
-            else
+
+            // Else, extract each user.
+            var users = new List<SwabbrUser>();
+            do
             {
-                return new VlogLikeSummary
-                {
-                    TotalLikes = metadata.First().Count,
-                    VlogId = metadata.First().VlogId,
-                    Users = metadata.Select(x => new SwabbrUser
-                    {
-                        Id = x.UserId,
-                        Nickname = x.UserNickname
-                    })
-                };
+                // Pass an offset of 1 since the first column is the count.
+                users.Add(UserRepository.MapFromReader(reader, 1));
             }
+            while (await reader.NextResultAsync());
+
+            // Compose and return.
+            return new VlogLikeSummary
+            {
+                TotalLikes = count,
+                Users = users,
+                VlogId = vlogId
+            };
         }
 
+        /// <summary>
+        ///     Update a vlog like in our database.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task UpdateAsync(VlogLike entity)
+            => throw new InvalidOperationException();
+
+        /// <summary>
+        ///     Maps a vlog like from a reader.
+        /// </summary>
+        /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped vlog like.</returns>
+        internal static VlogLike MapFromReader(DbDataReader reader, int offset = 0)
+            => new VlogLike
+            {
+                DateCreated = reader.GetDateTime(0 + offset),
+                Id = new VlogLikeId
+                {
+                    UserId = reader.GetGuid(1 + offset),
+                    VlogId = reader.GetGuid(2 + offset)
+                }
+            };
+
+        /// <summary>
+        ///     Creates an empty vlog like summary.
+        /// </summary>
+        /// <param name="vlogId">The vlog that is being summarized.</param>
+        /// <returns>Empty vlog like summary.</returns>
+        private static VlogLikeSummary EmptyVlogLikeSummary(Guid vlogId)
+            => new VlogLikeSummary
+            {
+                TotalLikes = 0,
+                Users = new List<SwabbrUser>(),
+                VlogId = vlogId
+            };
     }
 }

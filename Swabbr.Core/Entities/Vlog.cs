@@ -21,7 +21,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     The date at which the recording of the vlog started.
         /// </summary>
-        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset DateCreated { get; set; }
 
         /// <summary>
         ///     Total amount of views for this vlog.
@@ -31,11 +31,11 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     The length of this vlog in seconds.
         /// </summary>
-        public uint LengthInSeconds { get; set; }
+        public uint? LengthInSeconds { get; set; }
 
         /// <summary>
         ///     Indicates the state of this vlog.
         /// </summary>
-        public VlogState VlogState { get; set; }
+        public VlogStatus VlogStatus { get; set; }
     }
 }

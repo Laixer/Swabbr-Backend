@@ -1,5 +1,4 @@
-﻿using Dapper;
-using Laixer.Identity.Dapper.Extensions;
+﻿using Laixer.Identity.Dapper.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,15 +15,20 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swabbr.Api;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Configuration;
+using Swabbr.Api.Extensions;
 using Swabbr.Api.Services;
 using Swabbr.Core.Configuration;
+using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces;
+using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Services;
+using Swabbr.Core.Storage;
 using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
@@ -37,15 +41,17 @@ using System.Text;
 
 namespace Swabbr
 {
+    // TODO Clean this entire class up
     /// <summary>
-    /// Startup configuration for all dependency injections.
+    ///     Called on application startup to configure
+    ///     service container and request pipeline.
     /// </summary>
     public class Startup
     {
         private readonly IConfiguration _configuration;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
         public Startup(IConfiguration configuration)
         {
@@ -53,7 +59,7 @@ namespace Swabbr
         }
 
         /// <summary>
-        /// Sets up all our dependency injection.
+        ///     Sets up all our dependency injection.
         /// </summary>
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
@@ -66,7 +72,8 @@ namespace Swabbr
                 options.ConnectionString = _configuration.GetConnectionString("AzureNotificationHub");
             });
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
-            services.Configure<LogicAppsConfiguration>(_configuration.GetSection("LogicAppsConfiguration"));
+            // TODO Configure this in the extension in the infrastructure package?
+            services.Configure<BlobStorageOptions>(_configuration.GetSection("BlobStorage"));
 
             // Setup request related services
             services.AddCors();
@@ -90,17 +97,17 @@ namespace Swabbr
             // Setup doc
             SetupSwagger(services);
 
+            // Add app context
+            services.AddOrReplace<IAppContextFactory, AppContextFactory>(ServiceLifetime.Singleton);
+
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal");
 
-            // Configure DI for services
-            services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<IUserSelectionService, UserSelectionService>();
-            services.AddTransient<IHealthCheckService, HealthCheckService>();
-            services.AddTransient<ITokenService, TokenService>();
-            services.AddTransient<IVlogService, VlogService>();
-            services.AddTransient<IVlogRequestService, VlogRequestService>();
-            services.AddTransient<IUserService, UserService>();
+            // Add core services.
+            services.AddSwabbrCoreServices();
+
+            // Add asp specific services
+            services.AddSingleton<ITokenService, TokenService>();
         }
 
         /// <summary>
@@ -190,7 +197,7 @@ namespace Swabbr
             .AddDapperStores(options =>
             {
                 options.UserTable = "user";
-                options.Schema = "public";
+                options.Schema = "application";
                 options.MatchWithUnderscore = true;
                 options.UseNpgsql<IdentityQueryRepository>(_configuration.GetConnectionString("DatabaseInternal"));
             })

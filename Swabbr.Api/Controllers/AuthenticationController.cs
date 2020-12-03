@@ -113,7 +113,8 @@ namespace Swabbr.Api.Controllers
                 user.LastName = input.LastName;
                 user.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded;
 
-                var updatedUser = await _userService.UpdateAsync(user).ConfigureAwait(false);
+                await _userService.UpdateAsync(user).ConfigureAwait(false);
+                var updatedUser = await _userService.GetAsync(user.Id).ConfigureAwait(false);
 
                 scope.Complete();
 
@@ -232,6 +233,7 @@ namespace Swabbr.Api.Controllers
             }
         }
 
+        // TODO QUESTION This does not invalidate the access token, is that ever a problem?
         /// <summary>
         ///     Deauthorizes the authenticated user.
         /// </summary>

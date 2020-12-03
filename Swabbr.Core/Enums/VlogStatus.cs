@@ -3,9 +3,9 @@
 namespace Swabbr.Core.Enums
 {
     /// <summary>
-    ///     Indicates the state of a request.
+    ///     Indicates the state of a vlog.
     /// </summary>
-    public enum VlogState
+    public enum VlogStatus
     {
         /// <summary>
         ///     The vlog is ready to be watched.

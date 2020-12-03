@@ -19,7 +19,7 @@ namespace Swabbr.Api.Mapping
             if (vlog == null) { throw new ArgumentNullException(nameof(vlog)); }
             return new VlogOutputModel
             {
-                DateStarted = vlog.StartDate,
+                DateStarted = vlog.DateCreated,
                 Id = vlog.Id,
                 IsPrivate = vlog.IsPrivate,
                 UserId = vlog.UserId,

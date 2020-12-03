@@ -1,210 +1,333 @@
-﻿using Dapper;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
-using Swabbr.Infrastructure.Providers;
+using Swabbr.Infrastructure.Abstractions;
+using Swabbr.Infrastructure.Database;
+using Swabbr.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data.Common;
 using System.Threading.Tasks;
-using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
-
     /// <summary>
-    /// Repository for <see cref="FollowRequest"/> entities.
+    ///     Repository for follow requests.
     /// </summary>
-    public sealed class FollowRequestRepository : IFollowRequestRepository
+    internal class FollowRequestRepository : RepositoryBase, IFollowRequestRepository
     {
-
-        private readonly IDatabaseProvider _databaseProvider;
-
         /// <summary>
-        /// Constructor for dependency injection.
-        /// </summary>
-        public FollowRequestRepository(IDatabaseProvider databaseProvider)
-        {
-            _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-        }
-
-        /// <summary>
-        /// Gets a single <see cref="FollowRequest"/> based on its internal id.
+        ///     Create a new follow request.
         /// </summary>
         /// <remarks>
-        /// Throws an <see cref="EntityNotFoundException"/> if the entity doesn't exist.
+        ///     This doesn't actually return the created entity
+        ///     id since we already now said id.
         /// </remarks>
-        /// <param name="id">Internal id</param>
-        /// <returns><see cref="FollowRequest"/></returns>
-        public async Task<FollowRequest> GetAsync(FollowRequestId id)
+        /// <param name="entity">The follow request.</param>
+        /// <returns>The created follow requests id.</returns>
+        public async Task<FollowRequestId> CreateAsync(FollowRequest entity)
         {
-            id.ThrowIfNullOrEmpty();
+            if (entity is null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableFollowRequest}  
-                    WHERE receiver_id = @ReceiverId
-                    AND requester_id = @RequesterId";
-            var result = await connection.QueryAsync<FollowRequest>(sql, id).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-            if (result.Count() > 1) { throw new InvalidOperationException("Found more than one entity for single get"); }
-            return result.First();
-        }
+            // Only create the follow request if we are the requester
+            
 
-        /// <summary>
-        /// Checks if a given follow request exists between a receiver and a
-        /// requester.
-        /// </summary>
-        /// <param name="followRequestId">Internal <see cref="FollowRequest"/> id</param>
-        /// <returns><see cref="true"/> if a <see cref="FollowRequest"/> exists</returns>
-        public async Task<bool> ExistsAsync(FollowRequestId followRequestId)
-        {
-            followRequestId.ThrowIfNullOrEmpty();
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"SELECT 1 FROM {TableFollowRequest}
-                WHERE receiver_id = @ReceiverId
-                AND requester_id = @RequesterId";
-            var result = await connection.QueryAsync<int>(sql, followRequestId).ConfigureAwait(false);
-            return result != null && result.Any();
-        }
-
-        public Task<uint> GetFollowerCountAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<uint> GetFollowingCountAsync(Guid userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Lists incoming <see cref="FollowRequest"/>s.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="FollowRequest"/> collection</returns>
-        public async Task<IEnumerable<FollowRequest>> GetIncomingForUserAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableFollowRequest}
-                    WHERE receiver_id = @UserId
-                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'";
-            return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Lists outgoing <see cref="FollowRequest"/>s.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="FollowRequest"/> collection</returns>
-        public async Task<IEnumerable<FollowRequest>> GetOutgoingForUserAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableFollowRequest}
-                    WHERE requester_id = @UserId
-                    AND follow_request_status = '{FollowRequestStatus.Pending.GetEnumMemberAttribute()}'";
-            return await connection.QueryAsync<FollowRequest>(sql, new { UserId = userId }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Creates a single <see cref="FollowRequest"/> in our database.
-        /// </summary>
-        /// <remarks>
-        /// This function does no boundary checks in our database.
-        /// TODO Is this smart? Assuming that another entity will always do this?
-        /// </remarks>
-        /// <param name="entity"><see cref="FollowRequest"/></param>
-        /// <returns>The created <see cref="FollowRequest"/> with id</returns>
-        public async Task<FollowRequest> CreateAsync(FollowRequest entity)
-        {
-            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"INSERT INTO {TableFollowRequest} (
-                        requester_id,
-                        receiver_id
-                    ) VALUES (
-                        @RequesterId,
-                        @ReceiverId
+            var sql = @"
+                    INSERT INTO application.follow_request(
+                        receiver_id,
+                        requester_id
+                    )
+                    VALUES (
+                        @receiver_id,
+                        @requester_id
                     )";
-            await connection.ExecuteAsync(sql, entity.Id).ConfigureAwait(false);
 
-            return await GetAsync(entity.Id).ConfigureAwait(false);
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            MapToWriter(context, entity);
+
+            await context.NonQueryAsync();
+
+            return entity.Id;
         }
 
         /// <summary>
-        /// Updates a <see cref="FollowRequest"/> in our database.
+        ///     Deletes a follow request from our data store.
         /// </summary>
-        /// <remarks>
-        /// At the moment this doesn't retrieve the followrequest.
-        /// TODO Do we ever need this?
-        /// </remarks>
-        /// <param name="entity"><see cref="FollowRequest"/></param>
-        /// <returns><see cref="FollowRequest"/></returns>
-        public Task<FollowRequest> UpdateAsync(FollowRequest entity)
-        {
-            if (entity == null) { throw new ArgumentNullException(nameof(entity)); }
-            entity.Id.ThrowIfNullOrEmpty();
-
-            return UpdateStatusAsync(entity.Id, entity.FollowRequestStatus);
-        }
-
-        /// <summary>
-        /// Deletes a <see cref="FollowRequest"/> from our database.
-        /// </summary>
-        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
-        /// <returns><see cref="Task"/></returns>
+        /// <param name="id">Follow request id.</param>
         public async Task DeleteAsync(FollowRequestId id)
         {
-            id.ThrowIfNullOrEmpty();
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    DELETE FROM {TableFollowRequest} 
-                    WHERE requester_id = @RequesterId
-                    AND receiver_id = @ReceiverId";
-            var rowsAffected = await connection.ExecuteAsync(sql, id).ConfigureAwait(false);
-            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(FollowRequest)); }
+            var sql = @"
+                    DELETE  
+                    FROM    application.follow_request AS fr
+                    WHERE   fr.receiver_id = @receiver_id
+                    AND     fr.requester_id = @requester_id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("receiver_id", id.ReceiverId);
+            context.AddParameterWithValue("requester_id", id.RequesterId);
+
+            await context.NonQueryAsync();
         }
 
         /// <summary>
-        /// Updates the status for a <see cref="FollowRequest"/> to the 
-        /// specified <see cref="FollowRequestStatus"/>. This will throw an
-        /// <see cref="EntityNotFoundException"/> if we can't find the object.
+        ///     Checks if a follow request exists in our database.
         /// </summary>
-        /// <param name="id">Internal <see cref="FollowRequest"/> id</param>
-        /// <param name="status"><see cref="FollowRequestStatus"/></param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task<FollowRequest> UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status)
+        /// <param name="id">The id to check for.</param>
+        public async Task<bool> ExistsAsync(FollowRequestId id)
         {
-            id.ThrowIfNullOrEmpty();
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    UPDATE {TableFollowRequest}
-                    SET follow_request_status = '{status.GetEnumMemberAttribute()}'
-                    WHERE requester_id = @RequesterId
-                    AND receiver_id = @ReceiverId";
-            var rowsAffected = await connection.ExecuteAsync(sql, id).ConfigureAwait(false);
-            if (rowsAffected == 0) { throw new EntityNotFoundException(nameof(FollowRequest)); }
-            else if (rowsAffected > 1) { throw new InvalidOperationException($"Affected {rowsAffected} while updating a single follow request, this should never happen"); }
-            else
+            if (id is null)
             {
-                return await GetAsync(id).ConfigureAwait(false);
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    application.follow_request AS fr
+                        WHERE   fr.receiver_id = @receiver_id
+                        AND     fr.requester_id = @requester_id
+                    )";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("receiver_id", id.ReceiverId);
+            context.AddParameterWithValue("requester_id", id.RequesterId);
+
+            return await context.ScalarAsync<bool>();
+        }
+
+        /// <summary>
+        ///     Gets all follow requests from our database.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Follow request result set.</returns>
+        public async IAsyncEnumerable<FollowRequest> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  fr.date_created,
+                            fr.date_updated,
+                            fr.follow_request_status,
+                            fr.receiver_id,
+                            fr.requester_id
+                    FROM    application.follow_request AS fr";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+        
+        /// <summary>
+        ///     Get a follow request from our data store.
+        /// </summary>
+        /// <param name="id">Follow request id.</param>
+        /// <returns>The follow request.</returns>
+        public async Task<FollowRequest> GetAsync(FollowRequestId id)
+        {
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            var sql = @"
+                    SELECT  fr.date_created,
+                            fr.date_updated,
+                            fr.follow_request_status,
+                            fr.receiver_id,
+                            fr.requester_id
+                    FROM    application.follow_request AS fr
+                    WHERE   fr.receiver_id = @receiver_id
+                    AND     fr.requester_id = @requester_id
+                    LIMIT   1";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("receiver_id", id.ReceiverId);
+            context.AddParameterWithValue("requester_id", id.RequesterId);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapFromReader(reader);
+        }
+
+        /// <summary>
+        ///     Gets the total amoun tof users that are 
+        ///     following <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The user id.</param>
+        /// <returns>The follower count.</returns>
+        public async Task<uint> GetFollowerCountAsync(Guid userId)
+        {
+            var sql = @"
+                    SELECT  COUNT(fra.*)
+                    FROM    application.follow_request_accepted AS fra
+                    WHERE   fra.receiver_id = @receiver_id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("receiver_id", userId);
+
+            return (uint) await context.ScalarAsync<int>();
+        }
+
+        /// <summary>
+        ///     Gets the total amount of users that the 
+        ///     <paramref name="userId"/> is following.
+        /// </summary>
+        /// <param name="userId">The user id.</param>
+        /// <returns>Total following count.</returns>
+        public async Task<uint> GetFollowingCountAsync(Guid userId)
+        {
+            var sql = @"
+                    SELECT  COUNT(fra.*)
+                    FROM    application.follow_request_accepted AS fra
+                    WHERE   fra.requester_id = @requester_id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("requester_id", userId);
+
+            return (uint)await context.ScalarAsync<int>();
+        }
+
+        /// <summary>
+        ///     Gets incoming follow requests for a user.
+        /// </summary>
+        /// <param name="userId">The user that will be followed.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Incoming follow requests.</returns>
+        public async IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Guid userId, Navigation navigation)
+        {
+            var sql =@"
+                    SELECT  fr.date_created,
+                            fr.date_updated,
+                            fr.follow_request_status,
+                            fr.receiver_id,
+                            fr.requester_id
+                    FROM    application.follow_request AS fr
+                    WHERE   fr.receiver_id = @receiver_id
+                    AND     fr.follow_request_status = 'pending'" ;
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("receiver_id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
             }
         }
 
-    }
+        /// <summary>
+        ///     Gets outgoing follow requests for a user.
+        /// </summary>
+        /// <param name="userId">The user that will follow.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Outgoing follow requests.</returns>
+        public async IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Guid userId, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  fr.date_created,
+                            fr.date_updated,
+                            fr.follow_request_status,
+                            fr.receiver_id,
+                            fr.requester_id
+                    FROM    application.follow_request AS fr
+                    WHERE   fr.requester_id = @requester_id
+                    AND     fr.follow_request_status = 'pending'";
 
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("requester_id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+
+        /// <summary>
+        ///     Update a follow request in our database.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task UpdateAsync(FollowRequest entity)
+            => throw new InvalidOperationException();
+
+        /// <summary>
+        ///     Updates the status of a follow request.
+        /// </summary>
+        /// <param name="id">The follow request id.</param>
+        /// <param name="status">The new status.</param>
+        public async Task UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status)
+        {
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            var sql = @"
+                    UPDATE  application.follow_request AS fr
+                    SET     follow_request_status = @follow_request_status
+                    WHERE   fr.receiver_id = @receiver_id
+                    AND     fr.requester_id = @requester_id";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("follow_request_status", status);
+            context.AddParameterWithValue("receiver_id", id.ReceiverId);
+            context.AddParameterWithValue("requester_id", id.RequesterId);
+
+            await context.NonQueryAsync();
+        }
+
+        /// <summary>
+        ///     Maps a reader to a follow request.
+        /// </summary>
+        /// <param name="reader">The open reader.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped follow request.</returns>
+        internal static FollowRequest MapFromReader(DbDataReader reader, int offset = 0)
+            => new FollowRequest
+            {
+                DateCreated = reader.GetDateTime(0 + offset),
+                DateUpdated = reader.GetSafeDateTime(1 + offset),
+                FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus>(2 + offset),
+                Id = new FollowRequestId
+                {
+                    ReceiverId = reader.GetGuid(3 + offset),
+                    RequesterId = reader.GetGuid(4 + offset)
+                },
+            };
+
+        /// <summary>
+        ///     Map a follow request to the context.
+        /// </summary>
+        /// <param name="context">The context to map to.</param>
+        /// <param name="entity">The entity to map from.</param>
+        private static void MapToWriter(DatabaseContext context, FollowRequest entity)
+        {
+            context.AddParameterWithValue("receiver_id", entity.Id.ReceiverId);
+            context.AddParameterWithValue("requester_id", entity.Id.RequesterId);
+        }
+    }
 }

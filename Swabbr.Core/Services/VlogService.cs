@@ -50,29 +50,6 @@ namespace Swabbr.Core.Services
             => _vlogRepository.AddView(vlogId);
 
         /// <summary>
-        ///     Cleans up a vlog from our system, removing it
-        ///     from the data store and performing all required
-        ///     cleanup operations for it.
-        /// </summary>
-        /// <remarks>
-        ///     Call this after a vlog request timed out.
-        /// </remarks>
-        /// <param name="vlogId">The vlog to be cleaned up.</param>
-        public Task CleanupExpiredVlogAsync(Guid vlogId) => throw new NotImplementedException();
-
-        /// <summary>
-        ///     Creates a new vlog in our data store with its status
-        ///     set to created. The vlog will be assigned to the user.
-        /// </summary>
-        /// <remarks>
-        ///     Use this before sending a vlog request to create the
-        ///     vlog for which the user should upload the content.
-        /// </remarks>
-        /// <param name="userId">The future owner of the vlog.</param>
-        /// <returns>The created vlog.</returns>
-        public Task<Vlog> CreateEmptyVlogForUserAsync(Guid userId) => throw new NotImplementedException();
-
-        /// <summary>
         ///     Soft deletes a vlog in our data store.
         /// </summary>
         /// <param name="vlogId">The vlog to delete.</param>
@@ -98,58 +75,55 @@ namespace Swabbr.Core.Services
         ///     Gets all recommended vlogs for a user.
         /// </summary>
         /// <param name="userId">The corresponding user.</param>
-        /// <param name="maxCount">Maximum result set size.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Recommended vlogs.</returns>
-        public Task<IEnumerable<Vlog>> GetRecommendedForUserAsync(Guid userId, uint maxCount)
-            => _vlogRepository.GetMostRecentVlogsForUserAsync(userId, maxCount);
+        public IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Guid userId, Navigation navigation)
+            => _vlogRepository.GetMostRecentVlogsForUserAsync(userId, navigation);
 
         /// <summary>
         ///     Gets all recommended vlogs for a user including
         ///     their thumbnail details.
         /// </summary>
         /// <param name="userId">The corresponding user.</param>
-        /// <param name="maxCount">Maximum result set count.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlogs with thumbnail details.</returns>
-        public Task<IEnumerable<VlogWithThumbnailDetails>> GetRecommendedForUserWithThumbnailsAsync(Guid userId, uint maxCount) => throw new NotImplementedException();
-
-        /// <summary>
-        ///     Gets an upload uri for a vlog.
-        /// </summary>
-        /// <param name="vlogId">The vlog id.</param>
-        /// <returns>Upload uri.</returns>
-        public Uri GetUploadUri(Guid vlogId) => throw new NotImplementedException();
+        public async IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Guid userId, Navigation navigation)
+        {
+            await foreach (var vlog in GetRecommendedForUserAsync(userId, navigation))
+            {
+                yield return new VlogWithThumbnailDetails {
+                    Vlog = vlog,
+                    ThumbnailUri = null // TODO Implement
+                };
+            }
+        }
 
         /// <summary>
         ///     Gets all vlogs that belong to a user.
         /// </summary>
         /// <param name="userId">The vlog owner.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog collection.</returns>
-        public Task<IEnumerable<Vlog>> GetVlogsFromUserAsync(Guid userId)
-            => _vlogRepository.GetVlogsFromUserAsync(userId);
+        public IAsyncEnumerable<Vlog> GetVlogsFromUserAsync(Guid userId, Navigation navigation)
+            => _vlogRepository.GetVlogsFromUserAsync(userId, navigation);
 
         /// <summary>
         ///     Gets all vlogs that belong to a user including
         ///     their thumbnail details.
         /// </summary>
         /// <param name="userId">The corresponding user.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlogs belonging to the user.</returns>
-        public async Task<IEnumerable<VlogWithThumbnailDetails>> GetVlogsFromUserWithThumbnailsAsync(Guid userId)
+        public async IAsyncEnumerable<VlogWithThumbnailDetails> GetVlogsFromUserWithThumbnailsAsync(Guid userId, Navigation navigation)
         {
-            // TODO Async enumerable
-            var vlogs = await GetVlogsFromUserAsync(userId).ConfigureAwait(false);
-
-            var result = new List<VlogWithThumbnailDetails>();
-            foreach (var vlog in vlogs)
+            await foreach (var vlog in GetVlogsFromUserAsync(userId, navigation))
             {
-                result.Add(new VlogWithThumbnailDetails
+                yield return new VlogWithThumbnailDetails
                 {
                     Vlog = vlog,
-                    // ThumbnailUri = GetThumbnailUri
-                });
+                    ThumbnailUri = null // TODO Implement
+                };
             }
-
-            throw new NotImplementedException();
-            //return result;
         }
 
         /// <summary>
@@ -161,9 +135,10 @@ namespace Swabbr.Core.Services
         ///     not return all <see cref="VlogLike"/> but only a subset.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns><see cref="VlogLike"/> collection</returns>
-        public Task<IEnumerable<VlogLike>> GetVlogLikesForVlogAsync(Guid vlogId)
-            => _vlogLikeRepository.GetAllForVlogAsync(vlogId);
+        public IAsyncEnumerable<VlogLike> GetVlogLikesForVlogAsync(Guid vlogId, Navigation navigation)
+            => _vlogLikeRepository.GetForVlogAsync(vlogId, navigation);
 
         /// <summary>
         ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
@@ -175,14 +150,19 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikeSummary"/></returns>
         public Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
-            => _vlogLikeRepository.GetVlogLikeSummaryForVlogAsync(vlogId);
+            => _vlogLikeRepository.GetSummaryForVlogAsync(vlogId);
 
         /// <summary>
         ///     Gets a vlog including its thumbnail details.
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>Vlog with thumbnail details.</returns>
-        public Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId) => throw new NotImplementedException();
+        public async Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId)
+            => new VlogWithThumbnailDetails
+            {
+                Vlog = await GetAsync(vlogId),
+                ThumbnailUri = null // TODO
+            };
 
         /// <summary>
         ///     Likes a vlog.
@@ -213,18 +193,6 @@ namespace Swabbr.Core.Services
             // TODO Move to some queue
             await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId).ConfigureAwait(false);
         }
-
-        /// <summary>
-        ///     Called when a vlog transcoding process failed.
-        /// </summary>
-        /// <param name="vlogId">The failed transcoded vlog.</param>
-        public Task OnTranscodingFailedAsync(Guid vlogId) => throw new NotImplementedException();
-
-        /// <summary>
-        ///     Called when a vlog transcoding process succeeded.
-        /// </summary>
-        /// <param name="vlogId">The transcoded vlog.</param>
-        public Task OnTranscodingSucceededAsync(Guid vlogId) => throw new NotImplementedException();
 
         /// <summary>
         ///     Called when a vlog has finished uploading.

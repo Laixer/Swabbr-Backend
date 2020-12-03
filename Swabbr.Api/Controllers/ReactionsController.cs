@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Swabbr.Core.Types;
 
 namespace Swabbr.Api.Controllers
 {
@@ -130,7 +131,7 @@ namespace Swabbr.Api.Controllers
 
                 var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
 
-                var reactions = await _reactionService.GetReactionsForVlogWithThumbnailsAsync(vlogId);
+                var reactions = await _reactionService.GetReactionsForVlogWithThumbnailsAsync(vlogId, Navigation.Default).ToListAsync();
                 return Ok(new ReactionCollectionOutputModel
                 {
                     Reactions = reactions.Select(x => new ReactionWrapperOutputModel

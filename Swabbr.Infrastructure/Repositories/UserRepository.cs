@@ -1,394 +1,551 @@
-﻿using Dapper;
-using Microsoft.Extensions.Options;
-using Swabbr.Core.Configuration;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
+﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
-using Swabbr.Infrastructure.Providers;
-using Swabbr.Infrastructure.Utility;
+using Swabbr.Infrastructure.Abstractions;
+using Swabbr.Infrastructure.Database;
+using Swabbr.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Data.Common;
 using System.Threading.Tasks;
-using static Swabbr.Infrastructure.Database.DatabaseConstants;
 
 namespace Swabbr.Infrastructure.Repositories
 {
     /// <summary>
-    /// Repository for <see cref="SwabbrUser"/> entities.
+    ///     User database repository.
     /// </summary>
-    public sealed class UserRepository : IUserRepository
+    internal class UserRepository : RepositoryBase, IUserRepository
     {
-
-        private readonly IDatabaseProvider _databaseProvider;
-        private readonly SwabbrConfiguration swabbrConfiguration;
+        /// <summary>
+        ///     Create a user.
+        /// </summary>
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task<Guid> CreateAsync(SwabbrUser entity)
+            => throw new InvalidOperationException();
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Delete a user.
         /// </summary>
-        public UserRepository(IDatabaseProvider databaseProvider,
-            IOptions<SwabbrConfiguration> options)
+        /// <remarks>
+        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
+        /// </remarks>
+        public Task DeleteAsync(Guid id)
+            => throw new InvalidOperationException();
+
+        /// <summary>
+        ///     Checks if a user exists in our data store.
+        /// </summary>
+        /// <param name="id">The user id.</param>
+        public async Task<bool> ExistsAsync(Guid id)
         {
-            _databaseProvider = databaseProvider ?? throw new ArgumentNullException(nameof(databaseProvider));
-            if (options == null) { throw new ArgumentNullException(nameof(options)); }
-            options.Value.ThrowIfInvalid();
-            swabbrConfiguration = options.Value;
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    application.user AS u
+                        WHERE   u.id = @id
+                    )";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            return await context.ScalarAsync<bool>();
         }
 
-        public Task<SwabbrUser> CreateAsync(SwabbrUser entity) =>
-            // TODO THOMAS This probably shouldn't even have this function.
-            throw new InvalidOperationException("Creation of users should ONLY be done by the identity framework!");
+        /// <summary>
+        ///     Checks if a nickname already exists.
+        /// </summary>
+        /// <param name="nickname">The nickname to check for.</param>
+        public async Task<bool> ExistsNicknameAsync(string nickname)
+        {
+            var sql = @"
+                    SELECT  EXISTS (
+                        SELECT  1
+                        FROM    application.user AS u
+                        WHERE   u.nickname = @nickname
+                    )";
 
-        public Task DeleteAsync(Guid id) => throw new NotImplementedException();
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("nickname", nickname);
+
+            return await context.ScalarAsync<bool>();
+        }
 
         /// <summary>
-        ///     Gets all users from the database which are eligible
+        ///     Gets a collection of users from our database.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Collection of users.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetAllAsync(Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets a collection of all users that are eligible
         ///     for a vlog request.
         /// </summary>
-        /// <remarks>
-        ///     This ignores all users with the vlog request limit set to 0.
-        /// </remarks>
-        /// <returns><see cref="SwabbrUser"/> colletion</returns>
-        public async IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync()
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vloggable users.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation)
         {
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT 
-                        id, 
-                        daily_vlog_request_limit AS DailyVlogRequestLimit,
-                        timezone
-                    FROM {TableUser} 
-                    WHERE daily_vlog_request_limit > 0";
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    WHERE   u.vlog_request_limit > 0";
 
-            // TODO Implement async foreach in repo PR without dapper.
-            //var result = await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
+            ConstructNavigation(ref sql, navigation);
 
-            yield break;
-            throw new NotImplementedException();
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
         }
 
         /// <summary>
-        /// Gets a single <see cref="SwabbrUser"/> from the database based on its internal id.
+        ///     Gets a user from our database.
         /// </summary>
-        /// <remarks>
-        /// Throws an <see cref="EntityNotFoundException"/> if the entity doesn't exist.
-        /// </remarks>
-        /// <param name="id">Internal id</param>
-        /// <returns><see cref="SwabbrUser"/></returns>
+        /// <param name="id">The user id.</param>
+        /// <returns>The user.</returns>
         public async Task<SwabbrUser> GetAsync(Guid id)
         {
-            id.ThrowIfNullOrEmpty();
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT * FROM {TableUser} WHERE id = @Id";
-            var result = await connection.QueryAsync<SwabbrUser>(sql, new { Id = id }).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with id = {id}"); }
-            else
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    WHERE   u.id = @id
+                    LIMIT   1";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapFromReader(reader);
+        }
+
+        /// <summary>
+        ///     Gets the followers of a given user.
+        /// </summary>
+        /// <param name="userId">The user that is being followed.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Followers of the specified user.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    JOIN    application.follow_request_accepted AS fra
+                    ON      fra.requester_id = u.id
+                    WHERE   fra.receiver_id = @id";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
             {
-                return result.First();
+                yield return MapFromReader(reader);
             }
         }
 
         /// <summary>
-        /// Gets a single <see cref="SwabbrUser"/> based on its email.
+        ///     Gets the push notification details of the 
+        ///     followers for a given user.
         /// </summary>
-        /// <remarks>
-        /// Throws an <see cref="EntityNotFoundException"/> if the entity doesn't exist.
-        /// </remarks>
-        /// <param name="email">User email</param>
-        /// <returns><see cref="SwabbrUser"/></returns>
-        public async Task<SwabbrUser> GetByEmailAsync(string email)
+        /// <param name="userId">The user id.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Followers push notification details.</returns>
+        public async IAsyncEnumerable<UserPushNotificationDetails> GetFollowersPushDetailsAsync(Guid userId, Navigation navigation)
         {
-            email.ThrowIfNullOrEmpty();
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $"SELECT * FROM {TableUser} WHERE email = '{email}';";
-            var result = await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException($"Could not find User with email = {email}"); }
-            else
+            var sql = @"
+                    SELECT  upnd.user_id,
+                            upnd.push_notification_platform
+                    FROM    application.user_push_notification_details AS upnd
+                    JOIN    application.follow_request_accepted AS fra
+                    ON      fra.requester_id = upnd.user_id
+                    WHERE   fra.receiver_id = @id";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
             {
-                return result.First();
+                yield return MapPushNotificationDetailsFromReader(reader);
             }
         }
 
         /// <summary>
-        /// Gets all <see cref="SwabbrUser"/> entities that follow a given
-        /// <see cref="SwabbrUser"/> specified by <paramref name="userId"/>.
-        /// 
-        /// TODO Pagination?
+        ///     Gets users that are being followed by a given user.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns>All followers for <paramref name="userId"/></returns>
-        public async Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId)
+        /// <param name="userId">The user that is following.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Users that the user is following.</returns>
+        public async IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation)
         {
-            userId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    JOIN    application.follow_request_accepted AS fra
+                    ON      fra.receiver_id = u.id
+                    WHERE   fra.requester_id = @id";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {ViewUserWithStats} AS u
-                    JOIN {TableFollowRequest} AS f
-                    ON u.id = f.requester_id
-                    WHERE f.receiver_id = @Id";
-            return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapFromReader(reader);
+            }
         }
 
+        // TODO This throws if we have no push details for the user.
         /// <summary>
-        /// Gets the <see cref="UserPushNotificationDetails"/> for all followers 
-        /// of a specified <paramref name="userId"/>.
+        ///     Gets the push notification details for a
+        ///     given user.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="UserPushNotificationDetails"/> collection</returns>
-        public async Task<IEnumerable<UserPushNotificationDetails>> GetFollowersPushDetailsAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            if (!await UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT 
-                        u.id AS UserId, 
-                        nr.push_notification_platform AS PushNotificationPlatform
-                    FROM {TableUser} AS u
-                    JOIN {TableFollowRequest} AS fr
-                    ON u.id = fr.requester_id
-                    JOIN {TableNotificationRegistration} AS nr
-                    ON u.id = nr.user_id
-                    WHERE fr.receiver_id = @Id";
-            return await connection.QueryAsync<UserPushNotificationDetails>(sql, new { Id = userId }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Gets all <see cref="SwabbrUser"/> entities that a given
-        /// <see cref="SwabbrUser"/> specified by <paramref name="userId"/>
-        /// is following.
-        /// 
-        /// TODO Pagination?
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns>All users that <paramref name="userId"/> follows</returns>
-        public async Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {ViewUserWithStats} AS u
-                    JOIN {TableFollowRequest} AS f
-                    ON u.id = f.receiver_id
-                    WHERE f.requester_id = @Id";
-            return await connection.QueryAsync<SwabbrUserWithStats>(sql, new { Id = userId }).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Gets the <see cref="UserPushNotificationDetails"/> for a given 
-        /// <paramref name="userId"/>.
-        /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="UserPushNotificationDetails"/></returns>
+        /// <param name="userId">The user id.</param>
+        /// <returns>Push notification details.</returns>
         public async Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId)
         {
-            userId.ThrowIfNullOrEmpty();
-            if (!await UserExistsAsync(userId).ConfigureAwait(false)) { throw new UserNotFoundException(); }
+            var sql = @"
+                    SELECT  upnd.user_id,
+                            upnd.push_notification_platform
+                    FROM    application.user_push_notification_details AS upnd
+                    WHERE   upnd.user_id = @id";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            // TODO Mapping doesn't work for some reason
-            var sql = $"SELECT push_notification_platform AS PushNotificationPlatform, user_id as UserId FROM {ViewUserPushNotificationDetails} WHERE user_id = @UserId";
-            var result = await connection.QueryAsync<UserPushNotificationDetails>(sql, new { UserId = userId }).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(); }
-            if (result.Count() > 1) { throw new InvalidOperationException("Found multiple entities on single get"); } // TODO Is this correct?
-            return result.First();
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapPushNotificationDetailsFromReader(reader);
         }
 
         /// <summary>
-        /// Gets the <see cref="SwabbrUser"/> to which a given <see cref="Vlog"/>
-        /// belongs.
+        ///     Gets a user with its statistics.
         /// </summary>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="SwabbrUser"/></returns>
-        public async Task<SwabbrUser> GetUserFromVlogAsync(Guid vlogId)
+        /// <param name="userId">The internal user id.</param>
+        /// <returns>The user entity with statistics.</returns>
+        public async Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId)
         {
-            vlogId.ThrowIfNullOrEmpty();
+            var sql = @"
+                    SELECT  uws.birth_date,
+                            uws.country,
+                            uws.daily_vlog_request_limit,
+                            uws.first_name,
+                            uws.follow_mode,
+                            uws.gender,
+                            uws.id,
+                            uws.is_private,
+                            uws.last_name,
+                            uws.latitude,
+                            uws.longitude,
+                            uws.nickname,
+                            uws.profile_image_base64_encoded,
+                            uws.timezone,
+                            uws.total_followers,
+                            uws.total_following,
+                            uws.total_vlogs
+                    FROM    application.user_with_stats AS uws
+                    WHERE   uws.id = @id
+                    LIMIT   1";
 
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT u.* 
-                    FROM {TableVlog} AS v
-                    JOIN {TableUser} AS u
-                    ON v.user_id = u.id
-                    WHERE v.id = @VlogId";
-            var result = await connection.QueryAsync<SwabbrUser>(sql, new { VlogId = vlogId }).ConfigureAwait(false);
-            if (result == null || !result.Any()) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-            if (result.Count() > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
-            return result.First();
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", userId);
+
+            await using var reader = await context.ReaderAsync();
+
+            return MapWithStatsFromReader(reader);
         }
 
         /// <summary>
-        /// Gets all <see cref="SwabbrUser"/>s that we can send a vlogrequest
-        /// at this very moment.
+        ///     Search for users in our data store.
+        /// </summary>
+        /// <param name="query">Search string.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>User search result set.</returns>
+        public async IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
+        {
+            var sql = @"
+                    SELECT  uws.birth_date,
+                            uws.country,
+                            uws.daily_vlog_request_limit,
+                            uws.first_name,
+                            uws.follow_mode,
+                            uws.gender,
+                            uws.id,
+                            uws.is_private,
+                            uws.last_name,
+                            uws.latitude,
+                            uws.longitude,
+                            uws.nickname,
+                            uws.profile_image_base64_encoded,
+                            uws.timezone,
+                            uws.total_followers,
+                            uws.total_following,
+                            uws.total_vlogs
+                    FROM    application.user_with_stats AS uws
+                    WHERE   LOWER(uws.nickname) LIKE LOWER(@query)";
+
+            ConstructNavigation(ref sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            // Manually append the % wildcard
+            context.AddParameterWithValue("query", $"{query}%");
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return MapWithStatsFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Update a user in our database.
         /// </summary>
         /// <remarks>
-        /// This query is very complex and hard to optimize. This function might
-        /// have a long execution time.
-        /// TODO Optimize
+        ///     There exist separate calls to update the 
+        ///     longitude and latitude properties.
         /// </remarks>
-        /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public async Task<IEnumerable<SwabbrUser>> GetVlogRequestableUsersAsync(DateTimeOffset from, TimeSpan timeSpan)
+        /// <param name="entity">The user with updated properties.</param>
+        public async Task UpdateAsync(SwabbrUser entity)
         {
-            if (from == null) { throw new ArgumentNullException(nameof(from)); }
-            if (timeSpan == null) { throw new ArgumentNullException(nameof(timeSpan)); }
-            if (swabbrConfiguration.DailyVlogRequestLimit < 0) { throw new ConfigurationRangeException(nameof(swabbrConfiguration.DailyVlogRequestLimit)); }
-
-            var to = from.AddTicks(timeSpan.Ticks);
-            var sqlFrom = SqlUtility.FormatDateTime(from);
-            var sqlTo = SqlUtility.FormatDateTime(to);
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    SELECT * FROM {TableUser}
-                    WHERE daily_vlog_request_limit > 0
-                    AND (
-                        id IN (
-                            SELECT u.id FROM {TableUser} AS u
-                            JOIN {TableRequest} AS r
-                            ON u.id = r.user_id
-                            WHERE r.create_date >= '{sqlFrom}'
-                            AND r.create_date <= '{sqlTo}'
-                            AND u.id IN (
-                                SELECT us.id
-                                FROM {TableUser} AS us
-                                JOIN {TableRequest} AS re
-                                ON us.id = re.user_id
-                                GROUP BY us.id
-                                HAVING COUNT(re.id) < LEAST(us.daily_vlog_request_limit, {swabbrConfiguration.DailyVlogRequestLimit})
-                            )
-                        )
-                        OR id NOT IN (
-                            SELECT u.id FROM {TableUser} AS u
-                            JOIN {TableRequest} AS r
-                            ON u.id = r.user_id
-                            WHERE r.create_date >= '{sqlFrom}'
-                            AND r.create_date <= '{sqlTo}'
-                        )
-                    )";
-            return await connection.QueryAsync<SwabbrUser>(sql).ConfigureAwait(false);
-        }
-
-        // TODO Implement.
-        public Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId) 
-            => throw new NotImplementedException();
-
-        /// <summary>
-        /// Checks if a given <see cref="SwabbrUser.Nickname"/> exists.
-        /// </summary>
-        /// <param name="nickname"><see cref="SwabbrUser.Nickname"/></param>
-        /// <returns><see cref="bool"/></returns>
-        public async Task<bool> NicknameExistsAsync(string nickname)
-        {
-            nickname.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"SELECT 1 FROM {TableUser} WHERE nickname = @Nickname";
-            var result = await connection.QueryAsync<int>(sql, new { Nickname = nickname }).ConfigureAwait(false);
-            return result.Any();
-        }
-
-        /// <summary>
-        ///     Updates a <see cref="SwabbrUser"/> in our database.
-        /// </summary>
-        /// <param name="entity">User entity with updated values.</param>
-        /// <returns>Updated and queried user entity.</returns>
-        public async Task<SwabbrUser> UpdateAsync(SwabbrUser entity)
-        {
-            if (entity == null)
+            if (entity is null)
             {
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            // TODO Enum injection, also ugly
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                        UPDATE {TableUser} 
-                        SET
-                            birth_date = COALESCE(@BirthDate, birth_date),
-                            country = COALESCE(@Country, country),
-                            first_name = COALESCE(@FirstName, first_name),
-                            gender = COALESCE('{entity.Gender?.GetEnumMemberAttribute() ?? "NULL"}', gender),
-                            is_private = COALESCE(@IsPrivate, is_private),
-                            last_name = COALESCE(@LastName, last_name),
-                            nickname = COALESCE(@NickName, nickname),
-                            profile_image_base64_encoded = COALESCE(@ProfileImageBase64Encoded, profile_image_base64_encoded),
-                            follow_mode = COALESCE('{entity.FollowMode.GetEnumMemberAttribute()}', follow_mode),
-                            daily_vlog_request_limit = @DailyVlogRequestLimit
-                        WHERE id = @Id";
-            int rowsAffected = await connection.ExecuteAsync(sql, entity).ConfigureAwait(false);
-            if (rowsAffected <= 0) { throw new EntityNotFoundException(); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(); }
+            var sql = @"
+                    UPDATE  application.user
+                    SET     birth_date = @birth_date,
+                            country = @country,
+                            daily_vlog_request_limit = @daily_vlog_request_limit,
+                            first_name = @first_name,
+                            follow_mode = @follow_mode,
+                            gender = @gender,
+                            is_private = @is_private,
+                            last_name = @last_name,
+                            latitude = @latitude,
+                            longitude = @longitude,
+                            nickname = @nickname,
+                            profile_image_base64_encoded = @profile_image_base64_encoded,
+                            timezone = @timezone
+                    WHERE   id = @id";
 
-            var result = await GetAsync(entity.Id).ConfigureAwait(false);
-            return result;
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", entity.Id);
+
+            MapToWriter(context, entity);
+
+            await context.NonQueryAsync();
         }
 
         /// <summary>
-        /// Update the user location.
+        ///     Maps a reader to a user object.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="longitude"></param>
-        /// <param name="latitude"></param>
-        /// <returns></returns>
-        public async Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    UPDATE {TableUser}
-                    SET 
-                        longitude = @Longitude,
-                        latitude = @Latitude
-                    WHERE id = @Id";
-            var pars = new
+        /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped user object.</returns>
+        internal static SwabbrUser MapFromReader(DbDataReader reader, int offset = 0)
+            => new SwabbrUser
             {
-                Id = userId,
-                Longitude = longitude,
-                Latitude = latitude
+                BirthDate = reader.GetSafeDateTime(0 + offset),
+                Country = reader.GetSafeString(1 + offset),
+                DailyVlogRequestLimit = reader.GetUInt(2 + offset),
+                FirstName = reader.GetSafeString(3 + offset),
+                FollowMode = reader.GetFieldValue<FollowMode>(4 + offset),
+                Gender = reader.GetFieldValue<Gender?>(5 + offset),
+                Id = reader.GetGuid(6 + offset),
+                IsPrivate = reader.GetBoolean(7 + offset),
+                LastName = reader.GetSafeString(8 + offset),
+                Latitude = reader.GetSafeDouble(9 + offset),
+                Longitude = reader.GetSafeDouble(10 + offset),
+                Nickname = reader.GetString(11 + offset),
+                ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
+                Timezone = reader.GetTimeZoneInfo(13 + offset)
             };
-            var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
-        }
 
         /// <summary>
-        /// Update the user timezone.
+        ///     Maps a reader to a user with stats object.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="newTimeZone"></param>
-        /// <returns></returns>
-        public async Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
-        {
-            userId.ThrowIfNullOrEmpty();
-
-            using var connection = _databaseProvider.GetConnectionScope();
-            var sql = $@"
-                    UPDATE {TableUser}
-                    SET timezone = @TimeZone
-                    WHERE id = @Id";
-            var pars = new
+        /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped user with stats object.</returns>
+        internal static SwabbrUserWithStats MapWithStatsFromReader(DbDataReader reader, int offset = 0)
+            => new SwabbrUserWithStats
             {
-                Id = userId,
-                TimeZone = newTimeZone
+                BirthDate = reader.GetSafeDateTime(0 + offset),
+                Country = reader.GetSafeString(1 + offset),
+                DailyVlogRequestLimit = reader.GetUInt(2 + offset),
+                FirstName = reader.GetSafeString(3 + offset),
+                FollowMode = reader.GetFieldValue<FollowMode>(4 + offset),
+                Gender = reader.GetFieldValue<Gender?>(5 + offset),
+                Id = reader.GetGuid(6 + offset),
+                IsPrivate = reader.GetBoolean(7 + offset),
+                LastName = reader.GetSafeString(8 + offset),
+                Latitude = reader.GetSafeFloat(9 + offset),
+                Longitude = reader.GetSafeFloat(10 + offset),
+                Nickname = reader.GetString(11 + offset),
+                ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
+                Timezone = reader.GetTimeZoneInfo(13 + offset),
+                TotalFollowers = reader.GetUInt(14 + offset),
+                TotalFollowing = reader.GetUInt(15 + offset),
+                TotalVlogs = reader.GetUInt(16 + offset)
             };
-            var rowsAffected = await connection.ExecuteAsync(sql, pars).ConfigureAwait(false);
-            if (rowsAffected <= 0) { throw new EntityNotFoundException(nameof(SwabbrUser)); }
-            if (rowsAffected > 1) { throw new MultipleEntitiesFoundException(nameof(SwabbrUser)); }
-        }
 
         /// <summary>
-        /// Checks if a <see cref="SwabbrUser"/> exists in our database.
+        ///     Maps a reader to a push notification details object.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="true"/> if it exists</returns>
-        public Task<bool> UserExistsAsync(Guid userId) => SharedRepositoryFunctions.ExistsAsync(_databaseProvider, TableUser, userId);
+        /// <param name="reader">The reader to map from.</param>
+        /// <param name="offset">Ordinal offset.</param>
+        /// <returns>The mapped push notification details object.</returns>
+        internal static UserPushNotificationDetails MapPushNotificationDetailsFromReader(DbDataReader reader, int offset = 0)
+            =>  new UserPushNotificationDetails()
+            {
+                UserId = reader.GetGuid(0 + offset),
+                PushNotificationPlatform = reader.GetFieldValue<PushNotificationPlatform>(1 + offset)
+            };
+
+        /// <summary>
+        ///     Maps a swabbr user entity onto a writer.
+        /// </summary>
+        /// <param name="context">The context to add parameters to.</param>
+        /// <param name="user">The user object.</param>
+        private static void MapToWriter(DatabaseContext context, SwabbrUser user)
+        {
+            context.AddParameterWithValue("birth_date", user.BirthDate);
+            context.AddParameterWithValue("country", user.Country);
+            context.AddParameterWithValue("daily_vlog_request_limit", (int) user.DailyVlogRequestLimit);
+            context.AddParameterWithValue("first_name", user.FirstName);
+            context.AddParameterWithValue("follow_mode", user.FollowMode);
+            context.AddParameterWithValue("gender", user.Gender);
+            context.AddParameterWithValue("is_private", user.IsPrivate);
+            context.AddParameterWithValue("last_name", user.LastName);
+            context.AddParameterWithValue("latitude", user.Latitude);
+            context.AddParameterWithValue("longitude", user.Longitude);
+            context.AddParameterWithValue("nickname", user.Nickname);
+            context.AddParameterWithValue("profile_image_base64_encoded", user.ProfileImageBase64Encoded);
+            context.AddParameterWithValue("timezone", MapTimeZoneToStringOrNull(user.Timezone));
+        }
+
+        // TODO Move to helper
+        /// <summary>
+        ///     Converts a timezone object to the expected
+        ///     database format timezone.
+        /// </summary>
+        /// <remarks>
+        ///     If <paramref name="timeZoneInfo"/> is null, 
+        ///     this returns null.
+        /// </remarks>
+        /// <param name="timeZoneInfo">The timezone object.</param>
+        /// <returns>Formatted string.</returns>
+        private static string MapTimeZoneToStringOrNull(TimeZoneInfo timeZoneInfo)
+        {
+            if (timeZoneInfo is null)
+            {
+                return null;
+            }
+
+            var offset = timeZoneInfo.BaseUtcOffset;
+
+            var hours = (offset.Hours >= 10) ? $"{offset.Hours}" : $"0{offset.Hours}";
+            var minutes = (offset.Minutes >= 10) ? $"{offset.Minutes}" : $"0{offset.Minutes}";
+            
+            return $"UTC+{hours}:{minutes}";
+        }
     }
 }

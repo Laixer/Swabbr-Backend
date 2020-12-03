@@ -26,8 +26,9 @@ namespace Swabbr.Core.Interfaces.Services
         /// <summary>
         ///     Gets all users which are eligible for a vlog request.
         /// </summary>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>User collection.</returns>
-        IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync();
+        IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation);
 
         /// <summary>
         ///     Gets a user from our data store.
@@ -44,25 +45,20 @@ namespace Swabbr.Core.Interfaces.Services
         Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId);
 
         /// <summary>
-        ///     Gets a user by an email.
-        /// </summary>
-        /// <param name="email">The user email.</param>
-        /// <returns>The corresponding user.</returns>
-        Task<SwabbrUser> GetByEmailAsync(string email);
-
-        /// <summary>
         ///     Gets all followers for a user.
         /// </summary>
         /// <param name="userId">The user to check.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>All followers.</returns>
-        Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId);
+        IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets all users a user is following.
         /// </summary>
         /// <param name="userId">The user to check.</param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>All users followed by <paramref name="userId"/>.</returns>
-        Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId);
+        IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets the details required to send a push notification.
@@ -72,15 +68,23 @@ namespace Swabbr.Core.Interfaces.Services
         Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId);
 
         /// <summary>
+        ///     Search for users in our data store.
+        /// </summary>
+        /// <param name="query">Search string.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>User search result set.</returns>
+        IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation);
+
+        /// <summary>
         ///     Update a user in our data store.
         /// </summary>
         /// <remarks>
         ///     This can also be used to update user settings.
         /// </remarks>
         /// <param name="user">The user with updated properties.</param>
-        /// <returns>The post-updated user entity.</returns>
-        Task<SwabbrUser> UpdateAsync(SwabbrUser user);
+        Task UpdateAsync(SwabbrUser user);
 
+        // TODO Do we really need a separate call for this?
         /// <summary>
         ///     Updates a user location in our data store.
         /// </summary>
@@ -89,6 +93,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="latitude">New latitude coordinate.</param>
         Task UpdateLocationAsync(Guid userId, double longitude, double latitude);
 
+        // TODO Do we really need a separate call for this?
         /// <summary>
         ///     Updates a user timezone in our data store.
         /// </summary>

@@ -11,6 +11,6 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     The time at which the user liked the vlog.
         /// </summary>
-        public DateTimeOffset CreateDate { get; set; }
+        public DateTimeOffset DateCreated { get; set; }
     }
 }

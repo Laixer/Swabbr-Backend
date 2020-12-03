@@ -3,6 +3,7 @@ using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Types;
 using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
@@ -58,7 +59,7 @@ namespace Swabbr.Core.Services
 
             // This call gets all users which are eligible for a vlog request,
             // meaning they have a vlog request limit greater than zero.
-            await foreach (var user in _userService.GetAllVloggableUsersAsync())
+            await foreach (var user in _userService.GetAllVloggableUsersAsync(Navigation.All))
             {
                 // Perform one check for each possible vlog request,
                 // since users can have more than one request per day.

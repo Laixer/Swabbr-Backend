@@ -17,7 +17,7 @@ namespace Swabbr.Api.Mapping
             if (reaction == null) { throw new ArgumentNullException(nameof(reaction)); }
             return new ReactionOutputModel
             {
-                CreateDate = reaction.CreateDate,
+                CreateDate = reaction.DateCreated,
                 Id = reaction.Id,
                 IsPrivate = reaction.IsPrivate,
                 UserId = reaction.UserId,

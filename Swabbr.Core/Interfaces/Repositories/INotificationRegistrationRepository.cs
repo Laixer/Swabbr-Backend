@@ -1,19 +1,14 @@
 ﻿using Swabbr.Core.Entities;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
-
     /// <summary>
-    /// Contract for a <see cref="NotificationRegistration"/> repository.
+    ///     Contract for a notification registration repository.
     /// </summary>
-    public interface INotificationRegistrationRepository : IRepository<NotificationRegistration, Guid>, ICudFunctionality<NotificationRegistration, Guid>
+    public interface INotificationRegistrationRepository : IRepository<NotificationRegistration, Guid>
     {
-
-        Task<IEnumerable<NotificationRegistration>> GetRegistrationsForUserAsync(Guid userId);
-
+        // TODO What to put here
     }
-
 }

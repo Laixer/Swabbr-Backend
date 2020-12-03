@@ -28,8 +28,6 @@ namespace Swabbr.Api.Controllers
     public sealed class UserDataController : ControllerBase
     {
 
-        private readonly IUserRepository _userRepository;
-        private readonly IUserWithStatsRepository _userWithStatsRepository;
         private readonly IUserService _userService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly ILogger logger;
@@ -37,14 +35,10 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public UserDataController(IUserRepository userRepository,
-            IUserWithStatsRepository userWithStatsRepository,
-            IUserService userService,
+        public UserDataController(IUserService userService,
             UserManager<SwabbrIdentityUser> userManager,
             ILoggerFactory loggerFactory)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _userWithStatsRepository = userWithStatsRepository ?? throw new ArgumentNullException(nameof(userWithStatsRepository));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(UserDataController)) : throw new ArgumentNullException(nameof(loggerFactory));
