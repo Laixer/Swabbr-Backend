@@ -6,8 +6,10 @@ on:
   push:
     branches:
       # - master
-      - development
-      - 'feature/**'
+      # - development
+      # - 'feature/**'
+      - '**'        # matches every branch
+      - '!master'   # excludes master
   pull_request:
     branches:
       # - master
