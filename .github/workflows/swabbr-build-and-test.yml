@@ -1,0 +1,37 @@
+name: Swabbr .NET Core Build & Test
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - master
+      - develop
+
+env:
+  DOTNET_VERSION: '5.0'
+  BUILD_CONFIG: Release
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }} 
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --nologo --configuration ${{ env.BUILD_CONFIG }} --no-restore
+
+    - name: Test
+      run: dotnet test --nologo --configuration ${{ env.BUILD_CONFIG }} --no-restore
