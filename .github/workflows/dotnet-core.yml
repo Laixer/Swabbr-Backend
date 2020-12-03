@@ -2,9 +2,14 @@ name: Swabbr Backend
 
 on:
   push:
-    branches: '*'
+    branches:
+      - master
+      - development
+      - 'feature/**'
   pull_request:
-    branches: [ development ]
+    branches:
+      - master
+      - development
 
 env:
   AZURE_WEBAPP_PACKAGE_PATH: '.'
