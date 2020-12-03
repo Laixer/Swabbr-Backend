@@ -7,9 +7,6 @@ using Swabbr.Api.Errors;
 using Swabbr.Api.Extensions;
 using Swabbr.Api.Mapping;
 using Swabbr.Api.ViewModels;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Extensions;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Net;
@@ -19,7 +16,7 @@ namespace Swabbr.Api.Controllers
 {
 
     /// <summary>
-    /// Controller for handling requests related to any <see cref="UserSettings"/>.
+    /// Controller for handling requests related to user settings.
     /// </summary>
     [Authorize]
     [ApiController]

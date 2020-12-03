@@ -167,7 +167,7 @@ namespace Swabbr.Api.Controllers
                 if (userId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "User id can't be null or empty")); }
 
                 // Get all vlogs.
-                var vlogsWithThumbnails = await _vlogService.GetVlogsFromUserWithThumbnailsAsync(userId, Navigation.Default).ToListAsync();
+                var vlogsWithThumbnails = await _vlogService.GetVlogsByUserWithThumbnailsAsync(userId, Navigation.Default).ToListAsync();
 
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
                 Parallel.ForEach(vlogsWithThumbnails, (vlogWithThumbnail) =>
@@ -258,7 +258,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 var user = await _userManager.GetUserAsync(User);
 
-                await _vlogService.LikeAsync(vlogId, user.Id);
+                await _vlogService.LikeAsync(vlogId);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -297,7 +297,7 @@ namespace Swabbr.Api.Controllers
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
                 var user = await _userManager.GetUserAsync(User);
 
-                await _vlogService.UnlikeAsync(vlogId, user.Id);
+                await _vlogService.UnlikeAsync(vlogId);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -377,7 +377,7 @@ namespace Swabbr.Api.Controllers
                     Limit = maxCount,
                     Offset = 0,
                 };
-                var vlogsWithThumbnails = await _vlogService.GetRecommendedForUserWithThumbnailsAsync(user.Id, navigation).ToListAsync();
+                var vlogsWithThumbnails = await _vlogService.GetRecommendedForUserWithThumbnailsAsync(navigation).ToListAsync();
                 var mappedVlogs = new ConcurrentBag<VlogWrapperOutputModel>();
 
                 // TODO Use await foreach
