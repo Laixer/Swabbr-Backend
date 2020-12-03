@@ -1,14 +1,16 @@
+# Note: We are having some issues with the master branch, disabled until further notice.
+
 name: Swabbr Backend
 
 on:
   push:
     branches:
-      - master
+      # - master
       - development
       - 'feature/**'
   pull_request:
     branches:
-      - master
+      # - master
       - development
 
 env:
