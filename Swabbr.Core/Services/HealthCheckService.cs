@@ -33,8 +33,8 @@ namespace Swabbr.Core.Services
         ///     Checks the notification service and database.
         /// </summary>
         public async Task<bool> IsHealthyAsync()
-            => await IsDataStoreHealthyAsync().ConfigureAwait(false) &&
-               await IsNotificationServiceHealthyAsync().ConfigureAwait(false);
+            => await IsDataStoreHealthyAsync() &&
+               await IsNotificationServiceHealthyAsync();
 
         /// <summary>
         ///     Checks our notification service health.

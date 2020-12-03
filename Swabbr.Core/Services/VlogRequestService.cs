@@ -40,7 +40,7 @@ namespace Swabbr.Core.Services
             var requestTimeout = TimeSpan.FromMinutes(_options.VlogRequestTimeoutMinutes);
 
             // TODO Enqueue
-            await _notificationService.NotifyVlogRecordRequestAsync(userId, vlogId, requestTimeout).ConfigureAwait(false);
+            await _notificationService.NotifyVlogRecordRequestAsync(userId, vlogId, requestTimeout);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Swabbr.Core.Services
             await foreach (var user in _userSelectionService.GetForMinuteAsync(minute))
             {
                 // TODO Enqueue
-                await SendVlogRequestToUserAsync(user.Id).ConfigureAwait(false);
+                await SendVlogRequestToUserAsync(user.Id);
             }
         }
     }

@@ -63,10 +63,10 @@ namespace Swabbr.Api.Controllers
             {
                 if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 // TODO How to ensure we are allowed to this? --> do we own the vlog?
-                await _reactionService.DeleteReactionAsync(reactionId).ConfigureAwait(false);
+                await _reactionService.DeleteReactionAsync(reactionId);
                 return NoContent();
             }
             catch (NotAllowedException e)
@@ -94,7 +94,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (reactionId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Reaction id can't be null or empty")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 var reactionWithThumbnail = await _reactionService.GetWithThumbnailAsync(reactionId);
                 return Ok(new ReactionWrapperOutputModel
@@ -127,9 +127,9 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+                if (!await _vlogService.ExistsAsync(vlogId)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 var reactions = await _reactionService.GetReactionsForVlogWithThumbnailsAsync(vlogId, Navigation.Default).ToListAsync();
                 return Ok(new ReactionCollectionOutputModel
@@ -166,13 +166,13 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+                if (!await _vlogService.ExistsAsync(vlogId)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 return Ok(new ReactionCountOutputModel
                 {
-                    ReactionCount = await _reactionService.GetReactionCountForVlogAsync(vlogId).ConfigureAwait(false)
+                    ReactionCount = await _reactionService.GetReactionCountForVlogAsync(vlogId)
                 });
             }
             catch (EntityNotFoundException e)
@@ -201,10 +201,10 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 // Act.
-                await _reactionService.PostReactionAsync(model.TargetVlogId, model.ReactionId).ConfigureAwait(false);
+                await _reactionService.PostReactionAsync(model.TargetVlogId, model.ReactionId);
                 var postedReaction = await _reactionService.GetAsync(model.ReactionId);
 
                 // Map.
@@ -244,13 +244,13 @@ namespace Swabbr.Api.Controllers
 
                 // Act.
                 // TODO Reaction update operation
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
-                var reaction = await _reactionService.GetAsync(reactionId).ConfigureAwait(false);
+                var reaction = await _reactionService.GetAsync(reactionId);
                 reaction.IsPrivate = model.IsPrivate;
 
-                await _reactionService.UpdateReactionAsync(reaction).ConfigureAwait(false);
-                var updatedReaction = await _reactionService.GetAsync(reactionId).ConfigureAwait(false);
+                await _reactionService.UpdateReactionAsync(reaction);
+                var updatedReaction = await _reactionService.GetAsync(reactionId);
 
                 // Map.
                 var result = MapperReaction.Map(updatedReaction);
@@ -285,7 +285,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (reactionId.IsNullOrEmpty()) { Conflict(this.Error(ErrorCodes.InvalidInput, "Vlog id is invalid or missing")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 // TODO Implement
                 throw new NotImplementedException();

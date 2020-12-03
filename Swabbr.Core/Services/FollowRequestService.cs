@@ -58,15 +58,15 @@ namespace Swabbr.Core.Services
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             // Handle if the request exists.
-            if (await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
+            if (await _followRequestRepository.ExistsAsync(id))
             {
                 // TODO This can be done with a database function maybe
-                var existingRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+                var existingRequest = await _followRequestRepository.GetAsync(id);
                 if (existingRequest.FollowRequestStatus == FollowRequestStatus.Declined)
                 {
                     existingRequest.FollowRequestStatus = FollowRequestStatus.Pending;
-                    await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
-                    var updatedEntity = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+                    await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending);
+                    var updatedEntity = await _followRequestRepository.GetAsync(id);
 
                     // Commit and return
                     scope.Complete();
@@ -85,7 +85,7 @@ namespace Swabbr.Core.Services
                     ReceiverId = receiverId,
                     RequesterId = requesterId
                 }
-            }).ConfigureAwait(false);
+            });
 
             // Commit and return
             scope.Complete();
@@ -101,20 +101,20 @@ namespace Swabbr.Core.Services
         {
             id.ThrowIfNullOrEmpty();
 
-            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+            var followRequest = await _followRequestRepository.GetAsync(id);
             if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
 
-            await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted).ConfigureAwait(false);
+            await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted);
         }
 
         public async Task DeclineAsync(FollowRequestId id)
         {
             id.ThrowIfNullOrEmpty();
 
-            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+            var followRequest = await _followRequestRepository.GetAsync(id);
             if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
 
-            await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
+            await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined);
         }
 
         public Task<FollowRequest> GetAsync(FollowRequestId id) => _followRequestRepository.GetAsync(id);
@@ -133,7 +133,7 @@ namespace Swabbr.Core.Services
             if (id == null) { throw new ArgumentNullException(nameof(id)); }
             id.RequesterId.ThrowIfNullOrEmpty();
             id.ReceiverId.ThrowIfNullOrEmpty();
-            return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).FollowRequestStatus;
+            return (await _followRequestRepository.GetAsync(id)).FollowRequestStatus;
         }
 
         public Task<uint> GetFollowerCountAsync(Guid userId) => _followRequestRepository.GetFollowerCountAsync(userId);
@@ -156,7 +156,7 @@ namespace Swabbr.Core.Services
             id.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            if (!await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
+            if (!await _followRequestRepository.ExistsAsync(id))
             {
                 throw new InvalidOperationException("Follow request does not exist");
             }
@@ -164,7 +164,7 @@ namespace Swabbr.Core.Services
             // TODO We can't really check this, you can always do this wrong.
             // We can only require the function call to have both the requester and receiver id, as we do now.
 
-            await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
+            await _followRequestRepository.DeleteAsync(id);
             scope.Complete();
         }
 
@@ -178,10 +178,10 @@ namespace Swabbr.Core.Services
             id.ThrowIfNullOrEmpty();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
+            var followRequest = await _followRequestRepository.GetAsync(id);
             if (followRequest.FollowRequestStatus != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
 
-            await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
+            await _followRequestRepository.DeleteAsync(id);
             scope.Complete();
         }
 

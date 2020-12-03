@@ -47,7 +47,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                return ((await _healthCheckService.IsHealthyAsync().ConfigureAwait(false))
+                return ((await _healthCheckService.IsHealthyAsync())
                     ? new StatusCodeResult((int)HttpStatusCode.OK) : new StatusCodeResult((int)HttpStatusCode.ServiceUnavailable));
             }
             catch (Exception e)

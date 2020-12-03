@@ -56,7 +56,7 @@ namespace Swabbr.Infrastructure.Notifications
         {
             try
             {
-                await _hubClient.GetRegistrationsByTagAsync("anytag", 0).ConfigureAwait(false);
+                await _hubClient.GetRegistrationsByTagAsync("anytag", 0);
                 return true;
             }
             catch (Exception e)
@@ -84,7 +84,7 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             // Create new registration and return the converted result
-            var externalRegistration = await _hubClient.CreateRegistrationAsync(ExtractForCreation(internalRegistration)).ConfigureAwait(false);
+            var externalRegistration = await _hubClient.CreateRegistrationAsync(ExtractForCreation(internalRegistration));
 
             return new NotificationRegistration
             {
@@ -114,13 +114,13 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             // Throw if no registration exists
-            if (!await IsRegisteredAsync(internalRegistration.Id).ConfigureAwait(false))
+            if (!await IsRegisteredAsync(internalRegistration.Id))
             {
                 _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, cleaning all up before making new registration");
             }
             else
             {
-                var externalRegistrations = await _hubClient.GetRegistrationsByTagAsync(internalRegistration.Id.ToString(), 0).ConfigureAwait(false);
+                var externalRegistrations = await _hubClient.GetRegistrationsByTagAsync(internalRegistration.Id.ToString(), 0);
 
                 // Having multiple registrations should never happen, log a warning and skip.
                 if (externalRegistrations.Count() > 1)
@@ -131,7 +131,7 @@ namespace Swabbr.Infrastructure.Notifications
                 // Remove all existing registrations
                 foreach (var registration in externalRegistrations)
                 {
-                    await _hubClient.DeleteRegistrationAsync(registration.RegistrationId).ConfigureAwait(false);
+                    await _hubClient.DeleteRegistrationAsync(registration.RegistrationId);
                 }
             }
         }
@@ -149,12 +149,12 @@ namespace Swabbr.Infrastructure.Notifications
                 case PushNotificationPlatform.APNS:
                     var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
                     var jsonApns = JsonConvert.SerializeObject(objApns);
-                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, userId.ToString()).ConfigureAwait(false);
+                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, userId.ToString());
                     return;
                 case PushNotificationPlatform.FCM:
                     var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
                     var jsonFcm = JsonConvert.SerializeObject(objFcm);
-                    await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, userId.ToString()).ConfigureAwait(false);
+                    await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, userId.ToString());
                     return;
                 default:
                     throw new InvalidOperationException(nameof(platform));
@@ -194,6 +194,6 @@ namespace Swabbr.Infrastructure.Notifications
         /// </remarks>
         /// <param name="userId">The internal user id to check.</param>
         private async Task<bool> IsRegisteredAsync(Guid userId)
-            => (await _hubClient.GetRegistrationsByTagAsync(userId.ToString(), 0).ConfigureAwait(false)).Any();
+            => (await _hubClient.GetRegistrationsByTagAsync(userId.ToString(), 0)).Any();
     }
 }

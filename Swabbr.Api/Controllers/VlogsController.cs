@@ -118,15 +118,15 @@ namespace Swabbr.Api.Controllers
                     throw new ArgumentNullException(nameof(input));
                 }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var vlog = await _vlogService.GetAsync(vlogId).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
+                var vlog = await _vlogService.GetAsync(vlogId);
 
                 // Map properties
                 vlog.IsPrivate = input.IsPrivate;
 
                 // Act.
-                await _vlogService.UpdateAsync(vlog).ConfigureAwait(false);
-                var updatedVlog = await _vlogService.GetAsync(vlogId).ConfigureAwait(false);
+                await _vlogService.UpdateAsync(vlog);
+                var updatedVlog = await _vlogService.GetAsync(vlogId);
 
                 // Map.
                 var result = MapperVlog.Map(updatedVlog);
@@ -221,9 +221,9 @@ namespace Swabbr.Api.Controllers
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
-                await _vlogService.DeleteAsync(vlogId).ConfigureAwait(false);
+                await _vlogService.DeleteAsync(vlogId);
 
                 return Ok();
             }
@@ -256,9 +256,9 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
-                await _vlogService.LikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogService.LikeAsync(vlogId, user.Id);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -295,9 +295,9 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
-                await _vlogService.UnlikeAsync(vlogId, user.Id).ConfigureAwait(false);
+                await _vlogService.UnlikeAsync(vlogId, user.Id);
                 return Ok();
             }
             catch (EntityNotFoundException e)
@@ -326,7 +326,7 @@ namespace Swabbr.Api.Controllers
             try
             {
                 if (vlogId.IsNullOrEmpty()) { return BadRequest(this.Error(ErrorCodes.InvalidInput, "Vlog id can't be null or empty")); }
-                if (!await _vlogService.ExistsAsync(vlogId).ConfigureAwait(false)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
+                if (!await _vlogService.ExistsAsync(vlogId)) { return BadRequest(this.Error(ErrorCodes.EntityNotFound, "Vlog doesn't exist")); }
 
                 var vlogLikes = await _vlogService.GetVlogLikesForVlogAsync(vlogId, Navigation.All).ToListAsync();
 
@@ -369,7 +369,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 // Get all vlogs.
                 var navigation = new Navigation
@@ -431,7 +431,7 @@ namespace Swabbr.Api.Controllers
             {
                 if (vlogId.IsNullOrEmpty()) { Conflict(this.Error(ErrorCodes.InvalidInput, "Vlog id is invalid or missing")); }
 
-                var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+                var user = await _userManager.GetUserAsync(User);
 
                 // TODO Build
                 throw new NotImplementedException();
