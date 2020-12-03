@@ -77,11 +77,11 @@ namespace Swabbr.Api.Controllers
                 using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
                 // Edge cases
-                if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
+                if ((await _userManager.FindByEmailAsync(input.Email)) != null)
                 {
                     return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
                 }
-                if (await _userService.ExistsNicknameAsync(input.Nickname).ConfigureAwait(false))
+                if (await _userService.ExistsNicknameAsync(input.Nickname))
                 {
                     return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname already exists"));
                 }
@@ -95,7 +95,7 @@ namespace Swabbr.Api.Controllers
                 };
 
                 // This call assigns the id to the identityUser object.
-                var identityResult = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
+                var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
                 if (!identityResult.Succeeded)
                 {
                     return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator"));
@@ -103,7 +103,7 @@ namespace Swabbr.Api.Controllers
 
                 // Update all other properties.
                 // The nickname is handled by the creation call.
-                var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var user = await _userService.GetAsync(identityUser.Id);
                 
                 user.BirthDate = input.BirthDate;
                 user.Country = input.Country;
@@ -113,8 +113,8 @@ namespace Swabbr.Api.Controllers
                 user.LastName = input.LastName;
                 user.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded;
 
-                await _userService.UpdateAsync(user).ConfigureAwait(false);
-                var updatedUser = await _userService.GetAsync(user.Id).ConfigureAwait(false);
+                await _userService.UpdateAsync(user);
+                var updatedUser = await _userService.GetAsync(user.Id);
 
                 scope.Complete();
 
@@ -157,11 +157,11 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { return BadRequest("Form body can't be null"); }
                 if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
 
-                var identityUser = await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false);
+                var identityUser = await _userManager.FindByEmailAsync(input.Email);
                 if (identityUser == null) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Invalid credentials")); }
 
                 // Attempt a sign in using the user-provided password input
-                var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false).ConfigureAwait(false);
+                var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false);
 
                 if (result.IsLockedOut) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Too many attempts.")); }
                 if (result.IsNotAllowed) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Not allowed to log in.")); }
@@ -172,17 +172,17 @@ namespace Swabbr.Api.Controllers
 
                     // Manage device registration
                     var platform = MapperEnum.Map((PushNotificationPlatformModel)input.PushNotificationPlatform);
-                    await _notificationService.RegisterAsync(identityUser.Id, platform, input.Handle).ConfigureAwait(false);
+                    await _notificationService.RegisterAsync(identityUser.Id, platform, input.Handle);
 
                     return Ok(new UserAuthenticationOutputModel
                     {
                         Token = tokenWrapper.Token,
                         TokenCreationDate = tokenWrapper.CreateDate,
                         TokenExpirationTimespan = tokenWrapper.TokenExpirationTimespan,
-                        Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
-                        Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
-                        User = MapperUser.Map(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false)),
-                        UserSettings = MapperUser.MapToSettings(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false))
+                        Claims = await _userManager.GetClaimsAsync(identityUser),
+                        Roles = await _userManager.GetRolesAsync(identityUser),
+                        User = MapperUser.Map(await _userService.GetAsync(identityUser.Id)),
+                        UserSettings = MapperUser.MapToSettings(await _userService.GetAsync(identityUser.Id))
                     });
                 }
 
@@ -210,8 +210,8 @@ namespace Swabbr.Api.Controllers
                 if (input == null) { return BadRequest("Form body can't be null"); }
                 if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
 
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var result = await _userManager.ChangePasswordAsync(identityUser, input.CurrentPassword, input.NewPassword).ConfigureAwait(false);
+                var identityUser = await _userManager.GetUserAsync(User);
+                var result = await _userManager.ChangePasswordAsync(identityUser, input.CurrentPassword, input.NewPassword);
                 if (result.Succeeded)
                 {
                     return Ok();
@@ -243,7 +243,7 @@ namespace Swabbr.Api.Controllers
         {
             try
             {
-                await _signInManager.SignOutAsync().ConfigureAwait(false);
+                await _signInManager.SignOutAsync();
                 return NoContent();
             }
             catch (Exception e)

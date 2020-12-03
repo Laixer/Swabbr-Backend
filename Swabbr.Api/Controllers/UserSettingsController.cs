@@ -55,8 +55,8 @@ namespace Swabbr.Api.Controllers
             try
             {
                 // Act.
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var identityUser = await _userManager.GetUserAsync(User);
+                var user = await _userService.GetAsync(identityUser.Id);
 
                 // Map.
                 var result = MapperUser.MapToSettings(user);
@@ -86,18 +86,18 @@ namespace Swabbr.Api.Controllers
                 if (!ModelState.IsValid) { throw new ArgumentException("Model isn't valid"); }
 
                 // Act.
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var user = await _userService.GetAsync(identityUser.Id).ConfigureAwait(false);
+                var identityUser = await _userManager.GetUserAsync(User);
+                var user = await _userService.GetAsync(identityUser.Id);
 
                 // Only assign properties which should be updated
                 user.DailyVlogRequestLimit = input.DailyVlogRequestLimit;
                 user.FollowMode = MapperEnum.Map(input.FollowMode);
                 user.IsPrivate = input.IsPrivate;
                 
-                await _userService.UpdateAsync(user).ConfigureAwait(false);
+                await _userService.UpdateAsync(user);
 
                 // Map.
-                var result = MapperUser.MapToSettings(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false));
+                var result = MapperUser.MapToSettings(await _userService.GetAsync(identityUser.Id));
 
                 // Return.
                 return Ok(result);
