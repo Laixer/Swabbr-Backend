@@ -99,7 +99,8 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Unregisters a user in Azure Notifcations Hub.
         /// </summary>
         /// <remarks>
-        ///     This throws an <see cref="DeviceNotRegisteredException"/> if the 
+        ///     TODO Check this
+        ///     This throws an <see cref="-"/> if the 
         ///     user has no Azure Notification Hub registration.
         ///     This will log a warning if the user is registered multiple times 
         ///     in the Azure Notification Hub. This will always remove ALL existing
@@ -116,7 +117,7 @@ namespace Swabbr.Infrastructure.Notifications
             // Throw if no registration exists
             if (!await IsRegisteredAsync(internalRegistration.Id))
             {
-                _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, cleaning all up before making new registration");
+                _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, doing nothing.");
             }
             else
             {
