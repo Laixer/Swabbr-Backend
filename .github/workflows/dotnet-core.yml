@@ -1,5 +1,3 @@
-# Note: We are having some issues with the master branch, disabled until further notice.
-
 name: Swabbr Backend
 
 on:
@@ -9,11 +7,11 @@ on:
       # - development
       # - 'feature/**'
       - '**'        # matches every branch
-      - '!master'   # excludes master
   pull_request:
     branches:
       # - master
-      - development
+      # - development
+      - '**'
 
 env:
   AZURE_WEBAPP_PACKAGE_PATH: '.'
