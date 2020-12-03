@@ -18,7 +18,7 @@ namespace Swabbr.Core.Utility
         public static void ThrowIfInvalid(this SwabbrNotification wrapper)
         {
             if (wrapper == null) { throw new ArgumentNullException(nameof(wrapper)); }
-            if (wrapper.Timestamp == null) { throw new ArgumentNullException("No create time"); }
+            if (wrapper.Timestamp.IsNullOrEmpty()) { throw new ArgumentNullException("No create time"); }
             wrapper.DataType.ThrowIfNullOrEmpty();
             wrapper.DataTypeVersion.ThrowIfNullOrEmpty();
             wrapper.ClickAction.ThrowIfNullOrEmpty();

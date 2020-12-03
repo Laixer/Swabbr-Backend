@@ -11,13 +11,11 @@ namespace Swabbr.Core.Utility
 
         public static int GetMinutes(this DateTimeOffset self)
         {
-            if (self == null) { throw new ArgumentNullException(nameof(self)); }
             return (60 * self.Hour) + self.Minute;
         }
 
         public static DateTimeOffset ToTriggerMinute(this DateTimeOffset self)
         {
-            if (self == null) { throw new ArgumentNullException(nameof(self)); }
             return new DateTimeOffset(self.Year, self.Month, self.Day, self.Hour, self.Minute, 0, self.Offset);
         }
 
@@ -28,7 +26,6 @@ namespace Swabbr.Core.Utility
         /// <param name="self">This <see cref="DateTimeOffset"/></param>
         public static void ThrowIfNullOrEmpty(this DateTimeOffset self)
         {
-            if (self == null) { throw new ArgumentNullException(nameof(self)); }
             if (self.IsNullOrEmpty()) { throw new ArgumentNullException("DateTimeOffset struct is null or empty"); }
         }
 
@@ -39,7 +36,6 @@ namespace Swabbr.Core.Utility
         /// <returns><see cref="bool"/></returns>
         public static bool IsNullOrEmpty(this DateTimeOffset self)
         {
-            if (self == null) { throw new ArgumentNullException(nameof(self)); }
             if (self.Year == 1 &&
                 self.Month == 1 &&
                 self.Day == 1) { return true; }
