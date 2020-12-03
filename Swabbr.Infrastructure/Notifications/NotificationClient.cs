@@ -118,6 +118,7 @@ namespace Swabbr.Infrastructure.Notifications
             if (!await IsRegisteredAsync(internalRegistration.Id))
             {
                 _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, doing nothing.");
+                return;
             }
             else
             {

@@ -258,13 +258,13 @@ namespace Swabbr.Core.Services
                 throw new ArgumentNullException(nameof(vlog));
             }
 
-            var currentVlog = await _vlogRepository.GetAsync(vlog.Id).ConfigureAwait(false);
+            var currentVlog = await _vlogRepository.GetAsync(vlog.Id);
 
             // Copy all updateable properties.
             // TODO Expand
             currentVlog.IsPrivate = vlog.IsPrivate;
 
-            await _vlogRepository.UpdateAsync(vlog).ConfigureAwait(false);
+            await _vlogRepository.UpdateAsync(vlog);
         }
     }
 }

@@ -75,7 +75,8 @@ namespace Swabbr.Infrastructure.Repositories
 
             MapToWriter(context, entity);
 
-
+            // Override the user id from the context
+            context.AddParameterWithValue("user_id", AppContext.UserId);
 
             await using var reader = await context.ReaderAsync();
 
