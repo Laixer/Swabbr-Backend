@@ -1,7 +1,9 @@
 ﻿using Swabbr.Core.Abstractions;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Storage;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,7 @@ namespace Swabbr.Core.Services
     public class ReactionService : AppServiceBase, IReactionService
     {
         protected readonly INotificationService _notificationService;
+        protected readonly IBlobStorageService _blobStorageService;
         protected readonly IReactionRepository _reactionRepository;
         protected readonly IVlogRepository _vlogRepository;
 
@@ -22,10 +25,12 @@ namespace Swabbr.Core.Services
         ///     Create new instance.
         /// </summary>
         public ReactionService(INotificationService notificationService, 
+            IBlobStorageService blobStorageService,
             IReactionRepository reactionRepository,
             IVlogRepository vlogRepository)
         {
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
         }
@@ -96,18 +101,28 @@ namespace Swabbr.Core.Services
                 ThumbnailUri = null // TODO
             };
 
-        // FUTURE: First check reaction file existence in the blob storage
         /// <summary>
         ///     Called when a reaction has been uploaded. This will
         ///     actually post the reaction.
         /// </summary>
         /// <remarks>
-        ///     The reaction will belong to the current user.
+        ///     <para>
+        ///         If the file does not exist in our blob storage this
+        ///         throws a <see cref="FileNotFoundException"/>.
+        ///     </para>
+        ///     <para>
+        ///         The reaction will belong to the current user.
+        ///     </para>
         /// </remarks>
         /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
         /// <param name="reactionId">The uploaded reaction id.</param>
         public virtual async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
         {
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, reactionId.ToString())) 
+            {
+                throw new FileNotFoundException();
+            }
+
             var reaction = new Reaction
             {
                 Id = reactionId,
