@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Exceptions
 {
-
     /// <summary>
-    /// Indicates our configuration value is out of range.
+    ///     Indicates our configuration value is out of range.
     /// </summary>
     public class ConfigurationRangeException : ConfigurationException
     {
+        public ConfigurationRangeException()
+        {
+        }
+
         public ConfigurationRangeException(string message) : base(message)
         {
         }
@@ -16,9 +20,8 @@ namespace Swabbr.Core.Exceptions
         {
         }
 
-        public ConfigurationRangeException()
+        public ConfigurationRangeException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
-
 }
