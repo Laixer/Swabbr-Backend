@@ -37,7 +37,7 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the reaction.
         /// </remarks>
         /// <param name="reactionId">The reaction to be deleted.</param>
-        public Task DeleteReactionAsync(Guid reactionId)
+        public virtual Task DeleteReactionAsync(Guid reactionId)
             => _reactionRepository.DeleteAsync(reactionId);
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction.</returns>
-        public Task<Reaction> GetAsync(Guid reactionId)
+        public virtual Task<Reaction> GetAsync(Guid reactionId)
             => _reactionRepository.GetAsync(reactionId);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The amount of reactions.</returns>
-        public Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
+        public virtual Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
             => _reactionRepository.GetCountForVlogAsync(vlogId);
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions.</returns>
-        public IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
+        public virtual IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
             => _reactionRepository.GetForVlogAsync(vlogId, navigation);
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions with their thumbnails.</returns>
-        public async IAsyncEnumerable<ReactionWithThumbnailDetails> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId, Navigation navigation)
+        public virtual async IAsyncEnumerable<ReactionWithThumbnailDetails> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId, Navigation navigation)
         {
             await foreach (var reaction in GetReactionsForVlogAsync(vlogId, navigation))
             {
@@ -89,7 +89,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction with thumbnail details.</returns>
-        public async Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId)
+        public virtual async Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId)
             => new ReactionWithThumbnailDetails
             {
                 Reaction = await GetAsync(reactionId),
@@ -106,7 +106,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
         /// <param name="reactionId">The uploaded reaction id.</param>
-        public async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
+        public virtual async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
         {
             var reaction = new Reaction
             {
@@ -130,7 +130,7 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the reaction.
         /// </remarks>
         /// <param name="reaction">The reaction with updated properties.</param>
-        public Task UpdateReactionAsync(Reaction reaction)
+        public virtual Task UpdateReactionAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
     }
 }
