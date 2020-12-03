@@ -271,11 +271,6 @@ namespace Swabbr.Api.Controllers
                 logger.LogError(e.Message);
                 return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "You are not allowed to like your own vlog"));
             }
-            catch (OperationAlreadyExecutedException e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InsufficientAccessRights, "User has already liked this vlog"));
-            }
             catch (Exception e)
             {
                 logger.LogError(e.Message);
