@@ -15,7 +15,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         ///     Gets all vlog likes for a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to get likes for.</param>
-        /// <param name="navigation">Navigation control./param>
+        /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog likes for the vlog.</returns>
         IAsyncEnumerable<VlogLike> GetForVlogAsync(Guid vlogId, Navigation navigation);
 

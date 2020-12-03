@@ -7,8 +7,12 @@ using System.Threading.Tasks;
 namespace Swabbr.Core.Interfaces.Services
 {
     /// <summary>
-    /// Service for processing vlog and vlog like related requests.
+    /// Service for processing vlog and vlog like operations.
     /// </summary>
+    /// <remarks>
+    ///     The executing user id is never passed. Whenever 
+    ///     possible, this id is extracted from the context.
+    /// </remarks>
     public interface IVlogService
     {
         /// <summary>
@@ -37,21 +41,19 @@ namespace Swabbr.Core.Interfaces.Services
         Task<Vlog> GetAsync(Guid vlogId);
 
         /// <summary>
-        ///     Gets recommended vlogs for a user.
+        ///     Gets recommended vlogs for the current user.
         /// </summary>
-        /// <param name="userId">The corresponding user.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Recommended vlogs.</returns>
-        IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Navigation navigation);
 
         /// <summary>
-        ///     Gets recommended vlogs for a user including
-        ///     their thumbnail details.
+        ///     Gets recommended vlogs for the current user 
+        ///     including their thumbnail details.
         /// </summary>
-        /// <param name="userId">The corresponding user.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlogs with thumbnail details.</returns>
-        IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Navigation navigation);
 
         /// <summary>
         ///     Gets vlogs that belong to a user.
@@ -59,7 +61,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="userId">The vlog owner.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog collection.</returns>
-        IAsyncEnumerable<Vlog> GetVlogsFromUserAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets vlogs that belong to a user including
@@ -68,7 +70,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="userId">The corresponding user.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlogs belonging to the user.</returns>
-        IAsyncEnumerable<VlogWithThumbnailDetails> GetVlogsFromUserWithThumbnailsAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<VlogWithThumbnailDetails> GetVlogsByUserWithThumbnailsAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets the likes for a vlog.
@@ -98,24 +100,24 @@ namespace Swabbr.Core.Interfaces.Services
         Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId);
         
         /// <summary>
-        ///     Likes a vlog.
+        ///     Used when the current user likes a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to like.</param>
-        /// <param name="userId">The user that likes the vlog.</param>
-        Task LikeAsync(Guid vlogId, Guid userId);
+        Task LikeAsync(Guid vlogId);
 
         /// <summary>
-        ///     Called when a vlog has finished uploading.
+        ///     Called when a vlog has been uploaded to the blob 
+        ///     storage and the user wishes to publish it.
         /// </summary>
         /// <param name="vlogId">The uploaded vlog id.</param>
-        Task PostVlogAsync(Guid vlogId);
+        /// <param name="isPrivate">Accessibility of the vlog.</param>
+        Task PostVlogAsync(Guid vlogId, bool isPrivate);
 
         /// <summary>
-        ///     Unlikes a vlog.
+        ///     Used when the current user unlikes a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to unlike.</param>
-        /// <param name="userId">The user that unlikes the vlog.</param>
-        Task UnlikeAsync(Guid vlogId, Guid userId);
+        Task UnlikeAsync(Guid vlogId);
 
         /// <summary>
         ///     Updates a vlog in our data store.

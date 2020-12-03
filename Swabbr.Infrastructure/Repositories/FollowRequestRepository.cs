@@ -1,5 +1,6 @@
 ﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -21,8 +22,15 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Create a new follow request.
         /// </summary>
         /// <remarks>
-        ///     This doesn't actually return the created entity
-        ///     id since we already now said id.
+        ///     <para>
+        ///         This expects the requester id to be equal to the current 
+        ///         user id. A <see cref="NotAllowedException"/> is thrown
+        ///         otherwise.
+        ///     </para>
+        ///     <para>
+        ///         This doesn't actually return the created entity
+        ///         id since we already now said id.
+        ///     </para>
         /// </remarks>
         /// <param name="entity">The follow request.</param>
         /// <returns>The created follow requests id.</returns>
@@ -32,9 +40,16 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 throw new ArgumentNullException(nameof(entity));
             }
-
-            // Only create the follow request if we are the requester
+            if (entity.Id is null)
+            {
+                throw new ArgumentNullException(nameof(entity.Id));
+            }
             
+            // Only create the follow request if we are the requester
+            if (entity.Id.RequesterId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
+            }
 
             var sql = @"
                     INSERT INTO application.follow_request(
@@ -58,12 +73,21 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Deletes a follow request from our data store.
         /// </summary>
+        /// <remarks>
+        ///     An <see cref="NotAllowedException"/> is thrown 
+        ///     if the current user id does not equal either 
+        ///     the requester id or receiver id.
+        /// </remarks>
         /// <param name="id">Follow request id.</param>
         public async Task DeleteAsync(FollowRequestId id)
         {
             if (id is null)
             {
                 throw new ArgumentNullException(nameof(id));
+            }
+            if (id.RequesterId != AppContext.UserId && id.ReceiverId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
             }
 
             var sql = @"
@@ -206,10 +230,12 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets incoming follow requests for a user.
         /// </summary>
-        /// <param name="userId">The user that will be followed.</param>
+        /// <remarks>
+        ///     The current user id is extracted from the app context.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Incoming follow requests.</returns>
-        public async IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Navigation navigation)
         {
             var sql =@"
                     SELECT  fr.date_created,
@@ -225,7 +251,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("receiver_id", userId);
+            context.AddParameterWithValue("receiver_id", AppContext.UserId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
@@ -236,10 +262,12 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets outgoing follow requests for a user.
         /// </summary>
-        /// <param name="userId">The user that will follow.</param>
+        /// <remarks>
+        ///     The current user id is extracted from the app context.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Outgoing follow requests.</returns>
-        public async IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Navigation navigation)
         {
             var sql = @"
                     SELECT  fr.date_created,
@@ -255,7 +283,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("requester_id", userId);
+            context.AddParameterWithValue("requester_id", AppContext.UserId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
@@ -276,6 +304,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Updates the status of a follow request.
         /// </summary>
+        /// <remarks>
+        ///     This throws a <see cref="NotAllowedException"/>
+        ///     if the current user id is not equal to either 
+        ///     the requester or the receiver id.
+        /// </remarks>
         /// <param name="id">The follow request id.</param>
         /// <param name="status">The new status.</param>
         public async Task UpdateStatusAsync(FollowRequestId id, FollowRequestStatus status)
@@ -283,6 +316,10 @@ namespace Swabbr.Infrastructure.Repositories
             if (id is null)
             {
                 throw new ArgumentNullException(nameof(id));
+            }
+            if (id.RequesterId != AppContext.UserId && id.ReceiverId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
             }
 
             var sql = @"

@@ -394,7 +394,7 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        ///     Update a user in our database.
+        ///     Update the current user in our database.
         /// </summary>
         /// <remarks>
         ///     There exist separate calls to update the 
@@ -427,7 +427,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("id", entity.Id);
+            context.AddParameterWithValue("id", AppContext.UserId);
 
             MapToWriter(context, entity);
 

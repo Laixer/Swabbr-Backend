@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -19,9 +20,14 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Create a new vlog like in the database.
         /// </summary>
         /// <remarks>
-        ///     This returns the existing id property of
-        ///     <paramref name="entity"/> since this is 
-        ///     used as primary key in the database.
+        ///     <para>
+        ///         The vloglike user id is extracted from the context.
+        ///     </para>
+        ///     <para>
+        ///         This returns the existing id property of
+        ///         <paramref name="entity"/> since this is 
+        ///         used as primary key in the database.
+        ///     </para>
         /// </remarks>
         /// <param name="entity">The vlog like to create.</param>
         /// <returns>The created vlog like id.</returns>
@@ -44,7 +50,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("user_id", entity.Id.UserId);
+            context.AddParameterWithValue("user_id", AppContext.UserId);
             context.AddParameterWithValue("vlog_id", entity.Id.VlogId);
 
             await context.NonQueryAsync();
@@ -56,12 +62,20 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Deletes a vlog like in our database.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the vlog.
+        /// </remarks>
         /// <param name="id">The vlog like id.</param>
         public async Task DeleteAsync(VlogLikeId id)
         {
             if (id is null)
             {
                 throw new ArgumentNullException(nameof(id));
+            }
+
+            if (!AppContext.HasUser || id.UserId != AppContext.UserId)
+            {
+                throw new NotAllowedException();
             }
 
             var sql = @"

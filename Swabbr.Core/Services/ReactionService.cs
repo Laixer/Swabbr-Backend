@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
-    // TODO Implement.
     /// <summary>
     ///     Reaction related operations.
     /// </summary>
@@ -22,13 +21,10 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public ReactionService(AppContext appContext,
-            INotificationService notificationService, 
+        public ReactionService(INotificationService notificationService, 
             IReactionRepository reactionRepository,
             IVlogRepository vlogRepository)
         {
-            // TODO Is this correct usage? Not sure, since this implementation doesn't guarantee to be scoped.
-            AppContext = appContext ?? throw new ArgumentNullException();
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
@@ -37,6 +33,9 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Soft deletes a reaction in our data store.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the reaction.
+        /// </remarks>
         /// <param name="reactionId">The reaction to be deleted.</param>
         public Task DeleteReactionAsync(Guid reactionId)
             => _reactionRepository.DeleteAsync(reactionId);
@@ -97,40 +96,41 @@ namespace Swabbr.Core.Services
                 ThumbnailUri = null // TODO
             };
 
+        // FUTURE: First check reaction file existence in the blob storage
         /// <summary>
         ///     Called when a reaction has been uploaded. This will
         ///     actually post the reaction.
         /// </summary>
+        /// <remarks>
+        ///     The reaction will belong to the current user.
+        /// </remarks>
         /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
         /// <param name="reactionId">The uploaded reaction id.</param>
         public async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
         {
-            // This can never happen if we aren't logged in.
-            if (!AppContext.HasUser)
-            {
-                throw new InvalidOperationException();
-            }
-
             var reaction = new Reaction
             {
                 Id = reactionId,
                 TargetVlogId = targetVlogId,
-                UserId = AppContext.UserId
             };
 
+            // Note: The user id is assigned by the reaction repository based on the context.
+            // TODO This comment could not have been made without full knowledge of the repo, which we can't always have!
             await _reactionRepository.CreateAsync(reaction);
 
             var targetVlog = await _vlogRepository.GetAsync(targetVlogId);
+            // FUTURE: Enqueue
             await _notificationService.NotifyReactionPlacedAsync(targetVlog.UserId, targetVlogId, reactionId);                
         }
 
-        // TODO Look at this
         /// <summary>
         ///     Updates a reaction in our data store.
         /// </summary>
+        /// <remarks>
+        ///     This expects the current user to own the reaction.
+        /// </remarks>
         /// <param name="reaction">The reaction with updated properties.</param>
         public Task UpdateReactionAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
-
     }
 }
