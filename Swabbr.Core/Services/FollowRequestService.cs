@@ -85,32 +85,13 @@ namespace Swabbr.Core.Services
                 },
                 FollowRequestStatus.Declined);
 
-        // TODO Do we really want this precondition?
-        // TODO Move down?
         /// <summary>
         ///     Gets a follow request from our data store.
         /// </summary>
-        /// <remarks>
-        ///     This expects either the requester id or the receiver 
-        ///     id to be the current user id. If this is not the case, 
-        ///     an <see cref="InvalidOperationException"/> is thrown.
-        /// </remarks>
         /// <param name="id">The follow request id.</param>
         /// <returns>Follow request entity.</returns>
         public virtual Task<FollowRequest> GetAsync(FollowRequestId id)
-        {
-            if (id is null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (id.RequesterId != _appContext.UserId && id.ReceiverId != _appContext.UserId)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return GetAsync(id);
-        }
+            => _followRequestRepository.GetAsync(id);
 
         /// <summary>
         ///     Returns the amount of users that follow the specified user.
@@ -146,19 +127,13 @@ namespace Swabbr.Core.Services
         public virtual IAsyncEnumerable<FollowRequest> GetPendingOutgoingForUserAsync(Navigation navigation)
             => _followRequestRepository.GetOutgoingForUserAsync(navigation);
 
-        // TODO Do we want this precondition?
         /// <summary>
         ///     Gets the status of a follow request.
         /// </summary>
-        /// <remarks>
-        ///     This expects either the requester id or the receiver 
-        ///     id to be the current user id.
-        /// </remarks>
         /// <param name="id">The follow request id.</param>
         /// <returns>The follow request status.</returns>
         public virtual async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
         {
-            // The mentioned preconditions are checked by GetAsync(id).
             var request = await GetAsync(id);
 
             return request.FollowRequestStatus;
