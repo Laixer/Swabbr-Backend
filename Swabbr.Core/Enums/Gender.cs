@@ -1,32 +1,23 @@
-﻿using System.Runtime.Serialization;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
-
     /// <summary>
-    /// Enum for the gender of a <see cref="Core.Entities.SwabbrUser"/>.
+    ///     Enum for the gender of a user.
     /// </summary>
     public enum Gender
     {
+        /// <summary>
+        ///     Female gender.
+        /// </summary>
+        Female = 0,
 
         /// <summary>
-        /// Female gender.
+        ///     Male gender.
         /// </summary>
-        [EnumMember(Value = "female")]
-        Female,
+        Male = 1,
 
         /// <summary>
-        /// Male gender.
+        ///     Other or unknown gender.
         /// </summary>
-        [EnumMember(Value = "male")]
-        Male,
-
-        /// <summary>
-        /// Other or unknown gender.
-        /// </summary>
-        [EnumMember(Value = "unspecified")]
-        Unspecified
-
+        Unspecified = 2
     }
-
 }

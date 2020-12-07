@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
     /// <summary>
     ///     Indicates the state of a vlog.
@@ -10,13 +8,11 @@ namespace Swabbr.Core.Enums
         /// <summary>
         ///     The vlog is ready to be watched.
         /// </summary>
-        [EnumMember(Value = "up_to_date")]
-        UpToDate,
+        UpToDate = 0,
 
         /// <summary>
         ///     The vlog has been soft deleted.
         /// </summary>
-        [EnumMember(Value = "deleted")]
-        Deleted
+        Deleted = 1
     }
 }

@@ -1,26 +1,18 @@
-﻿using System.Runtime.Serialization;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
-
     /// <summary>
-    /// Represents the supported mobile platform services for push notifications.
+    ///     Represents the supported mobile platform services for push notifications.
     /// </summary>
     public enum PushNotificationPlatform
     {
-
         /// <summary>
         /// Apple Push Notification Service (iOS).
         /// </summary>
-        [EnumMember(Value = "apns")]
-        APNS,
+        APNS = 0,
 
         /// <summary>
         /// Firebase Cloud Messaging (Android).
         /// </summary>
-        [EnumMember(Value = "fcm")]
-        FCM
-
+        FCM = 1
     }
-
 }

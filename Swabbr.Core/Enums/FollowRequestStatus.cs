@@ -1,32 +1,23 @@
-﻿using System.Runtime.Serialization;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
-
     /// <summary>
-    /// Enum that represents the status of an active <see cref="Core.Entities.FollowRequest"/> between two users.
+    ///     Enum representing a follow request status.
     /// </summary>
     public enum FollowRequestStatus
     {
+        /// <summary>
+        ///     The follow request is waiting for approval.
+        /// </summary>
+        Pending = 0,
 
         /// <summary>
-        /// The follow request is waiting for approval.
+        ///     The follow request has been accepted.
         /// </summary>
-        [EnumMember(Value = "pending")]
-        Pending,
-
-        /// <summary>
-        /// The follow request has been accepted.
-        /// </summary>
-        [EnumMember(Value = "accepted")]
-        Accepted,
+        Accepted = 1,
 
         /// <summary>
         /// The follow request has been declined.
         /// </summary>
-        [EnumMember(Value = "declined")]
-        Declined
-
+        Declined = 2
     }
-
 }

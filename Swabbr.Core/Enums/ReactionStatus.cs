@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Enums
 {
     /// <summary>
     ///     Represents status of a reaction.
@@ -10,13 +8,11 @@ namespace Swabbr.Core.Enums
         /// <summary>
         ///     The reaction is ready to be watched.
         /// </summary>
-        [EnumMember(Value = "up_to_date")]
-        UpToDate,
+        UpToDate = 0,
 
         /// <summary>
         ///     The reaction has been soft deleted.
         /// </summary>
-        [EnumMember(Value = "deleted")]
-        Deleted
+        Deleted = 1
     }
 }
