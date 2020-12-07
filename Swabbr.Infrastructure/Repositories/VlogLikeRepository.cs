@@ -179,13 +179,13 @@ namespace Swabbr.Infrastructure.Repositories
                             vl.user_id,
                             vl.vlog_id
                     FROM    entities.vlog_like_nondeleted AS vl
-                    WHERE   vl.target_vlog_id = @target_vlog_id";
+                    WHERE   vl.vlog_id = @vlog_id";
 
             ConstructNavigation(ref sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("target_vlog_id", vlogId);
+            context.AddParameterWithValue("vlog_id", vlogId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {

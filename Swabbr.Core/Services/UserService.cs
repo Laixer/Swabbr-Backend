@@ -99,14 +99,37 @@ namespace Swabbr.Core.Services
         public virtual IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
             => _userRepository.SearchAsync(query, navigation);
 
-        // TODO Should this do any of the work that UserSettingsController.UpdateAsync does?
         /// <summary>
         ///     This updates the current user in our database.
         /// </summary>
         /// <param name="user">The updated user entity.</param>
         /// <returns>The user entity after the update operation.</returns>
-        public virtual Task UpdateAsync(SwabbrUser user)
-            => _userRepository.UpdateAsync(user);
+        public async virtual Task UpdateAsync(SwabbrUser user)
+        {
+            if (user is null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+            
+            var currentUser = await _userRepository.GetAsync(AppContext.UserId);
+
+            // TODO Do in sql?
+            currentUser.BirthDate = user.BirthDate ?? currentUser.BirthDate;
+            currentUser.Country = user.Country ?? currentUser.Country;
+            currentUser.DailyVlogRequestLimit = user.DailyVlogRequestLimit;
+            currentUser.FirstName = user.FirstName ?? currentUser.FirstName;
+            currentUser.FollowMode = user.FollowMode; // Not nullable
+            currentUser.Gender = user.Gender ?? currentUser.Gender;
+            currentUser.IsPrivate = user.IsPrivate; // Not nullable
+            currentUser.LastName = user.LastName ?? currentUser.LastName;
+            currentUser.Latitude = user.Latitude ?? currentUser.Latitude;
+            currentUser.Longitude = user.Longitude ?? currentUser.Longitude;
+            currentUser.Nickname = user.Nickname ?? currentUser.Nickname;
+            currentUser.ProfileImageBase64Encoded = user.ProfileImageBase64Encoded ?? currentUser.ProfileImageBase64Encoded;
+            currentUser.Timezone = user.Timezone ?? currentUser.Timezone;
+
+            await _userRepository.UpdateAsync(currentUser);
+        }
 
         /// <summary>
         ///     Updates a user location in our data store.
