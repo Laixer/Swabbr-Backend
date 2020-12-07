@@ -1,41 +1,36 @@
-﻿using Newtonsoft.Json;
-using Swabbr.Api.ViewModels.Enums;
+﻿using Swabbr.Core.Enums;
 using System;
 
-namespace Swabbr.Api.ViewModels
+namespace Swabbr.Api.DataTransferObjects
 {
-
     /// <summary>
-    /// Represents a single follow request.
+    ///     DTO for a follow request.
     /// </summary>
-    public class FollowRequestOutputModel
+    public class FollowRequestDto
     {
-
         /// <summary>
-        /// Id of the user that initiated the follow request.
+        ///     Id of the requesting user.
         /// </summary>
         public Guid RequesterId { get; set; }
 
         /// <summary>
-        /// Id of the user that should receive the follow request.
+        ///     Id of the receiving user.
         /// </summary>
         public Guid ReceiverId { get; set; }
 
         /// <summary>
-        /// Current status of the follow request.
+        ///     Current status of the follow request.
         /// </summary>
-        public string Status { get; set; }
+        public FollowRequestStatus FollowRequestStatus { get; set; }
 
         /// <summary>
-        /// Timestamp of when the request was initiated.
+        ///     Timestamp of when the request was initiated.
         /// </summary>
         public DateTimeOffset DateCreated { get; set; }
-        
+
         /// <summary>
         ///     Timestamp of when the request was updated.
         /// </summary>
         public DateTimeOffset? DateUpdated { get; set; }
-
     }
-
 }

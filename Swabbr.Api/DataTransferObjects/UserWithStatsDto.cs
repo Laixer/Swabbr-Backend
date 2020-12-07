@@ -1,18 +1,10 @@
-﻿using System;
-
-namespace Swabbr.Api.ViewModels.User
+﻿namespace Swabbr.Api.DataTransferObjects
 {
     /// <summary>
-    ///     Represents all statistics belonging to a single 
-    ///     <see cref="UserWithStatsOutputModel"/>.
+    ///     DTO for a user with its statistics.
     /// </summary>
-    public class UserStatisticsOutputModel
+    public class UserWithStatsDto : UserDto
     {
-        /// <summary>
-        ///     Represents the id of this user.
-        /// </summary>
-        public Guid UserId { get; set; }
-
         /// <summary>
         ///     The total amount of accumulated likes for the vlogs of this user.
         /// </summary>
