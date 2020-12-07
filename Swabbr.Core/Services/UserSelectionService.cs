@@ -63,7 +63,7 @@ namespace Swabbr.Core.Services
             {
                 // Perform one check for each possible vlog request,
                 // since users can have more than one request per day.
-                for (int i = 1; i <= Math.Min(_options.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
+                for (int i = 1; i <= Math.Min(_options.MaxDailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
                 {
                     // Get the matching minute on which a user should receive 
                     // a request and correct it using the users timezone.

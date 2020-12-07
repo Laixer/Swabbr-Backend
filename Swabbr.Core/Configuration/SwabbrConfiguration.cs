@@ -28,7 +28,7 @@
         /// <summary>
         ///     Maximum daily vlog request count.
         /// </summary>
-        public uint DailyVlogRequestLimit { get; set; }
+        public uint MaxDailyVlogRequestLimit { get; set; }
 
         /// <summary>
         ///     Minute of the day that our vlog requests start.

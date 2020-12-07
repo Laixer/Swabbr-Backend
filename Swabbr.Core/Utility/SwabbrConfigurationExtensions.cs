@@ -21,7 +21,7 @@ namespace Swabbr.Core.Utility
             }
 
             if (config.ReactionLengthMaxInSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.ReactionLengthMaxInSeconds)); }
-            if (config.DailyVlogRequestLimit < 0) { throw new ConfigurationRangeException(nameof(config.DailyVlogRequestLimit)); }
+            if (config.MaxDailyVlogRequestLimit < 0) { throw new ConfigurationRangeException(nameof(config.MaxDailyVlogRequestLimit)); }
             if (config.VlogLengthMaxSeconds <= 0) { throw new ConfigurationRangeException(nameof(config.VlogLengthMaxSeconds)); }
             if (config.VlogLengthMinSeconds < 0) { throw new ConfigurationRangeException(nameof(config.VlogLengthMinSeconds)); }
             if (config.VlogRequestTimeoutMinutes <= 0) { throw new ConfigurationRangeException(nameof(config.VlogRequestTimeoutMinutes)); }
