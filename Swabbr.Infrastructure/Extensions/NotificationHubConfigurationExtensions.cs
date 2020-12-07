@@ -21,7 +21,7 @@ namespace Swabbr.Infrastructure.Extensions
                 throw new ArgumentNullException(nameof(config));
             }
 
-            if (config.ConnectionString.IsNullOrEmpty()) { throw new ConfigurationException("ANH Connection string is not specified"); }
+            if (config.ConnectionStringName.IsNullOrEmpty()) { throw new ConfigurationException("ANH Connection string is not specified"); }
             if (config.HubName.IsNullOrEmpty()) { throw new ConfigurationException("ANH hub name is not specified"); }
         }
     }

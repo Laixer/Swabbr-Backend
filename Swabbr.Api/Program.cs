@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
 using System.Threading.Tasks;
 
 namespace Swabbr
@@ -29,16 +26,6 @@ namespace Swabbr
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                })
-                .ConfigureAppConfiguration((hostingContext, config) =>
-                {
-                    var settings = config.Build();
-                    var connectionString = settings["ConnectionStrings:AzureAppConfig"];
-                    if (string.IsNullOrEmpty(connectionString)) { throw new ConfigurationException("Missing connection string for AzureAppConfig"); }
-                    config.AddAzureAppConfiguration(options =>
-                    {
-                        options.Connect(connectionString);
-                    });
                 });
     }
 }

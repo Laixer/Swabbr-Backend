@@ -2,24 +2,22 @@
 using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Core.Interfaces.Factories;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Swabbr.Api
 {
     /// <summary>
     ///     Factory for creating application context.
     /// </summary>
-    public class AppContextFactory : IAppContextFactory
+    public class AspAppContextFactory : IAppContextFactory
     {
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public AppContextFactory(IServiceProvider serviceProvider)
+        public AspAppContextFactory(IServiceProvider serviceProvider)
             => _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
         /// <summary>

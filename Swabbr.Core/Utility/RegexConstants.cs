@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Swabbr.Api.Utility
+namespace Swabbr.Core
 {
     /// <summary>
     /// Contains formatting constants for our regex expressions.

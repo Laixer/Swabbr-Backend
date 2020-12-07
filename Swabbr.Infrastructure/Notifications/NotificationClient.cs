@@ -1,10 +1,10 @@
 ﻿using Microsoft.Azure.NotificationHubs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Enums;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
@@ -34,16 +34,18 @@ namespace Swabbr.Infrastructure.Notifications
         /// Constructor for dependency injection.
         /// </summary>
         public NotificationClient(IOptions<NotificationHubConfiguration> options,
-            ILogger<NotificationClient> logger)
+            ILogger<NotificationClient> logger,
+            IConfiguration configuration)
         {
-            if (options == null || options.Value == null)
+            if (options is null || options.Value is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             // Instantiate new client only once, reuse every time.
-            _hubClient = NotificationHubClient.CreateClientFromConnectionString(options.Value.ConnectionString, options.Value.HubName);
+            var connectionString = configuration.GetConnectionString(options.Value.ConnectionStringName);
+            _hubClient = NotificationHubClient.CreateClientFromConnectionString(connectionString, options.Value.HubName);
         }
 
         /// <summary>
