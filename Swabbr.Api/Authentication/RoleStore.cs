@@ -7,16 +7,12 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-
+    // TODO This should be cleaned up completely / removed completely
     /// <summary>
-    /// Contains our role stores for identity.
+    ///     Contains our role stores for identity.
     /// </summary>
     public class RoleStore : IRoleStore<SwabbrIdentityRole>
     {
-
-        /// <summary>
-        /// TODO Don't hard code like this.
-        /// </summary>
         protected static readonly List<SwabbrIdentityRole> Roles = new List<SwabbrIdentityRole>
         {
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "User", NormalizedName = "USER" },
@@ -25,19 +21,16 @@ namespace Swabbr.Api.Authentication
 
         public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            // TODO THOMAS This should throw! I suspect this is to enable endpoint calling for iOS and Android? --> yorick: kan met de user manager te maken hebben
             return Task.FromResult(IdentityResult.Success);
         }
 
         public Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            // TODO Not implemented
             return Task.FromResult(IdentityResult.Success);
         }
 
         public Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {
-            // TODO Not implemented
             return Task.FromResult(IdentityResult.Success);
         }
 

@@ -24,10 +24,6 @@ using System.Text;
 
 namespace Swabbr
 {
-    // TODO Move this to trello (which is down atm)
-    // TODO Annotations in DTO's
-    // TODO Consistency with user / userwithstats
-
     /// <summary>
     ///     Called on application startup to configure
     ///     service container and request pipeline.
