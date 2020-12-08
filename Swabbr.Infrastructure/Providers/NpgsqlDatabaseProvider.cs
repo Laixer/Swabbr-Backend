@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using Swabbr.Core.Exceptions;
 using System;
 using System.Data.Common;

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;

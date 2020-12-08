@@ -1,5 +1,5 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -23,7 +23,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// <remarks>
         ///     This is invalid and returns <see cref="InvalidOperationException"/>.
         /// </remarks>
-        public Task<Guid> CreateAsync(SwabbrUser entity)
+        public Task<Guid> CreateAsync(User entity)
             => throw new InvalidOperationException();
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Collection of users.</returns>
-        public async IAsyncEnumerable<SwabbrUser> GetAllAsync(Navigation navigation)
+        public async IAsyncEnumerable<User> GetAllAsync(Navigation navigation)
         {
             var sql = @"
                     SELECT  u.birth_date,
@@ -115,7 +115,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable users.</returns>
-        public async IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation)
+        public async IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation)
         {
             var sql = @"
                     SELECT  u.birth_date,
@@ -150,7 +150,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="id">The user id.</param>
         /// <returns>The user.</returns>
-        public async Task<SwabbrUser> GetAsync(Guid id)
+        public async Task<User> GetAsync(Guid id)
         {
             var sql = @"
                     SELECT  u.birth_date,
@@ -186,7 +186,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="userId">The user that is being followed.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Followers of the specified user.</returns>
-        public async IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
         {
             var sql = @"
                     SELECT  u.birth_date,
@@ -255,7 +255,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="userId">The user that is following.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Users that the user is following.</returns>
-        public async IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
         {
             var sql = @"
                     SELECT  u.birth_date,
@@ -318,7 +318,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="userId">The internal user id.</param>
         /// <returns>The user entity with statistics.</returns>
-        public async Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId)
+        public async Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
         {
             var sql = @"
                     SELECT  uws.birth_date,
@@ -337,6 +337,10 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.timezone,
                             uws.total_followers,
                             uws.total_following,
+                            uws.total_likes_received,
+                            uws.total_reactions_given,
+                            uws.total_reactions_received,
+                            uws.total_views,
                             uws.total_vlogs
                     FROM    application.user_with_stats AS uws
                     WHERE   uws.id = @id
@@ -357,28 +361,25 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        public async IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
+        public async IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
         {
             var sql = @"
-                    SELECT  uws.birth_date,
-                            uws.country,
-                            uws.daily_vlog_request_limit,
-                            uws.first_name,
-                            uws.follow_mode,
-                            uws.gender,
-                            uws.id,
-                            uws.is_private,
-                            uws.last_name,
-                            uws.latitude,
-                            uws.longitude,
-                            uws.nickname,
-                            uws.profile_image_base64_encoded,
-                            uws.timezone,
-                            uws.total_followers,
-                            uws.total_following,
-                            uws.total_vlogs
-                    FROM    application.user_with_stats AS uws
-                    WHERE   LOWER(uws.nickname) LIKE LOWER(@query)";
+                    SELECT  u.birth_date,
+                            u.country,
+                            u.daily_vlog_request_limit,
+                            u.first_name,
+                            u.follow_mode,
+                            u.gender,
+                            u.id,
+                            u.is_private,
+                            u.last_name,
+                            u.latitude,
+                            u.longitude,
+                            u.nickname,
+                            u.profile_image_base64_encoded,
+                            u.timezone
+                    FROM    application.user AS u
+                    WHERE   LOWER(u.nickname) LIKE LOWER(@query)";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -389,7 +390,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
-                yield return MapWithStatsFromReader(reader);
+                yield return MapFromReader(reader);
             }
         }
 
@@ -401,7 +402,7 @@ namespace Swabbr.Infrastructure.Repositories
         ///     longitude and latitude properties.
         /// </remarks>
         /// <param name="entity">The user with updated properties.</param>
-        public async Task UpdateAsync(SwabbrUser entity)
+        public async Task UpdateAsync(User entity)
         {
             if (entity is null)
             {
@@ -440,8 +441,8 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="reader">The reader to map from.</param>
         /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped user object.</returns>
-        internal static SwabbrUser MapFromReader(DbDataReader reader, int offset = 0)
-            => new SwabbrUser
+        internal static User MapFromReader(DbDataReader reader, int offset = 0)
+            => new User
             {
                 BirthDate = reader.GetSafeDateTime(0 + offset),
                 Country = reader.GetSafeString(1 + offset),
@@ -465,8 +466,8 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="reader">The reader to map from.</param>
         /// <param name="offset">Ordinal offset.</param>
         /// <returns>The mapped user with stats object.</returns>
-        internal static SwabbrUserWithStats MapWithStatsFromReader(DbDataReader reader, int offset = 0)
-            => new SwabbrUserWithStats
+        internal static UserWithStats MapWithStatsFromReader(DbDataReader reader, int offset = 0)
+            => new UserWithStats
             {
                 BirthDate = reader.GetSafeDateTime(0 + offset),
                 Country = reader.GetSafeString(1 + offset),
@@ -484,7 +485,11 @@ namespace Swabbr.Infrastructure.Repositories
                 Timezone = reader.GetTimeZoneInfo(13 + offset),
                 TotalFollowers = reader.GetUInt(14 + offset),
                 TotalFollowing = reader.GetUInt(15 + offset),
-                TotalVlogs = reader.GetUInt(16 + offset)
+                TotalLikesReceived = reader.GetUInt(16 + offset),
+                TotalReactionsGiven = reader.GetUInt(17 + offset),
+                TotalReactionsReceived = reader.GetUInt(18 + offset),
+                TotalViews = reader.GetUInt(19 + offset),
+                TotalVlogs = reader.GetUInt(20 + offset)
             };
 
         /// <summary>
@@ -505,7 +510,7 @@ namespace Swabbr.Infrastructure.Repositories
         /// </summary>
         /// <param name="context">The context to add parameters to.</param>
         /// <param name="user">The user object.</param>
-        private static void MapToWriter(DatabaseContext context, SwabbrUser user)
+        private static void MapToWriter(DatabaseContext context, User user)
         {
             context.AddParameterWithValue("birth_date", user.BirthDate);
             context.AddParameterWithValue("country", user.Country);

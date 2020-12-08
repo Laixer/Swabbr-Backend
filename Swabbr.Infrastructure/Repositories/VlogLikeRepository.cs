@@ -248,7 +248,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             // Else, extract each user.
-            var users = new List<SwabbrUser>();
+            var users = new List<User>();
             do
             {
                 // Pass an offset of 1 since the first column is the count.
@@ -300,7 +300,7 @@ namespace Swabbr.Infrastructure.Repositories
             => new VlogLikeSummary
             {
                 TotalLikes = 0,
-                Users = new List<SwabbrUser>(),
+                Users = new List<User>(),
                 VlogId = vlogId
             };
     }

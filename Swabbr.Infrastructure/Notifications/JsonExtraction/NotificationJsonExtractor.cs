@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using Swabbr.Core.Notifications;
 using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
