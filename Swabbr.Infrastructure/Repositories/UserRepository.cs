@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -527,7 +526,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("timezone", MapTimeZoneToStringOrNull(user.Timezone));
         }
 
-        // TODO Move to helper
+        // TODO Move to helper, or maybe to sql formatter thing?
         /// <summary>
         ///     Converts a timezone object to the expected
         ///     database format timezone.

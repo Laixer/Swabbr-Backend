@@ -20,6 +20,6 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Timespan indicating how long the access token is valid.
         /// </summary>
-        public TimeSpan TokenExpirationTimespan { get; set; }
+        public TimeSpan TokenExpirationTimeSpan { get; set; }
     }
 }

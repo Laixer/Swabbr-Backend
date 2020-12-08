@@ -16,7 +16,8 @@ namespace Swabbr.Api.DataTransferObjects
         ///     Nickname to display for the user.
         /// </summary>
         /// <remarks>
-        ///     This hides the base member to require the nickname.
+        ///     This hides the base member to make 
+        ///     the nickname required.
         /// </remarks>
         [Required(AllowEmptyStrings = false)]
         public new string Nickname { get; set; }

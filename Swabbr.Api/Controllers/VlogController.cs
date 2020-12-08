@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
@@ -153,10 +154,10 @@ namespace Swabbr.Api.Controllers
         [HttpPost("{vlogId}")]
         public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogDto input)
         {
-            // Act.
-            var vlog = await _vlogService.GetAsync(vlogId);
-            vlog.IsPrivate = input.IsPrivate;
+            // Map.
+            var vlog = _mapper.Map<Vlog>(input);
 
+            // Act.
             await _vlogService.UpdateAsync(vlog);
 
             // Return.

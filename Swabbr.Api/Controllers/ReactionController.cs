@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
@@ -95,10 +96,10 @@ namespace Swabbr.Api.Controllers
         [HttpPost("{reactionId}/update")]
         public async Task<IActionResult> Update([FromRoute] Guid reactionId, [FromBody] ReactionDto input)
         {
-            // Act.
-            var reaction = await _reactionService.GetAsync(reactionId);
-            reaction.IsPrivate = input.IsPrivate;
+            // Map.
+            var reaction = _mapper.Map<Reaction>(input);
 
+            // Act.
             await _reactionService.UpdateReactionAsync(reaction);
 
             // Return.

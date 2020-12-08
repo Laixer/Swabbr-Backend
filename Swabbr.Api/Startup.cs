@@ -25,6 +25,7 @@ using System.Text;
 
 namespace Swabbr
 {
+    // TODO Look at this
     /// <summary>
     ///     Called on application startup to configure
     ///     service container and request pipeline.

@@ -23,11 +23,13 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Device handle.
         /// </summary>
+        [Required(AllowEmptyStrings = false)]
         public string Handle { get; set; }
 
         /// <summary>
         ///     Platform on which the device can receive push notifications.
         /// </summary>
+        [Required]
         public PushNotificationPlatform PushNotificationPlatform { get; set; }
     }
 }

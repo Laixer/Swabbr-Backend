@@ -5,6 +5,7 @@ using System;
 
 namespace Swabbr.Infrastructure.Extensions
 {
+    // TODO Look at thi
     /// <summary>
     ///     Contains extension functionality for <see cref="NotificationHubConfiguration"/>.
     /// </summary>

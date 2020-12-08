@@ -13,6 +13,7 @@ using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
+    // TODO Can be better
     /// <summary>
     ///     Controller for authentication.
     /// </summary>
@@ -110,7 +111,7 @@ namespace Swabbr.Api.Controllers
                 {
                     CreateDate = tokenWrapper.CreateDate,
                     Token = tokenWrapper.Token,
-                    TokenExpirationTimespan = tokenWrapper.TokenExpirationTimespan
+                    TokenExpirationTimeSpan = tokenWrapper.TokenExpirationTimespan
                 };
 
                 // Return.

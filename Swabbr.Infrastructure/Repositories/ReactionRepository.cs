@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
@@ -14,6 +13,7 @@ using System.Transactions;
 
 namespace Swabbr.Infrastructure.Repositories
 {
+    // TODO target_vlog_id -> vlog_id
     /// <summary>
     ///     Repository for reactions.
     /// </summary>
