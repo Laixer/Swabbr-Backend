@@ -12,7 +12,8 @@ using Microsoft.OpenApi.Models;
 using Swabbr.Api;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Extensions;
-using Swabbr.Core.Configuration;
+using Swabbr.Api.Helpers;
+using Swabbr.Core;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Infrastructure.Configuration;
@@ -61,19 +62,24 @@ namespace Swabbr
             // Setup doc
             SetupSwagger(services);
 
-            // Add app context
-            services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
-
             // Add infrastructure services.
             // Explicitly add Azure Notification Hub configuration.
             services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
             services.Configure<NotificationHubConfiguration>(_configuration.GetSection("AzureNotificationHub"));
 
+            // Add app context
+            services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
+
             // Add core services.
+            // Note: This also makes the AppContext injectable 
+            //       using the IAppContextFactory singleton.
             services.AddSwabbrCoreServices();
 
             // Add mapping
             services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
+
+            // Add API specific services
+            services.AddTransient<UserUpdateHelper>();
         }
 
         /// <summary>
@@ -128,7 +134,7 @@ namespace Swabbr
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swabbr", Version = "v1" });
 
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                var xmlPath = Path.Combine(System.AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
 
                 // Require authorization header

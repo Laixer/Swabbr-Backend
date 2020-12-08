@@ -1,8 +1,5 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Swabbr.Api.DataTransferObjects
 {
@@ -45,5 +42,15 @@ namespace Swabbr.Api.DataTransferObjects
         ///     Indicates the state of this reaction.
         /// </summary>
         public ReactionStatus ReactionStatus { get; set; }
+
+        /// <summary>
+        ///     Reaction video download uri.
+        /// </summary>
+        public Uri VideoUri { get; set; }
+
+        /// <summary>
+        ///     Thumbnail download uri.
+        /// </summary>
+        public Uri ThumbnailUri { get; set; }
     }
 }

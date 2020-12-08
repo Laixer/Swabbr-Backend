@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Api.DataTransferObjects
@@ -43,10 +43,14 @@ namespace Swabbr.Api.DataTransferObjects
         /// </summary>
         public VlogStatus VlogStatus { get; set; }
 
-        // TODO
-        public Uri DownloadUri { get; set; }
+        /// <summary>
+        ///     Vlog video download uri.
+        /// </summary>
+        public Uri VideoUri { get; set; }
 
-        // TODO
+        /// <summary>
+        ///     Thumbnail download uri.
+        /// </summary>
         public Uri ThumbnailUri { get; set; }
     }
 }

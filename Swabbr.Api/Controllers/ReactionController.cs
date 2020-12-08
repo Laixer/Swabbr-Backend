@@ -74,7 +74,7 @@ namespace Swabbr.Api.Controllers
             var count = await _reactionService.GetReactionCountForVlogAsync(vlogId);
 
             // Map.
-            var output = new CollectionStatsDto
+            var output = new DatasetStatsDto
             {
                 Count = count
             };
@@ -105,9 +105,5 @@ namespace Swabbr.Api.Controllers
             // Return.
             return NoContent();
         }
-
-        [HttpGet("{reactionId}/watch")]
-        public async Task<IActionResult> WatchAsync([FromRoute]Guid reactionId)
-            => throw new NotImplementedException();
     }
 }

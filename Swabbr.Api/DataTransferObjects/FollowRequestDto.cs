@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Api.DataTransferObjects

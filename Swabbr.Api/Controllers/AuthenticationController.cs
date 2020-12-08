@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
+using Swabbr.Api.Helpers;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Net;
@@ -20,6 +21,7 @@ namespace Swabbr.Api.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly UserUpdateHelper _userUpdateHelper;
         private readonly TokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
@@ -30,6 +32,7 @@ namespace Swabbr.Api.Controllers
         ///     Create new instance.
         /// </summary>
         public AuthenticationController(IUserService userService,
+            UserUpdateHelper userUpdateHelper,
             TokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager,
@@ -37,6 +40,7 @@ namespace Swabbr.Api.Controllers
             IMapper mapper)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _userUpdateHelper = userUpdateHelper ?? throw new ArgumentNullException(nameof(userUpdateHelper));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
@@ -48,7 +52,7 @@ namespace Swabbr.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
         {
-            // Make this operation transactional
+            // Make this operation transactional.
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             // Construct a new identity user for a new user based on the given input.
@@ -66,35 +70,14 @@ namespace Swabbr.Api.Controllers
                 return BadRequest("Could not create new user, contact your administrator");
             }
 
-            // Update all other properties.
-            // The nickname is handled by the creation call.
-            var currentUser = await _userService.GetAsync(identityUser.Id);
+            // Assign any other specified user properties.
+            await _userUpdateHelper.UpdateUserAsync(input);
 
-            // TODO Duplicate code with user controller (update call)
-            currentUser.BirthDate = input.BirthDate ?? currentUser.BirthDate;
-            currentUser.Country = input.Country ?? currentUser.Country;
-            currentUser.DailyVlogRequestLimit = input.DailyVlogRequestLimit ?? currentUser.DailyVlogRequestLimit;
-            currentUser.FirstName = input.FirstName ?? currentUser.FirstName;
-            currentUser.FollowMode = input.FollowMode ?? currentUser.FollowMode;
-            currentUser.Gender = input.Gender ?? currentUser.Gender;
-            currentUser.IsPrivate = input.IsPrivate ?? currentUser.IsPrivate;
-            currentUser.LastName = input.LastName ?? currentUser.LastName;
-            currentUser.Latitude = input.Latitude ?? currentUser.Latitude;
-            currentUser.Longitude = input.Longitude ?? currentUser.Longitude;
-            currentUser.Nickname = input.Nickname ?? currentUser.Nickname;
-            currentUser.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded ?? currentUser.ProfileImageBase64Encoded;
-            currentUser.Timezone = input.Timezone ?? currentUser.Timezone;
-
-            await _userService.UpdateAsync(currentUser);
-            var updatedUser = await _userService.GetAsync(currentUser.Id);
-
+            // Complete the database transaction.
             scope.Complete();
 
-            // Map.
-            var output = _mapper.Map<UserDto>(updatedUser);
-
             // Return.
-            return Ok(output);
+            return NoContent();
         }
 
         [AllowAnonymous]
@@ -123,7 +106,7 @@ namespace Swabbr.Api.Controllers
                 var tokenWrapper = _tokenService.GenerateToken(identityUser);
 
                 // Map.
-                var output = new SignedInDto
+                var output = new LoggedInDto
                 {
                     CreateDate = tokenWrapper.CreateDate,
                     Token = tokenWrapper.Token,

@@ -26,26 +26,6 @@ namespace Swabbr.Api.Authentication
         public static string UserSettingsTableName => "UserSettings";
 
         public Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken) =>
-            /*var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
-
-// Ensure user does not exist
-// TODO THOMAS This should be success or throw
-var checkUser = await FindByEmailAsync(user.NormalizedEmail, new CancellationToken());
-if (checkUser != null)
-{
-return IdentityResult.Failed(new IdentityError { Description = "User already exists." });
-}
-
-// Insert the user
-// TODO THOMAS This should be success or throw
-var insertedUser = await client.InsertEntityAsync(user);
-
-if (insertedUser != null)
-{
-return IdentityResult.Success;
-}
-
-return IdentityResult.Failed(new IdentityError { Description = "Could not insert user" });*/
             throw new NotImplementedException();
 
         public Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
@@ -122,7 +102,6 @@ return IdentityResult.Failed(new IdentityError { Description = "Could not insert
         }
 
         public Task SetNormalizedUserNameAsync(SwabbrIdentityUser user, string normalizedName, CancellationToken cancellationToken) =>
-            // TODO Is this correct?
             Task.CompletedTask;
 
         public Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
@@ -269,7 +248,6 @@ return null;*/
         public Task<IList<Claim>> GetClaimsAsync(SwabbrIdentityUser user, CancellationToken cancellationToken) => Task.FromResult<IList<Claim>>(new List<Claim>());
 
         public Task<IList<SwabbrIdentityUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken) =>
-            //TODO: ?
             throw new NotImplementedException();
 
         public Task RemoveClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)

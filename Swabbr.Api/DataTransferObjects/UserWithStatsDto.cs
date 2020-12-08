@@ -8,7 +8,7 @@
         /// <summary>
         ///     The total amount of accumulated likes for the vlogs of this user.
         /// </summary>
-        public uint TotalLikes { get; set; }
+        public uint TotalLikesReceived { get; set; }
 
         /// <summary>
         ///     The total amount of users that are following this user.

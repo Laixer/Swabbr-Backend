@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
 using Swabbr.Core.Interfaces.Services;
@@ -21,15 +19,18 @@ namespace Swabbr.Api.Controllers
     [Route("followrequest")]
     public class FollowRequestController : ControllerBase
     {
+        private readonly Core.AppContext _appContext;
         private readonly IFollowRequestService _followRequestService;
         private readonly IMapper _mapper;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public FollowRequestController(IFollowRequestService followRequestService,
+        public FollowRequestController(Core.AppContext appContext,
+            IFollowRequestService followRequestService,
             IMapper mapper)
         {
+            _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _followRequestService = followRequestService ?? throw new ArgumentNullException(nameof(followRequestService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
@@ -90,22 +91,21 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        // TODO Ugly
         [HttpGet("outgoing/{receiverId}")]
-        public async Task<IActionResult> GetAsync([FromRoute] Guid receiverId, [FromServices] UserManager<SwabbrIdentityUser> userManager)
+        public async Task<IActionResult> GetAsync([FromRoute] Guid receiverId)
         {
             // Act.
             var followRequest = await _followRequestService.GetAsync(new FollowRequestId
             {
                 ReceiverId = receiverId,
-                RequesterId = Guid.Parse(userManager.GetUserId(User))
+                RequesterId = _appContext.UserId
             });
 
             // Map.
             var output = _mapper.Map<FollowRequestDto>(followRequest);
 
             // Return.
-            return Ok(followRequest);
+            return Ok(output);
         }
 
         [HttpPost("send")]

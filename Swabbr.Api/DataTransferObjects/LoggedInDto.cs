@@ -5,7 +5,7 @@ namespace Swabbr.Api.DataTransferObjects
     /// <summary>
     ///     DTO for when a user signed in.
     /// </summary>
-    public class SignedInDto
+    public class LoggedInDto
     {
         /// <summary>
         ///     The acces token.

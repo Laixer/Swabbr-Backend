@@ -4,15 +4,20 @@ using System;
 namespace Swabbr.Api.DataTransferObjects
 {
     /// <summary>
-    ///     DTO for updating a user.
+    ///     DTO for a user.
     /// </summary>
     /// <remarks>
-    ///     All properties in this DTO are nullable. This should
-    ///     be used in conjunction with <see cref="Helpers.UserUpdateHelper"/>
-    ///     to ensure only assigned properties are updated.
+    ///     This contains everything about a user, including
+    ///     private information. For the public variant of 
+    ///     this DTO, <see cref="UserDto"/>.
     /// </remarks>
-    public class UserUpdateDto
-    { 
+    public class UserCompleteDto
+    {
+        /// <summary>
+        ///     Unique user identifier.
+        /// </summary>
+        public Guid Id { get; set; }
+
         /// <summary>
         ///     First name of the user.
         /// </summary>
@@ -68,17 +73,17 @@ namespace Swabbr.Api.DataTransferObjects
         ///     Indicates whether the profile of the user is 
         ///     publicly visible to other users.
         /// </summary>
-        public bool? IsPrivate { get; set; }
+        public bool IsPrivate { get; set; }
 
         /// <summary>
         ///     The maximum amount of times the user should be reminded 
         ///     to record a vlog through push notifications.
         /// </summary>
-        public uint? DailyVlogRequestLimit { get; set; }
+        public uint DailyVlogRequestLimit { get; set; }
 
         /// <summary>
         ///     Determines how follow requests are processed for the user.
         /// </summary>
-        public FollowMode? FollowMode { get; set; }
+        public FollowMode FollowMode { get; set; }
     }
 }

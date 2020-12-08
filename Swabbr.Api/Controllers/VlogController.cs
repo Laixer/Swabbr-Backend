@@ -31,7 +31,17 @@ namespace Swabbr.Api.Controllers
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
-        
+
+        [HttpPost("{vlogId}/addview")]
+        public async Task<IActionResult> AddViewAsync([FromRoute] Guid vlogId)
+        {
+            // Act.
+            await _vlogService.AddView(vlogId);
+
+            // Return.
+            return NoContent();
+        }
+
         [HttpDelete("{vlogId}")]
         public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
         {
@@ -46,10 +56,10 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> GetAsync([FromRoute] Guid vlogId)
         {
             // Act.
-            var vlogWithThumbnail = await _vlogService.GetWithThumbnailAsync(vlogId);
+            var vlog = await _vlogService.GetAsync(vlogId);
 
             // Map.
-            var output = _mapper.Map<VlogWithThumbnailDetails, VlogDto>(vlogWithThumbnail);
+            var output = _mapper.Map<VlogDto>(vlog);
 
             // Return.
             return Ok(output);
@@ -59,11 +69,11 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> GetWithSummaryAsync([FromRoute] Guid vlogId)
         {
             // Act.
-            var vlogWithThumbnail = await _vlogService.GetWithThumbnailAsync(vlogId);
+            var vlog = await _vlogService.GetAsync(vlogId);
             var vlogLikeSummary = await _vlogService.GetVlogLikeSummaryForVlogAsync(vlogId);
 
             // Map.
-            var output = _mapper.Map<VlogWithSummaryDto>(vlogWithThumbnail);
+            var output = _mapper.Map<VlogWithSummaryDto>(vlog);
             output.TotalLikes = vlogLikeSummary.TotalLikes;
             output.Users = _mapper.Map<IEnumerable<UserDto>>(vlogLikeSummary.Users);
 
@@ -74,6 +84,7 @@ namespace Swabbr.Api.Controllers
         [HttpGet("{vlogId}/likes")]
         public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
         {
+            // TODO ToListAsync eruit en mapper extension voor bouwen?
             // Act.
             var likes = await _vlogService.GetVlogLikesForVlogAsync(vlogId, pagination.ToNavigation()).ToListAsync();
 
@@ -88,7 +99,6 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> GetRecommendedVlogsAsync([FromQuery] PaginationDto pagination)
         {
             // Act.
-            // TODO With thumbnail
             var vlogs = await _vlogService.GetRecommendedForUserAsync(pagination.ToNavigation()).ToListAsync();
 
             // Map.
@@ -112,10 +122,10 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId, [FromQuery] PaginationDto pagination)
         {
             // Act.
-            var vlogsWithThumbnails = await _vlogService.GetVlogsByUserWithThumbnailsAsync(userId, pagination.ToNavigation()).ToListAsync();
+            var vlogs = await _vlogService.GetVlogsByUserAsync(userId, pagination.ToNavigation()).ToListAsync();
 
             // Map.
-            var output = _mapper.Map<IEnumerable<VlogDto>>(vlogsWithThumbnails);
+            var output = _mapper.Map<IEnumerable<VlogDto>>(vlogs);
 
             // Return
             return Ok(output);
@@ -152,16 +162,6 @@ namespace Swabbr.Api.Controllers
 
             // Return.
             return NoContent();
-        }
-
-        [HttpGet("{vlogId}/watch")]
-        public async Task<IActionResult> WatchAsync([FromRoute] Guid vlogId)
-        {
-            // Act.
-            // TODO Single call? 
-            await _vlogService.AddView(vlogId);
-
-            throw new NotImplementedException();
         }
     }
 }

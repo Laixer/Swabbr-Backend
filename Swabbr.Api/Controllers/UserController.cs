@@ -1,20 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
-using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Extensions;
+using Swabbr.Api.Helpers;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Controllers
@@ -29,16 +22,22 @@ namespace Swabbr.Api.Controllers
     [Route("user")]
     public class UserController : ControllerBase
     {
+        private readonly Core.AppContext _appContext;
         private readonly IUserService _userService;
+        private readonly UserUpdateHelper _userUpdateHelper;
         private readonly IMapper _mapper;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public UserController(IUserService userService,
+        public UserController(Core.AppContext appContext,
+            IUserService userService,
+            UserUpdateHelper userUpdateHelper,
             IMapper mapper)
         {
+            _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _userUpdateHelper = userUpdateHelper ?? throw new ArgumentNullException(nameof(userUpdateHelper));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -52,7 +51,7 @@ namespace Swabbr.Api.Controllers
             var output = _mapper.Map<UserDto>(user);
 
             // Return.
-            return Ok(user);
+            return Ok(output);
         }
 
         [HttpGet("{userId}/statistics")]
@@ -65,20 +64,20 @@ namespace Swabbr.Api.Controllers
             var output = _mapper.Map<UserWithStatsDto>(user);
 
             // Return.
-            return Ok(user);
+            return Ok(output);
         }
 
         [HttpGet("self/statistics")]
-        public async Task<IActionResult> GetStatisticsSelfAsync([FromServices] UserManager<SwabbrIdentityUser> userManager)
+        public async Task<IActionResult> GetStatisticsSelfAsync()
         {
             // Act.
-            var user = await _userService.GetWithStatisticsAsync(Guid.Parse(userManager.GetUserId(User)));
+            var user = await _userService.GetWithStatisticsAsync(_appContext.UserId);
 
             // Map.
             var output = _mapper.Map<UserWithStatsDto>(user);
 
             // Return.
-            return Ok(user);
+            return Ok(output);
         }
 
         [HttpGet("{userId}/following")]
@@ -110,58 +109,40 @@ namespace Swabbr.Api.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchAsync([FromQuery] string query, [FromQuery] PaginationDto pagination)
         {
-            // Act.
             // TODO Ugly
-            if (query.Length <= 3)
+            if (query.Length < 3)
             {
                 return Conflict("Minimum search length is 3");
             }
 
+            // Act.
             var users = await _userService.SearchAsync(query, pagination.ToNavigation()).ToListAsync();
 
             // Map.
             var output = _mapper.Map<IEnumerable<UserDto>>(users);
 
             // Return.
-            return Ok(users);
+            return Ok(output);
         }
 
-        // TODO Ugly
         [HttpGet("self")]
-        public async Task<IActionResult> SelfAsync([FromServices] UserManager<SwabbrIdentityUser> userManager)
+        public async Task<IActionResult> SelfAsync()
         {
             // Act.
-            var user = await _userService.GetAsync(Guid.Parse(userManager.GetUserId(User)));
+            var user = await _userService.GetAsync(_appContext.UserId);
 
             // Map.
-            var output = _mapper.Map<UserDto>(user);
+            var output = _mapper.Map<UserCompleteDto>(user);
 
             // Return.
             return Ok(output);
         }
 
         [HttpPost("update")]
-        public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateDto input, [FromServices] UserManager<SwabbrIdentityUser> userManager)
+        public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateDto input)
         {
             // Act.
-            var currentUser = await _userService.GetAsync(Guid.Parse(userManager.GetUserId(User)));
-
-            // TODO Double functionality with IUserService impmlementation
-            currentUser.BirthDate = input.BirthDate ?? currentUser.BirthDate;
-            currentUser.Country = input.Country ?? currentUser.Country;
-            currentUser.DailyVlogRequestLimit = input.DailyVlogRequestLimit ?? currentUser.DailyVlogRequestLimit;
-            currentUser.FirstName = input.FirstName ?? currentUser.FirstName;
-            currentUser.FollowMode = input.FollowMode ?? currentUser.FollowMode;
-            currentUser.Gender = input.Gender ?? currentUser.Gender;
-            currentUser.IsPrivate = input.IsPrivate ?? currentUser.IsPrivate;
-            currentUser.LastName = input.LastName ?? currentUser.LastName;
-            currentUser.Latitude = input.Latitude ?? currentUser.Latitude;
-            currentUser.Longitude = input.Longitude ?? currentUser.Longitude;
-            currentUser.Nickname = input.Nickname ?? currentUser.Nickname;
-            currentUser.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded ?? currentUser.ProfileImageBase64Encoded;
-            currentUser.Timezone = input.Timezone ?? currentUser.Timezone;
-
-            await _userService.UpdateAsync(currentUser);
+            await _userUpdateHelper.UpdateUserAsync(input);
 
             // Return.
             return NoContent();

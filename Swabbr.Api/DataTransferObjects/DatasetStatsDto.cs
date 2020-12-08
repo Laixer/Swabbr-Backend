@@ -1,12 +1,12 @@
 ﻿namespace Swabbr.Api.DataTransferObjects
 {
     /// <summary>
-    ///     DTO for statistics about a collection.
+    ///     DTO for statistics of a data set.
     /// </summary>
-    public class CollectionStatsDto
+    public class DatasetStatsDto
     {
         /// <summary>
-        ///     Total items in the collection.
+        ///     Total items in the data set.
         /// </summary>
         public uint Count { get; set; }
     }
