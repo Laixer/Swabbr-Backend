@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
@@ -14,7 +13,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     ///     Controller for handling requests related to reactions.
     /// </summary>
-    [Authorize]
+    [ApiController]
     [Route("reaction")]
     public class ReactionController : ControllerBase
     {

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
@@ -18,7 +17,7 @@ namespace Swabbr.Api.Controllers
     /// <remarks>
     ///     This does not process any authentication related requests.
     /// </remarks>
-    [Authorize]
+    [ApiController]
     [Route("user")]
     public class UserController : ControllerBase
     {
@@ -107,16 +106,10 @@ namespace Swabbr.Api.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> SearchAsync([FromQuery] string query, [FromQuery] PaginationDto pagination)
+        public async Task<IActionResult> SearchAsync([FromQuery] SearchDto input)
         {
-            // TODO Ugly
-            if (query.Length < 3)
-            {
-                return Conflict("Minimum search length is 3");
-            }
-
             // Act.
-            var users = await _userService.SearchAsync(query, pagination.ToNavigation()).ToListAsync();
+            var users = await _userService.SearchAsync(input.Query, input.ToNavigation()).ToListAsync();
 
             // Map.
             var output = _mapper.Map<IEnumerable<UserDto>>(users);

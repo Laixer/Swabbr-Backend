@@ -25,11 +25,11 @@ namespace Swabbr.Infrastructure.Extensions
         ///     service collection.
         /// </summary>
         /// <param name="services">The service collection.</param>
-        /// <param name="blobStorageConfigurationSection">Name of the blob storage configuration section.</param>
+        /// <param name="blobStorageConfigurationSectionName">Name of the blob storage configuration section.</param>
         /// <returns>Same as <paramref name="services"/>.</returns>
         public static IServiceCollection AddSwabbrInfrastructureServices(this IServiceCollection services, 
             string dbConnectionStringName,
-            string blobStorageConfigurationSection)
+            string blobStorageConfigurationSectionName)
         {
             if (services == null)
             {
@@ -62,7 +62,7 @@ namespace Swabbr.Infrastructure.Extensions
 
             // Add storage package
             services.AddSingleton<IBlobStorageService, SpacesBlobStorageService>();
-            services.Configure<BlobStorageOptions>(configuration.GetSection(blobStorageConfigurationSection));
+            services.Configure<BlobStorageOptions>(configuration.GetSection(blobStorageConfigurationSectionName));
 
             return services;
         }

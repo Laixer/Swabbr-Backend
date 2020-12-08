@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
@@ -15,7 +14,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     ///     Controller for follow request related operations.
     /// </summary>
-    [Authorize]
+    [ApiController]
     [Route("followrequest")]
     public class FollowRequestController : ControllerBase
     {

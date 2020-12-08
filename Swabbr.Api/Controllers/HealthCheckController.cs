@@ -9,7 +9,7 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     ///     Controller for checking our resource health.
     /// </summary>
-    [ApiController]
+    [AllowAnonymous]
     [Route("health")]
     public class HealthCheckController : ControllerBase
     {

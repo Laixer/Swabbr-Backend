@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Laixer.Identity.Dapper.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +12,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Extensions;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
 using Swabbr.Core.Extensions;
@@ -45,41 +45,44 @@ namespace Swabbr
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Bind main configuration properties.
-            services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
+            // FUTURE: Uncouple from NewtonSoft.Json
+            //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
+            services.AddControllers()
+                .AddNewtonsoftJson();
+            services.AddHealthChecks();
 
-            // Setup request related services
-            services.AddCors();
-            services.AddControllers(c => { }).AddNewtonsoftJson();
-            services.AddRouting(options => { options.LowercaseUrls = true; });
+            // Setup authentication and authorization.
             SetupIdentity(services);
             SetupAuthentication(services);
-            services.AddApiVersioning(options => { options.ReportApiVersions = true; });
+            services.AddAuthorization(options =>
+            {
+                // FUTURE Add custom policies.
+                // Note: This only expects the user to be authenticated, nothing else.
+                //       This is the default for all endpoints, unless specified otherwise.
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+            });
 
-            // Setup logging and insights
-            services.AddLogging();
-
-            // Setup doc
-            SetupSwagger(services);
-
-            // Add infrastructure services.
-            // Explicitly add Azure Notification Hub configuration.
-            services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
-            services.Configure<NotificationHubConfiguration>(_configuration.GetSection("AzureNotificationHub"));
-
-            // Add app context
-            services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
+            // Bind main configuration properties.
+            services.Configure<SwabbrConfiguration>(_configuration.GetSection("Swabbr"));
 
             // Add core services.
-            // Note: This also makes the AppContext injectable 
-            //       using the IAppContextFactory singleton.
+            // Note: This also makes the AppContext injectable using the IAppContextFactory singleton.
             services.AddSwabbrCoreServices();
 
-            // Add mapping
-            services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
+            // Add infrastructure services.
+            services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
+            // Explicitly add Azure Notification Hub configuration.
+            services.Configure<NotificationHubConfiguration>(_configuration.GetSection("AzureNotificationHub"));
 
             // Add API specific services
+            services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
             services.AddTransient<UserUpdateHelper>();
+            services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
+
+            // Add doc
+            SetupSwagger(services);
         }
 
         /// <summary>
@@ -108,20 +111,19 @@ namespace Swabbr
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
 
-            // Add authentication and authorization middleware
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
             });
 
-            // Add Swagger API definition middleware
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr v1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr");
             });
         }
 
@@ -164,6 +166,10 @@ namespace Swabbr
         /// <summary>
         ///     Adds identity to the services.
         /// </summary>
+        /// <remarks>
+        ///     This uses Dapper to use identity along
+        ///     with our npgsql database.
+        /// </remarks>
         private void SetupIdentity(IServiceCollection services) =>
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
@@ -188,8 +194,9 @@ namespace Swabbr
             var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
             var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SignatureKey);
 
-            // Add authentication
-            services.AddSwabbrAuthentication("Jwt");
+            // Add the token service and jwt configuration
+            services.AddSingleton<TokenService>();
+            services.Configure<JwtConfiguration>(jwtConfigSection);
 
             services.AddAuthentication(options =>
             {
