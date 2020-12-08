@@ -227,9 +227,8 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the vlog.
         /// </remarks>
         /// <param name="vlog">The vlog with updates properties.</param>
-        public virtual  Task UpdateAsync(Vlog vlog)
+        public virtual Task UpdateAsync(Vlog vlog)
             => _vlogRepository.UpdateAsync(vlog);
-        }
 
         /// <summary>
         ///     Extract the thumbnail uri for a vlog.
