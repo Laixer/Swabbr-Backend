@@ -1,5 +1,5 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
+using Swabbr.Core.Types;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;

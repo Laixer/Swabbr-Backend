@@ -45,22 +45,6 @@ namespace Swabbr.Core.Interfaces.Services
         IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation);
 
         /// <summary>
-        ///     Gets all reactions for a vlog including
-        ///     their thumbnail details.
-        /// </summary>
-        /// <param name="vlogId">The vlog of the reactions.</param>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns>All vlog reactions with their thumbnails.</returns>
-        IAsyncEnumerable<ReactionWithThumbnailDetails> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId, Navigation navigation);
-
-        /// <summary>
-        ///     Gets a reaction including its thumbnail details.
-        /// </summary>
-        /// <param name="reactionId">The reaction id.</param>
-        /// <returns>The reaction with thumbnail details.</returns>
-        Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId);
-
-        /// <summary>
         ///     Called when a reaction has been uploaded. This will
         ///     actually post the reaction.
         /// </summary>

@@ -76,8 +76,15 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The vlog.</returns>
-        public virtual Task<Vlog> GetAsync(Guid vlogId)
-            => _vlogRepository.GetAsync(vlogId);
+        public virtual async Task<Vlog> GetAsync(Guid vlogId)
+        {
+            var vlog = await _vlogRepository.GetAsync(vlogId);
+
+            vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
+            vlog.VideoUri = await GetVideoUriAsync(vlog);
+
+            return vlog;
+        }
 
         /// <summary>
         ///     Gets all recommended vlogs for a user.
@@ -87,27 +94,14 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Recommended vlogs.</returns>
-        public virtual IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Navigation navigation)
-            => _vlogRepository.GetMostRecentVlogsForUserAsync(navigation);
-
-        /// <summary>
-        ///     Gets all recommended vlogs for a user including
-        ///     their thumbnail details.
-        /// </summary>
-        /// <remarks>
-        ///     The current user will be extracted from the context.
-        /// </remarks>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns>Vlogs with thumbnail details.</returns>
-        public virtual async IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Navigation navigation)
+        public virtual async IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Navigation navigation)
         {
-            await foreach (var vlog in GetRecommendedForUserAsync(navigation))
+            await foreach (var vlog in _vlogRepository.GetMostRecentVlogsForUserAsync(navigation))
             {
-                yield return new VlogWithThumbnailDetails
-                {
-                    Vlog = vlog,
-                    ThumbnailUri = null // TODO Implement
-                };
+                vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
+                vlog.VideoUri = await GetVideoUriAsync(vlog);
+
+                yield return vlog;
             }
         }
 
@@ -117,25 +111,14 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The vlog owner.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog collection.</returns>
-        public virtual IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation)
-            => _vlogRepository.GetVlogsByUserAsync(userId, navigation);
-
-        /// <summary>
-        ///     Gets all vlogs that belong to a user including
-        ///     their thumbnail details.
-        /// </summary>
-        /// <param name="userId">The corresponding user.</param>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns>All vlogs belonging to the user.</returns>
-        public virtual async IAsyncEnumerable<VlogWithThumbnailDetails> GetVlogsByUserWithThumbnailsAsync(Guid userId, Navigation navigation)
+        public virtual async IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation)
         {
-            await foreach (var vlog in GetVlogsByUserAsync(userId, navigation))
+            await foreach (var vlog in _vlogRepository.GetVlogsByUserAsync(userId, navigation))
             {
-                yield return new VlogWithThumbnailDetails
-                {
-                    Vlog = vlog,
-                    ThumbnailUri = null // TODO Implement
-                };
+                vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
+                vlog.VideoUri = await GetVideoUriAsync(vlog);
+
+                yield return vlog;
             }
         }
 
@@ -158,24 +141,12 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <remarks>
         ///     The <see cref="VlogLikeSummary.Users"/> does not need
-        ///     to contain all the <see cref="SwabbrUser"/> users.
+        ///     to contain all the <see cref="User"/> users.
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikeSummary"/></returns>
         public virtual Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
             => _vlogLikeRepository.GetSummaryForVlogAsync(vlogId);
-
-        /// <summary>
-        ///     Gets a vlog including its thumbnail details.
-        /// </summary>
-        /// <param name="vlogId">The vlog id.</param>
-        /// <returns>Vlog with thumbnail details.</returns>
-        public virtual async Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId)
-            => new VlogWithThumbnailDetails
-            {
-                Vlog = await GetAsync(vlogId),
-                ThumbnailUri = null // TODO
-            };
 
         /// <summary>
         ///     Used when the current users like a vlog.
@@ -198,22 +169,28 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        ///     Called when a vlog has finished uploading.
+        ///     Called when a vlog has been uploaded. This will
+        ///     publish the vlog and notify all followers.
         /// </summary>
         /// <remarks>
         ///     <para>
         ///         The vlog will be owned by the current user.
         ///     </para>
         ///     <para>
-        ///         If the file does not exist in our blob storage this
-        ///         throws a <see cref="FileNotFoundException"/>.
+        ///         If the video file or thumbnail file does not 
+        ///         exist in our blob storage this throws a 
+        ///         <see cref="FileNotFoundException"/>.
         ///     </para>
         /// </remarks>
         /// <param name="vlogId">The uploaded vlog.</param>
         /// <param name="isPrivate">Accessibility of the vlog.</param>
         public virtual async Task PostVlogAsync(Guid vlogId, bool isPrivate = false)
         {
-            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, vlogId.ToString())) 
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlogId)))
+            {
+                throw new FileNotFoundException();
+            }
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetThumbnailFileName(vlogId)))
             {
                 throw new FileNotFoundException();
             }
@@ -243,7 +220,6 @@ namespace Swabbr.Core.Services
                 UserId = _appContext.UserId
             });
 
-        // TODO Push functionality to repo?
         /// <summary>
         ///     Updates a vlog in our data store.
         /// </summary>
@@ -251,21 +227,25 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the vlog.
         /// </remarks>
         /// <param name="vlog">The vlog with updates properties.</param>
-        public virtual async Task UpdateAsync(Vlog vlog)
-        {
-            if (vlog is null)
-            {
-                throw new ArgumentNullException(nameof(vlog));
-            }
-
-            var currentVlog = await _vlogRepository.GetAsync(vlog.Id);
-
-            // Copy all updateable properties.
-            // TODO Expand
-            currentVlog.IsPrivate = vlog.IsPrivate;
-
-            await _vlogRepository.UpdateAsync(vlog);
+        public virtual  Task UpdateAsync(Vlog vlog)
+            => _vlogRepository.UpdateAsync(vlog);
         }
+
+        /// <summary>
+        ///     Extract the thumbnail uri for a vlog.
+        /// </summary>
+        /// <param name="vlog">The vlog.</param>
+        /// <returns>Thumbnail uri.</returns>
+        private Task<Uri> GetThumbnailUriAsync(Vlog vlog)
+            => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetThumbnailFileName(vlog.Id), 2);
+
+        /// <summary>
+        ///     Extract the video uri for a vlog.
+        /// </summary>
+        /// <param name="vlog">The vlog.</param>
+        /// <returns>Video uri.</returns>
+        private Task<Uri> GetVideoUriAsync(Vlog vlog)
+            => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlog.Id), 2);
     }
 }
 #pragma warning restore CA1051 // Do not declare visible instance fields

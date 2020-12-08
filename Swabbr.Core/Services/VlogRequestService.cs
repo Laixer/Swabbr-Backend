@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Swabbr.Core.Configuration;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;

@@ -48,29 +48,12 @@ namespace Swabbr.Core.Interfaces.Services
         IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Navigation navigation);
 
         /// <summary>
-        ///     Gets recommended vlogs for the current user 
-        ///     including their thumbnail details.
-        /// </summary>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns>Vlogs with thumbnail details.</returns>
-        IAsyncEnumerable<VlogWithThumbnailDetails> GetRecommendedForUserWithThumbnailsAsync(Navigation navigation);
-
-        /// <summary>
         ///     Gets vlogs that belong to a user.
         /// </summary>
         /// <param name="userId">The vlog owner.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog collection.</returns>
         IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation);
-
-        /// <summary>
-        ///     Gets vlogs that belong to a user including
-        ///     their thumbnail details.
-        /// </summary>
-        /// <param name="userId">The corresponding user.</param>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns>All vlogs belonging to the user.</returns>
-        IAsyncEnumerable<VlogWithThumbnailDetails> GetVlogsByUserWithThumbnailsAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets the likes for a vlog.
@@ -91,13 +74,6 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="vlogId">Internal vlog id</param>
         /// <returns>Vlog like summary.</returns>
         Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId);
-
-        /// <summary>
-        ///     Gets a vlog including its thumbnail details.
-        /// </summary>
-        /// <param name="vlogId">The vlog id.</param>
-        /// <returns>Vlog with thumbnail details.</returns>
-        Task<VlogWithThumbnailDetails> GetWithThumbnailAsync(Guid vlogId);
         
         /// <summary>
         ///     Used when the current user likes a vlog.

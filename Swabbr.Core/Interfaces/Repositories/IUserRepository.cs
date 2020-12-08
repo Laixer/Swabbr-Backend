@@ -9,7 +9,7 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     ///     Repository for a user repository.
     /// </summary>
-    public interface IUserRepository : IRepository<SwabbrUser, Guid>
+    public interface IUserRepository : IRepository<User, Guid>
     {
         /// <summary>
         ///     Checks if a nickname already exists.
@@ -22,7 +22,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// </summary>
         /// <param name="userId">The internal user id.</param>
         /// <returns>The user entity with statistics.</returns>
-        Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId);
+        Task<UserWithStats> GetWithStatisticsAsync(Guid userId);
 
         /// <summary>
         ///     Gets users that are being followed by a given user.
@@ -30,7 +30,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="userId">The user that is following.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Users that the user is following.</returns>
-        IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets the followers of a given user.
@@ -38,7 +38,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="userId">The user that is being followed.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Followers of the specified user.</returns>
-        IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation);
+        IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation);
 
         /// <summary>
         ///     Gets the push notification details of the 
@@ -63,7 +63,7 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable users.</returns>
-        IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation);
+        IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation);
 
         /// <summary>
         ///     Search for users in our data store.
@@ -71,6 +71,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation);
+        IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation);
     }
 }
