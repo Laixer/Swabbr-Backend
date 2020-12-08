@@ -1,5 +1,7 @@
-﻿using Swabbr.Core.Types;
+﻿using Swabbr.Core.DataAnnotations;
+using Swabbr.Core.Types;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.DataTransferObjects
 {
@@ -28,9 +30,11 @@ namespace Swabbr.Api.DataTransferObjects
         /// </summary>
         public Gender? Gender { get; set; }
 
+        // FUTURE Standardization attribute
         /// <summary>
         ///     Selected country.
         /// </summary>
+        [StringLength(3, MinimumLength = 3)]
         public string Country { get; set; }
 
         /// <summary>
@@ -52,6 +56,7 @@ namespace Swabbr.Api.DataTransferObjects
         ///     Base64 encoded string containing the uploaded 
         ///     profile image of the user.
         /// </summary>
+        [Base64Encoded]
         public string ProfileImageBase64Encoded { get; set; }
 
         /// <summary>

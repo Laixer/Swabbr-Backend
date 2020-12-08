@@ -25,6 +25,7 @@ namespace Swabbr.Api.DataTransferObjects
         ///     User registration email.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
+        [EmailAddress]
         public string Email { get; set; }
 
         /// <summary>

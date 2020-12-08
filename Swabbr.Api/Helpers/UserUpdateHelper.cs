@@ -13,8 +13,9 @@ namespace Swabbr.Api.Helpers
     /// </summary>
     /// <remarks>
     ///     This design decision was made because we have a lot
-    ///     of user properties which can be updated. Next to the
-    ///     user details we also have timezone and location updates.
+    ///     of different calls for updating user properties. Next
+    ///     to the user details we also have timezone and location 
+    ///     updates.
     ///     To ensure nothing gets set to its default value this 
     ///     user update helper class can be called whenever any of
     ///     these properties is updated.
