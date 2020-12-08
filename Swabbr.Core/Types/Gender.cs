@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Types
 {
     /// <summary>
     ///     Enum for the gender of a user.

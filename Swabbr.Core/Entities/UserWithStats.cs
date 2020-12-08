@@ -1,14 +1,14 @@
 ﻿namespace Swabbr.Core.Entities
 {
     /// <summary>
-    ///     <see cref="SwabbrUser"/> including statistics.
+    ///     <see cref="User"/> including statistics.
     /// </summary>
-    public sealed class SwabbrUserWithStats : SwabbrUser
+    public sealed class UserWithStats : User
     {
         /// <summary>
         ///     The total amount of accumulated likes for the vlogs of this user.
         /// </summary>
-        public uint TotalLikes { get; set; }
+        public uint TotalLikesReceived { get; set; }
 
         /// <summary>
         ///     The total amount of users that are following this user.

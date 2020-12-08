@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Types
 {
     /// <summary>
     ///     Represents the supported mobile platform services for push notifications.

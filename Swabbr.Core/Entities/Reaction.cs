@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Core.Entities
@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     ///     Represents a video reaction to a vlog.
     /// </summary>
-    public class Reaction : EntityBase<Guid>
+    public class Reaction : VideoBase
     {
         /// <summary>
         ///     Id of the user by whom this reaction was created.
@@ -27,11 +27,6 @@ namespace Swabbr.Core.Entities
         ///     Indicates whether this reaction is public or private.
         /// </summary>
         public bool IsPrivate { get; set; }
-
-        /// <summary>
-        ///     Represents the length in seconds for this reaction.
-        /// </summary>
-        public uint? LengthInSeconds { get; set; }
 
         /// <summary>
         ///     Indicates the state of this reaction.

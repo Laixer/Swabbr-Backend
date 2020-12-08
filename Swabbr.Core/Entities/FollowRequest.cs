@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using Swabbr.Core.Types;
 using System;
 
@@ -9,12 +9,6 @@ namespace Swabbr.Core.Entities
     /// </summary>
     public class FollowRequest : EntityBase<FollowRequestId>
     {
-        // TODO Check this with Dapper.
-        /// <summary>
-        ///     Constructor to ensure <see cref="FollowRequestId"/> initialization.
-        /// </summary>
-        public FollowRequest() => Id = new FollowRequestId();
-
         /// <summary>
         ///     Current status of the follow request.
         /// </summary>

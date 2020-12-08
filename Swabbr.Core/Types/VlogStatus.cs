@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Types
 {
     /// <summary>
     ///     Indicates the state of a vlog.

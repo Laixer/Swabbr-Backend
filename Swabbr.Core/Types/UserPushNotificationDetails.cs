@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Enums;
-using System;
+﻿using System;
 
 namespace Swabbr.Core.Types
 {

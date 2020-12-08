@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Types
 {
     /// <summary>
     ///     Enum representation of the follow mode setting for a profile.

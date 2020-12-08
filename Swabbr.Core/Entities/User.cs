@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Core.Entities
@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     ///     Represents a single user.
     /// </summary>
-    public class SwabbrUser : EntityBase<Guid>
+    public class User : EntityBase<Guid>
     {
         /// <summary>
         ///     First name of the user.

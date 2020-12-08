@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Core.Enums
+﻿namespace Swabbr.Core.Types
 {
     /// <summary>
     ///     Represents status of a reaction.
