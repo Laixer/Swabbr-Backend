@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Text;
 
-namespace Swabbr.Core.Utility
+namespace Swabbr.Core.Helpers
 {
 
     /// <summary>
     /// Contains functionality to validate a base64 encoded profile image string.
     /// </summary>
-    public static class ProfileImageBase64Checker
+    public static class ProfileImageBase64Helper
     {
 
         /// <summary>

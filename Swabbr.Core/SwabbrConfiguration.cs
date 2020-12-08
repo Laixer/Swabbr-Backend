@@ -1,4 +1,4 @@
-﻿namespace Swabbr.Core.Configuration
+﻿namespace Swabbr.Core
 {
     /// <summary>
     ///     Contains swabbr configuration parameters.
