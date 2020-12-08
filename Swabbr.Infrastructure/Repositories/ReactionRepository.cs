@@ -40,14 +40,14 @@ namespace Swabbr.Infrastructure.Repositories
                     INSERT INTO entities.reaction (
                         id,
                         is_private,
-                        length_in_seconds,
+                        length,
                         target_vlog_id,
                         user_id
                     )
                     VALUES (
                         @id,
                         @is_private,
-                        @length_in_seconds,
+                        @length,
                         @target_vlog_id,
                         @user_id
                     )";
@@ -131,7 +131,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  r.date_created,
                             r.id,
                             r.is_private,
-                            r.length_in_seconds,
+                            r.length,
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
@@ -158,7 +158,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  r.date_created,
                             r.id,
                             r.is_private,
-                            r.length_in_seconds,
+                            r.length,
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
@@ -206,7 +206,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  r.date_created,
                             r.id,
                             r.is_private,
-                            r.length_in_seconds,
+                            r.length,
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
@@ -245,7 +245,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     UPDATE  entities.reaction_up_to_date AS r
                     SET     is_private = @is_private,
-                            length_in_seconds = @length_in_seconds
+                            length = @length
                     WHERE   r.id = @id";
 
             await using var context = await CreateNewDatabaseContext(sql);
@@ -269,7 +269,7 @@ namespace Swabbr.Infrastructure.Repositories
                 DateCreated = reader.GetDateTime(0 + offset),
                 Id = reader.GetGuid(1 + offset),
                 IsPrivate = reader.GetBoolean(2 + offset),
-                LengthInSeconds = reader.GetSafeUInt(3 + offset),
+                Length = reader.GetSafeUInt(3 + offset),
                 ReactionStatus = reader.GetFieldValue<ReactionStatus>(4 + offset),
                 TargetVlogId = reader.GetGuid(5 + offset),
                 UserId = reader.GetGuid(6 + offset)
@@ -283,7 +283,7 @@ namespace Swabbr.Infrastructure.Repositories
         private static void MapToWriter(DatabaseContext context, Reaction entity)
         {
             context.AddParameterWithValue("is_private", entity.IsPrivate);
-            context.AddParameterWithValue("length_in_seconds", entity.LengthInSeconds);
+            context.AddParameterWithValue("length", entity.Length);
             context.AddParameterWithValue("reaction_status", entity.ReactionStatus);
             context.AddParameterWithValue("target_vlog_id", entity.TargetVlogId);
             context.AddParameterWithValue("user_id", entity.UserId);
