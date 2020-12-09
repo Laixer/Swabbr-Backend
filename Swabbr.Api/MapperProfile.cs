@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Core.Entities;
 using System;
@@ -24,8 +25,9 @@ namespace Swabbr.Api
                 .ForMember(dest => dest.ReceiverId, o => o.MapFrom(src => src.Id.ReceiverId))
                 .ForMember(dest => dest.RequesterId, o => o.MapFrom(src => src.Id.RequesterId));
             mapper.CreateMap<Reaction, ReactionDto>().ReverseMap();
+            mapper.CreateMap<TokenWrapper, TokenWrapperDto>();
             mapper.CreateMap<User, UserDto>();
-            mapper.CreateMap<User, UserCompleteDto>().ReverseMap();
+            mapper.CreateMap<User, UserCompleteDto>();
             mapper.CreateMap<UserWithStats, UserWithStatsDto>();
             mapper.CreateMap<Vlog, VlogDto>().ReverseMap();
             mapper.CreateMap<Vlog, VlogWithSummaryDto>();

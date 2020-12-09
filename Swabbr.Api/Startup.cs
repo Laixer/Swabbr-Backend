@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api;
 using Swabbr.Api.Authentication;
+using Swabbr.Api.Documentation;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
 using Swabbr.Core.Extensions;
@@ -131,6 +132,13 @@ namespace Swabbr
             app.UseHsts();
             app.UseHttpsRedirection();
 
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
+                options.RoutePrefix = string.Empty;
+            });
+
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
 
@@ -141,12 +149,6 @@ namespace Swabbr
             {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
-            });
-
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr");
             });
         }
 
@@ -163,6 +165,13 @@ namespace Swabbr
             app.UseHsts();
             app.UseHttpsRedirection();
 
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
+                options.RoutePrefix = string.Empty;
+            });
+
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
 
@@ -173,48 +182,23 @@ namespace Swabbr
             {
                 endpoints.MapControllers();
             });
-
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr");
-            });
         }
 
         /// <summary>
         ///     Adds swagger to the services.
         /// </summary>
-        private static void SetupSwagger(IServiceCollection services) 
-            => services.AddSwaggerGen(c =>
+        private static void SetupSwagger(IServiceCollection services)
+            => services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swabbr", Version = "v1" });
-
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(System.AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-
-                // Require authorization header
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Description = "JWT Authorization header using the Bearer scheme. Contains the access token. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey
+                    Title = "Swabbr Documentation",
+                    Version = "v1",
+                    Description = "Swabbr REST API"
                 });
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement 
-                { 
-                    { 
-                        new OpenApiSecurityScheme 
-                        { 
-                            Reference = new OpenApiReference 
-                            {
-                                Type = ReferenceType.SecurityScheme, Id = "Bearer" 
-                            } 
-                        },
-                        Array.Empty<string>() 
-                    } 
-                });
+                // Add custom enum name display filter
+                options.SchemaFilter<EnumSchemaFilter>();
             });
 
         // FUTURE: Remove dapper stores
@@ -264,6 +248,9 @@ namespace Swabbr
                 options.SaveToken = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtConfig.Issuer,
                     ValidAudience = jwtConfig.Issuer,

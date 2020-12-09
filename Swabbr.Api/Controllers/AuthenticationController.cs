@@ -14,7 +14,7 @@ using System.Transactions;
 #pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
-    // TODO Can be better
+    // FUTURE This will probably be changed up when we refactor the auth part
     /// <summary>
     ///     Controller for authentication.
     /// </summary>
@@ -27,6 +27,7 @@ namespace Swabbr.Api.Controllers
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
         private readonly INotificationService _notificationService;
+        private readonly IMapper _mapper;
 
         /// <summary>
         ///     Create new instance.
@@ -35,13 +36,15 @@ namespace Swabbr.Api.Controllers
             TokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IMapper mapper)
         {
             _userUpdateHelper = userUpdateHelper ?? throw new ArgumentNullException(nameof(userUpdateHelper));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         // POST: api/authentication/register
@@ -56,7 +59,7 @@ namespace Swabbr.Api.Controllers
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             // Construct a new identity user for a new user based on the given input.
-            // The entity will also be created in our own data store.
+            // The entity will be created in our own data store.
             var identityUser = new SwabbrIdentityUser
             {
                 Email = input.Email,
@@ -92,15 +95,6 @@ namespace Swabbr.Api.Controllers
             var identityUser = await _userManager.FindByEmailAsync(input.Email);
             var signInResult = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false);
 
-            if (signInResult.IsLockedOut)
-            {
-                return Unauthorized("Too many attempts.");
-            }
-            if (signInResult.IsNotAllowed)
-            {
-                return Unauthorized("Not allowed to log in.");
-            }
-
             if (signInResult.Succeeded)
             {
                 // Manage device registration
@@ -110,15 +104,19 @@ namespace Swabbr.Api.Controllers
                 var tokenWrapper = _tokenService.GenerateToken(identityUser);
 
                 // Map.
-                var output = new LoggedInDto
-                {
-                    CreateDate = tokenWrapper.CreateDate,
-                    Token = tokenWrapper.Token,
-                    TokenExpirationTimeSpan = tokenWrapper.TokenExpirationTimespan
-                };
+                var output = _mapper.Map<TokenWrapperDto>(tokenWrapper);
 
                 // Return.
                 return Ok(output);
+            }
+
+            if (signInResult.IsLockedOut)
+            {
+                return Unauthorized("Too many attempts.");
+            }
+            if (signInResult.IsNotAllowed)
+            {
+                return Unauthorized("Not allowed to log in.");
             }
 
             // If we get here something definitely went wrong.
@@ -150,20 +148,6 @@ namespace Swabbr.Api.Controllers
 
             // Return.
             return Conflict(message);
-        }
-
-        // TODO Fix token refresh
-        [HttpGet("token-refresh")]
-        public async Task<IActionResult> RefreshTokenAsync()
-        {
-            // Act.
-            var user = await _userManager.GetUserAsync(User);
-            await _signInManager.RefreshSignInAsync(user);
-
-            // Map.
-
-            // Return.
-            throw new NotImplementedException();
         }
 
         // POST: api/authentication/logout
