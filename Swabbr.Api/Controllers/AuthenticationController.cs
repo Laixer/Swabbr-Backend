@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Transactions;
 
+#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
     // TODO Can be better
@@ -21,34 +22,32 @@ namespace Swabbr.Api.Controllers
     [Route("authentication")]
     public class AuthenticationController : ControllerBase
     {
-        private readonly IUserService _userService;
         private readonly UserUpdateHelper _userUpdateHelper;
         private readonly TokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
         private readonly INotificationService _notificationService;
-        private readonly IMapper _mapper;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public AuthenticationController(IUserService userService,
-            UserUpdateHelper userUpdateHelper,
+        public AuthenticationController(UserUpdateHelper userUpdateHelper,
             TokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager,
-            INotificationService notificationService,
-            IMapper mapper)
+            INotificationService notificationService)
         {
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userUpdateHelper = userUpdateHelper ?? throw new ArgumentNullException(nameof(userUpdateHelper));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        // POST: api/authentication/register
+        /// <summary>
+        ///     Register a new user.
+        /// </summary>
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
@@ -71,7 +70,7 @@ namespace Swabbr.Api.Controllers
                 return BadRequest("Could not create new user, contact your administrator");
             }
 
-            // Assign any other specified user properties.
+            // Assign any explicitly specified user properties.
             await _userUpdateHelper.UpdateUserAsync(input);
 
             // Complete the database transaction.
@@ -81,6 +80,10 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // POST: api/authentication/login
+        /// <summary>
+        ///     Log a user in.
+        /// </summary>
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto input)
@@ -122,7 +125,11 @@ namespace Swabbr.Api.Controllers
             return Unauthorized("Could not log in.");
         }
 
-        [HttpPost("change_password")]
+        // PUT: api/authentication/change-password
+        /// <summary>
+        ///     Change the current user password.
+        /// </summary>
+        [HttpPut("change-password")]
         public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordDto input)
         {
             // Act.
@@ -145,6 +152,24 @@ namespace Swabbr.Api.Controllers
             return Conflict(message);
         }
 
+        // TODO Fix token refresh
+        [HttpGet("token-refresh")]
+        public async Task<IActionResult> RefreshTokenAsync()
+        {
+            // Act.
+            var user = await _userManager.GetUserAsync(User);
+            await _signInManager.RefreshSignInAsync(user);
+
+            // Map.
+
+            // Return.
+            throw new NotImplementedException();
+        }
+
+        // POST: api/authentication/logout
+        /// <summary>
+        ///     Log the current user out.
+        /// </summary>
         [HttpPost("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> LogoutAsync()
@@ -157,3 +182,4 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
+#pragma warning restore CA1062 // Validate arguments of public methods

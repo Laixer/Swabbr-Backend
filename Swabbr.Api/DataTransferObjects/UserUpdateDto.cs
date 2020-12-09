@@ -18,11 +18,13 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     First name of the user.
         /// </summary>
+        [NonEmptyString]
         public string FirstName { get; set; }
 
         /// <summary>
         ///     Last name of the user.
         /// </summary>
+        [NonEmptyString]
         public string LastName { get; set; }
 
         /// <summary>
@@ -50,6 +52,7 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Nickname to display for the user.
         /// </summary>
+        [NonEmptyString]
         public string Nickname { get; set; }
 
         /// <summary>

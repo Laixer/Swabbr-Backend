@@ -9,9 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
-    // TODO All docs for controllers
     /// <summary>
     ///     Controller for handling requests vlog operations.
     /// </summary>
@@ -32,7 +32,11 @@ namespace Swabbr.Api.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpPost("{vlogId}/addview")]
+        // POST: api/vlog/{id}/add-view
+        /// <summary>
+        ///     Adds a view to a specified vlog.
+        /// </summary>
+        [HttpPost("{vlogId}/add-view")]
         public async Task<IActionResult> AddViewAsync([FromRoute] Guid vlogId)
         {
             // Act.
@@ -42,6 +46,12 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // DELETE: api/vlog/{id}
+        /// <summary>
+        ///     Deletes a vlog owned by the current user.
+        /// </summary>
+        /// <param name="vlogId"></param>
+        /// <returns></returns>
         [HttpDelete("{vlogId}")]
         public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
         {
@@ -52,6 +62,10 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // GET: api/vlog/{id}
+        /// <summary>
+        ///     Get a vlog.
+        /// </summary>
         [HttpGet("{vlogId}")]
         public async Task<IActionResult> GetAsync([FromRoute] Guid vlogId)
         {
@@ -65,7 +79,13 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        [HttpGet("{vlogId}/withsummary")]
+        // GET: api/vlog/{id}/with-summary
+        /// <summary>
+        ///     Get a vlog with its likes summarized.
+        /// </summary>
+        /// <param name="vlogId"></param>
+        /// <returns></returns>
+        [HttpGet("{vlogId}/with-summary")]
         public async Task<IActionResult> GetWithSummaryAsync([FromRoute] Guid vlogId)
         {
             // Act.
@@ -81,6 +101,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/vlog/{id}/likes
+        /// <summary>
+        ///     Get likes for a vlog.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("{vlogId}/likes")]
         public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
         {
@@ -95,6 +120,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
         
+        // GET: api/vlog/recommended
+        /// <summary>
+        ///     Get recommended vlogs for the current user.
+        /// </summary>
         [HttpGet("recommended")]
         public async Task<IActionResult> GetRecommendedVlogsAsync([FromQuery] PaginationDto pagination)
         {
@@ -108,6 +137,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
         
+        // POST: api/vlog/{id}/like
+        /// <summary>
+        ///     Like a vlog.
+        /// </summary>
         [HttpPost("{vlogId}/like")]
         public async Task<IActionResult> LikeAsync([FromRoute]Guid vlogId)
         {
@@ -118,7 +151,12 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
-        [HttpGet("foruser/{userId}")]
+        // GET: api/vlog/for-user/{id}
+        /// <summary>
+        ///     List vlogs that are owned by a specified user.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("for-user/{userId}")]
         public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId, [FromQuery] PaginationDto pagination)
         {
             // Act.
@@ -131,7 +169,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        [HttpPost("post")]
+        // POST: api/vlog
+        /// <summary>
+        ///     Post a new vlog as the current user.
+        /// </summary>
+        [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] VlogDto input)
         {
             // Act.
@@ -141,6 +183,10 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // POST: api/vlog/{id}/unlike
+        /// <summary>
+        ///     Unlike a vlog.
+        /// </summary>
         [HttpPost("{vlogId}/unlike")]
         public async Task<IActionResult> UnlikeAsync([FromRoute]Guid vlogId)
         {
@@ -151,11 +197,16 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("{vlogId}")]
+        // PUT: api/vlog/{id}
+        /// <summary>
+        ///     Update a vlog owned by the current user.
+        /// </summary>
+        [HttpPut("{vlogId}")]
         public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogDto input)
         {
             // Map.
             var vlog = _mapper.Map<Vlog>(input);
+            vlog.Id = vlogId;
 
             // Act.
             await _vlogService.UpdateAsync(vlog);
@@ -165,3 +216,4 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
+#pragma warning restore CA1062 // Validate arguments of public methods

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
@@ -40,6 +41,10 @@ namespace Swabbr.Api.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        // GET: api/user/{id}
+        /// <summary>
+        ///     Get a user.
+        /// </summary>
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetAsync([FromRoute] Guid userId)
         {
@@ -53,6 +58,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/{id}/statistics
+        /// <summary>
+        ///     Get a user with its statistics.
+        /// </summary>
         [HttpGet("{userId}/statistics")]
         public async Task<IActionResult> GetStatisticsAsync([FromRoute] Guid userId)
         {
@@ -66,6 +75,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/self/statistics
+        /// <summary>
+        ///     Get the current user with its statistics.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("self/statistics")]
         public async Task<IActionResult> GetStatisticsSelfAsync()
         {
@@ -79,6 +93,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/{id}/following
+        /// <summary>
+        ///     List all users that a given user is following.
+        /// </summary>
         [HttpGet("{userId}/following")]
         public async Task<IActionResult> ListFollowingAsync([FromRoute] Guid userId, [FromQuery] PaginationDto pagination)
         {
@@ -92,6 +110,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/{id}/followers
+        /// <summary>
+        ///     List all all users that are following a given user.
+        /// </summary>
         [HttpGet("{userId}/followers")]
         public async Task<IActionResult> ListFollowersAsync([FromRoute] Guid userId, [FromQuery] PaginationDto pagination)
         {
@@ -105,6 +127,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/search
+        /// <summary>
+        ///     Search for users based on their nickname.
+        /// </summary>
         [HttpGet("search")]
         public async Task<IActionResult> SearchAsync([FromQuery] SearchDto input)
         {
@@ -118,6 +144,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/self
+        /// <summary>
+        ///     Get the current user.
+        /// </summary>
         [HttpGet("self")]
         public async Task<IActionResult> SelfAsync()
         {
@@ -131,7 +161,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        [HttpPost("update")]
+        // PUT: api/user
+        /// <summary>
+        ///     Update the current user.
+        /// </summary>
+        [HttpPut]
         public async Task<IActionResult> UpdateAsync([FromBody] UserUpdateDto input)
         {
             // Act.
@@ -142,3 +176,4 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
+#pragma warning restore CA1062 // Validate arguments of public methods

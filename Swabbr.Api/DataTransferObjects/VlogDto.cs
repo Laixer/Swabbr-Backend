@@ -1,5 +1,7 @@
-﻿using Swabbr.Core.Types;
+﻿using Swabbr.Core.DataAnnotations;
+using Swabbr.Core.Types;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.DataTransferObjects
 {
@@ -11,6 +13,8 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Unique vlog identifier.
         /// </summary>
+        [Required]
+        [NonEmptyGuid]
         public Guid Id { get; set; }
 
         /// <summary>

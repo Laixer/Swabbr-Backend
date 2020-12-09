@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
@@ -31,6 +32,10 @@ namespace Swabbr.Api.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        // DELETE: api/reaction/{id}
+        /// <summary>
+        ///     Delete a reaction owned by the current user.
+        /// </summary>
         [HttpDelete("{reactionId}")]
         public async Task<IActionResult> Delete([FromRoute] Guid reactionId)
         {
@@ -41,6 +46,10 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // GET: api/reaction/{id}
+        /// <summary>
+        ///     Get a reaction.
+        /// </summary>
         [HttpGet("{reactionId}")]
         public async Task<IActionResult> Get([FromRoute] Guid reactionId)
         {
@@ -54,7 +63,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        [HttpGet("forvlog/{vlogId}")]
+        // GET: api/reaction/for-vlog/{id}
+        /// <summary>
+        ///     Get all reactions for a given vlog.
+        /// </summary>
+        [HttpGet("for-vlog/{vlogId}")]
         public async Task<IActionResult> GetReactionsForVlog([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
         {
             // Act.
@@ -67,7 +80,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        [HttpGet("forvlog/{vlogId}/count")]
+        // GET: api/reaction/for-vlog/{id}/count
+        /// <summary>
+        ///     Get the reaction count for a given vlog.
+        /// </summary>
+        [HttpGet("for-vlog/{vlogId}/count")]
         public async Task<IActionResult> GetReactionCountForVlog([FromRoute] Guid vlogId)
         {
             // Act.
@@ -83,7 +100,11 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        [HttpPost("post")]
+        // POST: api/reaction
+        /// <summary>
+        ///     Post a new reaction as the current user.
+        /// </summary>
+        [HttpPost]
         public async Task<IActionResult> PostReactionAsync([FromBody] ReactionDto input)
         {
             // Act.
@@ -93,11 +114,16 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("{reactionId}/update")]
+        // PUT: api/reaction/{id}
+        /// <summary>
+        ///     Update a reaction owned by the current user.
+        /// </summary>
+        [HttpPut("{reactionId}")]
         public async Task<IActionResult> Update([FromRoute] Guid reactionId, [FromBody] ReactionDto input)
         {
             // Map.
             var reaction = _mapper.Map<Reaction>(input);
+            reaction.Id = reactionId;
 
             // Act.
             await _reactionService.UpdateReactionAsync(reaction);
@@ -107,3 +133,4 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
+#pragma warning restore CA1062 // Validate arguments of public methods

@@ -1,5 +1,7 @@
-﻿using Swabbr.Core.Types;
+﻿using Swabbr.Core.DataAnnotations;
+using Swabbr.Core.Types;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Swabbr.Api.DataTransferObjects
 {
@@ -11,6 +13,8 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Unique reaction identifier.
         /// </summary>
+        [Required]
+        [NonEmptyGuid]
         public Guid Id { get; set; }
 
         /// <summary>
@@ -21,6 +25,8 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Id of the vlog the reaction responds to.
         /// </summary>
+        [Required]
+        [NonEmptyGuid]
         public Guid TargetVlogId { get; set; }
 
         /// <summary>

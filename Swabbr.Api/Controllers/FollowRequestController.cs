@@ -14,27 +14,33 @@ namespace Swabbr.Api.Controllers
     /// <summary>
     ///     Controller for follow request related operations.
     /// </summary>
+    /// <remarks>
+    ///     Often the requesterId or receiverId are explicitly
+    ///     required as query parameters. This is in order to
+    ///     prevent confusion with requesting and receiving ids.
+    /// </remarks>
     [ApiController]
     [Route("followrequest")]
     public class FollowRequestController : ControllerBase
     {
-        private readonly Core.AppContext _appContext;
         private readonly IFollowRequestService _followRequestService;
         private readonly IMapper _mapper;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public FollowRequestController(Core.AppContext appContext,
-            IFollowRequestService followRequestService,
+        public FollowRequestController(IFollowRequestService followRequestService,
             IMapper mapper)
         {
-            _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _followRequestService = followRequestService ?? throw new ArgumentNullException(nameof(followRequestService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpPost("accept")]
+        // PUT: api/followrequest/accept
+        /// <summary>
+        ///     Accept a pending incoming follow request.
+        /// </summary>
+        [HttpPut("accept")]
         public async Task<IActionResult> AcceptAsync(Guid requesterId)
         {
             // Act.
@@ -44,7 +50,11 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("cancel")]
+        // PUT: api/followrequest/cancel 
+        /// <summary>
+        ///     Cancel a pending outgoing follow request.
+        /// </summary>
+        [HttpPut("cancel")]
         public async Task<IActionResult> CancelAsync(Guid receiverId)
         {
             // Act.
@@ -54,7 +64,11 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("decline")]
+        // PUT: api/followrequest/decline
+        /// <summary>
+        ///     Decline a pending incoming follow request.
+        /// </summary>
+        [HttpPut("decline")]
         public async Task<IActionResult> DeclineAsync(Guid requesterId)
         {
             // Act.
@@ -64,6 +78,10 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // GET: api/followrequest/incoming
+        /// <summary>
+        ///     Get all incoming pending follow requests for the current user.
+        /// </summary>
         [HttpGet("incoming")]
         public async Task<IActionResult> IncomingAsync([FromQuery] PaginationDto pagination)
         {
@@ -77,6 +95,10 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/followrequest/outgoing
+        /// <summary>
+        ///     Get all outgoing pending follow requests for the current user.
+        /// </summary>
         [HttpGet("outgoing")]
         public async Task<IActionResult> OutgoingAsync([FromQuery] PaginationDto pagination)
         {
@@ -89,25 +111,14 @@ namespace Swabbr.Api.Controllers
             // Return.
             return Ok(output);
         }
+        
+        // TODO Do we need a get?
 
-        [HttpGet("outgoing/{receiverId}")]
-        public async Task<IActionResult> GetAsync([FromRoute] Guid receiverId)
-        {
-            // Act.
-            var followRequest = await _followRequestService.GetAsync(new FollowRequestId
-            {
-                ReceiverId = receiverId,
-                RequesterId = _appContext.UserId
-            });
-
-            // Map.
-            var output = _mapper.Map<FollowRequestDto>(followRequest);
-
-            // Return.
-            return Ok(output);
-        }
-
-        [HttpPost("send")]
+        // POST: api/followrequest
+        /// <summary>
+        ///     Send a new follow request from the current user to a given user.
+        /// </summary>
+        [HttpPost]
         public async Task<IActionResult> SendAsync(Guid receiverId)
         {
             // Act.
@@ -117,6 +128,10 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // POST: api/followrequest/unfollow
+        /// <summary>
+        ///     Unfollow a given user as the current user.
+        /// </summary>
         [HttpPost("unfollow")]
         public async Task<IActionResult> UnfollowAsync(Guid receiverId)
         {

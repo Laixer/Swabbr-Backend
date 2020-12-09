@@ -21,11 +21,12 @@ namespace Swabbr.Api.Controllers
         public HealthCheckController(IHealthCheckService healthCheckService) 
             => _healthCheckService = healthCheckService ?? throw new ArgumentNullException(nameof(healthCheckService));
 
+        // GET: api/health
         /// <summary>
-        ///     Checks if our API is still healthy.
+        ///     Checks if our backend is healthy.
         /// </summary>
         [AllowAnonymous]
-        [HttpGet("check")]
+        [HttpGet]
         public async Task<IActionResult> Check()
         {
             // Act.
