@@ -1,4 +1,5 @@
-﻿namespace Swabbr.Infrastructure.Providers
+﻿#pragma warning disable CA1812 // Internal classes are never instantiated
+namespace Swabbr.Infrastructure.Providers
 {
     /// <summary>
     ///     Contains options for our database provider.
@@ -11,3 +12,4 @@
         public string ConnectionStringName { get; set; }
     }
 }
+#pragma warning restore CA1812 // Internal classes are never instantiated

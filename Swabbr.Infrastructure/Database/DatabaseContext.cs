@@ -114,6 +114,27 @@ namespace Swabbr.Infrastructure.Database
             Command.Parameters.Add(parameter);
         }
 
+        /// <summary>
+        ///     Add parameter with key and value to command. If the
+        ///     parameter already exists, overwrite it.
+        /// </summary>
+        /// <remarks>
+        ///     Sets a database null value if the object value is null.
+        /// </remarks>
+        /// <param name="parameterName">Parameter name.</param>
+        /// <param name="value">Parameter value.</param>
+        public void AddOrOverwriteParameterWithValue(string parameterName, object value)
+        {
+            var parameters = Command.Parameters;
+            if (parameters.Contains(parameterName))
+            {
+                var index = parameters.IndexOf(parameterName);
+                parameters.RemoveAt(index);
+            }
+
+            AddParameterWithValue(parameterName, value);
+        }
+
         // FUTURE: Do not depend on Npgsql. Too npgsql specific.
         /// <summary>
         ///     Add parameter with key and json value to command.

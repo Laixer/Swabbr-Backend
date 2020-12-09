@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Core.Entities;
+using System;
 
 namespace Swabbr.Api
 {
-    // TODO Move to some extension?
     /// <summary>
     ///     Contains our DTO mapping profile.
     /// </summary>
@@ -15,6 +15,11 @@ namespace Swabbr.Api
         /// </summary>
         internal static void SetupProfile(IMapperConfigurationExpression mapper)
         {
+            if (mapper is null)
+            {
+                throw new ArgumentNullException(nameof(mapper));
+            }
+
             mapper.CreateMap<FollowRequest, FollowRequestDto>()
                 .ForMember(dest => dest.ReceiverId, o => o.MapFrom(src => src.Id.ReceiverId))
                 .ForMember(dest => dest.RequesterId, o => o.MapFrom(src => src.Id.RequesterId));

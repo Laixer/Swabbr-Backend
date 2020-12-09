@@ -30,8 +30,6 @@ namespace Swabbr.Core.Services
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-
-            // TODO Validate options in some way.
         }
 
         /// <summary>

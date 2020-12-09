@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
@@ -8,7 +7,6 @@ using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 
@@ -76,9 +74,9 @@ namespace Swabbr.Infrastructure.Repositories
             MapToWriter(context, entity);
 
             // Override the user id from the context
-            context.AddParameterWithValue("user_id", AppContext.UserId);
+            context.AddOrOverwriteParameterWithValue("user_id", AppContext.UserId);
 
-            await using var reader = await context.ReaderAsync();
+            await context.NonQueryAsync();
 
             return entity.Id;
         }
@@ -172,7 +170,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("id", id);
 
             await using var reader = await context.ReaderAsync();
-
+                
             return MapFromReader(reader);
         }
 
@@ -312,7 +310,7 @@ namespace Swabbr.Infrastructure.Repositories
                 DateCreated = reader.GetDateTime(0 + offset),
                 Id = reader.GetGuid(1 + offset),
                 IsPrivate = reader.GetBoolean(2 + offset),
-                Length = reader.GetUInt(3 + offset),
+                Length = reader.GetSafeUInt(3 + offset),
                 UserId = reader.GetGuid(4 + offset),
                 Views = reader.GetUInt(5 + offset),
                 VlogStatus = reader.GetFieldValue<VlogStatus>(6 + offset)

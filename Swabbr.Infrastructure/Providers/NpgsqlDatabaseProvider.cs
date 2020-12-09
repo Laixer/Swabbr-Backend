@@ -7,6 +7,7 @@ using System;
 using System.Data.Common;
 using System.Runtime.ExceptionServices;
 
+#pragma warning disable CA1812 // Internal classes are never instantiated
 namespace Swabbr.Infrastructure.Providers
 {
     /// <summary>
@@ -14,10 +15,7 @@ namespace Swabbr.Infrastructure.Providers
     /// </summary>
     internal class NpgsqlDatabaseProvider : DatabaseProvider
     {
-        /// <summary>
-        ///     Contains our connection string.
-        /// </summary>
-        private readonly string connectionString;
+        protected readonly string connectionString;
 
         /// <summary>
         ///     Create new instance.
@@ -25,13 +23,11 @@ namespace Swabbr.Infrastructure.Providers
         public NpgsqlDatabaseProvider(IConfiguration configuration, IOptions<DatabaseProviderOptions> options)
             : base(options)
         {
-            var connectionStringName = options?.Value?.ConnectionStringName ?? throw new ConfigurationException("Missing Npgsql connection string name");
-
             if (configuration == null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }
-            connectionString = configuration.GetConnectionString(connectionStringName) ?? throw new ConfigurationException("Misisng Npgsql connection string");
+            connectionString = configuration.GetConnectionString(_options.ConnectionStringName);
         }
 
         /// <summary>
@@ -84,3 +80,4 @@ namespace Swabbr.Infrastructure.Providers
         }
     }
 }
+#pragma warning restore CA1812 // Internal classes are never instantiated

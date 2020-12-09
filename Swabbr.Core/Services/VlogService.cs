@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-#pragma warning disable CA1051 // Do not declare visible instance fields
 namespace Swabbr.Core.Services
 {
     /// <summary>
@@ -247,4 +246,3 @@ namespace Swabbr.Core.Services
             => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlog.Id), 2);
     }
 }
-#pragma warning restore CA1051 // Do not declare visible instance fields
