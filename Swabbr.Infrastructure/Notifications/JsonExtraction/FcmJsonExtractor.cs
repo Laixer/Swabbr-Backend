@@ -1,5 +1,5 @@
 ﻿using Swabbr.Core.Notifications;
-using Swabbr.Core.Utility;
+using Swabbr.Core.Helpers;
 using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
 
@@ -23,7 +23,8 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
             {
                 throw new ArgumentNullException(nameof(swabbrNotification));
             }
-            swabbrNotification.ThrowIfInvalid();
+
+            // TODO Validate notification?
 
             return new FcmContentWrapper
             {

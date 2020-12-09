@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
@@ -8,7 +7,6 @@ using Swabbr.Infrastructure.Database;
 using Swabbr.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 
@@ -59,13 +57,13 @@ namespace Swabbr.Infrastructure.Repositories
                     INSERT INTO entities.vlog (
                         id,
                         is_private,
-                        length_in_seconds,
+                        length,
                         user_id
                     )
                     VALUES (
                         @id,
                         @is_private,
-                        @length_in_seconds,
+                        @length,
                         @user_id
                     )";
 
@@ -76,9 +74,9 @@ namespace Swabbr.Infrastructure.Repositories
             MapToWriter(context, entity);
 
             // Override the user id from the context
-            context.AddParameterWithValue("user_id", AppContext.UserId);
+            context.AddOrOverwriteParameterWithValue("user_id", AppContext.UserId);
 
-            await using var reader = await context.ReaderAsync();
+            await context.NonQueryAsync();
 
             return entity.Id;
         }
@@ -132,7 +130,7 @@ namespace Swabbr.Infrastructure.Repositories
                 SELECT  v.date_created,
                         v.id,
                         v.is_private,
-                        v.length_in_seconds,
+                        v.length,
                         v.user_id,
                         v.views,
                         v.vlog_status
@@ -159,7 +157,7 @@ namespace Swabbr.Infrastructure.Repositories
                     SELECT  v.date_created,
                             v.id,
                             v.is_private,
-                            v.length_in_seconds,
+                            v.length,
                             v.user_id,
                             v.views,
                             v.vlog_status
@@ -172,7 +170,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("id", id);
 
             await using var reader = await context.ReaderAsync();
-
+                
             return MapFromReader(reader);
         }
 
@@ -205,7 +203,7 @@ namespace Swabbr.Infrastructure.Repositories
                 SELECT      v.date_created,
                             v.id,
                             v.is_private,
-                            v.length_in_seconds,
+                            v.length,
                             v.user_id,
                             v.views,
                             v.vlog_status
@@ -247,7 +245,7 @@ namespace Swabbr.Infrastructure.Repositories
                 SELECT      v.date_created,
                             v.id,
                             v.is_private,
-                            v.length_in_seconds,
+                            v.length,
                             v.user_id,
                             v.views,
                             v.vlog_status
@@ -288,7 +286,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     UPDATE  entities.vlog_up_to_date AS v
                     SET     is_private = @is_private,
-                            length_in_seconds = @length_in_seconds
+                            length = @length
                     WHERE   v.id = @id";
 
             await using var context = await CreateNewDatabaseContext(sql);
@@ -312,7 +310,7 @@ namespace Swabbr.Infrastructure.Repositories
                 DateCreated = reader.GetDateTime(0 + offset),
                 Id = reader.GetGuid(1 + offset),
                 IsPrivate = reader.GetBoolean(2 + offset),
-                LengthInSeconds = reader.GetUInt(3 + offset),
+                Length = reader.GetSafeUInt(3 + offset),
                 UserId = reader.GetGuid(4 + offset),
                 Views = reader.GetUInt(5 + offset),
                 VlogStatus = reader.GetFieldValue<VlogStatus>(6 + offset)
@@ -326,7 +324,7 @@ namespace Swabbr.Infrastructure.Repositories
         internal static void MapToWriter(DatabaseContext context, Vlog entity)
         {
             context.AddParameterWithValue("is_private", entity.IsPrivate);
-            context.AddParameterWithValue("length_in_seconds", entity.LengthInSeconds);
+            context.AddParameterWithValue("length", entity.Length);
             context.AddParameterWithValue("user_id", entity.UserId);
         }
     }

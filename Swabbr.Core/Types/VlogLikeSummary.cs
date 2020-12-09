@@ -26,6 +26,6 @@ namespace Swabbr.Core.Types
         /// <remarks>
         ///     This does not need to contain all the users.
         /// </remarks>
-        public IEnumerable<SwabbrUser> Users { get; set; }
+        public IEnumerable<User> Users { get; set; }
     }
 }

@@ -45,7 +45,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable user collection</returns>
-        public virtual IAsyncEnumerable<SwabbrUser> GetAllVloggableUsersAsync(Navigation navigation) 
+        public virtual IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation) 
             => _userRepository.GetAllVloggableUsersAsync(navigation);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The user id.</param>
         /// <returns>The user.</returns>
-        public virtual Task<SwabbrUser> GetAsync(Guid userId) 
+        public virtual Task<User> GetAsync(Guid userId) 
             => _userRepository.GetAsync(userId);
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to check.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All followers.</returns>
-        public virtual IAsyncEnumerable<SwabbrUser> GetFollowersAsync(Guid userId, Navigation navigation)
+        public virtual IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
             => _userRepository.GetFollowersAsync(userId, navigation);
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to check.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All users followed by <paramref name="userId"/>.</returns>
-        public virtual IAsyncEnumerable<SwabbrUser> GetFollowingAsync(Guid userId, Navigation navigation)
+        public virtual IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
             => _userRepository.GetFollowingAsync(userId, navigation);
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The internal user id.</param>
         /// <returns>User entity with statistics.</returns>
-        public virtual Task<SwabbrUserWithStats> GetWithStatisticsAsync(Guid userId)
+        public virtual Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
             => _userRepository.GetWithStatisticsAsync(userId);
 
         /// <summary>
@@ -96,60 +96,15 @@ namespace Swabbr.Core.Services
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        public virtual IAsyncEnumerable<SwabbrUserWithStats> SearchAsync(string query, Navigation navigation)
+        public virtual IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
             => _userRepository.SearchAsync(query, navigation);
 
-        // TODO Should this do any of the work that UserSettingsController.UpdateAsync does?
         /// <summary>
         ///     This updates the current user in our database.
         /// </summary>
         /// <param name="user">The updated user entity.</param>
         /// <returns>The user entity after the update operation.</returns>
-        public virtual Task UpdateAsync(SwabbrUser user)
+        public virtual Task UpdateAsync(User user)
             => _userRepository.UpdateAsync(user);
-
-        /// <summary>
-        ///     Updates a user location in our data store.
-        /// </summary>
-        /// <remarks>
-        ///     The user id is extracted from the context.
-        /// </remarks>
-        /// <param name="longitude">New longitude coordinate.</param>
-        /// <param name="latitude">New latitude coordinate.</param>
-        public virtual async Task UpdateLocationAsync(double longitude, double latitude)
-        {
-            if (!AppContext.HasUser)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var user = await _userRepository.GetAsync(AppContext.UserId);
-
-            user.Longitude = longitude;
-            user.Latitude = latitude;
-
-            await UpdateAsync(user);
-        }
-
-        /// <summary>
-        ///     Updates a user timezone in our data store.
-        /// </summary>
-        /// <remarks>
-        ///     The user id is extracted from the context.
-        /// </remarks>
-        /// <param name="newTimeZone">The new user timezone.</param>
-        public virtual async Task UpdateTimeZoneAsync(TimeZoneInfo newTimeZone)
-        {
-            if (!AppContext.HasUser)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var user = await _userRepository.GetAsync(AppContext.UserId);
-
-            user.Timezone = newTimeZone;
-
-            await UpdateAsync(user);
-        }
     }
 }

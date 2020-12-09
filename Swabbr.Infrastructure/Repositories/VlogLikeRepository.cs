@@ -179,13 +179,13 @@ namespace Swabbr.Infrastructure.Repositories
                             vl.user_id,
                             vl.vlog_id
                     FROM    entities.vlog_like_nondeleted AS vl
-                    WHERE   vl.target_vlog_id = @target_vlog_id";
+                    WHERE   vl.vlog_id = @vlog_id";
 
             ConstructNavigation(ref sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("target_vlog_id", vlogId);
+            context.AddParameterWithValue("vlog_id", vlogId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
@@ -248,7 +248,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             // Else, extract each user.
-            var users = new List<SwabbrUser>();
+            var users = new List<User>();
             do
             {
                 // Pass an offset of 1 since the first column is the count.
@@ -300,7 +300,7 @@ namespace Swabbr.Infrastructure.Repositories
             => new VlogLikeSummary
             {
                 TotalLikes = 0,
-                Users = new List<SwabbrUser>(),
+                Users = new List<User>(),
                 VlogId = vlogId
             };
     }

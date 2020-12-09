@@ -50,8 +50,15 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction.</returns>
-        public virtual Task<Reaction> GetAsync(Guid reactionId)
-            => _reactionRepository.GetAsync(reactionId);
+        public async virtual Task<Reaction> GetAsync(Guid reactionId)
+        {
+            var reaction = await _reactionRepository.GetAsync(reactionId);
+
+            reaction.ThumbnailUri = await GetThumbnailUriAsync(reaction);
+            reaction.VideoUri = await GetVideoUriAsync(reaction);
+
+            return reaction;
+        }
 
         /// <summary>
         ///     Gets the amount of reactions for a vlog.
@@ -67,51 +74,29 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions.</returns>
-        public virtual IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
-            => _reactionRepository.GetForVlogAsync(vlogId, navigation);
-
-        /// <summary>
-        ///     Gets all reactions for a vlog including
-        ///     their thumbnail details.
-        /// </summary>
-        /// <param name="vlogId">The vlog of the reactions.</param>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns>All vlog reactions with their thumbnails.</returns>
-        public virtual async IAsyncEnumerable<ReactionWithThumbnailDetails> GetReactionsForVlogWithThumbnailsAsync(Guid vlogId, Navigation navigation)
+        public async virtual IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
         {
-            await foreach (var reaction in GetReactionsForVlogAsync(vlogId, navigation))
+            await foreach (var reaction in _reactionRepository.GetForVlogAsync(vlogId, navigation))
             {
-                yield return new ReactionWithThumbnailDetails
-                {
-                    Reaction = reaction,
-                    ThumbnailUri = null // TODO
-                };
+                reaction.ThumbnailUri = await GetThumbnailUriAsync(reaction);
+                reaction.VideoUri = await GetVideoUriAsync(reaction);
+
+                yield return reaction;
             }
         }
 
         /// <summary>
-        ///     Gets a reaction including its thumbnail details.
-        /// </summary>
-        /// <param name="reactionId">The reaction id.</param>
-        /// <returns>The reaction with thumbnail details.</returns>
-        public virtual async Task<ReactionWithThumbnailDetails> GetWithThumbnailAsync(Guid reactionId)
-            => new ReactionWithThumbnailDetails
-            {
-                Reaction = await GetAsync(reactionId),
-                ThumbnailUri = null // TODO
-            };
-
-        /// <summary>
         ///     Called when a reaction has been uploaded. This will
-        ///     actually post the reaction.
+        ///     post the reaction and notify the vlog owner.
         /// </summary>
         /// <remarks>
         ///     <para>
-        ///         If the file does not exist in our blob storage this
-        ///         throws a <see cref="FileNotFoundException"/>.
+        ///         The reaction will belong to the current user.
         ///     </para>
         ///     <para>
-        ///         The reaction will belong to the current user.
+        ///         If the video file or thumbnail file does not 
+        ///         exist in our blob storage this throws a 
+        ///         <see cref="FileNotFoundException"/>.
         ///     </para>
         /// </remarks>
         /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
@@ -147,5 +132,21 @@ namespace Swabbr.Core.Services
         /// <param name="reaction">The reaction with updated properties.</param>
         public virtual Task UpdateReactionAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
+
+        /// <summary>
+        ///     Extract the thumbnail uri for a reaction.
+        /// </summary>
+        /// <param name="reaction">The reaction.</param>
+        /// <returns>Thumbnail uri.</returns>
+        private Task<Uri> GetThumbnailUriAsync(Reaction reaction)
+            => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetThumbnailFileName(reaction.Id), 2);
+
+        /// <summary>
+        ///     Extract the video uri for a reaction.
+        /// </summary>
+        /// <param name="reaction">The reaction.</param>
+        /// <returns>Video uri.</returns>
+        private Task<Uri> GetVideoUriAsync(Reaction reaction)
+            => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetVideoFileName(reaction.Id), 2);
     }
 }

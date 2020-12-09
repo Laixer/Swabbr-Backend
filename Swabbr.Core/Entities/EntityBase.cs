@@ -1,6 +1,5 @@
 ﻿namespace Swabbr.Core.Entities
 {
-    // TODO Default TPrimary?
     /// <summary>
     ///     Used as a base class for all our entities.
     /// </summary>

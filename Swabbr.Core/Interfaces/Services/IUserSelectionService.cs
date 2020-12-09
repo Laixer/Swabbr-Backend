@@ -16,6 +16,6 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="time">The moment in time to check.</param>
         /// <param name="offset">The offset, used for timezones.</param>
         /// <returns>The users that are selected by the hash.</returns>
-        IAsyncEnumerable<SwabbrUser> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null);
+        IAsyncEnumerable<User> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null);
     }
 }

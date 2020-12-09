@@ -1,4 +1,4 @@
-﻿using Swabbr.Core.Enums;
+﻿using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Core.Entities
@@ -6,7 +6,7 @@ namespace Swabbr.Core.Entities
     /// <summary>
     ///     A vlog created by a user.
     /// </summary>
-    public class Vlog : EntityBase<Guid>
+    public class Vlog : VideoBase
     {
         /// <summary>
         ///     Id of the user who created the vlog.
@@ -27,11 +27,6 @@ namespace Swabbr.Core.Entities
         ///     Total amount of views for this vlog.
         /// </summary>
         public uint Views { get; set; }
-
-        /// <summary>
-        ///     The length of this vlog in seconds.
-        /// </summary>
-        public uint? LengthInSeconds { get; set; }
 
         /// <summary>
         ///     Indicates the state of this vlog.

@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Types;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Notifications

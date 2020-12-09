@@ -71,7 +71,7 @@ namespace Swabbr.Infrastructure.Storage
             catch (Exception e)
             {
                 // This type of exception indicates that the file does not exist.
-                if (e is AmazonS3Exception && ((AmazonS3Exception)e).ErrorCode == "NoSuchKey")
+                if (e is AmazonS3Exception exception && exception.ErrorCode == "NoSuchKey")
                 {
                     return false;
                 }

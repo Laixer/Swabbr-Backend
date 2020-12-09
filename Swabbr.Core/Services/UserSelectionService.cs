@@ -1,15 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
-using Swabbr.Core.Configuration;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data.HashFunction.MurmurHash;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
@@ -33,7 +30,6 @@ namespace Swabbr.Core.Services
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-            _options.ThrowIfInvalid();
         }
 
         /// <summary>
@@ -49,8 +45,8 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="time"><see cref="DateTimeOffset"/></param>
         /// <param name="offset"><see cref="TimeSpan"/></param>
-        /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public virtual async IAsyncEnumerable<SwabbrUser> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
+        /// <returns><see cref="User"/> collection</returns>
+        public virtual async IAsyncEnumerable<User> GetForMinuteAsync(DateTimeOffset time, TimeSpan? offset = null)
         {
             // Extract the current minute from the time parameter.
             var day = new DateTime(time.Year, time.Month, time.Day);
@@ -63,7 +59,7 @@ namespace Swabbr.Core.Services
             {
                 // Perform one check for each possible vlog request,
                 // since users can have more than one request per day.
-                for (int i = 1; i <= Math.Min(_options.DailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
+                for (int i = 1; i <= Math.Min(_options.MaxDailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
                 {
                     // Get the matching minute on which a user should receive 
                     // a request and correct it using the users timezone.
@@ -92,13 +88,13 @@ namespace Swabbr.Core.Services
         ///     by taking the <see cref="SwabbrConfiguration.VlogRequestStartTimeMinutes"/> plus
         ///     the uint32 modulo <see cref="SwabbrConfiguration.VlogRequestEndTimeMinutes"/>.
         /// 
-        ///     This ignores the <see cref="SwabbrUser.Timezone"/> value.
+        ///     This ignores the <see cref="User.Timezone"/> value.
         /// </remarks>
-        /// <param name="user"><see cref="SwabbrUser"/></param>
+        /// <param name="user"><see cref="User"/></param>
         /// <param name="day"><see cref="DateTime"/></param>
         /// <param name="requestIndex">Index of the request on the day</param>
         /// <returns>The minute in the day based on the inputs</returns>
-        protected virtual int GetHashMinute(SwabbrUser user, DateTime day, int requestIndex)
+        protected virtual int GetHashMinute(User user, DateTime day, int requestIndex)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
             if (user.Id.IsEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }

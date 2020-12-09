@@ -3,21 +3,22 @@ using System;
 
 namespace Swabbr.Api.Authentication
 {
-
     /// <summary>
-    /// Contains custom sql statements so we can use dapper with postgresql
-    /// to execute our identity functionality.
+    ///     Contains custom sql statements so we can use dapper 
+    ///     with postgresql to execute our identity functionality.
     /// </summary>
     public class IdentityQueryRepository : ICustomQueryRepository
     {
-
         /// <summary>
-        /// Configure custom queries.
+        ///     Configure custom queries.
         /// </summary>
         /// <param name="queryRepository">Existing query repository.</param>
         public void Configure(IQueryRepository queryRepository)
         {
-            if (queryRepository == null) { throw new ArgumentNullException(nameof(queryRepository)); }
+            if (queryRepository is null) 
+            { 
+                throw new ArgumentNullException(nameof(queryRepository)); 
+            }
 
             queryRepository.CreateAsync = $@"
                 INSERT INTO application.user (
@@ -85,7 +86,5 @@ namespace Swabbr.Api.Authentication
                 SET role = 'user'
                 WHERE id=@Id";
         }
-
     }
-
 }

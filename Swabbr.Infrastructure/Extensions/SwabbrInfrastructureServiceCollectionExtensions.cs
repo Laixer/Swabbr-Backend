@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Storage;
 using Swabbr.Infrastructure.Abstractions;
 using Swabbr.Infrastructure.Notifications;
 using Swabbr.Infrastructure.Providers;
@@ -11,6 +13,7 @@ using System;
 
 namespace Swabbr.Infrastructure.Extensions
 {
+    // TODO Null services
     /// <summary>
     ///     Extends the service collection for the Swabbr 
     ///     infrastructure package.
@@ -22,13 +25,19 @@ namespace Swabbr.Infrastructure.Extensions
         ///     service collection.
         /// </summary>
         /// <param name="services">The service collection.</param>
+        /// <param name="blobStorageConfigurationSectionName">Name of the blob storage configuration section.</param>
         /// <returns>Same as <paramref name="services"/>.</returns>
-        public static IServiceCollection AddSwabbrInfrastructureServices(this IServiceCollection services, string dbConnectionStringName)
+        public static IServiceCollection AddSwabbrInfrastructureServices(this IServiceCollection services, 
+            string dbConnectionStringName,
+            string blobStorageConfigurationSectionName)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
+
+            using var serviceProviderScope = services.BuildServiceProvider().CreateScope();
+            var configuration = serviceProviderScope.ServiceProvider.GetRequiredService<IConfiguration>();
 
             // Add postgresql database functionality
             services.AddSingleton<DatabaseProvider, NpgsqlDatabaseProvider>();
@@ -46,12 +55,14 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddContextRepository<IVlogLikeRepository, VlogLikeRepository>();
             services.AddContextRepository<IVlogRepository, VlogRepository>();
 
+            // TODO Configuration
             // Add notification package
             services.AddTransient<INotificationService, NotificationService>();
             services.AddSingleton<NotificationClient>();
 
             // Add storage package
             services.AddSingleton<IBlobStorageService, SpacesBlobStorageService>();
+            services.Configure<BlobStorageOptions>(configuration.GetSection(blobStorageConfigurationSectionName));
 
             return services;
         }

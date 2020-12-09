@@ -1,51 +1,39 @@
-﻿using Laixer.Identity.Dapper.Extensions;
+﻿using AutoMapper;
+using Laixer.Identity.Dapper.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swabbr.Api;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Configuration;
-using Swabbr.Api.Extensions;
-using Swabbr.Api.Services;
-using Swabbr.Core.Configuration;
+using Swabbr.Api.Documentation;
+using Swabbr.Api.Helpers;
+using Swabbr.Core;
 using Swabbr.Core.Extensions;
-using Swabbr.Core.Interfaces;
 using Swabbr.Core.Interfaces.Factories;
-using Swabbr.Core.Interfaces.Repositories;
-using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
-using Swabbr.Core.Services;
-using Swabbr.Core.Storage;
-using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Extensions;
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 
 namespace Swabbr
 {
-    // TODO Clean this entire class up
     /// <summary>
-    ///     Called on application startup to configure
+    ///     Called on application startup to configure 
     ///     service container and request pipeline.
     /// </summary>
+    /// <remarks>
+    ///     This contains environment specific configuration
+    ///     methods. Which method gets called when is explained 
+    ///     in the documentation of each method.
+    /// </remarks>
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -53,85 +41,140 @@ namespace Swabbr
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration) 
+            => _configuration = configuration;
+
+        /// <summary>
+        ///     This method gets called by the runtime if no environment is set
+        ///     or if no mathing ConfigureEnvironment method is found. Use this 
+        ///     method to configure the services container in these scenarios.
+        /// </summary>
+        /// <param name="services">The services collection.</param>
+        public void ConfigureServices(IServiceCollection services) => GenericConfigureServices(services);
+
+        /// <summary>
+        ///     This method gets called by the runtime if our environment is 
+        ///     set to development. Use this method to add development specific
+        ///     services to the services container.
+        /// </summary>
+        /// <param name="services">The services collection.</param>
+        public void ConfigureDevelopmentServices(IServiceCollection services)
         {
-            _configuration = configuration;
+            GenericConfigureServices(services);
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin();
+                    policy.AllowAnyHeader();
+                    policy.AllowAnyMethod();
+                });
+            });
         }
 
         /// <summary>
-        ///     Sets up all our dependency injection.
+        ///     This method will be called regardless of the environment.
+        ///     Use this method to specify which services should exist in
+        ///     regardless of the environment.
         /// </summary>
-        /// <param name="services"></param>
-        public void ConfigureServices(IServiceCollection services)
+        /// <param name="services">The services collection.</param>
+        public void GenericConfigureServices(IServiceCollection services)
         {
-            // Add configurations
-            services.Configure<JwtConfiguration>(_configuration.GetSection("Jwt"));
-            services.Configure<NotificationHubConfiguration>(options =>
-            {
-                _configuration.GetSection("NotificationHub").Bind(options);
-                options.ConnectionString = _configuration.GetConnectionString("AzureNotificationHub");
-            });
-            services.Configure<SwabbrConfiguration>(_configuration.GetSection("SwabbrConfiguration"));
-            // TODO Configure this in the extension in the infrastructure package?
-            services.Configure<BlobStorageOptions>(_configuration.GetSection("BlobStorage"));
+            // FUTURE: Uncouple from NewtonSoft.Json
+            //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
+            services.AddControllers()
+                .AddNewtonsoftJson();
+            services.AddHealthChecks();
 
-            // Setup request related services
-            services.AddCors();
-            services.AddControllers(c => { }).AddNewtonsoftJson();
-            services.AddRouting(options => { options.LowercaseUrls = true; });
+            // Setup authentication and authorization.
             SetupIdentity(services);
             SetupAuthentication(services);
-            services.AddApiVersioning(options => { options.ReportApiVersions = true; });
-
-            // Setup logging and insights
-
-#if DEBUG == false
-            services.AddApplicationInsightsTelemetry();
-#endif
-
-            services.AddLogging((config) =>
+            services.AddAuthorization(options =>
             {
-                config.AddAzureWebAppDiagnostics();
+                // FUTURE Add custom policies.
+                // Note: This only expects the user to be authenticated, nothing else.
+                //       This is the default for all endpoints, unless specified otherwise.
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
             });
 
-            // Setup doc
-            SetupSwagger(services);
-
-            // Add app context
-            services.AddOrReplace<IAppContextFactory, AppContextFactory>(ServiceLifetime.Singleton);
-
-            // Add infrastructure services.
-            services.AddSwabbrInfrastructureServices("DatabaseInternal");
+            // Bind main configuration properties.
+            services.Configure<SwabbrConfiguration>(_configuration.GetSection("Swabbr"));
 
             // Add core services.
+            // Note: This also makes the AppContext injectable using the IAppContextFactory singleton.
             services.AddSwabbrCoreServices();
 
-            // Add asp specific services
-            services.AddSingleton<ITokenService, TokenService>();
+            // Add infrastructure services.
+            services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
+            // Explicitly add Azure Notification Hub configuration.
+            services.Configure<NotificationHubConfiguration>(_configuration.GetSection("AzureNotificationHub"));
+
+            // Add API specific services
+            services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
+            services.AddTransient<UserUpdateHelper>();
+            services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
+
+            // Add doc
+            SetupSwagger(services);
         }
 
         /// <summary>
-        /// Configures our pipeline for requests.
+        ///     This method gets called by the runtime if no environment is set or
+        ///     if no matching ConfigureEnvironment method is found. Use this method 
+        ///     to configure the request pipeline.
         /// </summary>
-        /// <param name="app"><see cref="IApplicationBuilder"/></param>
-        /// <param name="env"><see cref="IWebHostEnvironment"/></param>
-        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        /// <param name="app">Application builder.</param>
+        public static void Configure(IApplicationBuilder app)
         {
-            if (app == null) { throw new ArgumentNullException(nameof(app)); }
-            if (env == null) { throw new ArgumentNullException(nameof(env)); }
+            app.UseHsts();
+            app.UseHttpsRedirection();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
+                options.RoutePrefix = string.Empty;
+            });
+
+            app.UsePathBase(new PathString("/api"));
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
+            });
+        }
+
+        /// <summary>
+        ///     This method gets called by the runtime if the environment is set to
+        ///     development. Use this method to configure the development pipeline.
+        /// </summary>
+        /// <param name="app">Application builder.</param>
+        public static void ConfigureDevelopment(IApplicationBuilder app)
+        {
+            app.UseDeveloperExceptionPage();
+            app.UseCors();
 
             app.UseHsts();
             app.UseHttpsRedirection();
 
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
+                options.RoutePrefix = string.Empty;
+            });
+
+            app.UsePathBase(new PathString("/api"));
             app.UseRouting();
 
-            // CORS policy
-            app.UseCors(cp => cp
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader());
-
-            // Add authentication and authorization middleware
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -139,58 +182,36 @@ namespace Swabbr
             {
                 endpoints.MapControllers();
             });
-
-            // Add Swagger API definition middleware
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr v1");
-            });
         }
 
         /// <summary>
-        /// Adds swagger to the services.
+        ///     Adds swagger to the services.
         /// </summary>
-        /// <param name="services"><see cref="IServiceCollection"/></param>
         private static void SetupSwagger(IServiceCollection services)
-        {
-            services.AddSwaggerGen(c =>
+            => services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swabbr", Version = "v1" });
-
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-
-                // Require authorization header
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Description = "JWT Authorization header using the Bearer scheme. Contains the access token. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey
+                    Title = "Swabbr Documentation",
+                    Version = "v1",
+                    Description = "Swabbr REST API"
                 });
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference {
-                    Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
-                        Array.Empty<string>() } }
-                );
+                // Add custom enum name display filter
+                options.SchemaFilter<EnumSchemaFilter>();
             });
-        }
 
+        // FUTURE: Remove dapper stores
         /// <summary>
-        /// Adds identity to the services.
+        ///     Adds identity to the services.
         /// </summary>
-        /// <param name="services"><see cref="IServiceCollection"/></param>
-        private void SetupIdentity(IServiceCollection services)
-        {
-            // Add Identity middleware
+        /// <remarks>
+        ///     This uses Dapper to use identity along
+        ///     with our npgsql database.
+        /// </remarks>
+        private void SetupIdentity(IServiceCollection services) =>
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
-                setup.Password.RequireDigit = true;
-                setup.Password.RequireUppercase = true;
-                setup.Password.RequireLowercase = true;
-                setup.Password.RequireNonAlphanumeric = true;
                 setup.Password.RequiredLength = 8;
                 setup.User.RequireUniqueEmail = true;
             })
@@ -202,17 +223,19 @@ namespace Swabbr
                 options.UseNpgsql<IdentityQueryRepository>(_configuration.GetConnectionString("DatabaseInternal"));
             })
             .AddDefaultTokenProviders();
-        }
 
         /// <summary>
-        /// Adds authentication to the services.
+        ///     Adds authentication to the services.
         /// </summary>
-        /// <param name="services"><see cref="IServiceCollection"/></param>
         private void SetupAuthentication(IServiceCollection services)
         {
             var jwtConfigSection = _configuration.GetSection("Jwt");
             var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
-            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SecretKey);
+            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SignatureKey);
+
+            // Add the token service and jwt configuration
+            services.AddSingleton<TokenService>();
+            services.Configure<JwtConfiguration>(jwtConfigSection);
 
             services.AddAuthentication(options =>
             {
@@ -225,6 +248,9 @@ namespace Swabbr
                 options.SaveToken = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtConfig.Issuer,
                     ValidAudience = jwtConfig.Issuer,
