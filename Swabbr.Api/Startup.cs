@@ -3,7 +3,6 @@ using Laixer.Identity.Dapper.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -25,11 +24,15 @@ using System.Text;
 
 namespace Swabbr
 {
-    // TODO Look at this
     /// <summary>
-    ///     Called on application startup to configure
+    ///     Called on application startup to configure 
     ///     service container and request pipeline.
     /// </summary>
+    /// <remarks>
+    ///     This contains environment specific configuration
+    ///     methods. Which method gets called when is explained 
+    ///     in the documentation of each method.
+    /// </remarks>
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -41,10 +44,41 @@ namespace Swabbr
             => _configuration = configuration;
 
         /// <summary>
-        ///     Sets up all our dependency injection.
+        ///     This method gets called by the runtime if no environment is set
+        ///     or if no mathing ConfigureEnvironment method is found. Use this 
+        ///     method to configure the services container in these scenarios.
         /// </summary>
-        /// <param name="services"></param>
-        public void ConfigureServices(IServiceCollection services)
+        /// <param name="services">The services collection.</param>
+        public void ConfigureServices(IServiceCollection services) => GenericConfigureServices(services);
+
+        /// <summary>
+        ///     This method gets called by the runtime if our environment is 
+        ///     set to development. Use this method to add development specific
+        ///     services to the services container.
+        /// </summary>
+        /// <param name="services">The services collection.</param>
+        public void ConfigureDevelopmentServices(IServiceCollection services)
+        {
+            GenericConfigureServices(services);
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin();
+                    policy.AllowAnyHeader();
+                    policy.AllowAnyMethod();
+                });
+            });
+        }
+
+        /// <summary>
+        ///     This method will be called regardless of the environment.
+        ///     Use this method to specify which services should exist in
+        ///     regardless of the environment.
+        /// </summary>
+        /// <param name="services">The services collection.</param>
+        public void GenericConfigureServices(IServiceCollection services)
         {
             // FUTURE: Uncouple from NewtonSoft.Json
             //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
@@ -87,25 +121,13 @@ namespace Swabbr
         }
 
         /// <summary>
-        ///     Configures our pipeline for requests.
+        ///     This method gets called by the runtime if no environment is set or
+        ///     if no matching ConfigureEnvironment method is found. Use this method 
+        ///     to configure the request pipeline.
         /// </summary>
-        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        /// <param name="app">Application builder.</param>
+        public static void Configure(IApplicationBuilder app)
         {
-            if (app is null) 
-            { 
-                throw new ArgumentNullException(nameof(app)); 
-            }
-            if (env is null) 
-            { 
-                throw new ArgumentNullException(nameof(env)); 
-            }
-
-            // TODO This is beun
-            if (env.EnvironmentName == "Development")
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
             app.UseHsts();
             app.UseHttpsRedirection();
 
@@ -119,6 +141,37 @@ namespace Swabbr
             {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
+            });
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr");
+            });
+        }
+
+        /// <summary>
+        ///     This method gets called by the runtime if the environment is set to
+        ///     development. Use this method to configure the development pipeline.
+        /// </summary>
+        /// <param name="app">Application builder.</param>
+        public static void ConfigureDevelopment(IApplicationBuilder app)
+        {
+            app.UseDeveloperExceptionPage();
+            app.UseCors();
+
+            app.UseHsts();
+            app.UseHttpsRedirection();
+
+            app.UsePathBase(new PathString("/api"));
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
             });
 
             app.UseSwagger();
@@ -164,6 +217,7 @@ namespace Swabbr
                 });
             });
 
+        // FUTURE: Remove dapper stores
         /// <summary>
         ///     Adds identity to the services.
         /// </summary>
