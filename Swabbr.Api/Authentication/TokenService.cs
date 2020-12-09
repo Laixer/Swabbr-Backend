@@ -20,27 +20,7 @@ namespace Swabbr.Api.Authentication
         ///     Create new instance.
         /// </summary>
         public TokenService(IOptions<JwtConfiguration> options)
-        {
-            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
-
-            // TODO Move somewhere
-            if (string.IsNullOrEmpty(_options.Audience))
-            {
-                throw new ConfigurationException("Audience is null");
-            }
-            if (string.IsNullOrEmpty(_options.Issuer))
-            {
-                throw new ConfigurationException("Issuer is null");
-            }
-            if (string.IsNullOrEmpty(_options.SignatureKey))
-            {
-                throw new ConfigurationException("Signature key is null");
-            }
-            if (_options.TokenValidity <= 0)
-            {
-                throw new ConfigurationRangeException("Invalid token validity");
-            }
-        }
+            => _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
 
         /// <summary>
         ///     Generates a jwt token for a user login.

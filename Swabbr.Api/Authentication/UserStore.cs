@@ -6,7 +6,6 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
-#pragma warning disable CS1591
 namespace Swabbr.Api.Authentication
 {
     // TODO Rework or remove completely
@@ -238,10 +237,10 @@ return null;*/
         public Task AddClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (claims == null) { throw new ArgumentNullException(nameof(claims)); }
-            foreach (Claim c in claims)
-            {
+            //foreach (Claim c in claims)
+            //{
                 //TODO: Store claim for user
-            }
+            //}
             return Task.CompletedTask;
         }
 
@@ -253,10 +252,10 @@ return null;*/
         public Task RemoveClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (claims == null) { throw new ArgumentNullException(nameof(claims)); }
-            foreach (Claim c in claims)
-            {
+            //foreach (Claim c in claims)
+            //{
                 //TODO: Remove claim for user
-            }
+            //}
             return Task.CompletedTask;
         }
 
@@ -295,4 +294,3 @@ return null;*/
         #endregion IUserRoleStore
     }
 }
-#pragma warning restore CS1591
