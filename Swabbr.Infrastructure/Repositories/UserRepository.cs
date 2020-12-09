@@ -320,7 +320,8 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
         {
             var sql = @"
-                    SELECT  uws.birth_date,
+                    SELECT  -- User
+                            uws.birth_date,
                             uws.country,
                             uws.daily_vlog_request_limit,
                             uws.first_name,
@@ -334,6 +335,8 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.nickname,
                             uws.profile_image_base64_encoded,
                             uws.timezone,
+                            
+                            -- Statistics
                             uws.total_followers,
                             uws.total_following,
                             uws.total_likes_received,
