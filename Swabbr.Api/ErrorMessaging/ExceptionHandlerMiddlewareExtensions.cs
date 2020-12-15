@@ -18,7 +18,6 @@ namespace Swabbr.Api.ErrorMessaging
         /// <returns>Application builder with swabbr exception handler.</returns>
         public static IApplicationBuilder UseSwabbrExceptionHandler(this IApplicationBuilder builder, string errorControllerPath)
         {
-            // TODO [DisallowNull]
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));

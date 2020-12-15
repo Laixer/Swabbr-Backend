@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
 {
+    // TODO Notification generics with TData is not that elegant
     /// <summary>
     ///     Background task notifying a single user.
     /// </summary>
