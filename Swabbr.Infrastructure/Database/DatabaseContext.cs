@@ -18,7 +18,6 @@ namespace Swabbr.Infrastructure.Database
         /// </summary>
         public DatabaseProvider DatabaseProvider { get; set; }
 
-        // TODO Bit double, since we already have app context in the DatabaseContextBase through AppServiceBase?
         /// <summary>
         ///     Application context.
         /// </summary>
@@ -244,7 +243,7 @@ namespace Swabbr.Infrastructure.Database
                 var result = await Command.ExecuteScalarAsync(AppContext.CancellationToken);
                 if (result == null && resultGuard)
                 {
-                    throw new EntityNotFoundException(); // TODO Better exception
+                    throw new EntityNotFoundException();
                 }
 
                 return (TResult)result;

@@ -16,8 +16,6 @@ namespace Swabbr.Infrastructure.Abstractions
         /// </summary>
         public DatabaseProvider DatabaseProvider { get; set; }
 
-        // TODO Is this the correct usage of a context base, returning a created context?
-        //      Maybe the name of this class is incorrect and confusing?
         /// <summary>
         ///     Create the database context.
         /// </summary>

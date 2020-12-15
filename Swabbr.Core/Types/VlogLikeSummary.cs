@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace Swabbr.Core.Types
 {
-    // TODO This belong to a use case.
     /// <summary>
     ///     Summary wrapper for the likes for a vlog.
     /// </summary>

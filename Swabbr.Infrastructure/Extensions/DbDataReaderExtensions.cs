@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core;
+using System;
 using System.Data.Common;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -208,14 +209,12 @@ namespace Swabbr.Infrastructure.Extensions
             return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<TFieldType>(ordinal);
         }
 
-        // TODO Centralize regex?
         /// <summary>
         ///     Return value as <typeparamref name="TimeZoneInfo"/>.
         /// </summary>
         /// <remarks>
-        ///     This uses our custom timezone storage format, being:
-        ///     UTC+xx:xx or UTC-xx:xx. A regex expression is used to
-        ///     check this format.
+        ///     This uses our custom timezone storage format, being
+        ///     <see cref="RegexConstants.TimeZone"/>.
         /// </remarks>
         /// <typeparam name="TFieldType">Type to return value to.</typeparam>
         /// <param name="reader">Input reader to extend.</param>
@@ -231,7 +230,7 @@ namespace Swabbr.Infrastructure.Extensions
             var asString = reader.GetString(ordinal);
 
             // Perform regex matching to check the expected pattern.
-            if (!Regex.IsMatch(asString, @"^UTC(\+|-)\d\d:\d\d$")) 
+            if (!Regex.IsMatch(asString, RegexConstants.TimeZone)) 
             { 
                 throw new FormatException();
             }

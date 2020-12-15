@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
@@ -109,7 +108,6 @@ namespace Swabbr.Api.Controllers
         [HttpGet("{vlogId}/likes")]
         public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
         {
-            // TODO ToListAsync eruit en mapper extension voor bouwen?
             // Act.
             var likes = await _vlogService.GetVlogLikesForVlogAsync(vlogId, pagination.ToNavigation()).ToListAsync();
 
@@ -216,4 +214,3 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
-#pragma warning restore CA1062 // Validate arguments of public methods

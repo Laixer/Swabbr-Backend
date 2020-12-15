@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -62,7 +63,6 @@ namespace Swabbr.Infrastructure.Repositories
             return reader.GetGuid(0);
         }
 
-        // TODO Also check for context user id?
         /// <summary>
         ///     Delete a notification registration from
         ///     the database.
@@ -70,6 +70,12 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="id">The user id.</param>
         public async Task DeleteAsync(Guid id)
         {
+            // Check if the user owns the registration
+            if (!AppContext.HasUser || id != AppContext.UserId)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql = @"
                     DELETE  
                     FROM    application.notification_registration AS nr

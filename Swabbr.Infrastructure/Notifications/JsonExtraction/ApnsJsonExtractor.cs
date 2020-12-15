@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Notifications;
-using Swabbr.Core.Helpers;
 using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
 
@@ -23,8 +22,6 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
             {
                 throw new ArgumentNullException(nameof(swabbrNotification));
             }
-
-            // TODO Validate notification?
 
             return new ApnsContentWrapper
             {

@@ -11,7 +11,6 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Transactions;
 
-#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
     // FUTURE This will probably be changed up when we refactor the auth part
@@ -166,4 +165,3 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
-#pragma warning restore CA1062 // Validate arguments of public methods

@@ -1,6 +1,5 @@
 ﻿using Swabbr.Core.Entities;
 using System;
-using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Repositories
 {
@@ -9,6 +8,5 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// </summary>
     public interface INotificationRegistrationRepository : IRepository<NotificationRegistration, Guid>
     {
-        // TODO What to put here
     }
 }

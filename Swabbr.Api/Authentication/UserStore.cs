@@ -106,7 +106,11 @@ namespace Swabbr.Api.Authentication
         public Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
-            passwordHash.ThrowIfNullOrEmpty();
+            if (string.IsNullOrEmpty(passwordHash))
+            {
+                throw new ArgumentNullException(nameof(passwordHash));
+            }
+
             user.PasswordHash = passwordHash;
             return Task.CompletedTask;
         }

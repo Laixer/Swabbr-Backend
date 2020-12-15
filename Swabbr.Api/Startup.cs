@@ -18,9 +18,6 @@ using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Extensions;
-using System;
-using System.IO;
-using System.Reflection;
 using System.Text;
 
 namespace Swabbr
