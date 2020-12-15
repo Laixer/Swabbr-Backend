@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Swabbr.Core.Notifications.JsonWrappers
+namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
     ///     JSON wrapper for a vlog record request.
     /// </summary>
-    public sealed class ParametersRecordVlog : ParametersJsonBase
+    public sealed class DataVlogRecordRequest : NotificationData
     {
         /// <summary>
         ///     Moment when the vlogging request

@@ -13,11 +13,6 @@ namespace Swabbr.Core.Services
     /// <summary>
     ///     Service that handles all vlog related operations.
     /// </summary>
-    /// <remarks>
-    ///     TODO This depends on <see cref="INotificationService"/> 
-    ///     which seems incorrect, as this has nothing to do with
-    ///     vlogs themself. Use queue in future.
-    /// </remarks>
     public class VlogService : IVlogService
     {
         protected readonly AppContext _appContext;
@@ -28,7 +23,7 @@ namespace Swabbr.Core.Services
         protected readonly IBlobStorageService _blobStorageService;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
         public VlogService(AppContext appContext,
             IVlogRepository vlogRepository,
@@ -163,7 +158,7 @@ namespace Swabbr.Core.Services
             });
 
             var vlog = await GetAsync(vlogId);
-            // FUTURE: Enqueue
+
             await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId);
         }
 
@@ -201,10 +196,8 @@ namespace Swabbr.Core.Services
             };
 
             // Note: The current user id is assigned in the reaction repository.
-            // TODO This comment could not have been made without full knowledge of the repo, which we can't always have!
             await _vlogRepository.CreateAsync(vlog);
 
-            // FUTURE: Enqueue
             await _notificationService.NotifyFollowersVlogPostedAsync(_appContext.UserId, vlogId);
         }
 

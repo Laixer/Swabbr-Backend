@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Swabbr.Core.Notifications.JsonWrappers
+namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
     ///     JSON Wrapper for a notification indicating that a vlog
     ///     received a new reaction.
     /// </summary>
-    public sealed class ParametersVlogNewReaction : ParametersJsonBase
+    public sealed class DataVlogNewReaction : NotificationData
     {
         /// <summary>
         ///     The vlog that received the reaction.

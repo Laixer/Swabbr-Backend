@@ -1,10 +1,10 @@
-﻿namespace Swabbr.Core.Notifications.JsonWrappers
+﻿namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
     ///     Abstract base class for creating 
     ///     operation specific JSON wrappers.
     /// </summary>
-    public abstract class ParametersJsonBase
+    public abstract class NotificationData
     {
         /// <summary>
         ///     The title of the notification.

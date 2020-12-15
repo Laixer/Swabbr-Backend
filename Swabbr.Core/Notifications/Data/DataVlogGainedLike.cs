@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Swabbr.Core.Notifications.JsonWrappers
+namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
     ///     JSON wrapper for a notification indicating a vlog
     ///     gained a like..
     /// </summary>
-    public sealed class ParametersVlogGainedLike : ParametersJsonBase
+    public sealed class DataVlogGainedLike : NotificationData
     {
         /// <summary>
         ///     The vlog that gained the like.

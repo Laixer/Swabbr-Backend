@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Swabbr.Core.Notifications.JsonWrappers
+namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
     ///     JSON wrapper for notifying about a posted vlog.
     /// </summary>
-    public sealed class ParametersFollowedProfileVlogPosted : ParametersJsonBase
+    public sealed class DataFollowedProfileVlogPosted : NotificationData
     {
         /// <summary>
         /// Internal vlog id.

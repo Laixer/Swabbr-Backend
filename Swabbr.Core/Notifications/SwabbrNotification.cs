@@ -1,8 +1,9 @@
-﻿using Swabbr.Core.Notifications.JsonWrappers;
+﻿using Swabbr.Core.Notifications.Data;
 using System;
 
 namespace Swabbr.Core.Notifications
 {
+    // TODO Look into this.
     /// <summary>
     ///     Represents a single notification to be sent to a user.
     /// </summary>
@@ -17,13 +18,13 @@ namespace Swabbr.Core.Notifications
         ///     <see cref="NotificationAction"/>.
         /// </summary>
         /// <param name="notificationAction">The type of notification.</param>
-        /// <param name="data"><see cref="ParametersJsonBase"/>.</param>
+        /// <param name="data"><see cref="NotificationData"/>.</param>
         /// <param name="title">The title to display.</param>
         /// <param name="message">The message to display.</param>
         /// <param name="protocol">Protocol type.</param>
         /// <param name="protocolVersion">Protocol version.</param>
         public SwabbrNotification(NotificationAction notificationAction,
-            ParametersJsonBase data,
+            NotificationData data,
             string title = null,
             string message = null,
             string protocol = "swabbr",
@@ -43,7 +44,7 @@ namespace Swabbr.Core.Notifications
             Data.Title = title;
             Data.Message = message;
 
-            UserAgent = "swabbr-backend"; // TODO What to do with this?
+            UserAgent = "swabbr-backend";
         }
 
         /// <summary>
@@ -95,6 +96,6 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         ///     Contains the actual notification data.
         /// </summary>
-        public ParametersJsonBase Data { get; set; }
+        public NotificationData Data { get; set; }
     }
 }
