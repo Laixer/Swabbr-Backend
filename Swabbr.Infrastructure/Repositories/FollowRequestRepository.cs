@@ -15,7 +15,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for follow requests.
     /// </summary>
-    internal class FollowRequestRepository : RepositoryBase, IFollowRequestRepository
+    internal class FollowRequestRepository : DatabaseContextBase, IFollowRequestRepository
     {
         /// <summary>
         ///     Create a new follow request.

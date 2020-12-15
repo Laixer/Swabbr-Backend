@@ -16,7 +16,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for reactions.
     /// </summary>
-    internal class ReactionRepository : RepositoryBase, IReactionRepository
+    internal class ReactionRepository : DatabaseContextBase, IReactionRepository
     {
         /// <summary>
         ///     Creates a new reaction in our database.

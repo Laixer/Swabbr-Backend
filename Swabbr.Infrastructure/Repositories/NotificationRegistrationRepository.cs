@@ -18,7 +18,7 @@ namespace Swabbr.Infrastructure.Repositories
     ///     For notification registations in the database
     ///     the id property is used as the user id.
     /// </remarks>
-    internal class NotificationRegistrationRepository : RepositoryBase, INotificationRegistrationRepository
+    internal class NotificationRegistrationRepository : DatabaseContextBase, INotificationRegistrationRepository
     {
         /// <summary>
         ///     Creates a new notification registration.

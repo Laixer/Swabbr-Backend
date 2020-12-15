@@ -15,7 +15,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     User database repository.
     /// </summary>
-    internal class UserRepository : RepositoryBase, IUserRepository
+    internal class UserRepository : DatabaseContextBase, IUserRepository
     {
         /// <summary>
         ///     Create a user.

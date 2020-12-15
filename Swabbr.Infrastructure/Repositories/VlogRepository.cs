@@ -15,7 +15,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for vlogs.
     /// </summary>
-    internal class VlogRepository : RepositoryBase, IVlogRepository
+    internal class VlogRepository : DatabaseContextBase, IVlogRepository
     {
         // FUTURE: Check if the current user is allowed to watch the requested vlog.
         /// <summary>
