@@ -17,16 +17,13 @@ namespace Swabbr.Core.BackgroundWork
         /// </summary>
         /// <param name="value">The object to check.</param>
         public abstract bool CanHandle(object value);
-        
+
         /// <summary>
         ///     Represents the work to be executed by this task.
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public virtual async Task ExecuteAsync(BackgroundTaskContext context)
-        {
-            // Always yield for the state machine.
-            await Task.Yield();
-        }
+        public virtual Task ExecuteAsync(BackgroundTaskContext context)
+            => Task.CompletedTask;
     }
 }

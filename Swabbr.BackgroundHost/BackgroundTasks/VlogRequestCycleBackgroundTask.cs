@@ -39,7 +39,7 @@ namespace Swabbr.BackgroundHost.BackgroundTasks
             {
                 throw new ArgumentNullException(nameof(context));
             }
-            if (context.Value is not DateTimeOffset)
+            if (!CanHandle(context.Value))
             {
                 throw new InvalidOperationException(nameof(context.Value));
             }

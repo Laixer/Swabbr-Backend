@@ -159,7 +159,7 @@ namespace Swabbr.Api.Controllers
         {
             // Act.
             await _signInManager.SignOutAsync();
-            
+
             // Return.
             return NoContent();
         }
