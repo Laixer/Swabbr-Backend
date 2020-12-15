@@ -78,7 +78,6 @@ namespace Swabbr.Infrastructure.Storage
 
                 _logger.LogError(e, "Could not check file existence in Spaces using S3");
 
-                // TODO QUESTION: Inner exception or not? I don't think so because we already log it.
                 throw new StorageException("Could not check file existence", e);
             }
         }
