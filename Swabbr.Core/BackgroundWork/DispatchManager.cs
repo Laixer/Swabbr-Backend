@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.BackgroundWork
 {
+    // TODO What to do with preventing a task overflow? Do we even need to since we have no synchronous tasks?
     /// <summary>
     ///     Manager for dispatching background tasks.
     /// </summary>
