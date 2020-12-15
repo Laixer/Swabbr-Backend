@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#pragma warning disable CA1062 // Validate arguments of public methods
 namespace Swabbr.Api.Controllers
 {
     /// <summary>
@@ -176,4 +175,3 @@ namespace Swabbr.Api.Controllers
         }
     }
 }
-#pragma warning restore CA1062 // Validate arguments of public methods

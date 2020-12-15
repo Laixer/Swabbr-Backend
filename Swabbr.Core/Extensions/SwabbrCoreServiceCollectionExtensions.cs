@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Services;
@@ -26,10 +27,7 @@ namespace Swabbr.Core.Extensions
                 throw new ArgumentNullException(nameof(services));
             }
 
-            // Make appcontext injectable.
-            // TODO QUESTION We might want to pick a single method of implementing this,
-            //               Either with the factory, with the context itself or with
-            //               explicit assignment as done in Swabbr.Infrastructure.Extensions.SwabbrInfrastructureServiceCollectionExtensions
+            // Make the AppContext itself injectable.
             services.AddScoped((services) =>
             {
                 var factory = services.GetRequiredService<IAppContextFactory>();
@@ -37,13 +35,16 @@ namespace Swabbr.Core.Extensions
             });
 
             // Configure DI for services
-            services.AddTransient<IFollowRequestService, FollowRequestService>();
-            services.AddTransient<IUserSelectionService, UserSelectionService>();
-            services.AddTransient<IHealthCheckService, HealthCheckService>();
-            services.AddTransient<IReactionService, ReactionService>();
-            services.AddTransient<IVlogService, VlogService>();
-            services.AddTransient<IVlogRequestService, VlogRequestService>();
-            services.AddTransient<IUserService, UserService>();
+            services.AddScoped<IFollowRequestService, FollowRequestService>();
+            services.AddScoped<IUserSelectionService, UserSelectionService>();
+            services.AddScoped<IHealthCheckService, HealthCheckService>();
+            services.AddScoped<IReactionService, ReactionService>();
+            services.AddScoped<IVlogService, VlogService>();
+            services.AddScoped<IVlogRequestService, VlogRequestService>();
+            services.AddScoped<IUserService, UserService>();
+
+            // Configure DI for background work
+            services.AddSingleton<DispatchManager>();
 
             return services;
         }

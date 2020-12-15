@@ -7,7 +7,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository to check our database health.
     /// </summary>
-    internal class HealthCheckRepository : RepositoryBase, IHealthCheckRepository
+    internal class HealthCheckRepository : DatabaseContextBase, IHealthCheckRepository
     {
         /// <summary>
         ///     Checks if the database is online.

@@ -51,7 +51,7 @@ namespace Swabbr.Core.Services
             // Extract the current minute from the time parameter.
             var day = new DateTime(time.Year, time.Month, time.Day);
             var timeUtc = time.ToUniversalTime() + (offset ?? TimeSpan.Zero);
-            var thisMinute = GetMinutes(timeUtc);
+            var thisMinute = (timeUtc.Hour * 60) + timeUtc.Minute;
 
             // This call gets all users which are eligible for a vlog request,
             // meaning they have a vlog request limit greater than zero.
@@ -96,9 +96,18 @@ namespace Swabbr.Core.Services
         /// <returns>The minute in the day based on the inputs</returns>
         protected virtual int GetHashMinute(User user, DateTime day, int requestIndex)
         {
-            if (user == null) { throw new ArgumentNullException(nameof(user)); }
-            if (user.Id.IsEmpty()) { throw new ArgumentNullException(nameof(user.Id)); }
-            if (user.Timezone == null) { throw new ArgumentNullException(nameof(user.Timezone)); }
+            if (user is null) 
+            {
+                throw new ArgumentNullException(nameof(user)); 
+            }
+            if (user.Id == Guid.Empty)
+            {
+                throw new InvalidOperationException();
+            }
+            if (user.Timezone is null)
+            {
+                throw new InvalidOperationException();
+            }
 
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
             var hash = hasher.ComputeHash(encoder.GetBytes(hashString));
@@ -109,14 +118,5 @@ namespace Swabbr.Core.Services
             var minute = _options.VlogRequestStartTimeMinutes + (number % ValidMinutes);
             return (int)Math.Abs(minute);
         }
-
-        // TODO Move to helper
-        /// <summary>
-        ///     Extracts the minutes from a date time offset.
-        /// </summary>
-        /// <param name="date">The object to extract from.</param>
-        /// <returns>The amount of minutes in the object.</returns>
-        private static int GetMinutes(DateTimeOffset date)
-            => date.Hour * 60 + date.Minute;
     }
 }

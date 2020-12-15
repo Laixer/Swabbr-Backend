@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Storage;
 using Swabbr.Infrastructure.Abstractions;
@@ -10,10 +11,11 @@ using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Storage;
 using System;
+using Swabbr.Infrastructure.Notifications.BackgroundTasks;
+using Swabbr.Core.Notifications.Data;
 
 namespace Swabbr.Infrastructure.Extensions
 {
-    // TODO Null services
     /// <summary>
     ///     Extends the service collection for the Swabbr 
     ///     infrastructure package.
@@ -55,10 +57,14 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddContextRepository<IVlogLikeRepository, VlogLikeRepository>();
             services.AddContextRepository<IVlogRepository, VlogRepository>();
 
-            // TODO Configuration
             // Add notification package
             services.AddTransient<INotificationService, NotificationService>();
-            services.AddSingleton<NotificationClient>();
+            services.AddSingleton<NotificationClient>(); // TODO Configuration
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogGainedLike>>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogNewReaction>>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
+            services.AddBackgroundTask<NotifyFollowersVlogPostedBackgroundTask>();
 
             // Add storage package
             services.AddSingleton<IBlobStorageService, SpacesBlobStorageService>();

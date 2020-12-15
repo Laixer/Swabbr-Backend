@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Helpers;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -14,7 +15,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     User database repository.
     /// </summary>
-    internal class UserRepository : RepositoryBase, IUserRepository
+    internal class UserRepository : DatabaseContextBase, IUserRepository
     {
         /// <summary>
         ///     Create a user.
@@ -132,7 +133,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.profile_image_base64_encoded,
                             u.timezone
                     FROM    application.user AS u
-                    WHERE   u.vlog_request_limit > 0";
+                    WHERE   u.daily_vlog_request_limit > 0";
 
             ConstructNavigation(ref sql, navigation);
 
@@ -288,11 +289,12 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-        // TODO This throws if we have no push details for the user.
         /// <summary>
-        ///     Gets the push notification details for a
-        ///     given user.
+        ///     Gets the push notification details for a given user.
         /// </summary>
+        /// <remarks>
+        ///     This throws if we have no push details for the user.
+        /// </remarks>
         /// <param name="userId">The user id.</param>
         /// <returns>Push notification details.</returns>
         public async Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId)
@@ -526,33 +528,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("longitude", user.Longitude);
             context.AddParameterWithValue("nickname", user.Nickname);
             context.AddParameterWithValue("profile_image_base64_encoded", user.ProfileImageBase64Encoded);
-            context.AddParameterWithValue("timezone", MapTimeZoneToStringOrNull(user.Timezone));
-        }
-
-        // TODO Move to helper, or maybe to sql formatter thing?
-        /// <summary>
-        ///     Converts a timezone object to the expected
-        ///     database format timezone.
-        /// </summary>
-        /// <remarks>
-        ///     If <paramref name="timeZoneInfo"/> is null, 
-        ///     this returns null.
-        /// </remarks>
-        /// <param name="timeZoneInfo">The timezone object.</param>
-        /// <returns>Formatted string.</returns>
-        private static string MapTimeZoneToStringOrNull(TimeZoneInfo timeZoneInfo)
-        {
-            if (timeZoneInfo is null)
-            {
-                return null;
-            }
-
-            var offset = timeZoneInfo.BaseUtcOffset;
-
-            var hours = (offset.Hours >= 10) ? $"{offset.Hours}" : $"0{offset.Hours}";
-            var minutes = (offset.Minutes >= 10) ? $"{offset.Minutes}" : $"0{offset.Minutes}";
-            
-            return $"UTC+{hours}:{minutes}";
+            context.AddParameterWithValue("timezone", TimeZoneInfoHelper.MapTimeZoneToStringOrNull(user.Timezone));
         }
     }
 }

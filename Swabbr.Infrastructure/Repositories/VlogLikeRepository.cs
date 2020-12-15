@@ -14,7 +14,7 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for vlog likes.
     /// </summary>
-    internal class VlogLikeRepository : RepositoryBase, IVlogLikeRepository
+    internal class VlogLikeRepository : DatabaseContextBase, IVlogLikeRepository
     {
         /// <summary>
         ///     Create a new vlog like in the database.

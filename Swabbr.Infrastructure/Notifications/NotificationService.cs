@@ -1,9 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
+using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
+using Swabbr.Core.Notifications.Data;
 using Swabbr.Core.Types;
+using Swabbr.Infrastructure.Notifications.BackgroundTasks;
 using System;
 using System.Threading.Tasks;
 
@@ -11,6 +14,9 @@ namespace Swabbr.Infrastructure.Notifications
 {
     /// <summary>
     ///     Contains functionality to handle notification operations.
+    ///     All methods in this service which send a notification are
+    ///     dispatched to the dispatch manager. Each of these methods
+    ///     returns immediately.
     /// </summary>
     /// <remarks>
     ///     This does no checks with regards to entity state whenever
@@ -22,6 +28,7 @@ namespace Swabbr.Infrastructure.Notifications
         protected readonly IUserRepository _userRepository;
         protected readonly NotificationClient _notificationClient;
         protected readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        protected readonly DispatchManager _dispatchManager;
         protected readonly ILogger<NotificationService> _logger;
 
         /// <summary>
@@ -30,11 +37,13 @@ namespace Swabbr.Infrastructure.Notifications
         public NotificationService(IUserRepository userRepository,
             NotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
+            DispatchManager dispatchManager,
             ILogger<NotificationService> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
+            _dispatchManager = dispatchManager ?? throw new ArgumentNullException(nameof(dispatchManager));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -47,104 +56,79 @@ namespace Swabbr.Infrastructure.Notifications
         /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
+        /// <remarks>
+        ///     This is dispatched to the <see cref="DispatchManager"/>.
+        /// </remarks>
         /// <param name="userId">User that posted a vlog.</param>
         /// <param name="vlogId">The posted vlog id.</param>
-        public virtual async Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
+        public virtual Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
         {
-            _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Attempting notifying followers for posted vlog {vlogId} from user {userId}");
+            var notification = NotificationFactory.BuildFollowedProfileVlogPosted(userId, vlogId);
 
-            var notification = NotificationBuilder.BuildFollowedProfileVlogPosted(vlogId, userId);
+            _dispatchManager.Dispatch<NotifyFollowersVlogPostedBackgroundTask>(notification);
 
-            // Notify each follower individually.
-            await foreach (var item in _userRepository.GetFollowersPushDetailsAsync(userId, Navigation.All))
-            {
-                await _notificationClient.SendNotificationAsync(item.UserId, item.PushNotificationPlatform, notification);
-                _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Notified user {item.UserId}");
-            }
-
-            _logger.LogTrace($"{nameof(NotifyFollowersVlogPostedAsync)} - Completed notifying followers for posted vlog {vlogId} from user {userId}");
+            return Task.CompletedTask;
         }
 
         /// <summary>
         ///     Send a vlog record request notification.
         /// </summary>
+        /// <remarks>
+        ///     This is dispatched to the <see cref="DispatchManager"/>.
+        /// </remarks>
         /// <param name="userId">User id to notify.</param>
         /// <param name="vlogId">The suggested vlog id to post.</param>
         /// <param name="requestTimeout">The timeout time span for the request.</param>
-        public virtual async Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
+        public virtual Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
         {
-            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Attempting vlog record request to user {userId}");
+            var notification = NotificationFactory.BuildRecordVlog(userId, vlogId, DateTimeOffset.Now, requestTimeout);
 
-            // Log and return if we can't reach our user.
-            if (!await _notificationRegistrationRepository.ExistsAsync(userId))
-            {
-                _logger.LogTrace($"Couldn't get notification registration for user {userId}");
-                return;
-            }
+            _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogRecordRequest>>(notification);
 
-            var notification = NotificationBuilder.BuildRecordVlog(vlogId, DateTimeOffset.Now, requestTimeout);
-            var pushDetails = await _userRepository.GetPushDetailsAsync(userId);
-            await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification);
-
-            _logger.LogTrace($"{nameof(NotifyVlogRecordRequestAsync)} - Completed vlog record request to user {userId}");
+            return Task.CompletedTask;
         }
 
         /// <summary>
         ///     Notify a user that a reaction was placed on one of 
         ///     the users own vlogs.
         /// </summary>
+        /// <remarks>
+        ///     This is dispatched to the <see cref="DispatchManager"/>.
+        /// </remarks>
         /// <param name="receivingUserId">User that received the reaction.</param>
         /// <param name="vlogId">The id of the vlog.</param>
         /// <param name="reactionId">The placed reaction id.</param>
-        public virtual async Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
+        public virtual Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
-            _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
+            var notificationContext = NotificationFactory.BuildVlogNewReaction(receivingUserId, vlogId, reactionId);
 
-            // Log and return if we can't reach our user.
-            if (!await _notificationRegistrationRepository.ExistsAsync(receivingUserId))
-            {
-                _logger.LogTrace($"Couldn't get notification registration for user {receivingUserId}");
-                return;
-            }
+            _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogNewReaction>>(notificationContext);
 
-            var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId);
-            var notification = NotificationBuilder.BuildVlogNewReaction(vlogId, reactionId);
-            await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification);
-
-            _logger.LogTrace($"{nameof(NotifyReactionPlacedAsync)} - Attempting vlog reaction notification for reaction {reactionId}");
+            return Task.CompletedTask;
         }
 
         /// <summary>
         ///     Notify a user that one of the users vlogs received
         ///     a new like.
         /// </summary>
+        /// <remarks>
+        ///     This is dispatched to the <see cref="DispatchManager"/>.
+        /// </remarks>
         /// <param name="receivingUserId">User that received the vlog like.</param>
         /// <param name="vlogLikeId">The vlog like id.</param>
-        public virtual async Task NotifyVlogLikedAsync(Guid receivingUserId, VlogLikeId vlogLikeId)
+        public virtual Task NotifyVlogLikedAsync(Guid receivingUserId, VlogLikeId vlogLikeId)
         {
-            if (vlogLikeId == null)
+            if (vlogLikeId is null)
             {
                 throw new ArgumentNullException(nameof(vlogLikeId));
             }
 
-            _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
+            var notificationContext = NotificationFactory.BuildVlogGainedLike(receivingUserId, vlogLikeId.VlogId, vlogLikeId.UserId);
 
-            // Log and return if we can't reach our user.
-            if (!await _notificationRegistrationRepository.ExistsAsync(receivingUserId))
-            {
-                _logger.LogTrace($"Couldn't get notification registration for user {receivingUserId}");
-                return;
-            }
+            _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogGainedLike>>(notificationContext);
 
-            var userPushDetails = await _userRepository.GetPushDetailsAsync(receivingUserId);
-            var notification = NotificationBuilder.BuildVlogGainedLike(vlogLikeId.VlogId, vlogLikeId.UserId);
-            await _notificationClient.SendNotificationAsync(userPushDetails.UserId, userPushDetails.PushNotificationPlatform, notification);
-
-            _logger.LogTrace($"{nameof(NotifyVlogLikedAsync)} - Attempting vlog like notification for vlog like {vlogLikeId}");
+            return Task.CompletedTask;
         }
-
-        public virtual Task NotifyVlogRecordTimeoutAsync(Guid userId)
-            => throw new NotImplementedException(nameof(NotifyVlogRecordTimeoutAsync));
 
         /// <summary>
         ///     Registers a device in Azure Notification Hub.

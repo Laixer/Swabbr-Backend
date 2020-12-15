@@ -68,8 +68,6 @@ namespace Swabbr.Infrastructure.Notifications
             }
         }
 
-        // TODO There is a state possible where a user has a registration in firebase
-        // but no corresponding registration in the database. An issue is made.
         /// <summary>
         ///     Registers a user in Azure Notifications Hub.
         /// </summary>
@@ -101,9 +99,6 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Unregisters a user in Azure Notifcations Hub.
         /// </summary>
         /// <remarks>
-        ///     TODO Check this
-        ///     This throws an <see cref="-"/> if the 
-        ///     user has no Azure Notification Hub registration.
         ///     This will log a warning if the user is registered multiple times 
         ///     in the Azure Notification Hub. This will always remove ALL existing
         ///     registrations.

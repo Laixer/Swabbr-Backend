@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Abstractions;
+using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
@@ -115,12 +116,11 @@ namespace Swabbr.Core.Services
             };
 
             // Note: The user id is assigned by the reaction repository based on the context.
-            // TODO This comment could not have been made without full knowledge of the repo, which we can't always have!
             await _reactionRepository.CreateAsync(reaction);
 
             var targetVlog = await _vlogRepository.GetAsync(targetVlogId);
-            // FUTURE: Enqueue
-            await _notificationService.NotifyReactionPlacedAsync(targetVlog.UserId, targetVlogId, reactionId);                
+
+            await _notificationService.NotifyReactionPlacedAsync(targetVlog.UserId, targetVlogId, reactionId);
         }
 
         /// <summary>

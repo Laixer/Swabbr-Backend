@@ -23,12 +23,6 @@ namespace Swabbr.Core.Interfaces.Services
         Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout);
 
         /// <summary>
-        ///     Send a vlog record timeout notification.
-        /// </summary>
-        /// <param name="userId">User id to notify.</param>
-        Task NotifyVlogRecordTimeoutAsync(Guid userId);
-
-        /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
         /// <param name="userId">User that posted a vlog.</param>

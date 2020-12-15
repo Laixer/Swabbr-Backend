@@ -57,11 +57,8 @@ namespace Swabbr.Infrastructure.Providers
         /// <param name="connection">the connection scope.</param>
         /// <returns>Database command object.</returns>
         public override DbCommand CreateCommand(string cmdText, DbConnection connection)
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             => new NpgsqlCommand(cmdText, connection as NpgsqlConnection);
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 
-        // TODO Look into this.
         /// <summary>
         ///     Handles a thrown database exception.
         /// </summary>
@@ -71,7 +68,7 @@ namespace Swabbr.Infrastructure.Providers
             {
                 switch (exception.SqlState)
                 {
-                    case Npgsql.PostgresErrorCodes.ForeignKeyViolation:
+                    case PostgresErrorCodes.ForeignKeyViolation:
                         throw new ReferencedEntityNotFoundException(exception.Message, exception);
                 }
             }
