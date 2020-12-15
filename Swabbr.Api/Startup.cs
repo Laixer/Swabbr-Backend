@@ -12,8 +12,10 @@ using Microsoft.OpenApi.Models;
 using Swabbr.Api;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Documentation;
+using Swabbr.Api.ErrorMessaging;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Infrastructure.Configuration;
@@ -47,7 +49,8 @@ namespace Swabbr
         ///     method to configure the services container in these scenarios.
         /// </summary>
         /// <param name="services">The services collection.</param>
-        public void ConfigureServices(IServiceCollection services) => GenericConfigureServices(services);
+        public void ConfigureServices(IServiceCollection services) 
+            => GenericConfigureServices(services);
 
         /// <summary>
         ///     This method gets called by the runtime if our environment is 
@@ -114,6 +117,9 @@ namespace Swabbr
             services.AddTransient<UserUpdateHelper>();
             services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
 
+            // Add custom exception handling
+            services.AddSwabbrExceptionMapper();
+
             // Add doc
             SetupSwagger(services);
         }
@@ -135,6 +141,9 @@ namespace Swabbr
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
                 options.RoutePrefix = string.Empty;
             });
+
+            //app.UseExceptionHandler("/error");
+            //app.UseSwabbrExceptionHandler("/error");
 
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
@@ -168,6 +177,8 @@ namespace Swabbr
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
                 options.RoutePrefix = string.Empty;
             });
+
+            app.UseSwabbrExceptionHandler("/error");
 
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();

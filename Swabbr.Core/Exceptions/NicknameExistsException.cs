@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Exceptions
 {
+    // TODO Use this.
     /// <summary>
     ///     Indicates a given nickname already exists.
     /// </summary>
