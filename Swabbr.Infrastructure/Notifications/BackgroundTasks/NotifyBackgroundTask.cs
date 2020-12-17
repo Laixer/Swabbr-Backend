@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.Data;
 using System;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
 {
-    // TODO Notification generics with TData is not that elegant
+    // TODO Notification generics with TData is not that elegant. Interface?
     /// <summary>
     ///     Background task notifying a single user.
     /// </summary>
@@ -16,15 +17,15 @@ namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
     public class NotifyBackgroundTask<TData> : BackgroundTask
         where TData : NotificationData
     {
-        protected readonly NotificationClient _notificationClient;
-        protected readonly INotificationRegistrationRepository _notificationRegistrationRepository;
-        protected readonly IUserRepository _userRepository; // TODO Two repos for sort of the same thing --> seems incorrect.
-        protected readonly ILogger<NotifyBackgroundTask<TData>> _logger;
+        private readonly INotificationClient _notificationClient;
+        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ILogger<NotifyBackgroundTask<TData>> _logger;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public NotifyBackgroundTask(NotificationClient notificationClient,
+        public NotifyBackgroundTask(INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
             ILogger<NotifyBackgroundTask<TData>> logger, 
             IUserRepository userRepository)
@@ -70,7 +71,7 @@ namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
             }
 
             var pushDetails = await _userRepository.GetPushDetailsAsync(notificationContext.NotifiedUserId);
-            await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notificationContext.Notification);
+            await _notificationClient.SendNotificationAsync(pushDetails, notificationContext.Notification);
 
             _logger.LogTrace($"Sent notification to user {notificationContext.NotifiedUserId}");
         }

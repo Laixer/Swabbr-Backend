@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using Swabbr.Core.BackgroundWork;
+﻿using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.Data;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Notifications.BackgroundTasks;
@@ -25,26 +25,23 @@ namespace Swabbr.Infrastructure.Notifications
     /// </remarks>
     public class NotificationService : INotificationService
     {
-        protected readonly IUserRepository _userRepository;
-        protected readonly NotificationClient _notificationClient;
-        protected readonly INotificationRegistrationRepository _notificationRegistrationRepository;
-        protected readonly DispatchManager _dispatchManager;
-        protected readonly ILogger<NotificationService> _logger;
+        private readonly INotificationClient _notificationClient;
+        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        private readonly DispatchManager _dispatchManager;
+        private readonly INotificationFactory _notificationFactory;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public NotificationService(IUserRepository userRepository,
-            NotificationClient notificationClient,
+        public NotificationService(INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
             DispatchManager dispatchManager,
-            ILogger<NotificationService> logger)
+            INotificationFactory notificationFactory)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
             _dispatchManager = dispatchManager ?? throw new ArgumentNullException(nameof(dispatchManager));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _notificationFactory = notificationFactory ?? throw new ArgumentNullException(nameof(notificationFactory));
         }
 
         /// <summary>
@@ -160,6 +157,7 @@ namespace Swabbr.Infrastructure.Notifications
             await _notificationRegistrationRepository.CreateAsync(registration);
         }
 
+        // FUTURE: Implement.
         public virtual Task UnregisterAsync(Guid userId)
             => throw new NotImplementedException();
     }

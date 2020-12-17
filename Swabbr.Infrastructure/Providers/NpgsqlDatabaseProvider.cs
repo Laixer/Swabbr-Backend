@@ -15,7 +15,7 @@ namespace Swabbr.Infrastructure.Providers
     /// </summary>
     internal class NpgsqlDatabaseProvider : DatabaseProvider
     {
-        protected readonly string connectionString;
+        private readonly string connectionString;
 
         /// <summary>
         ///     Create new instance.

@@ -15,10 +15,10 @@ namespace Swabbr.Core.BackgroundWork
     /// </remarks>
     public class DispatchManager : IDisposable
     {
-        protected readonly IServiceScopeFactory _serviceScopeFactory;
-        protected readonly ILogger<DispatchManager> _logger;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ILogger<DispatchManager> _logger;
 
-        protected readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         /// <summary>
         ///     Create new instance.

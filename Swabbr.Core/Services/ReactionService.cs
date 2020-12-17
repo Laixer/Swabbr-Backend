@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Abstractions;
-using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
@@ -17,10 +16,10 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class ReactionService : AppServiceBase, IReactionService
     {
-        protected readonly INotificationService _notificationService;
-        protected readonly IBlobStorageService _blobStorageService;
-        protected readonly IReactionRepository _reactionRepository;
-        protected readonly IVlogRepository _vlogRepository;
+        private readonly INotificationService _notificationService;
+        private readonly IBlobStorageService _blobStorageService;
+        private readonly IReactionRepository _reactionRepository;
+        private readonly IVlogRepository _vlogRepository;
 
         /// <summary>
         ///     Create new instance.
@@ -43,7 +42,7 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the reaction.
         /// </remarks>
         /// <param name="reactionId">The reaction to be deleted.</param>
-        public virtual Task DeleteReactionAsync(Guid reactionId)
+        public Task DeleteReactionAsync(Guid reactionId)
             => _reactionRepository.DeleteAsync(reactionId);
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>The reaction.</returns>
-        public async virtual Task<Reaction> GetAsync(Guid reactionId)
+        public async Task<Reaction> GetAsync(Guid reactionId)
         {
             var reaction = await _reactionRepository.GetAsync(reactionId);
 
@@ -66,7 +65,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The amount of reactions.</returns>
-        public virtual Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
+        public Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
             => _reactionRepository.GetCountForVlogAsync(vlogId);
 
         /// <summary>
@@ -75,7 +74,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions.</returns>
-        public async virtual IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
+        public async IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
         {
             await foreach (var reaction in _reactionRepository.GetForVlogAsync(vlogId, navigation))
             {
@@ -102,7 +101,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
         /// <param name="reactionId">The uploaded reaction id.</param>
-        public virtual async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
+        public async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
         {
             if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, reactionId.ToString())) 
             {
@@ -130,7 +129,7 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the reaction.
         /// </remarks>
         /// <param name="reaction">The reaction with updated properties.</param>
-        public virtual Task UpdateReactionAsync(Reaction reaction)
+        public Task UpdateReactionAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
 
         /// <summary>
@@ -138,7 +137,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reaction">The reaction.</param>
         /// <returns>Thumbnail uri.</returns>
-        private Task<Uri> GetThumbnailUriAsync(Reaction reaction)
+        protected Task<Uri> GetThumbnailUriAsync(Reaction reaction)
             => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetThumbnailFileName(reaction.Id), 2);
 
         /// <summary>
@@ -146,7 +145,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="reaction">The reaction.</param>
         /// <returns>Video uri.</returns>
-        private Task<Uri> GetVideoUriAsync(Reaction reaction)
+        protected Task<Uri> GetVideoUriAsync(Reaction reaction)
             => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetVideoFileName(reaction.Id), 2);
     }
 }

@@ -14,18 +14,15 @@ namespace Swabbr.BackgroundHost.Services
     /// </summary>
     internal class VlogRequestPeriodicHostedService : PeriodicHostedService
     {
-        protected readonly IServiceScopeFactory _serviceScopeFactory;
-        protected readonly DispatchManager _dispatchManager;
+        private readonly DispatchManager _dispatchManager;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public VlogRequestPeriodicHostedService(IServiceScopeFactory serviceScopeFactory,
-            DispatchManager dispatchManager,
+        public VlogRequestPeriodicHostedService(DispatchManager dispatchManager,
             ILogger<PeriodicHostedService> logger)
             : base(logger)
         {
-            _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             _dispatchManager = dispatchManager ?? throw new ArgumentNullException(nameof(dispatchManager));
 
             // Override the timer interval.

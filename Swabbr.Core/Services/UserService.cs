@@ -14,7 +14,7 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class UserService :  AppServiceBase, IUserService
     {
-        protected readonly IUserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
 
         /// <summary>
         ///     Create new instance.
@@ -30,14 +30,14 @@ namespace Swabbr.Core.Services
         ///     Checks if a user exists in our data store.
         /// </summary>
         /// <param name="userId">The user id.</param>
-        public virtual Task<bool> ExistsAsync(Guid userId) 
+        public Task<bool> ExistsAsync(Guid userId) 
             => _userRepository.ExistsAsync(userId);
 
         /// <summary>
         ///     Checks if a nickname exists in our data store.
         /// </summary>
         /// <param name="nickname">The nickname to check.</param>
-        public virtual Task<bool> ExistsNicknameAsync(string nickname) 
+        public Task<bool> ExistsNicknameAsync(string nickname) 
             => _userRepository.ExistsNicknameAsync(nickname);
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable user collection</returns>
-        public virtual IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation) 
+        public IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation) 
             => _userRepository.GetAllVloggableUsersAsync(navigation);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The user id.</param>
         /// <returns>The user.</returns>
-        public virtual Task<User> GetAsync(Guid userId) 
+        public Task<User> GetAsync(Guid userId) 
             => _userRepository.GetAsync(userId);
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to check.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All followers.</returns>
-        public virtual IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
+        public IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
             => _userRepository.GetFollowersAsync(userId, navigation);
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to check.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All users followed by <paramref name="userId"/>.</returns>
-        public virtual IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
+        public IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
             => _userRepository.GetFollowingAsync(userId, navigation);
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The user to check.</param>
         /// <returns>Push notification details.</returns>
-        public virtual Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId) 
+        public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId) 
             => _userRepository.GetPushDetailsAsync(userId);
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The internal user id.</param>
         /// <returns>User entity with statistics.</returns>
-        public virtual Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
+        public Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
             => _userRepository.GetWithStatisticsAsync(userId);
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Swabbr.Core.Services
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        public virtual IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
+        public IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
             => _userRepository.SearchAsync(query, navigation);
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="user">The updated user entity.</param>
         /// <returns>The user entity after the update operation.</returns>
-        public virtual Task UpdateAsync(User user)
+        public Task UpdateAsync(User user)
             => _userRepository.UpdateAsync(user);
     }
 }
