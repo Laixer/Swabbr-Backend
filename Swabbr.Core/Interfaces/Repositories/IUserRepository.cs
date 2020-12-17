@@ -9,7 +9,8 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     ///     Repository for a user repository.
     /// </summary>
-    public interface IUserRepository : IRepository<User, Guid>
+    public interface IUserRepository : IRepository<User, Guid>,
+        IUpdateRepository<User, Guid>
     {
         /// <summary>
         ///     Checks if a nickname already exists.

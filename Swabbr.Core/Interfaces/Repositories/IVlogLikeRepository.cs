@@ -9,7 +9,9 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     ///     Contract for a vlog like repository.
     /// </summary>
-    public interface IVlogLikeRepository : IRepository<VlogLike, VlogLikeId>
+    public interface IVlogLikeRepository : IRepository<VlogLike, VlogLikeId>,
+        ICreateRepository<VlogLike, VlogLikeId>,
+        IDeleteRepository<VlogLike, VlogLikeId>
     {
         /// <summary>
         ///     Gets all vlog likes for a vlog.

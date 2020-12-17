@@ -18,24 +18,6 @@ namespace Swabbr.Infrastructure.Repositories
     internal class UserRepository : DatabaseContextBase, IUserRepository
     {
         /// <summary>
-        ///     Create a user.
-        /// </summary>
-        /// <remarks>
-        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
-        /// </remarks>
-        public Task<Guid> CreateAsync(User entity)
-            => throw new InvalidOperationException();
-
-        /// <summary>
-        ///     Delete a user.
-        /// </summary>
-        /// <remarks>
-        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
-        /// </remarks>
-        public Task DeleteAsync(Guid id)
-            => throw new InvalidOperationException();
-
-        /// <summary>
         ///     Checks if a user exists in our data store.
         /// </summary>
         /// <param name="id">The user id.</param>
