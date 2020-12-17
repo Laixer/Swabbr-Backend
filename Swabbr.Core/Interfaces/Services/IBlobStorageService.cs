@@ -8,7 +8,7 @@ namespace Swabbr.Core.Interfaces.Services
     /// <summary>
     ///     Store a file contents in a data store.
     /// </summary>
-    public interface IBlobStorageService
+    public interface IBlobStorageService : ITestableService
     {
         /// <summary>
         ///     Check if a file exist in storage.
@@ -46,10 +46,5 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="storageObject">Storage object settings.</param>
         /// <returns>See <see cref="ValueTask"/>.</returns>
         Task StoreFileAsync(string containerName, string fileName, string contentType, Stream stream, StorageObject storageObject = null);
-
-        /// <summary>
-        ///     Test the storage service.
-        /// </summary>
-        Task TestService();
     }
 }

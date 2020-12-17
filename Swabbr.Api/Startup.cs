@@ -13,12 +13,16 @@ using Swabbr.Api;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Documentation;
 using Swabbr.Api.ErrorMessaging;
+using Swabbr.Api.HealthChecks;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Infrastructure.Configuration;
+using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Infrastructure.Extensions;
 using System.Text;
 
@@ -85,7 +89,11 @@ namespace Swabbr
             //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
             services.AddControllers()
                 .AddNewtonsoftJson();
-            services.AddHealthChecks();
+            // We always add health checks so we can access the health check during DEBUG in development.
+            services.AddHealthChecks()
+                .AddCheck<TestableServiceHealthCheck<INotificationClient>>("notification_client_health_check")
+                .AddCheck<TestableServiceHealthCheck<IBlobStorageService>>("blob_storage_health_check")
+                .AddCheck<TestableServiceHealthCheck<IHealthCheckRepository>>("repository_health_check");
 
             // Setup authentication and authorization.
             SetupIdentity(services);

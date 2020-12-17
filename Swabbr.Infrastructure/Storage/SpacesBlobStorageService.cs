@@ -180,7 +180,7 @@ namespace Swabbr.Infrastructure.Storage
         /// <summary>
         ///     Test the Amazon S3 service backend.
         /// </summary>
-        public async Task TestService()
+        public async Task TestServiceAsync()
             => await client.ListBucketsAsync();
     }
 }
