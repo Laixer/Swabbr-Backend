@@ -10,11 +10,6 @@ namespace Swabbr.Core.Interfaces.Services
     public interface INotificationService
     {
         /// <summary>
-        ///     Used to check if our notification service is online.
-        /// </summary>
-        Task<bool> IsServiceOnlineAsync();
-
-        /// <summary>
         ///     Send a vlog record request notification.
         /// </summary>
         /// <param name="userId">User id to notify.</param>

@@ -14,19 +14,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         where TEntity : EntityBase<TPrimary>
     {
         /// <summary>
-        ///     Create a new entity in our data store.
-        /// </summary>
-        /// <param name="entity">The populated entity to create.</param>
-        /// <returns>The primary key of the created entity.</returns>
-        Task<TPrimary> CreateAsync(TEntity entity);
-
-        /// <summary>
-        ///     Delete an entity from our data store.
-        /// </summary>
-        /// <param name="id">The internal entity id.</param>
-        Task DeleteAsync(TPrimary id);
-
-        /// <summary>
         ///     Checks if an entity exists in our data store.
         /// </summary>
         /// <param name="id">The internal entity id.</param>
@@ -45,11 +32,5 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Collection of entities.</returns>
         IAsyncEnumerable<TEntity> GetAllAsync(Navigation navigation);
-
-        /// <summary>
-        ///     Update an entity in our 
-        /// </summary>
-        /// <param name="entity">The entity with updated properties.</param>
-        Task UpdateAsync(TEntity entity);
     }
 }

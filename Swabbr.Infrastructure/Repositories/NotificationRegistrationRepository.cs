@@ -160,15 +160,6 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        ///     Update a notification registration in the data store.
-        /// </summary>
-        /// <remarks>
-        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
-        /// </remarks>
-        public Task UpdateAsync(NotificationRegistration entity)
-            => throw new InvalidOperationException();
-
-        /// <summary>
         ///     Maps a reader to a notification registration.
         /// </summary>
         /// <param name="reader">The reader to map from.</param>

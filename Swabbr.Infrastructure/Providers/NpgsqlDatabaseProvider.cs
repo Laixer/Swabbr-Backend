@@ -15,7 +15,7 @@ namespace Swabbr.Infrastructure.Providers
     /// </summary>
     internal class NpgsqlDatabaseProvider : DatabaseProvider
     {
-        protected readonly string connectionString;
+        private readonly string connectionString;
 
         /// <summary>
         ///     Create new instance.
@@ -70,6 +70,8 @@ namespace Swabbr.Infrastructure.Providers
                 {
                     case PostgresErrorCodes.ForeignKeyViolation:
                         throw new ReferencedEntityNotFoundException(exception.Message, exception);
+
+                    // FUTURE Catch duplicate nickname here?
                 }
             }
 

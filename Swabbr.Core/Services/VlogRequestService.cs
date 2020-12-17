@@ -13,10 +13,10 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class VlogRequestService : IVlogRequestService
     {
-        protected readonly INotificationService _notificationService;
-        protected readonly IUserSelectionService _userSelectionService;
-        protected readonly SwabbrConfiguration _options;
-        protected readonly ILogger<VlogRequestService> _logger;
+        private readonly INotificationService _notificationService;
+        private readonly IUserSelectionService _userSelectionService;
+        private readonly SwabbrConfiguration _options;
+        private readonly ILogger<VlogRequestService> _logger;
 
         /// <summary>
         ///     Create new instance.
@@ -36,7 +36,7 @@ namespace Swabbr.Core.Services
         ///     Process a vlog request for a single user.
         /// </summary>
         /// <param name="userId">The user that should vlog.</param>
-        public virtual async Task SendVlogRequestToUserAsync(Guid userId)
+        public async Task SendVlogRequestToUserAsync(Guid userId)
         {
             // The vlog id that is generated here does not exist in our data store
             // yet, but should be used by the client as the uploading file name.
@@ -51,7 +51,7 @@ namespace Swabbr.Core.Services
         ///     should get a request in the given <paramref name="minute"/>.
         /// </summary>
         /// <param name="minute">The minute to check.</param>
-        public virtual async Task SendVlogRequestsForMinuteAsync(DateTimeOffset minute)
+        public async Task SendVlogRequestsForMinuteAsync(DateTimeOffset minute)
         {
             _logger.LogTrace($"Sending vlog requests for minute {minute}");
 

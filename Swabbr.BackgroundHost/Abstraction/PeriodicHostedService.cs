@@ -17,7 +17,7 @@ namespace Swabbr.BackgroundHost.Abstraction
     internal abstract class PeriodicHostedService : IHostedService, IDisposable
     {
         private int executionCount = 0;
-        protected readonly ILogger _logger;
+        private readonly ILogger _logger;
         protected TimeSpan Interval = TimeSpan.FromMinutes(5);
         private Timer _timer;
 

@@ -37,7 +37,6 @@ namespace Swabbr.Core.Extensions
             // Configure DI for services
             services.AddScoped<IFollowRequestService, FollowRequestService>();
             services.AddScoped<IUserSelectionService, UserSelectionService>();
-            services.AddScoped<IHealthCheckService, HealthCheckService>();
             services.AddScoped<IReactionService, ReactionService>();
             services.AddScoped<IVlogService, VlogService>();
             services.AddScoped<IVlogRequestService, VlogRequestService>();

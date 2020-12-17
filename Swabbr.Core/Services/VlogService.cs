@@ -15,12 +15,11 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class VlogService : IVlogService
     {
-        protected readonly AppContext _appContext;
-        protected readonly IVlogRepository _vlogRepository;
-        protected readonly IVlogLikeRepository _vlogLikeRepository;
-        protected readonly IUserRepository _userRepository;
-        protected readonly INotificationService _notificationService;
-        protected readonly IBlobStorageService _blobStorageService;
+        private readonly AppContext _appContext;
+        private readonly IVlogRepository _vlogRepository;
+        private readonly IVlogLikeRepository _vlogLikeRepository;
+        private readonly INotificationService _notificationService;
+        private readonly IBlobStorageService _blobStorageService;
 
         /// <summary>
         ///     Create new instance.
@@ -28,14 +27,12 @@ namespace Swabbr.Core.Services
         public VlogService(AppContext appContext,
             IVlogRepository vlogRepository,
             IVlogLikeRepository vlogLikeRepository,
-            IUserRepository userRepository,
             INotificationService notificationService,
             IBlobStorageService blobStorageService)
         {
             _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
         }
@@ -45,7 +42,7 @@ namespace Swabbr.Core.Services
         ///     Adds a view to a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog that is watched.</param>
-        public virtual Task AddView(Guid vlogId)
+        public Task AddView(Guid vlogId)
             => _vlogRepository.AddView(vlogId);
 
         /// <summary>
@@ -55,14 +52,14 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the vlog.
         /// </remarks>
         /// <param name="vlogId">The vlog to delete.</param>
-        public virtual Task DeleteAsync(Guid vlogId)
+        public Task DeleteAsync(Guid vlogId)
             => _vlogRepository.DeleteAsync(vlogId);
 
         /// <summary>
         ///     Checks if a vlog exists in our data store.
         /// </summary>
         /// <param name="vlogId">The vlog id to check.</param>
-        public virtual Task<bool> ExistsAsync(Guid vlogId)
+        public Task<bool> ExistsAsync(Guid vlogId)
             => _vlogRepository.ExistsAsync(vlogId);
 
         /// <summary>
@@ -70,7 +67,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The vlog.</returns>
-        public virtual async Task<Vlog> GetAsync(Guid vlogId)
+        public async Task<Vlog> GetAsync(Guid vlogId)
         {
             var vlog = await _vlogRepository.GetAsync(vlogId);
 
@@ -88,7 +85,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Recommended vlogs.</returns>
-        public virtual async IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Navigation navigation)
+        public async IAsyncEnumerable<Vlog> GetRecommendedForUserAsync(Navigation navigation)
         {
             await foreach (var vlog in _vlogRepository.GetMostRecentVlogsForUserAsync(navigation))
             {
@@ -105,7 +102,7 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The vlog owner.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog collection.</returns>
-        public virtual async IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation)
+        public async IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation)
         {
             await foreach (var vlog in _vlogRepository.GetVlogsByUserAsync(userId, navigation))
             {
@@ -127,7 +124,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns><see cref="VlogLike"/> collection</returns>
-        public virtual IAsyncEnumerable<VlogLike> GetVlogLikesForVlogAsync(Guid vlogId, Navigation navigation)
+        public IAsyncEnumerable<VlogLike> GetVlogLikesForVlogAsync(Guid vlogId, Navigation navigation)
             => _vlogLikeRepository.GetForVlogAsync(vlogId, navigation);
 
         /// <summary>
@@ -139,14 +136,14 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
         /// <returns><see cref="VlogLikeSummary"/></returns>
-        public virtual Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
+        public Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
             => _vlogLikeRepository.GetSummaryForVlogAsync(vlogId);
 
         /// <summary>
         ///     Used when the current users like a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to like.</param>
-        public virtual async Task LikeAsync(Guid vlogId)
+        public async Task LikeAsync(Guid vlogId)
         {
             var vlogLikeId = await _vlogLikeRepository.CreateAsync(new VlogLike
             {
@@ -178,7 +175,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="vlogId">The uploaded vlog.</param>
         /// <param name="isPrivate">Accessibility of the vlog.</param>
-        public virtual async Task PostVlogAsync(Guid vlogId, bool isPrivate = false)
+        public async Task PostVlogAsync(Guid vlogId, bool isPrivate = false)
         {
             if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlogId)))
             {
@@ -205,7 +202,7 @@ namespace Swabbr.Core.Services
         ///     Used when the current user unlikes a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to unlike.</param>
-        public virtual Task UnlikeAsync(Guid vlogId)
+        public Task UnlikeAsync(Guid vlogId)
             => _vlogLikeRepository.DeleteAsync(new VlogLikeId
             {
                 VlogId = vlogId,
@@ -219,7 +216,7 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the vlog.
         /// </remarks>
         /// <param name="vlog">The vlog with updates properties.</param>
-        public virtual Task UpdateAsync(Vlog vlog)
+        public Task UpdateAsync(Vlog vlog)
             => _vlogRepository.UpdateAsync(vlog);
 
         /// <summary>
@@ -227,7 +224,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlog">The vlog.</param>
         /// <returns>Thumbnail uri.</returns>
-        private Task<Uri> GetThumbnailUriAsync(Vlog vlog)
+        protected Task<Uri> GetThumbnailUriAsync(Vlog vlog)
             => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetThumbnailFileName(vlog.Id), 2);
 
         /// <summary>
@@ -235,7 +232,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlog">The vlog.</param>
         /// <returns>Video uri.</returns>
-        private Task<Uri> GetVideoUriAsync(Vlog vlog)
+        protected Task<Uri> GetVideoUriAsync(Vlog vlog)
             => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlog.Id), 2);
     }
 }

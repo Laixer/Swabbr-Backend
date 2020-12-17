@@ -9,7 +9,10 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     ///     Repository for Vlog entities.
     /// </summary>
-    public interface IVlogRepository : IRepository<Vlog, Guid>
+    public interface IVlogRepository : IRepository<Vlog, Guid>,
+        ICreateRepository<Vlog, Guid>,
+        IDeleteRepository<Vlog, Guid>,
+        IUpdateRepository<Vlog, Guid>
     {
         /// <summary>
         ///     Adds a view to a vlog.

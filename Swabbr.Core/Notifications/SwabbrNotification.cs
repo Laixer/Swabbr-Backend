@@ -3,7 +3,6 @@ using System;
 
 namespace Swabbr.Core.Notifications
 {
-    // TODO Look into this.
     /// <summary>
     ///     Represents a single notification to be sent to a user.
     /// </summary>
@@ -15,7 +14,7 @@ namespace Swabbr.Core.Notifications
     {
         /// <summary>
         ///     Constructor to force us to always initialize 
-        ///     <see cref="NotificationAction"/>.
+        ///     <see cref="Notifications.NotificationAction"/>.
         /// </summary>
         /// <param name="notificationAction">The type of notification.</param>
         /// <param name="data"><see cref="NotificationData"/>.</param>
@@ -30,8 +29,8 @@ namespace Swabbr.Core.Notifications
             string protocol = "swabbr",
             string protocolVersion = "1.0")
         {
-            ClickAction = NotificationActionTranslator.Translate(notificationAction);
-            ClickActionInt = notificationAction;
+            NotificationActionString = NotificationActionTranslator.Translate(notificationAction);
+            NotificationAction = notificationAction;
 
             Timestamp = DateTimeOffset.Now;
             Protocol = protocol;
@@ -68,15 +67,15 @@ namespace Swabbr.Core.Notifications
         public string DataTypeVersion { get; }
 
         /// <summary>
-        ///     The type of notification, <see cref="NotificationAction"/>,
+        ///     The type of notification, <see cref="Notifications.NotificationAction"/>,
         ///     as a string value.
         /// </summary>
-        public string ClickAction { get; }
+        public string NotificationActionString { get; }
 
         /// <summary>
-        ///     The type of notification, <see cref="NotificationAction"/>.
+        ///     The type of notification, <see cref="Notifications.NotificationAction"/>.
         /// </summary>
-        public NotificationAction ClickActionInt { get; }
+        public NotificationAction NotificationAction { get; }
 
         /// <summary>
         ///     The content type.
@@ -91,11 +90,11 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         ///     The user agent which sent the notification.
         /// </summary>
-        public string UserAgent { get; set; }
+        public string UserAgent { get; }
 
         /// <summary>
         ///     Contains the actual notification data.
         /// </summary>
-        public NotificationData Data { get; set; }
+        public NotificationData Data { get; init; }
     }
 }

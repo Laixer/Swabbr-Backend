@@ -13,7 +13,9 @@ namespace Swabbr.Core.Interfaces.Repositories
     ///     Whenever possible the current user id should
     ///     be extracted from some context.
     /// </remarks>
-    public interface IFollowRequestRepository : IRepository<FollowRequest, FollowRequestId>
+    public interface IFollowRequestRepository : IRepository<FollowRequest, FollowRequestId>,
+        ICreateRepository<FollowRequest, FollowRequestId>,
+        IDeleteRepository<FollowRequest, FollowRequestId>
     {
         /// <summary>
         ///     Gets the total amoun tof users that are 

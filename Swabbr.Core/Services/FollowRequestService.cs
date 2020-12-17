@@ -18,23 +18,17 @@ namespace Swabbr.Core.Services
     /// </remarks>
     public class FollowRequestService : IFollowRequestService
     {
-        protected readonly AppContext _appContext;
-        protected readonly IFollowRequestRepository _followRequestRepository;
-        protected readonly IUserRepository _userRepository;
-        protected readonly ILogger<FollowRequestService> _logger;
+        private readonly AppContext _appContext;
+        private readonly IFollowRequestRepository _followRequestRepository;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
         public FollowRequestService(AppContext appContext,
-            IFollowRequestRepository followRequestRepository,
-            IUserRepository userRepository,
-            ILogger<FollowRequestService> logger)
+            IFollowRequestRepository followRequestRepository)
         {
             _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _followRequestRepository = followRequestRepository ?? throw new ArgumentNullException(nameof(followRequestRepository));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -44,7 +38,7 @@ namespace Swabbr.Core.Services
         ///     The receiver id is extracted from the context.
         /// </remarks>
         /// <param name="requesterId">The user that will be following.</param>
-        public virtual Task AcceptAsync(Guid requesterId)
+        public Task AcceptAsync(Guid requesterId)
             => _followRequestRepository.UpdateStatusAsync(
                 new FollowRequestId
                 {
@@ -60,7 +54,7 @@ namespace Swabbr.Core.Services
         ///     The requester id is extracted from the context.
         /// </remarks>
         /// <param name="receiverId">The user that would have been followed.</param>
-        public virtual Task CancelAsync(Guid receiverId)
+        public Task CancelAsync(Guid receiverId)
             => _followRequestRepository.DeleteAsync(
                 new FollowRequestId
                 {
@@ -75,7 +69,7 @@ namespace Swabbr.Core.Services
         ///     The requester id is extracted from the context.
         /// </remarks>
         /// <param name="requesterId">The user that would be following.</param>
-        public virtual Task DeclineAsync(Guid requesterId)
+        public Task DeclineAsync(Guid requesterId)
             => _followRequestRepository.UpdateStatusAsync(
                 new FollowRequestId
                 {
@@ -89,7 +83,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="id">The follow request id.</param>
         /// <returns>Follow request entity.</returns>
-        public virtual Task<FollowRequest> GetAsync(FollowRequestId id)
+        public Task<FollowRequest> GetAsync(FollowRequestId id)
             => _followRequestRepository.GetAsync(id);
 
         /// <summary>
@@ -97,7 +91,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">Unique identifier of the user that is being followed.</param>
         /// <returns>The amount of followers.</returns>
-        public virtual Task<uint> GetFollowerCountAsync(Guid userId)
+        public Task<uint> GetFollowerCountAsync(Guid userId)
             => _followRequestRepository.GetFollowerCountAsync(userId);
 
         /// <summary>
@@ -105,7 +99,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">Id of user to check the amount of followers for.</param>
         /// <returns>User following count.</returns>
-        public virtual Task<uint> GetFollowingCountAsync(Guid userId)
+        public Task<uint> GetFollowingCountAsync(Guid userId)
             => _followRequestRepository.GetFollowingCountAsync(userId);
 
         /// <summary>
@@ -114,7 +108,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Follow request collection.</returns>
-        public virtual IAsyncEnumerable<FollowRequest> GetPendingIncomingForUserAsync(Navigation navigation)
+        public IAsyncEnumerable<FollowRequest> GetPendingIncomingForUserAsync(Navigation navigation)
             => _followRequestRepository.GetIncomingForUserAsync(navigation);
 
         /// <summary>
@@ -123,7 +117,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Follow request collection.</returns>
-        public virtual IAsyncEnumerable<FollowRequest> GetPendingOutgoingForUserAsync(Navigation navigation)
+        public IAsyncEnumerable<FollowRequest> GetPendingOutgoingForUserAsync(Navigation navigation)
             => _followRequestRepository.GetOutgoingForUserAsync(navigation);
 
         /// <summary>
@@ -131,7 +125,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="id">The follow request id.</param>
         /// <returns>The follow request status.</returns>
-        public virtual async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
+        public async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
         {
             var request = await GetAsync(id);
 
@@ -146,7 +140,7 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="receiverId">User id that is being followed.</param>
         /// <returns>The created follow request id.</returns>
-        public virtual Task<FollowRequestId> SendAsync(Guid receiverId)
+        public Task<FollowRequestId> SendAsync(Guid receiverId)
             => _followRequestRepository.CreateAsync(
                 new FollowRequest
                 {
@@ -164,7 +158,7 @@ namespace Swabbr.Core.Services
         ///     The requester id is extracted from the context.
         /// </remarks>
         /// <param name="receiverId">The user that will be unfollowed.</param>
-        public virtual Task UnfollowAsync(Guid receiverId)
+        public Task UnfollowAsync(Guid receiverId)
             => _followRequestRepository.DeleteAsync(
                 new FollowRequestId
                 {

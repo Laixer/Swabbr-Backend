@@ -290,16 +290,6 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-
-        /// <summary>
-        ///     Update a follow request in our database.
-        /// </summary>
-        /// <remarks>
-        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
-        /// </remarks>
-        public Task UpdateAsync(FollowRequest entity)
-            => throw new InvalidOperationException();
-
         /// <summary>
         ///     Updates the status of a follow request.
         /// </summary>

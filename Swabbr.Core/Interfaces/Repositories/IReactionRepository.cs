@@ -9,7 +9,10 @@ namespace Swabbr.Core.Interfaces.Repositories
     /// <summary>
     ///     Contract for a reaction repository.
     /// </summary>
-    public interface IReactionRepository : IRepository<Reaction, Guid>
+    public interface IReactionRepository : IRepository<Reaction, Guid>,
+        ICreateRepository<Reaction, Guid>,
+        IDeleteRepository<Reaction, Guid>,
+        IUpdateRepository<Reaction, Guid>
     {
         /// <summary>
         ///     Get the amount of reactions for a vlog.

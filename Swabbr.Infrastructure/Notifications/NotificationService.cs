@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using Swabbr.Core.BackgroundWork;
+﻿using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Interfaces.Clients;
+using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.Data;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Notifications.BackgroundTasks;
@@ -25,33 +25,24 @@ namespace Swabbr.Infrastructure.Notifications
     /// </remarks>
     public class NotificationService : INotificationService
     {
-        protected readonly IUserRepository _userRepository;
-        protected readonly NotificationClient _notificationClient;
-        protected readonly INotificationRegistrationRepository _notificationRegistrationRepository;
-        protected readonly DispatchManager _dispatchManager;
-        protected readonly ILogger<NotificationService> _logger;
+        private readonly INotificationClient _notificationClient;
+        private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
+        private readonly DispatchManager _dispatchManager;
+        private readonly INotificationFactory _notificationFactory;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public NotificationService(IUserRepository userRepository,
-            NotificationClient notificationClient,
+        public NotificationService(INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
             DispatchManager dispatchManager,
-            ILogger<NotificationService> logger)
+            INotificationFactory notificationFactory)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
             _dispatchManager = dispatchManager ?? throw new ArgumentNullException(nameof(dispatchManager));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _notificationFactory = notificationFactory ?? throw new ArgumentNullException(nameof(notificationFactory));
         }
-
-        /// <summary>
-        ///     Checks if the notification service is online.
-        /// </summary>
-        public virtual Task<bool> IsServiceOnlineAsync()
-            => _notificationClient.IsServiceAvailableAsync();
 
         /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
@@ -63,7 +54,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="vlogId">The posted vlog id.</param>
         public virtual Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
         {
-            var notification = NotificationFactory.BuildFollowedProfileVlogPosted(userId, vlogId);
+            var notification = _notificationFactory.BuildFollowedProfileVlogPosted(userId, vlogId);
 
             _dispatchManager.Dispatch<NotifyFollowersVlogPostedBackgroundTask>(notification);
 
@@ -81,7 +72,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="requestTimeout">The timeout time span for the request.</param>
         public virtual Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
         {
-            var notification = NotificationFactory.BuildRecordVlog(userId, vlogId, DateTimeOffset.Now, requestTimeout);
+            var notification = _notificationFactory.BuildRecordVlog(userId, vlogId, DateTimeOffset.Now, requestTimeout);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogRecordRequest>>(notification);
 
@@ -100,7 +91,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="reactionId">The placed reaction id.</param>
         public virtual Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
-            var notificationContext = NotificationFactory.BuildVlogNewReaction(receivingUserId, vlogId, reactionId);
+            var notificationContext = _notificationFactory.BuildVlogNewReaction(receivingUserId, vlogId, reactionId);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogNewReaction>>(notificationContext);
 
@@ -123,7 +114,7 @@ namespace Swabbr.Infrastructure.Notifications
                 throw new ArgumentNullException(nameof(vlogLikeId));
             }
 
-            var notificationContext = NotificationFactory.BuildVlogGainedLike(receivingUserId, vlogLikeId.VlogId, vlogLikeId.UserId);
+            var notificationContext = _notificationFactory.BuildVlogGainedLike(receivingUserId, vlogLikeId.VlogId, vlogLikeId.UserId);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogGainedLike>>(notificationContext);
 
@@ -160,6 +151,7 @@ namespace Swabbr.Infrastructure.Notifications
             await _notificationRegistrationRepository.CreateAsync(registration);
         }
 
+        // FUTURE: Implement.
         public virtual Task UnregisterAsync(Guid userId)
             => throw new NotImplementedException();
     }

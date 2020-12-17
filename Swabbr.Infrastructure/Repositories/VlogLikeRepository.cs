@@ -266,15 +266,6 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        ///     Update a vlog like in our database.
-        /// </summary>
-        /// <remarks>
-        ///     This is invalid and returns <see cref="InvalidOperationException"/>.
-        /// </remarks>
-        public Task UpdateAsync(VlogLike entity)
-            => throw new InvalidOperationException();
-
-        /// <summary>
         ///     Maps a vlog like from a reader.
         /// </summary>
         /// <param name="reader">The reader to map from.</param>

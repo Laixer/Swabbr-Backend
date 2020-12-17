@@ -12,11 +12,15 @@ using Microsoft.OpenApi.Models;
 using Swabbr.Api;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.Documentation;
+using Swabbr.Api.ErrorMessaging;
+using Swabbr.Api.HealthChecks;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
 using Swabbr.Core.Extensions;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Factories;
-using Swabbr.Infrastructure.Configuration;
+using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Core.Interfaces.Services;
 using Swabbr.Infrastructure.Extensions;
 using System.Text;
 
@@ -47,7 +51,8 @@ namespace Swabbr
         ///     method to configure the services container in these scenarios.
         /// </summary>
         /// <param name="services">The services collection.</param>
-        public void ConfigureServices(IServiceCollection services) => GenericConfigureServices(services);
+        public void ConfigureServices(IServiceCollection services) 
+            => GenericConfigureServices(services);
 
         /// <summary>
         ///     This method gets called by the runtime if our environment is 
@@ -82,7 +87,11 @@ namespace Swabbr
             //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
             services.AddControllers()
                 .AddNewtonsoftJson();
-            services.AddHealthChecks();
+            // We always add health checks so we can access the health check during DEBUG in development.
+            services.AddHealthChecks()
+                .AddCheck<TestableServiceHealthCheck<INotificationClient>>("notification_client_health_check")
+                .AddCheck<TestableServiceHealthCheck<IBlobStorageService>>("blob_storage_health_check")
+                .AddCheck<TestableServiceHealthCheck<IHealthCheckRepository>>("repository_health_check");
 
             // Setup authentication and authorization.
             SetupIdentity(services);
@@ -106,13 +115,15 @@ namespace Swabbr
 
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
-            // Explicitly add Azure Notification Hub configuration.
-            services.Configure<NotificationHubConfiguration>(_configuration.GetSection("AzureNotificationHub"));
+            services.AddSwabbrAnhNotificationInfrastructure("AzureNotificationHub");
 
             // Add API specific services
             services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
             services.AddTransient<UserUpdateHelper>();
             services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
+
+            // Add custom exception handling
+            services.AddSwabbrExceptionMapper();
 
             // Add doc
             SetupSwagger(services);
@@ -135,6 +146,9 @@ namespace Swabbr
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
                 options.RoutePrefix = string.Empty;
             });
+
+            app.UseExceptionHandler("/error");
+            app.UseSwabbrExceptionHandler("/error");
 
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
@@ -169,6 +183,8 @@ namespace Swabbr
                 options.RoutePrefix = string.Empty;
             });
 
+            app.UseSwabbrExceptionHandler("/error");
+
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
 
@@ -178,6 +194,10 @@ namespace Swabbr
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+#if DEBUG
+                // Only compile development health checks when set to debug mode.
+                endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
+#endif
             });
         }
 

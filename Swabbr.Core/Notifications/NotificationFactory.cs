@@ -1,13 +1,14 @@
-﻿using Swabbr.Core.Notifications.Data;
+﻿using Swabbr.Core.Interfaces.Factories;
+using Swabbr.Core.Notifications.Data;
 using System;
 
 namespace Swabbr.Core.Notifications
 {
-    // FUTURE Titles.
     /// <summary>
-    ///     Builds <see cref="SwabbrNotification"/>s for us.
+    ///     Builds <see cref="SwabbrNotification"/>s for us
+    ///     wrapped in a <see cref="NotificationContext"/>.
     /// </summary>
-    public static class NotificationFactory
+    public class NotificationFactory : INotificationFactory
     {
         internal static string DefaultTitle => "Default notification title";
         internal static string DefaultMessage => "Default notification message";
@@ -19,7 +20,7 @@ namespace Swabbr.Core.Notifications
         /// <param name="vlogId">The posted vlog.</param>
         /// <param name="vlogOwnerUserId">The vlog owner.</param>
         /// <returns>Notification object.</returns>
-        public static NotificationContext BuildFollowedProfileVlogPosted(Guid vlogId, Guid vlogOwnerUserId)
+        public virtual NotificationContext BuildFollowedProfileVlogPosted(Guid vlogId, Guid vlogOwnerUserId)
         {
             var context = DefaultContext();
 
@@ -45,7 +46,7 @@ namespace Swabbr.Core.Notifications
         /// <param name="requestMoment">The moment of request.</param>
         /// <param name="requestTimeout">The timeout of the request.</param>
         /// <returns>Notification object.</returns>
-        public static NotificationContext BuildRecordVlog(Guid notifiedUserId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
+        public virtual NotificationContext BuildRecordVlog(Guid notifiedUserId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
         {
             var context = DefaultContext(notifiedUserId);
 
@@ -71,7 +72,7 @@ namespace Swabbr.Core.Notifications
         /// <param name="vlogId">The vlog that was liked.</param>
         /// <param name="userThatLikedId">The user that liked.</param>
         /// <returns>Notification object.</returns>
-        public static NotificationContext BuildVlogGainedLike(Guid notifiedUserId, Guid vlogId, Guid userThatLikedId)
+        public virtual NotificationContext BuildVlogGainedLike(Guid notifiedUserId, Guid vlogId, Guid userThatLikedId)
         {
             var context = DefaultContext(notifiedUserId);
 
@@ -96,7 +97,7 @@ namespace Swabbr.Core.Notifications
         /// <param name="vlogId">The vlog to which was reacted.</param>
         /// <param name="reactionId">The reaction id.</param>
         /// <returns>Notification object.</returns>
-        public static NotificationContext BuildVlogNewReaction(Guid notifiedUserId, Guid vlogId, Guid reactionId)
+        public virtual NotificationContext BuildVlogNewReaction(Guid notifiedUserId, Guid vlogId, Guid reactionId)
         {
             var context = DefaultContext(notifiedUserId);
 
@@ -118,7 +119,7 @@ namespace Swabbr.Core.Notifications
         /// </remarks>
         /// <param name="notifiedUserId">Notified user if it's a single user.</param>
         /// <returns>Context object.</returns>
-        private static NotificationContext DefaultContext(Guid? notifiedUserId = null)
+        protected virtual NotificationContext DefaultContext(Guid? notifiedUserId = null)
             => new NotificationContext 
             {
                 DateSent = DateTimeOffset.Now,

@@ -20,7 +20,7 @@ namespace Swabbr.Api.Helpers
     ///     user update helper class can be called whenever any of
     ///     these properties is updated.
     /// </remarks>
-    public sealed class UserUpdateHelper : AppServiceBase
+    public class UserUpdateHelper : AppServiceBase
     {
         private readonly IUserService _userService;
 

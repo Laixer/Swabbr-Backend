@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
 using System;
@@ -15,12 +14,10 @@ namespace Swabbr.Core.Services
     /// </summary>
     public class UserSelectionService : IUserSelectionService
     {
-        protected readonly IUserService _userService;
-        protected readonly SwabbrConfiguration _options;
-        protected static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
-        protected static readonly UTF8Encoding encoder = new UTF8Encoding();
-
-        public uint ValidMinutes => _options.VlogRequestEndTimeMinutes - _options.VlogRequestStartTimeMinutes;
+        private readonly IUserService _userService;
+        private readonly SwabbrConfiguration _options;
+        private static readonly IMurmurHash3 hasher = MurmurHash3Factory.Instance.Create();
+        private static readonly UTF8Encoding encoder = new UTF8Encoding();
 
         /// <summary>
         ///     Create new instance.
@@ -59,7 +56,7 @@ namespace Swabbr.Core.Services
             {
                 // Perform one check for each possible vlog request,
                 // since users can have more than one request per day.
-                for (int i = 1; i <= Math.Min(_options.MaxDailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
+                for (uint i = 1; i <= Math.Min(_options.MaxDailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
                 {
                     // Get the matching minute on which a user should receive 
                     // a request and correct it using the users timezone.
@@ -94,7 +91,7 @@ namespace Swabbr.Core.Services
         /// <param name="day"><see cref="DateTime"/></param>
         /// <param name="requestIndex">Index of the request on the day</param>
         /// <returns>The minute in the day based on the inputs</returns>
-        protected virtual int GetHashMinute(User user, DateTime day, int requestIndex)
+        protected int GetHashMinute(User user, DateTime day, uint requestIndex)
         {
             if (user is null) 
             {
@@ -112,10 +109,13 @@ namespace Swabbr.Core.Services
             var hashString = $"{user.Id}{day.Year}{day.Month}{day.Day}{requestIndex}";
             var hash = hasher.ComputeHash(encoder.GetBytes(hashString));
 
-            // TODO Make sure we never exceed a byte[] length of 4
             var number = BitConverter.ToUInt32(hash.Hash, 0);
-            // In theory this can overflow, but in practise we ALWAYS shrink this down to somewhere within 24*60 minutes
-            var minute = _options.VlogRequestStartTimeMinutes + (number % ValidMinutes);
+
+            // Note: In theory this can overflow, but in practise we will 
+            //       shrink this down to somewhere within 24*60 minutes
+            //       as long as our configuration is setup correctly.
+            var minute = _options.VlogRequestStartTimeMinutes + (number % (_options.VlogRequestEndTimeMinutes - _options.VlogRequestStartTimeMinutes));
+
             return (int)Math.Abs(minute);
         }
     }

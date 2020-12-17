@@ -12,15 +12,16 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Checks if the database is online.
         /// </summary>
-        public async Task<bool> IsAliveAsync()
+        /// <remarks>
+        ///     This simply tries to "SELECT 1".
+        /// </remarks>
+        public async Task TestServiceAsync()
         {
             var sql = "SELECT 1;";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            await context.ScalarAsync<long>();
-
-            return true;
+            await context.ScalarAsync<int>();
         }
     }
 }

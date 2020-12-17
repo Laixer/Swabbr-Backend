@@ -14,7 +14,7 @@ namespace Swabbr.Api.Authentication
     /// </summary>
     public class TokenService
     {
-        protected readonly JwtConfiguration _options;
+        private readonly JwtConfiguration _options;
 
         /// <summary>
         ///     Create new instance.

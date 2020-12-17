@@ -8,7 +8,6 @@ using Swabbr.Core;
 using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Factories;
-using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Extensions;
 
 namespace Swabbr.BackgroundHost
@@ -40,8 +39,7 @@ namespace Swabbr.BackgroundHost
                     // Add swabbr services
                     services.AddSwabbrCoreServices();
                     services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
-                    // Explicitly add Azure Notification Hub configuration.
-                    services.Configure<NotificationHubConfiguration>(hostContext.Configuration.GetSection("AzureNotificationHub"));
+                    services.AddSwabbrAnhNotificationInfrastructure("AzureNotificationHub");
 
                     // Add app context factory
                     services.AddOrReplace<IAppContextFactory, BackgroundHostAppContextFactory>(ServiceLifetime.Singleton);

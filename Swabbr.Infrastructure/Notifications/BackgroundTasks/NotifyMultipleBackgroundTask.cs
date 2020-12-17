@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.BackgroundWork;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Notifications;
 using Swabbr.Core.Notifications.Data;
@@ -22,15 +23,21 @@ namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
     public abstract class NotifyMultipleBackgroundTask<TData> : NotifyBackgroundTask<TData>
         where TData : NotificationData
     {
+        // TODO Maybe protected INotificationClient (without readonly) in base?
+        private readonly INotificationClient _notificationClient;
+        private readonly ILogger<NotifyBackgroundTask<TData>> _logger;
+
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public NotifyMultipleBackgroundTask(NotificationClient notificationClient, 
+        public NotifyMultipleBackgroundTask(INotificationClient notificationClient, 
             INotificationRegistrationRepository notificationRegistrationRepository,
             ILogger<NotifyBackgroundTask<TData>> logger, 
             IUserRepository userRepository) 
             : base(notificationClient, notificationRegistrationRepository, logger, userRepository)
         {
+            _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -63,7 +70,7 @@ namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
 
             await foreach (var pushDetails in GetUsersAsync(data))
             {
-                await _notificationClient.SendNotificationAsync(pushDetails.UserId, pushDetails.PushNotificationPlatform, notification);
+                await _notificationClient.SendNotificationAsync(pushDetails, notification);
                 _logger.LogTrace($"Sent notification to user {pushDetails.UserId}");
             }
         }
