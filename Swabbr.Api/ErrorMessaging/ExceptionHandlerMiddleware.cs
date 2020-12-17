@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Api.ErrorMessaging
 {
-    // TODO Everywhere protected readonly or private readonly --> open closed 
     /// <summary>
     ///     Exception handler middleware for a specified exception type.
     /// </summary>

@@ -2,7 +2,7 @@
 
 namespace Swabbr.Core.Storage
 {
-    // TODO This might be too specific for S3.
+    // FUTURE This might be too specific for S3.
     /// <summary>
     ///     Options for the blob storage service.
     /// </summary>

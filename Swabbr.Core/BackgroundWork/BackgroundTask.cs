@@ -23,7 +23,6 @@ namespace Swabbr.Core.BackgroundWork
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public virtual Task ExecuteAsync(BackgroundTaskContext context)
-            => Task.CompletedTask;
+        public abstract Task ExecuteAsync(BackgroundTaskContext context);
     }
 }

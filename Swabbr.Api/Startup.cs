@@ -16,11 +16,9 @@ using Swabbr.Api.ErrorMessaging;
 using Swabbr.Api.HealthChecks;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Factories;
-using Swabbr.Infrastructure.Configuration;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Infrastructure.Extensions;
@@ -117,8 +115,7 @@ namespace Swabbr
 
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
-            // Explicitly add Azure Notification Hub configuration.
-            services.Configure<NotificationHubConfiguration>(_configuration.GetSection("AzureNotificationHub"));
+            services.AddSwabbrAnhNotificationInfrastructure("AzureNotificationHub");
 
             // Add API specific services
             services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
@@ -150,8 +147,8 @@ namespace Swabbr
                 options.RoutePrefix = string.Empty;
             });
 
-            //app.UseExceptionHandler("/error");
-            //app.UseSwabbrExceptionHandler("/error");
+            app.UseExceptionHandler("/error");
+            app.UseSwabbrExceptionHandler("/error");
 
             app.UsePathBase(new PathString("/api"));
             app.UseRouting();
@@ -197,6 +194,10 @@ namespace Swabbr
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+#if DEBUG
+                // Only compile development health checks when set to debug mode.
+                endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
+#endif
             });
         }
 

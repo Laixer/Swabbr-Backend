@@ -70,6 +70,8 @@ namespace Swabbr.Infrastructure.Providers
                 {
                     case PostgresErrorCodes.ForeignKeyViolation:
                         throw new ReferencedEntityNotFoundException(exception.Message, exception);
+
+                    // FUTURE Catch duplicate nickname here?
                 }
             }
 

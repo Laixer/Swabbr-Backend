@@ -13,6 +13,10 @@ namespace Swabbr.Infrastructure.Providers
     /// </summary>
     internal abstract class DatabaseProvider
     {
+        /// <summary>
+        ///     Options field which is accessible to all 
+        ///     implementations of this abstract class.
+        /// </summary>
         protected readonly DatabaseProviderOptions _options;
 
         /// <summary>

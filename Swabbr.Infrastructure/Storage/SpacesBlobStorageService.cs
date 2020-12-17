@@ -15,7 +15,8 @@ using System.Threading.Tasks;
 namespace Swabbr.Infrastructure.Storage
 {
     /// <summary>
-    ///     Amazon S3 implementation of <see cref="IBlobStorageService"/>.
+    ///     Amazon S3 implementation of <see cref="IBlobStorageService"/> which
+    ///     is also compatible with Digital Ocean Spaces.
     /// </summary>
     /// <remarks>
     ///     This creates an <see cref="IAmazonS3"/> client once in its constructor.
@@ -30,11 +31,13 @@ namespace Swabbr.Infrastructure.Storage
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public SpacesBlobStorageService(IOptions<BlobStorageOptions> options, ILogger<SpacesBlobStorageService> logger)
+        public SpacesBlobStorageService(IOptions<BlobStorageOptions> options,
+            ILogger<SpacesBlobStorageService> logger)
         {
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
+            // Create client once.
             client = new AmazonS3Client(new BasicAWSCredentials(_options.AccessKey, _options.SecretKey),
                 new AmazonS3Config
                 {
@@ -47,7 +50,7 @@ namespace Swabbr.Infrastructure.Storage
         /// </summary>
         public void Dispose() => client.Dispose();
 
-        // TODO Amazon has no clean way to check for object existence.
+        // FUTURE: Look into different approaches for this.
         /// <summary>
         ///     Checks if a file exists or not.
         /// </summary>
@@ -58,8 +61,6 @@ namespace Swabbr.Infrastructure.Storage
         {
             try
             {
-                // TODO Maybe use list keys with a filter?
-
                 var result = await client.GetObjectAsync(new GetObjectRequest
                 {
                     BucketName = _options.BlobStorageName,
@@ -134,7 +135,6 @@ namespace Swabbr.Infrastructure.Storage
             }
         }
 
-        // FUTURE: Refactor
         /// <summary>
         ///     Stores a file in a Digital Ocean Space.
         /// </summary>
@@ -176,7 +176,6 @@ namespace Swabbr.Infrastructure.Storage
             }
         }
 
-        // FUTURE: From interface
         /// <summary>
         ///     Test the Amazon S3 service backend.
         /// </summary>

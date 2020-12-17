@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Exceptions
 {
-    // TODO Use this.
+    // FUTURE: Use this when refactoring authentication.
     /// <summary>
     ///     Indicates a given nickname already exists.
     /// </summary>
