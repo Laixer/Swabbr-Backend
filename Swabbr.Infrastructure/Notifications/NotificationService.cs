@@ -45,12 +45,6 @@ namespace Swabbr.Infrastructure.Notifications
         }
 
         /// <summary>
-        ///     Checks if the notification service is online.
-        /// </summary>
-        public virtual Task<bool> IsServiceOnlineAsync()
-            => _notificationClient.IsServiceAvailableAsync();
-
-        /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
         /// <remarks>
@@ -60,7 +54,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="vlogId">The posted vlog id.</param>
         public virtual Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
         {
-            var notification = NotificationFactory.BuildFollowedProfileVlogPosted(userId, vlogId);
+            var notification = _notificationFactory.BuildFollowedProfileVlogPosted(userId, vlogId);
 
             _dispatchManager.Dispatch<NotifyFollowersVlogPostedBackgroundTask>(notification);
 
@@ -78,7 +72,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="requestTimeout">The timeout time span for the request.</param>
         public virtual Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
         {
-            var notification = NotificationFactory.BuildRecordVlog(userId, vlogId, DateTimeOffset.Now, requestTimeout);
+            var notification = _notificationFactory.BuildRecordVlog(userId, vlogId, DateTimeOffset.Now, requestTimeout);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogRecordRequest>>(notification);
 
@@ -97,7 +91,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="reactionId">The placed reaction id.</param>
         public virtual Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
-            var notificationContext = NotificationFactory.BuildVlogNewReaction(receivingUserId, vlogId, reactionId);
+            var notificationContext = _notificationFactory.BuildVlogNewReaction(receivingUserId, vlogId, reactionId);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogNewReaction>>(notificationContext);
 
@@ -120,7 +114,7 @@ namespace Swabbr.Infrastructure.Notifications
                 throw new ArgumentNullException(nameof(vlogLikeId));
             }
 
-            var notificationContext = NotificationFactory.BuildVlogGainedLike(receivingUserId, vlogLikeId.VlogId, vlogLikeId.UserId);
+            var notificationContext = _notificationFactory.BuildVlogGainedLike(receivingUserId, vlogLikeId.VlogId, vlogLikeId.UserId);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogGainedLike>>(notificationContext);
 

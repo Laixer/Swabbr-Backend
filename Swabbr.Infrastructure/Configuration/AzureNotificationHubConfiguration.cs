@@ -3,7 +3,7 @@
     /// <summary>
     ///     Configuration file for Azure Notification Hub.
     /// </summary>
-    public class NotificationHubConfiguration
+    public class AzureNotificationHubConfiguration
     {
         /// <summary>
         ///     Connection string name.

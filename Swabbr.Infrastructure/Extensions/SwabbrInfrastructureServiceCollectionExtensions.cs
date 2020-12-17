@@ -1,18 +1,25 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Swabbr.Core.BackgroundWork;
+using Swabbr.Core.Clients;
+using Swabbr.Core.Extensions;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
-using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications;
+using Swabbr.Core.Notifications.Data;
+using Swabbr.Core.Services;
 using Swabbr.Core.Storage;
 using Swabbr.Infrastructure.Abstractions;
+using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Notifications;
+using Swabbr.Infrastructure.Notifications.BackgroundTasks;
 using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Storage;
 using System;
-using Swabbr.Infrastructure.Notifications.BackgroundTasks;
-using Swabbr.Core.Notifications.Data;
 
 namespace Swabbr.Infrastructure.Extensions
 {
@@ -23,9 +30,12 @@ namespace Swabbr.Infrastructure.Extensions
     public static class SwabbrInfrastructureServiceCollectionExtensions
     {
         /// <summary>
-        ///     Adds the Swabbr Infrastructure services to the
-        ///     service collection.
+        ///     Adds the Swabbr Infrastructure services to the service collection.
         /// </summary>
+        /// <remarks>
+        ///     This adds a null notification service. This can be overwritten by calling
+        ///     <see cref="AddSwabbrAnhNotificationInfrastructure(IServiceCollection, string)"/>.
+        /// </remarks>
         /// <param name="services">The service collection.</param>
         /// <param name="blobStorageConfigurationSectionName">Name of the blob storage configuration section.</param>
         /// <returns>Same as <paramref name="services"/>.</returns>
@@ -48,6 +58,16 @@ namespace Swabbr.Infrastructure.Extensions
                 options.ConnectionStringName = dbConnectionStringName;
             });
 
+            // Add notification package using a null service.
+            services.AddScoped<INotificationService, NullNotificationService>();
+            services.AddSingleton<INotificationClient, NullNotificationClient>();
+
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogGainedLike>>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogNewReaction>>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
+            services.AddBackgroundTask<NotifyFollowersVlogPostedBackgroundTask>();
+
             // Add repositories
             services.AddContextRepository<IFollowRequestRepository, FollowRequestRepository>();
             services.AddContextRepository<IHealthCheckRepository, HealthCheckRepository>();
@@ -57,18 +77,46 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddContextRepository<IVlogLikeRepository, VlogLikeRepository>();
             services.AddContextRepository<IVlogRepository, VlogRepository>();
 
-            // Add notification package
-            services.AddTransient<INotificationService, NotificationService>();
-            services.AddSingleton<NotificationClient>(); // TODO Configuration
-            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
-            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogGainedLike>>();
-            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogNewReaction>>();
-            services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
-            services.AddBackgroundTask<NotifyFollowersVlogPostedBackgroundTask>();
-
             // Add storage package
             services.AddSingleton<IBlobStorageService, SpacesBlobStorageService>();
             services.Configure<BlobStorageOptions>(configuration.GetSection(blobStorageConfigurationSectionName));
+
+            return services;
+        }
+
+        /// <summary>
+        ///     Adds the Swabbr notification services to the service collection using an
+        ///     Azure Notification Hub implementation.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         At the moment this uses the Azure Notification Hub and thus requires
+        ///         a <see cref="Configuration.AzureNotificationHubConfiguration"/> section
+        ///         in the configuration.
+        ///     </para>
+        ///     <para>
+        ///         This replaces all existing notification services, clients and factories.
+        ///     </para>
+        /// </remarks>
+        /// <param name="services">The service collection.</param>
+        /// <param name="configurationSectionName">Name of the azure notification hub configuration section.</param>
+        /// <returns>Same as <paramref name="services"/>.</returns>
+        public static IServiceCollection AddSwabbrAnhNotificationInfrastructure(this IServiceCollection services, 
+            string configurationSectionName)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            using var serviceProviderScope = services.BuildServiceProvider().CreateScope();
+            var configuration = serviceProviderScope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+            // Add Azure Notification Hub notification package
+            services.AddOrReplace<INotificationService, NotificationService>(ServiceLifetime.Scoped);
+            services.AddOrReplace<INotificationClient, AnhNotificationClient>(ServiceLifetime.Singleton);
+            services.AddOrReplace<INotificationFactory, NotificationFactory>(ServiceLifetime.Singleton);
+            services.Configure<AzureNotificationHubConfiguration>(configuration.GetSection(configurationSectionName));
 
             return services;
         }

@@ -4,8 +4,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
+using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Notifications;
+using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using System;
@@ -25,16 +26,16 @@ namespace Swabbr.Infrastructure.Notifications
     ///     is the index of the first result we query. The maximum 
     ///     result count is 100.
     /// </remarks>
-    public class NotificationClient
+    public class AnhNotificationClient : INotificationClient
     {
         private readonly NotificationHubClient _hubClient;
-        private readonly ILogger<NotificationClient> _logger;
+        private readonly ILogger<AnhNotificationClient> _logger;
 
         /// <summary>
         /// Constructor for dependency injection.
         /// </summary>
-        public NotificationClient(IOptions<NotificationHubConfiguration> options,
-            ILogger<NotificationClient> logger,
+        public AnhNotificationClient(IOptions<AzureNotificationHubConfiguration> options,
+            ILogger<AnhNotificationClient> logger,
             IConfiguration configuration)
         {
             if (options is null || options.Value is null)
@@ -52,21 +53,10 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Checks if the Azure Notification Hub is available.
         /// </summary>
         /// <remarks>
-        ///     This just gets registrations by some arbitrary tag.
+        ///     This simply gets registrations by some arbitrary tag.
         /// </remarks>
-        internal async Task<bool> IsServiceAvailableAsync()
-        {
-            try
-            {
-                await _hubClient.GetRegistrationsByTagAsync("anytag", 0);
-                return true;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Error while checking ANH health", e.Message);
-                return false;
-            }
-        }
+        public async Task TestServiceAsync()
+            => await _hubClient.GetRegistrationsByTagAsync("anytag", 0);
 
         /// <summary>
         ///     Registers a user in Azure Notifications Hub.
@@ -76,7 +66,7 @@ namespace Swabbr.Infrastructure.Notifications
         ///     registrations.
         /// </remarks>
         /// <param name="internalRegistration">Our internal registration object.</param>
-        internal async Task<NotificationRegistration> RegisterAsync(NotificationRegistration internalRegistration)
+        public async Task<NotificationRegistration> RegisterAsync(NotificationRegistration internalRegistration)
         {
             if (internalRegistration is null)
             {
@@ -104,7 +94,7 @@ namespace Swabbr.Infrastructure.Notifications
         ///     registrations.
         /// </remarks>
         /// <param name="internalRegistration">Internal registration object.</param>
-        internal async Task UnregisterAsync(NotificationRegistration internalRegistration)
+        public async Task UnregisterAsync(NotificationRegistration internalRegistration)
         {
             if (internalRegistration is null)
             {
@@ -138,25 +128,29 @@ namespace Swabbr.Infrastructure.Notifications
         /// <summary>
         ///     Sends a <see cref="ScheduledNotification"/> to a specified user.
         /// </summary>
-        /// <param name="userId">The user to notify.</param>
-        /// <param name="platform">The user notification platform.</param>
+        /// <param name="pushDetails">Details on how to reach the user.</param>
         /// <param name="notification">The notification object.</param>
-        internal async Task SendNotificationAsync(Guid userId, PushNotificationPlatform platform, SwabbrNotification notification)
+        public async Task SendNotificationAsync(UserPushNotificationDetails pushDetails, SwabbrNotification notification)
         {
-            switch (platform)
+            if (pushDetails is null)
+            {
+                throw new ArgumentNullException(nameof(pushDetails));
+            }
+
+            switch (pushDetails.PushNotificationPlatform)
             {
                 case PushNotificationPlatform.APNS:
                     var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
                     var jsonApns = JsonConvert.SerializeObject(objApns);
-                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, userId.ToString());
+                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
                     return;
                 case PushNotificationPlatform.FCM:
                     var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
                     var jsonFcm = JsonConvert.SerializeObject(objFcm);
-                    await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, userId.ToString());
+                    await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
                     return;
                 default:
-                    throw new InvalidOperationException(nameof(platform));
+                    throw new InvalidOperationException(nameof(pushDetails.PushNotificationPlatform));
             }
         }
 
