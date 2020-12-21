@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,6 +74,9 @@ namespace Swabbr
                     policy.AllowAnyMethod();
                 });
             });
+
+            // Add doc
+            SetupSwagger(services);
         }
 
         /// <summary>
@@ -87,6 +91,7 @@ namespace Swabbr
             //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
             services.AddControllers()
                 .AddNewtonsoftJson();
+
             // We always add health checks so we can access the health check during DEBUG in development.
             services.AddHealthChecks()
                 .AddCheck<TestableServiceHealthCheck<INotificationClient>>("notification_client_health_check")
@@ -124,9 +129,6 @@ namespace Swabbr
 
             // Add custom exception handling
             services.AddSwabbrExceptionMapper();
-
-            // Add doc
-            SetupSwagger(services);
         }
 
         /// <summary>
@@ -137,14 +139,9 @@ namespace Swabbr
         /// <param name="app">Application builder.</param>
         public static void Configure(IApplicationBuilder app)
         {
-            app.UseHsts();
-            app.UseHttpsRedirection();
-
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            app.UseForwardedHeaders(new()
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Swabbr Documentation");
-                options.RoutePrefix = string.Empty;
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
             });
 
             app.UseExceptionHandler("/error");
@@ -170,11 +167,13 @@ namespace Swabbr
         /// <param name="app">Application builder.</param>
         public static void ConfigureDevelopment(IApplicationBuilder app)
         {
+            app.UseForwardedHeaders(new()
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+            });
+
             app.UseDeveloperExceptionPage();
             app.UseCors();
-
-            app.UseHsts();
-            app.UseHttpsRedirection();
 
             app.UseSwagger();
             app.UseSwaggerUI(options =>
