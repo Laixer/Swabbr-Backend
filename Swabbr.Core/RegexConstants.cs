@@ -1,5 +1,8 @@
-﻿namespace Swabbr.Core
+﻿using System.Text.RegularExpressions;
+
+namespace Swabbr.Core
 {
+    // TODO Timeout for regex validation.
     /// <summary>
     ///     Contains application specific regex constants.
     /// </summary>
@@ -9,6 +12,6 @@
         ///     Regex representing our timezone data format:
         ///     UTC+xx:xx or UTC-xx:xx
         /// </summary>
-        public const string TimeZone = @"^UTC(\+|-)\d\d:\d\d$";
+        public static readonly Regex TimeZoneRegex = new Regex(@"^UTC(\+|-)\d\d:\d\d$");
     }
 }

@@ -15,6 +15,9 @@ namespace Swabbr.Core.Extensions
         ///     and adds descriptor to the collection. If the service is not found then a new descriptor is added
         ///     to the <see cref="IServiceCollection"/>.
         /// </summary>
+        /// <remarks>
+        ///     If the service already exists, the current service lifetime is preserved.
+        /// </remarks>
         /// <param name="services">Service collection.</param>
         /// <param name="lifetime">Desired service lifetime if none exist in the service collection.</param>
         /// <returns>Service collection after modification.</returns>

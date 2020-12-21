@@ -230,7 +230,7 @@ namespace Swabbr.Infrastructure.Extensions
             var asString = reader.GetString(ordinal);
 
             // Perform regex matching to check the expected pattern.
-            if (!Regex.IsMatch(asString, RegexConstants.TimeZone)) 
+            if (!RegexConstants.TimeZoneRegex.IsMatch(asString)) 
             { 
                 throw new FormatException();
             }

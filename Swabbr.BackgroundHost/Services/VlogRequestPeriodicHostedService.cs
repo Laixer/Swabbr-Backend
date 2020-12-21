@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Swabbr.BackgroundHost.Abstraction;
 using Swabbr.BackgroundHost.BackgroundTasks;
 using Swabbr.Core.BackgroundWork;

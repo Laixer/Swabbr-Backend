@@ -46,7 +46,7 @@ namespace Swabbr.Core.Notifications
         /// <param name="requestMoment">The moment of request.</param>
         /// <param name="requestTimeout">The timeout of the request.</param>
         /// <returns>Notification object.</returns>
-        public virtual NotificationContext BuildRecordVlog(Guid notifiedUserId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
+        public virtual NotificationContext BuildVlogRecordRequest(Guid notifiedUserId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout)
         {
             var context = DefaultContext(notifiedUserId);
 

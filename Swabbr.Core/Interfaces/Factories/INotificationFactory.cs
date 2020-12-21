@@ -27,7 +27,7 @@ namespace Swabbr.Core.Interfaces.Factories
         /// <param name="requestMoment">The moment of request.</param>
         /// <param name="requestTimeout">The timeout of the request.</param>
         /// <returns>Notification object.</returns>
-        public NotificationContext BuildRecordVlog(Guid notifiedUserId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout);
+        public NotificationContext BuildVlogRecordRequest(Guid notifiedUserId, Guid vlogId, DateTimeOffset requestMoment, TimeSpan requestTimeout);
 
         /// <summary>
         ///     Build a notification for indicating that a vlog

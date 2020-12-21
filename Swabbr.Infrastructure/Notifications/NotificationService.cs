@@ -72,7 +72,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="requestTimeout">The timeout time span for the request.</param>
         public virtual Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
         {
-            var notification = _notificationFactory.BuildRecordVlog(userId, vlogId, DateTimeOffset.Now, requestTimeout);
+            var notification = _notificationFactory.BuildVlogRecordRequest(userId, vlogId, DateTimeOffset.Now, requestTimeout);
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogRecordRequest>>(notification);
 
