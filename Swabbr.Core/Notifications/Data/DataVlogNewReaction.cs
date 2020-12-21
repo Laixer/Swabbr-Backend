@@ -3,8 +3,8 @@
 namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
-    ///     JSON Wrapper for a notification indicating that a vlog
-    ///     received a new reaction.
+    ///     Data wrapper for a notification indicating that 
+    ///     a vlog received a new reaction.
     /// </summary>
     public sealed class DataVlogNewReaction : NotificationData
     {

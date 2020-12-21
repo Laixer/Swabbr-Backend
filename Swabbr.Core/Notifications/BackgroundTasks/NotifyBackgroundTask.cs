@@ -1,15 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.BackgroundWork;
-using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Notifications;
+using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Notifications.Data;
 using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
+namespace Swabbr.Core.Notifications.BackgroundTasks
 {
-    // TODO Notification generics with TData is not that elegant. Interface?
     /// <summary>
     ///     Background task notifying a single user.
     /// </summary>
@@ -17,7 +15,16 @@ namespace Swabbr.Infrastructure.Notifications.BackgroundTasks
     public class NotifyBackgroundTask<TData> : BackgroundTask
         where TData : NotificationData
     {
-        private readonly INotificationClient _notificationClient;
+        /// <summary>
+        ///     Protected notification client.
+        /// </summary>
+        /// <remarks>
+        ///     All notification background tasks that inherit
+        ///     from this class will most likely use this, hence
+        ///     the design choice to make it protected.
+        /// </remarks>
+        protected INotificationClient _notificationClient;
+
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<NotifyBackgroundTask<TData>> _logger;

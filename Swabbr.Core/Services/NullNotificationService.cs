@@ -16,7 +16,7 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Does nothing and returns <see cref="Task.CompletedTask"/>.
         /// </summary>
-        public Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId) => Task.CompletedTask;
+        public Task NotifyFollowersVlogPostedAsync(Guid vlogOwnerUserId, Guid vlogId) => Task.CompletedTask;
 
         /// <summary>
         ///     Does nothing and returns <see cref="Task.CompletedTask"/>.

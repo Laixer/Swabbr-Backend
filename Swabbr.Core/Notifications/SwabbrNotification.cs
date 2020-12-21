@@ -8,7 +8,7 @@ namespace Swabbr.Core.Notifications
     /// </summary>
     /// <remarks>
     ///     This contains a lot of metadata. The actual content
-    ///     of the notification exists in <see cref="Data"/>.
+    ///     of the notification data exists in <see cref="Data"/>.
     /// </remarks>
     public sealed class SwabbrNotification
     {
@@ -35,9 +35,6 @@ namespace Swabbr.Core.Notifications
             Timestamp = DateTimeOffset.Now;
             Protocol = protocol;
             ProtocolVersion = protocolVersion;
-            DataType = "notification";
-            DataTypeVersion = "1.0";
-            ContentType = "application/json";
 
             Data = data ?? throw new ArgumentNullException(nameof(data));
             Data.Title = title;
@@ -57,30 +54,14 @@ namespace Swabbr.Core.Notifications
         public string ProtocolVersion { get; }
 
         /// <summary>
-        ///     The type of data sent.
-        /// </summary>
-        public string DataType { get; }
-
-        /// <summary>
-        ///     The version of the data sent.
-        /// </summary>
-        public string DataTypeVersion { get; }
-
-        /// <summary>
-        ///     The type of notification, <see cref="Notifications.NotificationAction"/>,
-        ///     as a string value.
+        ///     <see cref="NotificationAction"/> as a string value.
         /// </summary>
         public string NotificationActionString { get; }
 
         /// <summary>
-        ///     The type of notification, <see cref="Notifications.NotificationAction"/>.
+        ///     The type of notification.
         /// </summary>
         public NotificationAction NotificationAction { get; }
-
-        /// <summary>
-        ///     The content type.
-        /// </summary>
-        public string ContentType { get; }
 
         /// <summary>
         ///     The moment the notification was sent.

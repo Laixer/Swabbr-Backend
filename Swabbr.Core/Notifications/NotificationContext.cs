@@ -24,11 +24,6 @@ namespace Swabbr.Core.Notifications
         public SwabbrNotification Notification { get; set; }
 
         /// <summary>
-        ///     The type of the data object.
-        /// </summary>
-        public Type DataType => Notification?.Data.GetType();
-
-        /// <summary>
         ///     Date when the notification was sent.
         /// </summary>
         public DateTimeOffset DateSent { get; set; }

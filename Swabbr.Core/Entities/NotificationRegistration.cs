@@ -3,6 +3,7 @@ using System;
 
 namespace Swabbr.Core.Entities
 {
+    // TODO DateCreated
     /// <summary>
     ///     Represents a single registration event for a 
     ///     device to receive notifications.

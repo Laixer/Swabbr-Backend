@@ -3,8 +3,8 @@
 namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
-    ///     JSON wrapper for a notification indicating a vlog
-    ///     gained a like..
+    ///     Data wrapper for a notification indicating a vlog
+    ///     gained a like.
     /// </summary>
     public sealed class DataVlogGainedLike : NotificationData
     {

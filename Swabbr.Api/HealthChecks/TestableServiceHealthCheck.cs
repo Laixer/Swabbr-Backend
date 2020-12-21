@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Swabbr.Core.Interfaces;
 using System;
 using System.Threading;
@@ -15,17 +14,12 @@ namespace Swabbr.Api.HealthChecks
         where TTestableService : ITestableService
     {
         private readonly TTestableService _testableService;
-        private readonly ILogger<TestableServiceHealthCheck<TTestableService>> _logger;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public TestableServiceHealthCheck(TTestableService testableService,
-            ILogger<TestableServiceHealthCheck<TTestableService>> logger)
-        {
-            _testableService = testableService ?? throw new ArgumentNullException(nameof(testableService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        public TestableServiceHealthCheck(TTestableService testableService) 
+            => _testableService = testableService ?? throw new ArgumentNullException(nameof(testableService));
 
         /// <summary>
         ///     Checks if our repositories can be reached, meaning our 

@@ -2,7 +2,7 @@
 {
     /// <summary>
     ///     Abstract base class for creating 
-    ///     operation specific JSON wrappers.
+    ///     operation specific data wrappers.
     /// </summary>
     public abstract class NotificationData
     {

@@ -20,9 +20,9 @@ namespace Swabbr.Core.Interfaces.Services
         /// <summary>
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
-        /// <param name="userId">User that posted a vlog.</param>
+        /// <param name="vlogOwnerUserId">Owner of the vlog.</param>
         /// <param name="vlogId">The posted vlog id.</param>
-        Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId);
+        Task NotifyFollowersVlogPostedAsync(Guid vlogOwnerUserId, Guid vlogId);
 
         /// <summary>
         ///     Notify a user that a reaction was placed on one of 

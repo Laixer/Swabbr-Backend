@@ -87,7 +87,7 @@ namespace Swabbr
         /// <param name="services">The services collection.</param>
         public void GenericConfigureServices(IServiceCollection services)
         {
-            // FUTURE: Uncouple from NewtonSoft.Json
+            // FUTURE: Uncouple from NewtonSoft.Json.
             //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
             services.AddControllers()
                 .AddNewtonsoftJson();
@@ -237,6 +237,7 @@ namespace Swabbr
             })
             .AddDefaultTokenProviders();
 
+        // FUTURE: Refactor completely.
         /// <summary>
         ///     Adds authentication to the services.
         /// </summary>
