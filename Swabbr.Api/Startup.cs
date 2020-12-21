@@ -92,7 +92,7 @@ namespace Swabbr
             services.AddControllers()
                 .AddNewtonsoftJson();
 
-            // We always add health checks so we can access the health check during DEBUG in development.
+            // We always add health checks so we can access them from any environment
             services.AddHealthChecks()
                 .AddCheck<TestableServiceHealthCheck<INotificationClient>>("notification_client_health_check")
                 .AddCheck<TestableServiceHealthCheck<IBlobStorageService>>("blob_storage_health_check")
@@ -193,10 +193,7 @@ namespace Swabbr
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-#if DEBUG
-                // Only compile development health checks when set to debug mode.
                 endpoints.MapHealthChecks("/health").WithMetadata(new AllowAnonymousAttribute());
-#endif
             });
         }
 
