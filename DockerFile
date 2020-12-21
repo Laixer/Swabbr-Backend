@@ -1,4 +1,4 @@
-# FunderMaps Ecosystem
+# Swabbr Ecosystem
 
 # Build the application solution
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
@@ -19,7 +19,7 @@ RUN git rev-parse HEAD > /app/COMMIT
 
 # Build runtime image
 #
-# Any FunderMaps application in the repository can
+# Any Swabbr application in the repository can
 # be called via the CMD=<application> environment
 # variable.
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
