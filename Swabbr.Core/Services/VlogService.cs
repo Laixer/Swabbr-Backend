@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Abstractions;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
@@ -13,9 +14,8 @@ namespace Swabbr.Core.Services
     /// <summary>
     ///     Service that handles all vlog related operations.
     /// </summary>
-    public class VlogService : IVlogService
+    public class VlogService : AppServiceBase, IVlogService
     {
-        private readonly AppContext _appContext;
         private readonly IVlogRepository _vlogRepository;
         private readonly IVlogLikeRepository _vlogLikeRepository;
         private readonly INotificationService _notificationService;
@@ -30,7 +30,7 @@ namespace Swabbr.Core.Services
             INotificationService notificationService,
             IBlobStorageService blobStorageService)
         {
-            _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
+            AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
@@ -149,7 +149,7 @@ namespace Swabbr.Core.Services
             {
                 Id = new VlogLikeId
                 {
-                    UserId = _appContext.UserId,
+                    UserId = AppContext.UserId,
                     VlogId = vlogId
                 }
             });
@@ -195,7 +195,7 @@ namespace Swabbr.Core.Services
             // Note: The current user id is assigned in the reaction repository.
             await _vlogRepository.CreateAsync(vlog);
 
-            await _notificationService.NotifyFollowersVlogPostedAsync(_appContext.UserId, vlogId);
+            await _notificationService.NotifyFollowersVlogPostedAsync(AppContext.UserId, vlogId);
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace Swabbr.Core.Services
             => _vlogLikeRepository.DeleteAsync(new VlogLikeId
             {
                 VlogId = vlogId,
-                UserId = _appContext.UserId
+                UserId = AppContext.UserId
             });
 
         /// <summary>

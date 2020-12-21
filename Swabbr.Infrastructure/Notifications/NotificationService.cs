@@ -4,9 +4,9 @@ using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Notifications.BackgroundTasks;
 using Swabbr.Core.Notifications.Data;
 using Swabbr.Core.Types;
-using Swabbr.Infrastructure.Notifications.BackgroundTasks;
 using System;
 using System.Threading.Tasks;
 
@@ -28,6 +28,7 @@ namespace Swabbr.Infrastructure.Notifications
         private readonly INotificationClient _notificationClient;
         private readonly INotificationRegistrationRepository _notificationRegistrationRepository;
         private readonly DispatchManager _dispatchManager;
+        private readonly IUserRepository _userRepository;
         private readonly INotificationFactory _notificationFactory;
 
         /// <summary>
@@ -36,11 +37,13 @@ namespace Swabbr.Infrastructure.Notifications
         public NotificationService(INotificationClient notificationClient,
             INotificationRegistrationRepository notificationRegistrationRepository,
             DispatchManager dispatchManager,
+            IUserRepository userRepository,
             INotificationFactory notificationFactory)
         {
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
             _dispatchManager = dispatchManager ?? throw new ArgumentNullException(nameof(dispatchManager));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationFactory = notificationFactory ?? throw new ArgumentNullException(nameof(notificationFactory));
         }
 
@@ -48,17 +51,19 @@ namespace Swabbr.Infrastructure.Notifications
         ///     Notify all followers of a user that a new vlog was posted.
         /// </summary>
         /// <remarks>
-        ///     This is dispatched to the <see cref="DispatchManager"/>.
+        ///     A notification background task is dispatched to the 
+        ///     <see cref="DispatchManager"/> for each follower.
         /// </remarks>
-        /// <param name="userId">User that posted a vlog.</param>
+        /// <param name="vlogOwnerUserId">Owner of the vlog.</param>
         /// <param name="vlogId">The posted vlog id.</param>
-        public virtual Task NotifyFollowersVlogPostedAsync(Guid userId, Guid vlogId)
+        public virtual async Task NotifyFollowersVlogPostedAsync(Guid vlogOwnerUserId, Guid vlogId)
         {
-            var notification = _notificationFactory.BuildFollowedProfileVlogPosted(userId, vlogId);
+            await foreach (var user in _userRepository.GetFollowersAsync(vlogOwnerUserId, Navigation.All))
+            {
+                var notification = _notificationFactory.BuildFollowedProfileVlogPosted(user.Id, vlogId);
 
-            _dispatchManager.Dispatch<NotifyFollowersVlogPostedBackgroundTask>(notification);
-
-            return Task.CompletedTask;
+                _dispatchManager.Dispatch<NotifyBackgroundTask<DataFollowedProfileVlogPosted>>(notification);
+            }
         }
 
         /// <summary>

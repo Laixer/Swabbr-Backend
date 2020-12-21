@@ -3,7 +3,7 @@
 namespace Swabbr.Core.Notifications.Data
 {
     /// <summary>
-    ///     JSON wrapper for a vlog record request.
+    ///     Data wrapper for a vlog record request.
     /// </summary>
     public sealed class DataVlogRecordRequest : NotificationData
     {

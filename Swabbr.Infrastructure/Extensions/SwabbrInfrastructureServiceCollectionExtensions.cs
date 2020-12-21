@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Clients;
 using Swabbr.Core.Extensions;
@@ -9,13 +8,13 @@ using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Notifications;
+using Swabbr.Core.Notifications.BackgroundTasks;
 using Swabbr.Core.Notifications.Data;
 using Swabbr.Core.Services;
 using Swabbr.Core.Storage;
 using Swabbr.Infrastructure.Abstractions;
 using Swabbr.Infrastructure.Configuration;
 using Swabbr.Infrastructure.Notifications;
-using Swabbr.Infrastructure.Notifications.BackgroundTasks;
 using Swabbr.Infrastructure.Providers;
 using Swabbr.Infrastructure.Repositories;
 using Swabbr.Infrastructure.Storage;
@@ -66,7 +65,7 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddBackgroundTask<NotifyBackgroundTask<DataVlogGainedLike>>();
             services.AddBackgroundTask<NotifyBackgroundTask<DataVlogNewReaction>>();
             services.AddBackgroundTask<NotifyBackgroundTask<DataVlogRecordRequest>>();
-            services.AddBackgroundTask<NotifyFollowersVlogPostedBackgroundTask>();
+            services.AddBackgroundTask<NotifyBackgroundTask<DataFollowedProfileVlogPosted>>();
 
             // Add repositories
             services.AddContextRepository<IFollowRequestRepository, FollowRequestRepository>();
