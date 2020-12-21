@@ -70,11 +70,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="id">The user id.</param>
         public async Task DeleteAsync(Guid id)
         {
-            // Check if the user owns the registration
-            if (!AppContext.HasUser || id != AppContext.UserId)
-            {
-                throw new NotAllowedException();
-            }
+            // Note: We don't check if the appcontext has a user.
+            //       If our user logs in, this method gets called
+            //       as well, so we can't guarantee having a user.
 
             var sql = @"
                     DELETE  
