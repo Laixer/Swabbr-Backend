@@ -39,10 +39,6 @@ namespace Swabbr.Core.BackgroundTasks
             { 
                 throw new ArgumentNullException(nameof(context)); 
             }
-            if (!CanHandle(context.Value))
-            {
-                throw new InvalidOperationException();
-            }
 
             var postVlogContext = context.Value as PostVlogContext;
 
