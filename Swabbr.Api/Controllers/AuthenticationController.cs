@@ -55,7 +55,7 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
         {
             // Make this operation transactional.
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            using TransactionScope scope = new (TransactionScopeAsyncFlowOption.Enabled);
 
             // Construct a new identity user for a new user based on the given input.
             // The entity will be created in our own data store.
@@ -66,7 +66,7 @@ namespace Swabbr.Api.Controllers
             };
 
             // This call assigns the id to the identityUser object.
-            var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
+            IdentityResult identityResult = await _userManager.CreateAsync(identityUser, input.Password);
             if (!identityResult.Succeeded)
             {
                 return BadRequest("Could not create new user, contact your administrator");
@@ -108,16 +108,15 @@ namespace Swabbr.Api.Controllers
                 // Return.
                 return Ok(output);
             }
-
-            if (signInResult.IsLockedOut)
+            else if (signInResult.IsLockedOut)
             {
                 return Unauthorized("Too many attempts.");
             }
-            if (signInResult.IsNotAllowed)
+            else if (signInResult.IsNotAllowed)
             {
                 return Unauthorized("Not allowed to log in.");
             }
-
+            
             // If we get here something definitely went wrong.
             return Unauthorized("Could not log in.");
         }
@@ -138,7 +137,6 @@ namespace Swabbr.Api.Controllers
                 return NoContent();
             }
 
-            // Compose error message.
             var message = "Could not update password.";
             foreach (var error in signinResult.Errors)
             {
@@ -155,9 +153,10 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         [HttpPost("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> LogoutAsync()
+        public async Task<IActionResult> LogoutAsync([FromServices] Core.AppContext appContext)
         {
             // Act.
+            await _notificationService.UnregisterAsync(appContext.UserId);
             await _signInManager.SignOutAsync();
 
             // Return.
