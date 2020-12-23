@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Swabbr.Core.BackgroundTasks;
 using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Services;
@@ -44,6 +45,8 @@ namespace Swabbr.Core.Extensions
 
             // Configure DI for background work
             services.AddSingleton<DispatchManager>();
+            services.AddBackgroundTask<PostReactionBackgroundTask>();
+            services.AddBackgroundTask<PostVlogBackgroundTask>();
 
             return services;
         }

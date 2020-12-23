@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Context;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -48,9 +49,8 @@ namespace Swabbr.Core.Interfaces.Services
         ///     Called when a reaction has been uploaded. This will
         ///     actually post the reaction.
         /// </summary>
-        /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
-        /// <param name="reactionId">The uploaded reaction id.</param>
-        Task PostReactionAsync(Guid targetVlogId, Guid reactionId);
+        /// <param name="context">Context for posting a reaction.</param>
+        Task PostReactionAsync(PostReactionContext context);
 
         /// <summary>
         ///     Updates a reaction in our data store.

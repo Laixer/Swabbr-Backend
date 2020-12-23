@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Context;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -15,10 +16,10 @@ namespace Swabbr.Core.Interfaces.Repositories
         IUpdateRepository<Vlog, Guid>
     {
         /// <summary>
-        ///     Adds a view to a vlog.
+        ///     Adds views for given vlogs.
         /// </summary>
-        /// <param name="vlogId">The vlog that has been watched.</param>
-        Task AddView(Guid vlogId);
+        /// <param name="context">Context for adding vlog views.</param>
+        Task AddViews(AddVlogViewsContext context);
 
         /// <summary>
         ///     Returns a collection of featured vlogs.

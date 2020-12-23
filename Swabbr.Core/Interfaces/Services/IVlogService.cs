@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Context;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 namespace Swabbr.Core.Interfaces.Services
 {
     /// <summary>
-    /// Service for processing vlog and vlog like operations.
+    ///     Service for processing vlog and vlog like operations.
     /// </summary>
     /// <remarks>
     ///     The executing user id is never passed. Whenever 
@@ -16,10 +17,10 @@ namespace Swabbr.Core.Interfaces.Services
     public interface IVlogService
     {
         /// <summary>
-        ///     Adds a view to a vlog.
+        ///     Adds views for given vlogs.
         /// </summary>
-        /// <param name="vlogId">The vlog that is watched.</param>
-        Task AddView(Guid vlogId);
+        /// <param name="context">Context for adding vlog views.</param>
+        Task AddViews(AddVlogViewsContext context);
 
         /// <summary>
         ///     Soft deletes a vlog in our data store.
@@ -85,9 +86,8 @@ namespace Swabbr.Core.Interfaces.Services
         ///     Called when a vlog has been uploaded to the blob 
         ///     storage and the user wishes to publish it.
         /// </summary>
-        /// <param name="vlogId">The uploaded vlog id.</param>
-        /// <param name="isPrivate">Accessibility of the vlog.</param>
-        Task PostVlogAsync(Guid vlogId, bool isPrivate);
+        /// <param name="context">Context for posting a vlog.</param>
+        Task PostVlogAsync(PostVlogContext context);
 
         /// <summary>
         ///     Used when the current user unlikes a vlog.

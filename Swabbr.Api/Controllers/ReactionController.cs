@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
+using Swabbr.Core.BackgroundTasks;
+using Swabbr.Core.BackgroundWork;
+using Swabbr.Core.Context;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using System;
@@ -104,10 +107,17 @@ namespace Swabbr.Api.Controllers
         ///     Post a new reaction as the current user.
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> PostReactionAsync([FromBody] ReactionDto input)
+        public IActionResult PostReaction([FromServices] DispatchManager dispatchManager, [FromServices] Core.AppContext appContext, [FromBody] ReactionDto input)
         {
             // Act.
-            await _reactionService.PostReactionAsync(input.TargetVlogId, input.Id);
+            var postReactionContext = new PostReactionContext
+            {
+                IsPrivate = input.IsPrivate,
+                ReactionId = input.Id,
+                TargetVlogId = input.TargetVlogId,
+                UserId = appContext.UserId,
+            };
+            dispatchManager.Dispatch<PostReactionBackgroundTask>(postReactionContext);
 
             // Return.
             return NoContent();

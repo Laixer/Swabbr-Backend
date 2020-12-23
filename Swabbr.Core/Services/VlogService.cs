@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Abstractions;
+using Swabbr.Core.Context;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
@@ -39,11 +40,11 @@ namespace Swabbr.Core.Services
 
         // FUTURE: Check if the user is allowed to watch the vlog
         /// <summary>
-        ///     Adds a view to a vlog.
+        ///     Adds views for given vlogs.
         /// </summary>
-        /// <param name="vlogId">The vlog that is watched.</param>
-        public Task AddView(Guid vlogId)
-            => _vlogRepository.AddView(vlogId);
+        /// <param name="context">Context for adding vlog views.</param>
+        public Task AddViews(AddVlogViewsContext context)
+            => _vlogRepository.AddViews(context);
 
         /// <summary>
         ///     Soft deletes a vlog in our data store.
@@ -173,29 +174,34 @@ namespace Swabbr.Core.Services
         ///         <see cref="FileNotFoundException"/>.
         ///     </para>
         /// </remarks>
-        /// <param name="vlogId">The uploaded vlog.</param>
-        /// <param name="isPrivate">Accessibility of the vlog.</param>
-        public async Task PostVlogAsync(Guid vlogId, bool isPrivate = false)
+        /// <param name="context">Context for posting the vlog.</param>
+        public async Task PostVlogAsync(PostVlogContext context)
         {
-            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlogId)))
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(context.VlogId)))
             {
                 throw new FileNotFoundException();
             }
-            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetThumbnailFileName(vlogId)))
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetThumbnailFileName(context.VlogId)))
             {
                 throw new FileNotFoundException();
             }
 
             var vlog = new Vlog
             {
-                Id = vlogId,
-                IsPrivate = isPrivate,
+                Id = context.VlogId,
+                IsPrivate = context.IsPrivate,
+                UserId = context.UserId,
             };
 
-            // Note: The current user id is assigned in the reaction repository.
             await _vlogRepository.CreateAsync(vlog);
 
-            await _notificationService.NotifyFollowersVlogPostedAsync(AppContext.UserId, vlogId);
+            // This function will dispatch a notification for each follower.
+            await _notificationService.NotifyFollowersVlogPostedAsync(AppContext.UserId, context.VlogId);
         }
 
         /// <summary>
