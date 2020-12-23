@@ -23,18 +23,20 @@ namespace Swabbr.Core.Tests.Notifications
         public void FollowedProfileVlogPostedIsCorrect()
         {
             // Arrange.
+            var notifiedUserId = Guid.NewGuid();
             var vlogId = Guid.NewGuid();
             var vlogOwnerUserId = Guid.NewGuid();
 
             // Act.
-            var notificationContext = _notificationFactory.BuildFollowedProfileVlogPosted(vlogId, vlogOwnerUserId);
+            var notificationContext = _notificationFactory.BuildFollowedProfileVlogPosted(notifiedUserId, vlogId, vlogOwnerUserId);
             var data = notificationContext.Notification.Data as DataFollowedProfileVlogPosted;
 
             // Assert.
             Assert.IsType<DataFollowedProfileVlogPosted>(notificationContext.Notification.Data);
             Assert.Equal(vlogId, data.VlogId);
             Assert.Equal(vlogOwnerUserId, data.VlogOwnerUserId);
-            Assert.False(notificationContext.HasUser);
+            Assert.True(notificationContext.HasUser);
+            Assert.Equal(notificationContext.NotifiedUserId, notifiedUserId);
         }
 
         [Fact]
@@ -57,6 +59,7 @@ namespace Swabbr.Core.Tests.Notifications
             Assert.Equal(requestMoment, data.RequestMoment);
             Assert.Equal(requestTimeout, data.RequestTimeout);
             Assert.True(notificationContext.HasUser);
+            Assert.Equal(notificationContext.NotifiedUserId, notifiedUserId);
         }
 
         [Fact]
@@ -77,6 +80,7 @@ namespace Swabbr.Core.Tests.Notifications
             Assert.Equal(vlogId, data.VlogId);
             Assert.Equal(userThatLikedId, data.UserThatLikedId);
             Assert.True(notificationContext.HasUser);
+            Assert.Equal(notificationContext.NotifiedUserId, notifiedUserId);
         }
 
         [Fact]
@@ -97,6 +101,7 @@ namespace Swabbr.Core.Tests.Notifications
             Assert.Equal(vlogId, data.VlogId);
             Assert.Equal(reactionId, data.ReactionId);
             Assert.True(notificationContext.HasUser);
+            Assert.Equal(notificationContext.NotifiedUserId, notifiedUserId);
         }
     }
 }

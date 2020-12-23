@@ -13,10 +13,11 @@ namespace Swabbr.Core.Interfaces.Factories
         ///     Build a notification for indicating that a followed
         ///     profile has posted a vlog.
         /// </summary>
+        /// <param name="notifiedUserId">The notified user.</param>
         /// <param name="vlogId">The posted vlog.</param>
         /// <param name="vlogOwnerUserId">The vlog owner.</param>
         /// <returns>Notification object.</returns>
-        public NotificationContext BuildFollowedProfileVlogPosted(Guid vlogId, Guid vlogOwnerUserId);
+        public NotificationContext BuildFollowedProfileVlogPosted(Guid notifiedUserId, Guid vlogId, Guid vlogOwnerUserId);
 
         /// <summary>
         ///     Build a notification for indicating that a user

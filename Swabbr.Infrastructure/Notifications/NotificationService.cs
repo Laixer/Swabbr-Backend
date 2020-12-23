@@ -60,7 +60,7 @@ namespace Swabbr.Infrastructure.Notifications
         {
             await foreach (var user in _userRepository.GetFollowersAsync(vlogOwnerUserId, Navigation.All))
             {
-                var notification = _notificationFactory.BuildFollowedProfileVlogPosted(user.Id, vlogId);
+                var notification = _notificationFactory.BuildFollowedProfileVlogPosted(user.Id, vlogId, vlogOwnerUserId);
 
                 _dispatchManager.Dispatch<NotifyBackgroundTask<DataFollowedProfileVlogPosted>>(notification);
             }
@@ -156,8 +156,28 @@ namespace Swabbr.Infrastructure.Notifications
             await _notificationRegistrationRepository.CreateAsync(registration);
         }
 
-        // FUTURE: Implement.
-        public virtual Task UnregisterAsync(Guid userId)
-            => throw new NotImplementedException();
+        /// <summary>
+        ///     Unregisters a user.
+        /// </summary>
+        /// <remarks>
+        ///     For notifications, the userId and the notification
+        ///     registration id are the same.
+        /// </remarks>
+        /// <param name="userId">The user to unregister.</param>
+        public virtual async Task UnregisterAsync(Guid userId)
+        {
+            if (!await _notificationRegistrationRepository.ExistsAsync(userId))
+            {
+                // If we have no existing registrations we can simply return.
+                // TODO Invalid op?
+                return;
+            }
+
+            var registration = await _notificationRegistrationRepository.GetAsync(userId);
+
+            await _notificationClient.UnregisterAsync(registration);
+
+            await _notificationRegistrationRepository.DeleteAsync(userId);
+        }
     }
 }
