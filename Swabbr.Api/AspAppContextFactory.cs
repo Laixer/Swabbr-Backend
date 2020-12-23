@@ -33,17 +33,10 @@ namespace Swabbr.Api
             var httpContextAccessor = _serviceProvider.GetRequiredService<IHttpContextAccessor>();
             if (httpContextAccessor is null)
             {
-                // Return an empty appcontext if we have no http context.
+                // Return an empty context if we have no http context.
                 return new Core.AppContext();
             }
-            else if (httpContextAccessor.HttpContext is null)
-            {
-                // If we have a http context accessor but no http context,
-                // some item was dispatched from a http request. This means
-                // the state is valid and we will proceed with an empty appcontext.
-                return new Core.AppContext();
-            }
-            else if (httpContextAccessor.HttpContext?.User is null)
+            if (httpContextAccessor.HttpContext?.User is null)
             {
                 // This would be undefined behaviour.
                 throw new InvalidOperationException();
