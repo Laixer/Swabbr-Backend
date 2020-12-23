@@ -13,9 +13,17 @@ namespace Swabbr.Core.DataAnnotations
         /// <summary>
         ///     Checks if the value is null or base 64 encoded.
         /// </summary>
+        /// <remarks>
+        ///     This only fully validates the string if we 
+        ///     are in debug mode.
+        /// </remarks>
         /// <param name="value">The item to check.</param>
         public override bool IsValid(object value)
-            => value is null || (value is string str && Base64EncodedHelper.IsBase64Encoded(str));
+            => value is null
+#if DEBUG
+                || (value is string str && Base64EncodedHelper.IsBase64Encoded(str))
+#endif
+            ;
 
         /// <summary>
         ///     Formats the error message when validation fails.

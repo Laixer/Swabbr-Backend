@@ -19,30 +19,15 @@ namespace Swabbr.Api.Authentication
             new SwabbrIdentityRole{ Id = Guid.NewGuid(), Name = "Admin", NormalizedName = "ADMIN" },
         };
 
-        public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
+        public Task<IdentityResult> CreateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken) => Task.FromResult(IdentityResult.Success);
 
-        public Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
+        public Task<IdentityResult> UpdateAsync(SwabbrIdentityRole role, CancellationToken cancellationToken) => Task.FromResult(IdentityResult.Success);
 
-        public Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
+        public Task<IdentityResult> DeleteAsync(SwabbrIdentityRole role, CancellationToken cancellationToken) => Task.FromResult(IdentityResult.Success);
 
-        public Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(Roles.Where(r => r.Id.ToString() == roleId).First());
-        }
+        public Task<SwabbrIdentityRole> FindByIdAsync(string roleId, CancellationToken cancellationToken) => Task.FromResult(Roles.Where(r => r.Id.ToString() == roleId).First());
 
-        public Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(Roles.Where(r => r.NormalizedName.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase)).First());
-        }
+        public Task<SwabbrIdentityRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken) => Task.FromResult(Roles.Where(r => r.NormalizedName.Equals(normalizedRoleName, StringComparison.OrdinalIgnoreCase)).First());
 
         public Task<string> GetNormalizedRoleNameAsync(SwabbrIdentityRole role, CancellationToken cancellationToken)
         {

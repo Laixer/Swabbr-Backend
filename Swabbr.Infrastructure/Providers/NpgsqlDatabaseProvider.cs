@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using Swabbr.Core.Types;
 using Swabbr.Core.Exceptions;
+using Swabbr.Core.Types;
 using System;
 using System.Data.Common;
 using System.Runtime.ExceptionServices;

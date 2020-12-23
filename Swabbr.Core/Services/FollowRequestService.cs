@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
