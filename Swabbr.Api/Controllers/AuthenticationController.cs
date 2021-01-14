@@ -13,7 +13,7 @@ using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
-    // FUTURE This will probably be changed up when we refactor the auth part.
+    // FUTURE This will probably be changed up when we refactor the auth part
     /// <summary>
     ///     Controller for authentication.
     /// </summary>
@@ -50,14 +50,13 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         ///     Register a new user.
         /// </summary>
-        /// <remarks>
-        ///     FUTURE: The update call was removed here because of the complexity. Look into this.
-        ///             Only the required user properties are set in the database.
-        /// </remarks>
         [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
         {
+            // Make this operation transactional.
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
             // Construct a new identity user for a new user based on the given input.
             // The entity will be created in our own data store.
             var identityUser = new SwabbrIdentityUser
@@ -72,6 +71,12 @@ namespace Swabbr.Api.Controllers
             {
                 return BadRequest("Could not create new user, contact your administrator");
             }
+
+            // Assign any explicitly specified user properties.
+            await _userUpdateHelper.UpdateUserAsync(input);
+
+            // Complete the database transaction.
+            scope.Complete();
 
             // Return.
             return NoContent();

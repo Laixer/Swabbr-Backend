@@ -1,6 +1,5 @@
 ﻿using Swabbr.Api.DataTransferObjects;
 using Swabbr.Core.Abstractions;
-using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -34,7 +33,7 @@ namespace Swabbr.Api.Helpers
             AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
-
+        
         /// <summary>
         ///     Update a user in our datastore, only modifying
         ///     the explicitly assigned properties in the input.
@@ -48,30 +47,6 @@ namespace Swabbr.Api.Helpers
             // First get the current user from our data store.
             var currentUser = await _userService.GetAsync(AppContext.UserId);
 
-            await UpdateUserAsync(currentUser, input);
-        }
-
-        /// <summary>
-        ///     Update a user in our datastore, only modifying
-        ///     the explicitly assigned properties in the input.
-        ///     Use this overload if the <see cref="AppContext"/>
-        ///     doesn't have a user id.
-        /// </summary>
-        /// <remarks>
-        ///     Any property that is null (default) will be untouched.
-        /// </remarks>
-        /// <param name="userId">User id.</param>
-        /// <param name="input">User with explicitly assigned properties.</param>
-        internal async Task UpdateUserAsync(Guid userId, UserUpdateDto input)
-        {
-            // First get the current user from our data store.
-            var currentUser = await _userService.GetAsync(userId);
-
-            await UpdateUserAsync(currentUser, input);
-        }
-
-        private async Task UpdateUserAsync(User currentUser, UserUpdateDto input) 
-        { 
             // Only re-assign properties if they were assigned explicitly.
             currentUser.BirthDate = input.BirthDate ?? currentUser.BirthDate;
             currentUser.Country = input.Country ?? currentUser.Country;
