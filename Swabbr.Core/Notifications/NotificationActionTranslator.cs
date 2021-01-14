@@ -2,6 +2,7 @@
 
 namespace Swabbr.Core.Notifications
 {
+    // TODO Should we use this?
     /// <summary>
     ///     Maps from <see cref="NotificationAction"/> to the 
     ///     corresponding string value.

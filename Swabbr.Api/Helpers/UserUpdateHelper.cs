@@ -33,7 +33,32 @@ namespace Swabbr.Api.Helpers
             AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
-        
+
+        // TODO This is a tempfix.
+        /// <summary>
+        ///     Update a user in our datastore, only modifying
+        ///     the explicitly assigned properties in the input.
+        /// </summary>
+        /// <remarks>
+        ///     Any property that is null (default) will be untouched.
+        /// </remarks>
+        /// <param name="input">User with explicitly assigned properties.</param>
+        /// <param name="userId">User id to assign to AppContext.</param>
+        internal Task UpdateUserAsync(UserUpdateDto input, Guid userId)
+        {
+            // TODO: This will be removed when refactoring the auth part. Currently when the
+            //         AuthenticationController calls this function, a problem is created where 
+            //         we want to update the user without being logged in as that user. This 
+            //         means the AppContext has no UserId assigned to it, while the UserRepository 
+            //         expects one. As a tempfix we explicitly assign the user id to the AppContext. 
+            //         This has to be fixed 100% but the current solution prevents us from refactoring
+            //         a bunch of code while the real problem is the authentication of the app, which
+            //         will be refactored anyways. See issue #217 https://github.com/Laixer/Swabbr-Backend/issues/217
+            AppContext.UserId = userId;
+
+            return UpdateUserAsync(input);
+        }
+
         /// <summary>
         ///     Update a user in our datastore, only modifying
         ///     the explicitly assigned properties in the input.
@@ -43,7 +68,7 @@ namespace Swabbr.Api.Helpers
         /// </remarks>
         /// <param name="input">User with explicitly assigned properties.</param>
         internal async Task UpdateUserAsync(UserUpdateDto input)
-        {
+        { 
             // First get the current user from our data store.
             var currentUser = await _userService.GetAsync(AppContext.UserId);
 

@@ -8,7 +8,6 @@ using Swabbr.Api.Helpers;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
@@ -59,10 +58,18 @@ namespace Swabbr.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
         {
-            // Note: The user manager creation can succeed, followed by a failed update
-            //       operation. To prevent half-registrations, this operation is made
-            //       transactional.
-            using TransactionScope scope = new (TransactionScopeAsyncFlowOption.Enabled);
+            // TODO: The transactional part creates a bug. The created user doesn't 
+            //       exist when the update call is made. A tempfix is removing the
+            //       transaction scope. This means we can create the user but fail on
+            //       updating the user. The call will return a failure but the user
+            //       will exist after the call. This issue will no longer be relevant
+            //       after the refactoring of the authentication part. See issue #217
+            //       https://github.com/Laixer/Swabbr-Backend/issues/217.
+            //
+            //       Don't forget scope.Complete() when restoring!
+
+            // Make this operation transactional.
+            //using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             // Construct a new identity user for a new user based on the given input.
             // The entity will be created in our own data store.
@@ -80,11 +87,13 @@ namespace Swabbr.Api.Controllers
                 return BadRequest("Could not create new user, contact your administrator");
             }
 
+            // FUTURE: This will be removed when refactoring the auth part. 
+            //         See the UserUpdateHelper for the current tempfix.
             // Assign all explicitly specified user properties
             // which are not handled by the user manager.
-            await _userUpdateHelper.UpdateUserAsync(input);
+            await _userUpdateHelper.UpdateUserAsync(input, identityUser.Id);
 
-            scope.Complete();
+            //scope.Complete();
 
             // Return.
             return NoContent();
