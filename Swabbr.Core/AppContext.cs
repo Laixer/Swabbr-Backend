@@ -27,5 +27,13 @@ namespace Swabbr.Core
         ///     Checks if we have a signed in user.
         /// </summary>
         public bool HasUser => UserId != Guid.Empty;
+
+        /// <summary>
+        ///     Checks if <see cref="UserId"/> is set and
+        ///     matches <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The user id to check.</param>
+        public bool IsUser(Guid userId)
+            => HasUser && UserId == userId;
     }
 }

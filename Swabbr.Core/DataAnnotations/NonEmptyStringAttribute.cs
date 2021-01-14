@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Swabbr.Core.DataAnnotations
 {
     /// <summary>
-    ///     Attribute forcing a string to be not empty.
+    ///     Attribute forcing a string to be not empty
+    ///     without making it required.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false)]
     public class NonEmptyStringAttribute : ValidationAttribute

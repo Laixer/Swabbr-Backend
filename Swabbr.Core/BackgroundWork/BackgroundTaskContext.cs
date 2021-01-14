@@ -1,35 +1,24 @@
 ﻿using System;
-using System.Threading;
 
 namespace Swabbr.Core.BackgroundWork
 {
     /// <summary>
     ///     Context for executing background tasks.
     /// </summary>
-    public class BackgroundTaskContext
+    /// <remarks>
+    ///     This extends <see cref="AppContext"/> and thus can be
+    ///     instantiated using an app context factory implementation.
+    /// </remarks>
+    public class BackgroundTaskContext : AppContext
     {
         /// <summary>
         ///     Task id.
         /// </summary>
-        public Guid Id { get; init; }
-
-        /// <summary>
-        ///     The cancellation token.
-        /// </summary>
-        public CancellationToken CancellationToken { get; init; }
+        public Guid TaskId { get; set; }
 
         /// <summary>
         ///     Value to be processed by the task.
         /// </summary>
-        public object Value { get; init; }
-
-        /// <summary>
-        ///     Create new instance.
-        /// </summary>
-        /// <remarks>
-        ///     This assigns <see cref="Id"/>.
-        /// </remarks>
-        public BackgroundTaskContext()
-            => Id = Guid.NewGuid();
+        public object Value { get; set; }
     }
 }

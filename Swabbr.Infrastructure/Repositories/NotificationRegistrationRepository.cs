@@ -1,5 +1,4 @@
 ﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -55,8 +54,10 @@ namespace Swabbr.Infrastructure.Repositories
 
             MapToWriter(context, entity);
 
-            // Extract the current user from the context
-            context.AddParameterWithValue("id", AppContext.UserId);
+            // TODO Correct?
+            // Note: This call can be called with or without an appcontext 
+            //       user. The entity itself always contains the user id.
+            context.AddParameterWithValue("id", entity.Id);
 
             await using var reader = await context.ReaderAsync();
 

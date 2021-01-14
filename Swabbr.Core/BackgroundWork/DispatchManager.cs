@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swabbr.Core.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,12 +14,10 @@ namespace Swabbr.Core.BackgroundWork
     /// <remarks>
     ///     This currently only supports asynchronous work.
     /// </remarks>
-    public class DispatchManager : IDisposable
+    public class DispatchManager
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<DispatchManager> _logger;
-
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         /// <summary>
         ///     Create new instance.
@@ -39,62 +38,69 @@ namespace Swabbr.Core.BackgroundWork
         ///         expected to be able to handle <paramref name="value"/>.
         ///     </para>
         ///     <para>
-        ///         If no cancellation token is specified, one is
-        ///         assigned by this class itself. The source of this
-        ///         token will be disposed upon disposal of this object,
-        ///         before which cancellation will be requested.
+        ///         A cancellation token will be assigned during execution
+        ///         which will cancel after a timeout. There is no other
+        ///         way of cancelling the dispatched operation.
         ///     </para>
         /// </remarks>
         /// <typeparam name="TBackgroundTask">Task type.</typeparam>
         /// <param name="value">The object to process.</param>
         /// <param name="token">The cancellation token.</param>
         /// <returns>Created task id.</returns>
-        public virtual Guid Dispatch<TBackgroundTask>(object value, CancellationToken? token = null)
-            where TBackgroundTask : BackgroundTask
+        public virtual Guid Dispatch<TBackgroundTask>(object value)
+        where TBackgroundTask : BackgroundTask
         {
-            var context = new BackgroundTaskContext
-            {
-                CancellationToken = token ?? _cts.Token,
-                Value = value
-            };
+            // The task id is declared outside of the delegate so we 
+            // can return it to the caller immediately after dispatching.
+            var taskId = Guid.NewGuid();
 
             // Declare a delegate which handles logging and exception.
             // This delegate will be run in the thread pool.
             async Task WrapperDelegate()
             {
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+
                 try
                 {
-                    // TODO How to ensure that the cancellation token is passed on to the AppContext?
                     using var scope = _serviceScopeFactory.CreateScope();
-                    var backgroundTask = scope.ServiceProvider.GetRequiredService<TBackgroundTask>();
 
-                    _logger.LogTrace($"Starting background task {context.Id}");
+                    // Note: Do not place any code here that might require an app context to be
+                    //       resolved. If we resolve the app context before specifying the factory
+                    //       implementation to be used, we get a race condition. The default factory
+                    //       will be used in stead of the BackgroundWorkAppContextFactory.
 
-                    await backgroundTask.ExecuteAsync(context);
+                    // Note: There is no guarantee that an enqueued item will be executed within
+                    //       the context that enqueued it. This means that sometimes the app context
+                    //       will be created by the asp factory, and sometimes by the background host
+                    //       factory. This is a race condition.
+                    //       To solve this, we explicitly set the requested implementation type of
+                    //       the app context factory to the one used for background tasks.
+                    scope.SetAppContextFactoryImplementation<BackgroundWorkAppContextFactory>();
 
-                    _logger.LogTrace($"Finished background task {context.Id}");
+                    // FUTURE: Have the factory perform these assignments. ActivatorUtilities.CreateInstance(params[] ...)?
+                    // Assign all required properties to the background task context 
+                    // so we can access them from anywhere within the current scope.
+                    var appContext = scope.ServiceProvider.GetRequiredService<AppContext>();
+                    var backgroundTaskContext = appContext as BackgroundTaskContext;
+                    backgroundTaskContext.CancellationToken = cts.Token;
+                    backgroundTaskContext.TaskId = taskId;
+                    backgroundTaskContext.Value = value;
+
+                    _logger.LogTrace($"Starting background task {backgroundTaskContext.TaskId}");
+
+                    await scope.ServiceProvider.GetService<TBackgroundTask>().ExecuteAsync(backgroundTaskContext);
+
+                    _logger.LogTrace($"Finished background task {backgroundTaskContext.TaskId}");
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, $"Exception in task {context.Id}");
+                    _logger.LogError(e, $"Exception in task {taskId}");
                 }
             };
 
-            // Note: Passing a cancellation token to Task.Run() allows us to cancel
-            //       the work if it has not yet started. This is deliberately skipped.
-            //       The work can be cancelled using the context cancellation token.
             Task.Run(() => WrapperDelegate());
 
-            return context.Id;
-        }
-
-        /// <summary>
-        ///     Called on graceful shutdown.
-        /// </summary>
-        public void Dispose()
-        {
-            _cts.Cancel();
-            _cts.Dispose();
+            return taskId;
         }
     }
 }

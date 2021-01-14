@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Context;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
@@ -15,25 +16,48 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for vlogs.
     /// </summary>
+    /// <remarks>
+    ///     This repository often points to the vlog_up_to_date table. 
+    ///     This is a view which only contains the vlog entities which
+    ///     have their status set to up_to_date. This prevents us from
+    ///     having to filter for this status each time.
+    /// </remarks>
     internal class VlogRepository : DatabaseContextBase, IVlogRepository
     {
         // FUTURE: Check if the current user is allowed to watch the requested vlog.
         /// <summary>
-        ///     Adds a view to a vlog.
+        ///     Adds views for given vlogs.
         /// </summary>
-        /// <param name="vlogId">The vlog that has been watched.</param>
-        public async Task AddView(Guid vlogId)
+        /// <param name="viewsContext">Context for adding vlog views.</param>
+        public async Task AddViews(AddVlogViewsContext viewsContext)
         {
-            var sql = @"
-                    UPDATE  entities.vlog_up_to_date AS v
-                    SET     views = views + 1
-                    WHERE   v.id = @id";
+            if (viewsContext is null)
+            {
+                throw new ArgumentNullException(nameof(viewsContext));
+            }
+
+            var sql = "";
+            foreach (var (vlogId, views) in viewsContext.VlogViewPairs)
+            {
+                sql = ExtendSql(sql, vlogId, views);
+            }
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("id", vlogId);
-
             await context.NonQueryAsync();
+
+            // Append a new sql statement for a vlog id and its views
+            // to an already existing sql string.
+            static string ExtendSql(string sql, Guid vlogId, uint views)
+            {
+                // TODO This is SQL injection
+                var newSql = @$"
+                    UPDATE  entities.vlog_up_to_date AS v
+                    SET     views = views + {views}
+                    WHERE   v.id = '{vlogId}';";
+
+                return $"{sql}\n{newSql}";
+            }
         }
 
         /// <summary>
@@ -72,9 +96,6 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("id", entity.Id);
 
             MapToWriter(context, entity);
-
-            // Override the user id from the context
-            context.AddOrOverwriteParameterWithValue("user_id", AppContext.UserId);
 
             await context.NonQueryAsync();
 
@@ -199,6 +220,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns>The most recent vlogs owned by the user.</returns>
         public async IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Navigation navigation)
         {
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql = @"
                 SELECT      v.date_created,
                             v.id,
@@ -278,7 +304,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 throw new ArgumentNullException(nameof(entity));
             }
-            if (!AppContext.HasUser || entity.UserId != AppContext.UserId)
+            if (!AppContext.HasUser || !AppContext.IsUser(entity.UserId))
             {
                 throw new NotAllowedException();
             }

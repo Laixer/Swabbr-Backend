@@ -10,7 +10,7 @@ namespace Swabbr.Api.DataTransferObjects
     ///     user properties which can be modified can also be sent
     ///     along with the registration process.
     /// </remarks>
-    public class UserRegistrationDto : UserUpdateDto
+    public record UserRegistrationDto : UserUpdateDto
     {
         /// <summary>
         ///     Nickname to display for the user.
@@ -20,19 +20,19 @@ namespace Swabbr.Api.DataTransferObjects
         ///     the nickname required.
         /// </remarks>
         [Required(AllowEmptyStrings = false)]
-        public new string Nickname { get; set; }
+        public new string Nickname { get; init; }
 
         /// <summary>
         ///     User registration email.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; init; }
 
         /// <summary>
         ///     User password.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        public string Password { get; set; }
+        public string Password { get; init; }
     }
 }

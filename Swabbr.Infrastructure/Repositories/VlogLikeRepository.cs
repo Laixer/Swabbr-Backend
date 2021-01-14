@@ -38,6 +38,11 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new ArgumentNullException(nameof(entity));
             }
 
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql = @"
                     INSERT INTO entities.vlog_like (
                         user_id,
@@ -73,7 +78,7 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new ArgumentNullException(nameof(id));
             }
 
-            if (!AppContext.HasUser || id.UserId != AppContext.UserId)
+            if (!AppContext.HasUser || !AppContext.IsUser(id.UserId))
             {
                 throw new NotAllowedException();
             }

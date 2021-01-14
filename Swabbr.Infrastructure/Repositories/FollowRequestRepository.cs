@@ -45,7 +45,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
             
             // Only create the follow request if we are the requester
-            if (entity.Id.RequesterId != AppContext.UserId)
+            if (!AppContext.HasUser || entity.Id.RequesterId != AppContext.UserId)
             {
                 throw new NotAllowedException();
             }
@@ -84,7 +84,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 throw new ArgumentNullException(nameof(id));
             }
-            if (id.RequesterId != AppContext.UserId && id.ReceiverId != AppContext.UserId)
+            if (!AppContext.HasUser || (!AppContext.IsUser(id.RequesterId) && !AppContext.IsUser(id.ReceiverId)))
             {
                 throw new NotAllowedException();
             }
@@ -236,6 +236,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns>Incoming follow requests.</returns>
         public async IAsyncEnumerable<FollowRequest> GetIncomingForUserAsync(Navigation navigation)
         {
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql =@"
                     SELECT  fr.date_created,
                             fr.date_updated,
@@ -268,6 +273,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns>Outgoing follow requests.</returns>
         public async IAsyncEnumerable<FollowRequest> GetOutgoingForUserAsync(Navigation navigation)
         {
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql = @"
                     SELECT  fr.date_created,
                             fr.date_updated,
@@ -306,7 +316,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 throw new ArgumentNullException(nameof(id));
             }
-            if (id.RequesterId != AppContext.UserId && id.ReceiverId != AppContext.UserId)
+            if (!AppContext.HasUser || (!AppContext.IsUser(id.RequesterId) && !AppContext.IsUser(id.ReceiverId)))
             {
                 throw new NotAllowedException();
             }

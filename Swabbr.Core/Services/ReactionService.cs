@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Abstractions;
+using Swabbr.Core.Context;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
@@ -99,27 +100,31 @@ namespace Swabbr.Core.Services
         ///         <see cref="FileNotFoundException"/>.
         ///     </para>
         /// </remarks>
-        /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
-        /// <param name="reactionId">The uploaded reaction id.</param>
-        public async Task PostReactionAsync(Guid targetVlogId, Guid reactionId)
+        /// <param name="context">Context for posting a reaction.</param>
+        public async Task PostReactionAsync(PostReactionContext context)
         {
-            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, reactionId.ToString())) 
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, context.ReactionId.ToString())) 
             {
                 throw new FileNotFoundException();
             }
 
             var reaction = new Reaction
             {
-                Id = reactionId,
-                TargetVlogId = targetVlogId,
+                Id = context.ReactionId,
+                TargetVlogId = context.TargetVlogId,
+                UserId = context.UserId,
             };
 
-            // Note: The user id is assigned by the reaction repository based on the context.
             await _reactionRepository.CreateAsync(reaction);
 
-            var targetVlog = await _vlogRepository.GetAsync(targetVlogId);
+            var targetVlog = await _vlogRepository.GetAsync(context.TargetVlogId);
 
-            await _notificationService.NotifyReactionPlacedAsync(targetVlog.UserId, targetVlogId, reactionId);
+            await _notificationService.NotifyReactionPlacedAsync(targetVlog.UserId, context.TargetVlogId, context.ReactionId);
         }
 
         /// <summary>
@@ -138,7 +143,10 @@ namespace Swabbr.Core.Services
         /// <param name="reaction">The reaction.</param>
         /// <returns>Thumbnail uri.</returns>
         protected Task<Uri> GetThumbnailUriAsync(Reaction reaction)
-            => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetThumbnailFileName(reaction.Id), 2);
+            => _blobStorageService.GetAccessLinkAsync(
+                containerName: StorageConstants.ReactionStorageFolderName, 
+                fileName: StorageHelper.GetThumbnailFileName(reaction.Id),
+                timeSpanValid: TimeSpan.FromHours(2));
 
         /// <summary>
         ///     Extract the video uri for a reaction.
@@ -146,6 +154,9 @@ namespace Swabbr.Core.Services
         /// <param name="reaction">The reaction.</param>
         /// <returns>Video uri.</returns>
         protected Task<Uri> GetVideoUriAsync(Reaction reaction)
-            => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetVideoFileName(reaction.Id), 2);
+            => _blobStorageService.GetAccessLinkAsync(
+                containerName: StorageConstants.ReactionStorageFolderName,
+                fileName: StorageHelper.GetVideoFileName(reaction.Id),
+                timeSpanValid: TimeSpan.FromHours(2));
     }
 }

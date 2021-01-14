@@ -2,7 +2,6 @@
 using System;
 using System.Data.Common;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace Swabbr.Infrastructure.Extensions
 {

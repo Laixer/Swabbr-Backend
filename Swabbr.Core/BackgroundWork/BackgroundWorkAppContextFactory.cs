@@ -1,27 +1,24 @@
 ﻿using Swabbr.Core.Interfaces.Factories;
 using System;
-using System.Threading;
 
-namespace Swabbr.BackgroundHost
+namespace Swabbr.Core.BackgroundWork
 {
     /// <summary>
     ///     Factory for creating application context for
     ///     hosted services to use.
     /// </summary>
-    internal class BackgroundHostAppContextFactory : IAppContextFactory, IDisposable
+    public class BackgroundWorkAppContextFactory : IAppContextFactory
     {
         private readonly IServiceProvider _services;
-
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public BackgroundHostAppContextFactory(IServiceProvider services) 
+        public BackgroundWorkAppContextFactory(IServiceProvider services) 
             => _services = services ?? throw new ArgumentNullException(nameof(services));
 
         /// <summary>
-        ///     Generates a new app context entity.
+        ///     Generates a new <see cref="BackgroundTaskContext"/> entity.
         /// </summary>
         /// <remarks>
         ///     This assigns a cancellation token which 
@@ -30,19 +27,9 @@ namespace Swabbr.BackgroundHost
         /// </remarks>
         /// <returns>App context object.</returns>
         public Core.AppContext CreateAppContext()
-            => new Core.AppContext
+            => new BackgroundTaskContext
             {
                 ServiceProvider = _services,
-                CancellationToken = _cts.Token
             };
-
-        /// <summary>
-        ///     Called on graceful shutdown.
-        /// </summary>
-        public void Dispose()
-        {
-            _cts.Cancel();
-            _cts.Dispose();
-        }
     }
 }
