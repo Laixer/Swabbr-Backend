@@ -16,6 +16,12 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for vlogs.
     /// </summary>
+    /// <remarks>
+    ///     This repository often points to the vlog_up_to_date table. 
+    ///     This is a view which only contains the vlog entities which
+    ///     have their status set to up_to_date. This prevents us from
+    ///     having to filter for this status each time.
+    /// </remarks>
     internal class VlogRepository : DatabaseContextBase, IVlogRepository
     {
         // FUTURE: Check if the current user is allowed to watch the requested vlog.
@@ -214,6 +220,11 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns>The most recent vlogs owned by the user.</returns>
         public async IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Navigation navigation)
         {
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
             var sql = @"
                 SELECT      v.date_created,
                             v.id,
@@ -293,7 +304,7 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 throw new ArgumentNullException(nameof(entity));
             }
-            if (!AppContext.HasUser || entity.UserId != AppContext.UserId)
+            if (!AppContext.HasUser || !AppContext.IsUser(entity.UserId))
             {
                 throw new NotAllowedException();
             }

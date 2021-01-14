@@ -5,18 +5,18 @@ namespace Swabbr.Api.DataTransferObjects
     /// <summary>
     ///     DTO for changing a password.
     /// </summary>
-    public class ChangePasswordDto
+    public record ChangePasswordDto
     {
         /// <summary>
         ///     Old user password.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        public string CurrentPassword { get; set; }
+        public string CurrentPassword { get; init; }
 
         /// <summary>
         ///     New user password.
         /// </summary>
         [Required(AllowEmptyStrings = false)]
-        public string NewPassword { get; set; }
+        public string NewPassword { get; init; }
     }
 }

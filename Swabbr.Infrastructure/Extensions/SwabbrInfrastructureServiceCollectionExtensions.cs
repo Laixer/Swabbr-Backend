@@ -47,6 +47,7 @@ namespace Swabbr.Infrastructure.Extensions
                 throw new ArgumentNullException(nameof(services));
             }
 
+            // TODO Seems incorrect
             using var serviceProviderScope = services.BuildServiceProvider().CreateScope();
             var configuration = serviceProviderScope.ServiceProvider.GetRequiredService<IConfiguration>();
 

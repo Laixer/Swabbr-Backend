@@ -143,7 +143,10 @@ namespace Swabbr.Core.Services
         /// <param name="reaction">The reaction.</param>
         /// <returns>Thumbnail uri.</returns>
         protected Task<Uri> GetThumbnailUriAsync(Reaction reaction)
-            => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetThumbnailFileName(reaction.Id), 2);
+            => _blobStorageService.GetAccessLinkAsync(
+                containerName: StorageConstants.ReactionStorageFolderName, 
+                fileName: StorageHelper.GetThumbnailFileName(reaction.Id),
+                timeSpanValid: TimeSpan.FromHours(2));
 
         /// <summary>
         ///     Extract the video uri for a reaction.
@@ -151,6 +154,9 @@ namespace Swabbr.Core.Services
         /// <param name="reaction">The reaction.</param>
         /// <returns>Video uri.</returns>
         protected Task<Uri> GetVideoUriAsync(Reaction reaction)
-            => _blobStorageService.GetAccessLinkAsync(StorageConstants.ReactionStorageFolderName, StorageHelper.GetVideoFileName(reaction.Id), 2);
+            => _blobStorageService.GetAccessLinkAsync(
+                containerName: StorageConstants.ReactionStorageFolderName,
+                fileName: StorageHelper.GetVideoFileName(reaction.Id),
+                timeSpanValid: TimeSpan.FromHours(2));
     }
 }

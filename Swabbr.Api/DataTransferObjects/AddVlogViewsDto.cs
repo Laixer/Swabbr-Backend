@@ -7,12 +7,12 @@ namespace Swabbr.Api.DataTransferObjects
     /// <summary>
     ///     DTO for adding vlog views.
     /// </summary>
-    public class AddVlogViewsDto
+    public record AddVlogViewsDto
     {
         /// <summary>
         ///     Pairs of vlog ids and how many views they gained.
         /// </summary>
         [Required]
-        public Dictionary<Guid, uint> VlogViewPairs { get; set; }
+        public Dictionary<Guid, uint> VlogViewPairs { get; init; }
     }
 }

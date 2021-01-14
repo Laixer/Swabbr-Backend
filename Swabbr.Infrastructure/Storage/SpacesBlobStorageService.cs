@@ -88,9 +88,9 @@ namespace Swabbr.Infrastructure.Storage
         /// </summary>
         /// <param name="containerName">The container name.</param>
         /// <param name="fileName">The file name.</param>
-        /// <param name="hoursValid">How many hours the link should be valid.</param>
+        /// <param name="timeSpanValid">How long the link is valid.</param>
         /// <returns>Access <see cref="Uri"/>.</returns>
-        public Task<Uri> GetAccessLinkAsync(string containerName, string fileName, double hoursValid)
+        public Task<Uri> GetAccessLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid)
         {
             try
             {
@@ -98,7 +98,7 @@ namespace Swabbr.Infrastructure.Storage
                 {
                     BucketName = _options.BlobStorageName,
                     Key = string.IsNullOrEmpty(containerName) ? fileName : $"{containerName}/{fileName}",
-                    Expires = DateTime.UtcNow.AddHours(hoursValid),
+                    Expires = DateTime.UtcNow.Add(timeSpanValid)
                 });
 
                 return Task.FromResult(new Uri(url));

@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core.Entities;
+using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Abstractions;
@@ -33,6 +34,11 @@ namespace Swabbr.Infrastructure.Repositories
             if (entity is null)
             {
                 throw new ArgumentNullException(nameof(entity));
+            }
+
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
             }
 
             var sql = @"

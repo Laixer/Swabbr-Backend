@@ -38,7 +38,7 @@ namespace Swabbr.BackgroundHost.Services
             var now = DateTimeOffset.UtcNow;
             var minute = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeSpan.Zero);
 
-            _dispatchManager.Dispatch<VlogRequestCycleBackgroundTask>(minute, stoppingToken);
+            _dispatchManager.Dispatch<VlogRequestCycleBackgroundTask>(minute);
         }
     }
 }

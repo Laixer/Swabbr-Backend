@@ -2,6 +2,7 @@
 using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Api
@@ -30,10 +31,10 @@ namespace Swabbr.Api
             mapper.CreateMap<User, UserCompleteDto>();
             mapper.CreateMap<UserWithStats, UserWithStatsDto>();
             mapper.CreateMap<Vlog, VlogDto>().ReverseMap();
-            mapper.CreateMap<Vlog, VlogWithSummaryDto>();
             mapper.CreateMap<VlogLike, VlogLikeDto>()
                 .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.Id.UserId))
                 .ForMember(dest => dest.VlogId, o => o.MapFrom(src => src.Id.VlogId));
+            mapper.CreateMap<VlogLikeSummary, VlogLikeSummaryDto>();
         }
     }
 }

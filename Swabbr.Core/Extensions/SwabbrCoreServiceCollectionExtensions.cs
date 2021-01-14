@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Swabbr.Core.BackgroundTasks;
 using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Interfaces.Factories;
@@ -20,19 +21,24 @@ namespace Swabbr.Core.Extensions
         ///     This also makes the <see cref="AppContext"/> injectable.
         /// </remarks>
         /// <param name="services">Service container.</param>
+        /// <typeparam name="TDefaultAppContextFactory"><see cref="ScopedAppContextFactory{TDefaultAppContextFactory}"/>.</typeparam>
         /// <returns>Service container with swabbr core services.</returns>
-        public static IServiceCollection AddSwabbrCoreServices(this IServiceCollection services)
+        public static IServiceCollection AddSwabbrCoreServices<TDefaultAppContextFactory>(this IServiceCollection services)
+            where TDefaultAppContextFactory : class, IAppContextFactory
         {
             if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            // Make the AppContext itself injectable.
+            // Make the app context injectable. This uses the scoped app context factory,
+            // which has the ability to use a specified app context factory during its
+            // scope for app context creation. See ScopedAppContextFactory for details.
+            services.AddScoped<IScopedAppContextFactory, ScopedAppContextFactory<TDefaultAppContextFactory>>();
             services.AddScoped((services) =>
             {
-                var factory = services.GetRequiredService<IAppContextFactory>();
-                return factory.CreateAppContext();
+                var scopedFactory = services.GetRequiredService<IScopedAppContextFactory>();
+                return scopedFactory.CreateAppContext();
             });
 
             // Configure DI for services
@@ -47,6 +53,28 @@ namespace Swabbr.Core.Extensions
             services.AddSingleton<DispatchManager>();
             services.AddBackgroundTask<PostReactionBackgroundTask>();
             services.AddBackgroundTask<PostVlogBackgroundTask>();
+            services.AddAppContextFactory<BackgroundWorkAppContextFactory>();
+
+            return services;
+        }
+
+        /// <summary>
+        ///     Adds an <see cref="IAppContextFactory"/> implementation to the
+        ///     services collection.
+        /// </summary>
+        /// <typeparam name="TAppContextFactory">Implementation type.</typeparam>
+        /// <param name="services">Service collection.</param>
+        /// <returns><paramref name="services"/> after the operation.</returns>
+        public static IServiceCollection AddAppContextFactory<TAppContextFactory>(this IServiceCollection services)
+            where TAppContextFactory : class, IAppContextFactory
+        {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            //services.AddScoped(typeof(AppContext), _ => new AppContext());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IAppContextFactory, TAppContextFactory>());
 
             return services;
         }

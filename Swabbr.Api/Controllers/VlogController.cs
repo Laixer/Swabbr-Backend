@@ -38,6 +38,10 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         ///     Adds views to specified vlogs.
         /// </summary>
+        /// <remarks>
+        ///     By views, video views are meant.
+        ///     This has nothing to do with ASP views.
+        /// </remarks>
         [HttpPost("add-views")]
         public async Task<IActionResult> AddViewsAsync([FromBody] AddVlogViewsDto input)
         {
@@ -85,23 +89,20 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        // GET: api/vlog/{id}/with-summary
+        // GET: api/vlog/{id}/summary
         /// <summary>
         ///     Get a vlog with its likes summarized.
         /// </summary>
         /// <param name="vlogId"></param>
         /// <returns></returns>
-        [HttpGet("{vlogId}/with-summary")]
+        [HttpGet("{vlogId}/summary")]
         public async Task<IActionResult> GetWithSummaryAsync([FromRoute] Guid vlogId)
         {
             // Act.
-            var vlog = await _vlogService.GetAsync(vlogId);
             var vlogLikeSummary = await _vlogService.GetVlogLikeSummaryForVlogAsync(vlogId);
-
+            
             // Map.
-            var output = _mapper.Map<VlogWithSummaryDto>(vlog);
-            output.TotalLikes = vlogLikeSummary.TotalLikes;
-            output.Users = _mapper.Map<IEnumerable<UserDto>>(vlogLikeSummary.Users);
+            var output = _mapper.Map<VlogLikeSummaryDto>(vlogLikeSummary);
 
             // Return.
             return Ok(output);

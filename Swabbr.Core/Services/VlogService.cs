@@ -231,7 +231,10 @@ namespace Swabbr.Core.Services
         /// <param name="vlog">The vlog.</param>
         /// <returns>Thumbnail uri.</returns>
         protected Task<Uri> GetThumbnailUriAsync(Vlog vlog)
-            => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetThumbnailFileName(vlog.Id), 2);
+            => _blobStorageService.GetAccessLinkAsync(
+                containerName: StorageConstants.VlogStorageFolderName,
+                fileName: StorageHelper.GetThumbnailFileName(vlog.Id),
+                timeSpanValid: TimeSpan.FromHours(2));
 
         /// <summary>
         ///     Extract the video uri for a vlog.
@@ -239,6 +242,9 @@ namespace Swabbr.Core.Services
         /// <param name="vlog">The vlog.</param>
         /// <returns>Video uri.</returns>
         protected Task<Uri> GetVideoUriAsync(Vlog vlog)
-            => _blobStorageService.GetAccessLinkAsync(StorageConstants.VlogStorageFolderName, StorageHelper.GetVideoFileName(vlog.Id), 2);
+            => _blobStorageService.GetAccessLinkAsync(
+                containerName: StorageConstants.VlogStorageFolderName,
+                fileName: StorageHelper.GetVideoFileName(vlog.Id),
+                timeSpanValid: TimeSpan.FromHours(2));
     }
 }
