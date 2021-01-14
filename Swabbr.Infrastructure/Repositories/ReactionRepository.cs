@@ -57,9 +57,6 @@ namespace Swabbr.Infrastructure.Repositories
 
             MapToWriter(context, entity);
 
-            // Override the user id by extracting it from the context.
-            context.AddOrOverwriteParameterWithValue("user_id", AppContext.UserId);
-
             await context.NonQueryAsync();
 
             return entity.Id;
@@ -91,7 +88,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("id", id);
 
             var userId = await context.ScalarAsync<Guid>();
-            if (userId != AppContext.UserId)
+            if (!AppContext.IsUser(userId))
             {
                 throw new NotAllowedException();
             }
@@ -236,7 +233,7 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            if (!AppContext.HasUser || entity.UserId != AppContext.UserId)
+            if (!AppContext.HasUser || !AppContext.IsUser(entity.UserId))
             {
                 throw new NotAllowedException();
             }

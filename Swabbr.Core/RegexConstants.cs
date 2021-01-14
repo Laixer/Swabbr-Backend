@@ -12,6 +12,6 @@ namespace Swabbr.Core
         ///     Regex representing our timezone data format:
         ///     UTC+xx:xx or UTC-xx:xx
         /// </summary>
-        public static readonly Regex TimeZoneRegex = new Regex(@"^UTC(\+|-)\d\d:\d\d$");
+        public static readonly Regex TimeZoneRegex = new Regex(@"^UTC(\+|-)\d\d:\d\d$", RegexOptions.Compiled);
     }
 }

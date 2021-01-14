@@ -101,7 +101,7 @@ namespace Swabbr.Infrastructure.Notifications
                 throw new ArgumentNullException(nameof(internalRegistration));
             }
 
-            // Throw if no registration exists
+            // Log and exit if no registration exists
             if (!await IsRegisteredAsync(internalRegistration.Id))
             {
                 _logger.LogWarning("User is not registered in Azure Notification Hub but does have an internal notification registration, doing nothing.");
@@ -118,10 +118,7 @@ namespace Swabbr.Infrastructure.Notifications
                 }
 
                 // Remove all existing registrations
-                foreach (var registration in externalRegistrations)
-                {
-                    await _hubClient.DeleteRegistrationAsync(registration.RegistrationId);
-                }
+                await Task.WhenAll(externalRegistrations.Select(x => _hubClient.DeleteRegistrationAsync(x.RegistrationId)));
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿using Bogus;
-using Swabbr.Testing.Extensions;
 using Swabbr.Api.DataTransferObjects;
+using Swabbr.Testing.Extensions;
 
 namespace Swabbr.Testing.Faker.DataTransferObjects
 {

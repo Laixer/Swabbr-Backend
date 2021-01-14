@@ -17,12 +17,13 @@ namespace Swabbr.Core.Notifications
         ///     Build a notification for indicating that a followed
         ///     profile has posted a vlog.
         /// </summary>
+        /// <param name="notifiedUserId">The notified user.</param>
         /// <param name="vlogId">The posted vlog.</param>
         /// <param name="vlogOwnerUserId">The vlog owner.</param>
         /// <returns>Notification object.</returns>
-        public virtual NotificationContext BuildFollowedProfileVlogPosted(Guid vlogId, Guid vlogOwnerUserId)
+        public virtual NotificationContext BuildFollowedProfileVlogPosted(Guid notifiedUserId, Guid vlogId, Guid vlogOwnerUserId)
         {
-            var context = DefaultContext();
+            var context = DefaultContext(notifiedUserId);
 
             context.Notification = new SwabbrNotification(
                 notificationAction: NotificationAction.FollowedProfileVlogPosted,
@@ -113,17 +114,13 @@ namespace Swabbr.Core.Notifications
         /// <summary>
         ///     Creates a default context with a user assigned if specified.
         /// </summary>
-        /// <remarks>
-        ///     Leave the <paramref name="notifiedUserId"/> unspecified when
-        ///     notifying multiple users.
-        /// </remarks>
-        /// <param name="notifiedUserId">Notified user if it's a single user.</param>
+        /// <param name="notifiedUserId">Notified user.</param>
         /// <returns>Context object.</returns>
-        protected virtual NotificationContext DefaultContext(Guid? notifiedUserId = null)
+        protected virtual NotificationContext DefaultContext(Guid notifiedUserId)
             => new NotificationContext 
             {
                 DateSent = DateTimeOffset.Now,
-                NotifiedUserId = notifiedUserId ?? Guid.Empty,
+                NotifiedUserId = notifiedUserId
             };
     }
 }

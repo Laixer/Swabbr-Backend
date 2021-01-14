@@ -47,6 +47,7 @@ namespace Swabbr.Infrastructure.Extensions
                 throw new ArgumentNullException(nameof(services));
             }
 
+            // TODO Seems incorrect
             using var serviceProviderScope = services.BuildServiceProvider().CreateScope();
             var configuration = serviceProviderScope.ServiceProvider.GetRequiredService<IConfiguration>();
 
@@ -141,10 +142,13 @@ namespace Swabbr.Infrastructure.Extensions
                 var repository = new TImplementation();
                 var databaseContextBase = repository as DatabaseContextBase;
 
-                var appContextFactory = serviceProvider.GetRequiredService<IAppContextFactory>();
-
+                // TODO Move outside of the DI container.
                 databaseContextBase.DatabaseProvider = serviceProvider.GetService<DatabaseProvider>();
-                databaseContextBase.AppContext = appContextFactory.CreateAppContext();
+
+                // Note: We don't resolve for the AppContext factory or scoped factory
+                //       here to prevent multiple AppContext instances from being created.
+                //       The AppContext should be instantiated once during each scope.
+                databaseContextBase.AppContext = serviceProvider.GetRequiredService<Core.AppContext>();
 
                 return repository;
             });

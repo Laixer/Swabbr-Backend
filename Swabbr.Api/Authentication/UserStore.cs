@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Swabbr.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;

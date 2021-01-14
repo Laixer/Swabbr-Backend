@@ -12,6 +12,7 @@ namespace Swabbr.Api
     /// </summary>
     public class AspAppContextFactory : IAppContextFactory
     {
+        // TODO Protected Get;?
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
@@ -20,26 +21,24 @@ namespace Swabbr.Api
         public AspAppContextFactory(IServiceProvider serviceProvider)
             => _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
+        // TODO: Situation where background host is invoked after a http request.
+        //       This means we can access a http context, but it won't have a user.
         /// <summary>
         ///     Creates a new instance of an application context.
         /// </summary>
         /// <remarks>
-        ///     If no http context can be accessed, a new and
-        ///     default initialized appcontext is returned.
+        ///     If no http context can be accessed, an exception is thrown.
         /// </remarks>
         /// <returns>Application context.</returns>
         public Core.AppContext CreateAppContext()
         {
             var httpContextAccessor = _serviceProvider.GetRequiredService<IHttpContextAccessor>();
-            if (httpContextAccessor is null)
+            if (httpContextAccessor.HttpContext is null)
             {
-                // Return an empty context if we have no http context.
-                return new Core.AppContext();
-            }
-            if (httpContextAccessor.HttpContext?.User is null)
-            {
-                // This would be undefined behaviour.
-                throw new InvalidOperationException();
+                // TODO Is this correct?
+                // In the case where an ASP context is expected, but we are outside an
+                // ASP scope, a different app context factory should be used. Throw.
+                throw new InvalidOperationException("Attempting to create ASP app context outside of ASP request scope");
             }
 
             var httpContext = httpContextAccessor.HttpContext;

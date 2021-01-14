@@ -7,7 +7,6 @@ using Swabbr.BackgroundHost.Services;
 using Swabbr.Core;
 using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Extensions;
-using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Infrastructure.Extensions;
 
 namespace Swabbr.BackgroundHost
@@ -36,13 +35,11 @@ namespace Swabbr.BackgroundHost
                     // Bind main configuration properties.
                     services.Configure<SwabbrConfiguration>(hostContext.Configuration.GetSection("Swabbr"));
 
-                    // Add swabbr services
-                    services.AddSwabbrCoreServices();
+                    // Add swabbr services.
+                    // Note: this will always use the background work app context factory.
+                    services.AddSwabbrCoreServices<BackgroundWorkAppContextFactory>();
                     services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
                     services.AddSwabbrAnhNotificationInfrastructure("AzureNotificationHub");
-
-                    // Add app context factory
-                    services.AddOrReplace<IAppContextFactory, BackgroundHostAppContextFactory>(ServiceLifetime.Singleton);
 
                     // Add hosted services
                     services.AddHostedService<VlogRequestPeriodicHostedService>();

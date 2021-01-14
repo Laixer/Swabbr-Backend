@@ -19,7 +19,7 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Returns a <c>null</c> object.
         /// </summary>
-        public Task<Uri> GetAccessLinkAsync(string containerName, string fileName, double hoursValid) => null;
+        public Task<Uri> GetAccessLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid) => null;
 
         /// <summary>
         ///     Does nothing and returns <see cref="Task.CompletedTask"/>.

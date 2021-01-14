@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;

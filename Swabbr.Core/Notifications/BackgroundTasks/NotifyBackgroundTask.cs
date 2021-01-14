@@ -63,10 +63,6 @@ namespace Swabbr.Core.Notifications.BackgroundTasks
             {
                 throw new ArgumentNullException(nameof(context));
             }
-            if (!CanHandle(context.Value))
-            {
-                throw new InvalidOperationException(nameof(context));
-            }
 
             var notificationContext = (NotificationContext)context.Value;
 

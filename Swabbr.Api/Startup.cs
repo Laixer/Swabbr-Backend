@@ -115,15 +115,18 @@ namespace Swabbr
             services.Configure<SwabbrConfiguration>(_configuration.GetSection("Swabbr"));
 
             // Add core services.
-            // Note: This also makes the AppContext injectable using the IAppContextFactory singleton.
-            services.AddSwabbrCoreServices();
+            // Note: This also makes the AppContext injectable. The default
+            //       implementation for the IAppContextFactory is also specified.
+            services.AddSwabbrCoreServices<AspAppContextFactory>();
+
+            // Add the ASP specific app context factory.
+            services.AddAppContextFactory<AspAppContextFactory>();
 
             // Add infrastructure services.
             services.AddSwabbrInfrastructureServices("DatabaseInternal", "BlobStorage");
             services.AddSwabbrAnhNotificationInfrastructure("AzureNotificationHub");
 
             // Add API specific services
-            services.AddOrReplace<IAppContextFactory, AspAppContextFactory>(ServiceLifetime.Singleton);
             services.AddTransient<UserUpdateHelper>();
             services.AddAutoMapper(mapper => MapperProfile.SetupProfile(mapper));
 

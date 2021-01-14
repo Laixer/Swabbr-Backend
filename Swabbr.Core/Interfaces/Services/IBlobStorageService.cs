@@ -23,9 +23,9 @@ namespace Swabbr.Core.Interfaces.Services
         /// </summary>
         /// <param name="containerName">Storage container.</param>
         /// <param name="fileName">File name.</param>
-        /// <param name="hoursValid">How long the link is valid in hours.</param>
+        /// <param name="timeSpanValid">How long the link is valid.</param>
         /// <returns>The generated link.</returns>
-        Task<Uri> GetAccessLinkAsync(string containerName, string fileName, double hoursValid);
+        Task<Uri> GetAccessLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid);
 
         /// <summary>
         ///     Store the file in the data store.

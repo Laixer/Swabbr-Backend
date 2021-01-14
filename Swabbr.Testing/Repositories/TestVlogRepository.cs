@@ -1,9 +1,9 @@
-﻿using Swabbr.Core.Entities;
+﻿using Swabbr.Core.Context;
+using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Swabbr.Testing.Repositories
@@ -13,7 +13,7 @@ namespace Swabbr.Testing.Repositories
     /// </summary>
     public class TestVlogRepository : TestRepositoryBase<Vlog, Guid>, IVlogRepository
     {
-        public Task AddView(Guid vlogId) => throw new NotImplementedException();
+        public Task AddViews(AddVlogViewsContext context) => throw new NotImplementedException();
         public Task<Guid> CreateAsync(Vlog entity) => throw new NotImplementedException();
         public Task DeleteAsync(Guid id) => throw new NotImplementedException();
         public Task<bool> ExistsAsync(Guid id) => throw new NotImplementedException();

@@ -24,6 +24,7 @@ namespace Swabbr.Core.BackgroundWork
                 throw new ArgumentNullException(nameof(services));
             }
 
+            // TODO Why add it explicitly as well?
             services.AddTransient(typeof(TBackgroundTask));
             services.TryAddEnumerable(ServiceDescriptor.Transient<BackgroundTask, TBackgroundTask>());
 

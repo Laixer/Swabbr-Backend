@@ -39,10 +39,6 @@ namespace Swabbr.BackgroundHost.BackgroundTasks
             {
                 throw new ArgumentNullException(nameof(context));
             }
-            if (!CanHandle(context.Value))
-            {
-                throw new InvalidOperationException(nameof(context.Value));
-            }
 
             var dto = (DateTimeOffset)context.Value;
             var minute = new DateTimeOffset(dto.Year, dto.Month, dto.Day, dto.Hour, dto.Minute, 0, TimeSpan.Zero);

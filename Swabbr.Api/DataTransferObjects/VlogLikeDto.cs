@@ -5,21 +5,21 @@ namespace Swabbr.Api.DataTransferObjects
     /// <summary>
     ///     DTO for a vlog like.
     /// </summary>
-    public class VlogLikeDto
+    public record VlogLikeDto
     {
         /// <summary>
         ///     The internal vlog id.
         /// </summary>
-        public Guid VlogId { get; set; }
+        public Guid VlogId { get; init; }
 
         /// <summary>
         ///     The internal user id.
         /// </summary>
-        public Guid UserId { get; set; }
+        public Guid UserId { get; init; }
 
         /// <summary>
         ///     The time at which the user liked the vlog.
         /// </summary>
-        public DateTimeOffset DateCreated { get; set; }
+        public DateTimeOffset DateCreated { get; init; }
     }
 }

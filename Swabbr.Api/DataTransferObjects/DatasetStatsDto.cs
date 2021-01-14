@@ -3,11 +3,11 @@
     /// <summary>
     ///     DTO for statistics of a data set.
     /// </summary>
-    public class DatasetStatsDto
+    public record DatasetStatsDto
     {
         /// <summary>
         ///     Total items in the data set.
         /// </summary>
-        public uint Count { get; set; }
+        public uint Count { get; init; }
     }
 }

@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Extensions;
+using Swabbr.Core.BackgroundTasks;
+using Swabbr.Core.BackgroundWork;
+using Swabbr.Core.Context;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Services;
 using System;
@@ -31,15 +34,23 @@ namespace Swabbr.Api.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        // POST: api/vlog/{id}/add-view
+        // POST: api/vlog/add-views
         /// <summary>
-        ///     Adds a view to a specified vlog.
+        ///     Adds views to specified vlogs.
         /// </summary>
-        [HttpPost("{vlogId}/add-view")]
-        public async Task<IActionResult> AddViewAsync([FromRoute] Guid vlogId)
+        /// <remarks>
+        ///     By views, video views are meant.
+        ///     This has nothing to do with ASP views.
+        /// </remarks>
+        [HttpPost("add-views")]
+        public async Task<IActionResult> AddViewsAsync([FromBody] AddVlogViewsDto input)
         {
             // Act.
-            await _vlogService.AddView(vlogId);
+            var context = new AddVlogViewsContext
+            {
+                VlogViewPairs = input.VlogViewPairs,
+            };
+            await _vlogService.AddViews(context);
 
             // Return.
             return NoContent();
@@ -78,23 +89,20 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        // GET: api/vlog/{id}/with-summary
+        // GET: api/vlog/{id}/summary
         /// <summary>
         ///     Get a vlog with its likes summarized.
         /// </summary>
         /// <param name="vlogId"></param>
         /// <returns></returns>
-        [HttpGet("{vlogId}/with-summary")]
+        [HttpGet("{vlogId}/summary")]
         public async Task<IActionResult> GetWithSummaryAsync([FromRoute] Guid vlogId)
         {
             // Act.
-            var vlog = await _vlogService.GetAsync(vlogId);
             var vlogLikeSummary = await _vlogService.GetVlogLikeSummaryForVlogAsync(vlogId);
-
+            
             // Map.
-            var output = _mapper.Map<VlogWithSummaryDto>(vlog);
-            output.TotalLikes = vlogLikeSummary.TotalLikes;
-            output.Users = _mapper.Map<IEnumerable<UserDto>>(vlogLikeSummary.Users);
+            var output = _mapper.Map<VlogLikeSummaryDto>(vlogLikeSummary);
 
             // Return.
             return Ok(output);
@@ -172,10 +180,16 @@ namespace Swabbr.Api.Controllers
         ///     Post a new vlog as the current user.
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] VlogDto input)
+        public IActionResult PostVlog([FromServices] DispatchManager dispatchManager, [FromServices] Core.AppContext appContext, [FromBody] VlogDto input)
         {
             // Act.
-            await _vlogService.PostVlogAsync(input.Id, input.IsPrivate);
+            var postVlogContext = new PostVlogContext
+            {
+                IsPrivate = input.IsPrivate,
+                UserId = appContext.UserId,
+                VlogId = input.Id,
+            };
+            dispatchManager.Dispatch<PostVlogBackgroundTask>(postVlogContext);
 
             // Return.
             return NoContent();

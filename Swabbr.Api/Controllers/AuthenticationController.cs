@@ -7,16 +7,20 @@ using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Helpers;
 using Swabbr.Core.Interfaces.Services;
 using System;
-using System.Net;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
-    // FUTURE This will probably be changed up when we refactor the auth part
+    // FUTURE: This will change when we refactor the auth part
     /// <summary>
     ///     Controller for authentication.
     /// </summary>
+    /// <remarks>
+    ///     We will refactor the authentication part and thus our user manager
+    ///     in the future. Currently the user manager only handles the creation,
+    ///     id assignment, login/logout and password management. All other user 
+    ///     related operations are handled our core services/repos. 
+    /// </remarks>
     [ApiController]
     [Route("authentication")]
     public class AuthenticationController : ControllerBase
@@ -54,8 +58,18 @@ namespace Swabbr.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
         {
+            // TODO: The transactional part creates a bug. The created user doesn't 
+            //       exist when the update call is made. A tempfix is removing the
+            //       transaction scope. This means we can create the user but fail on
+            //       updating the user. The call will return a failure but the user
+            //       will exist after the call. This issue will no longer be relevant
+            //       after the refactoring of the authentication part. See issue #217
+            //       https://github.com/Laixer/Swabbr-Backend/issues/217.
+            //
+            //       Don't forget scope.Complete() when restoring!
+
             // Make this operation transactional.
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            //using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
             // Construct a new identity user for a new user based on the given input.
             // The entity will be created in our own data store.
@@ -66,17 +80,20 @@ namespace Swabbr.Api.Controllers
             };
 
             // This call assigns the id to the identityUser object.
-            var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
+            // As mentioned, the user manager isn't used anywhere else.
+            IdentityResult identityResult = await _userManager.CreateAsync(identityUser, input.Password);
             if (!identityResult.Succeeded)
             {
                 return BadRequest("Could not create new user, contact your administrator");
             }
 
-            // Assign any explicitly specified user properties.
-            await _userUpdateHelper.UpdateUserAsync(input);
+            // FUTURE: This will be removed when refactoring the auth part. 
+            //         See the UserUpdateHelper for the current tempfix.
+            // Assign all explicitly specified user properties
+            // which are not handled by the user manager.
+            await _userUpdateHelper.UpdateUserAsync(input, identityUser.Id);
 
-            // Complete the database transaction.
-            scope.Complete();
+            //scope.Complete();
 
             // Return.
             return NoContent();
@@ -108,16 +125,15 @@ namespace Swabbr.Api.Controllers
                 // Return.
                 return Ok(output);
             }
-
-            if (signInResult.IsLockedOut)
+            else if (signInResult.IsLockedOut)
             {
-                return Unauthorized("Too many attempts.");
+                return Unauthorized("User is locked out");
             }
-            if (signInResult.IsNotAllowed)
+            else if (signInResult.IsNotAllowed)
             {
                 return Unauthorized("Not allowed to log in.");
             }
-
+            
             // If we get here something definitely went wrong.
             return Unauthorized("Could not log in.");
         }
@@ -138,7 +154,6 @@ namespace Swabbr.Api.Controllers
                 return NoContent();
             }
 
-            // Compose error message.
             var message = "Could not update password.";
             foreach (var error in signinResult.Errors)
             {
@@ -154,10 +169,10 @@ namespace Swabbr.Api.Controllers
         ///     Log the current user out.
         /// </summary>
         [HttpPost("logout")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<IActionResult> LogoutAsync()
+        public async Task<IActionResult> LogoutAsync([FromServices] Core.AppContext appContext)
         {
             // Act.
+            await _notificationService.UnregisterAsync(appContext.UserId);
             await _signInManager.SignOutAsync();
 
             // Return.
