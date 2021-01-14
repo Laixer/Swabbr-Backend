@@ -9,7 +9,89 @@
 			"name": "Authentication",
 			"item": [
 				{
-					"name": "Swabbr Register",
+					"name": "Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"currentPassword\": \"Welkom01!\",\n\t\"newPassword\": \"Welkom01!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/change-password",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\":\"testemail@gmail.com\",\n\t\"handle\":\"d5wksxFlQSmUuhiMR0T56_:APA91bGEnPY5Ku7Os7FkowPl_NXAlLol4yeeW2ES9P4Bs7x5cdu0B27O4z6DwWi8B_QMtBccoVOsM5kjECuuXO-akg253eIAL2LUOm9QVDpBpKqLBKqmW0PBWmNHRdo6uWvXpOOlYXdb\",\n\t\"password\":\"Welkom01!\",\n\t\"pushNotificationPlatform\": 1,\n\t\"rememberMe\":false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/login",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/authentication/logout",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -41,129 +123,30 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Swabbr Login",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"email\":\"testemail@gmail.com\",\n\t\"handle\":\"d5wksxFlQSmUuhiMR0T56_:APA91bGEnPY5Ku7Os7FkowPl_NXAlLol4yeeW2ES9P4Bs7x5cdu0B27O4z6DwWi8B_QMtBccoVOsM5kjECuuXO-akg253eIAL2LUOm9QVDpBpKqLBKqmW0PBWmNHRdo6uWvXpOOlYXdb\",\n\t\"password\":\"Welkom01!\",\n\t\"pushNotificationPlatform\":\"fcm\",\n\t\"rememberMe\":false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/authentication/login",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"authentication",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Swabbr Logout",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{apiUrl}}/authentication/logout",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"authentication",
-								"logout"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Change Password",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"currentPassword\": \"Welkom01!\",\n\t\"newPassword\": \"Welkom01!\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/authentication/change_password",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"authentication",
-								"change_password"
-							]
-						}
-					},
-					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Follow Requests",
 			"item": [
 				{
-					"name": "Send",
+					"name": "Accept",
 					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
+						"method": "PUT",
+						"header": [],
 						"url": {
-							"raw": "{{apiUrl}}/followrequest/send?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
+							"raw": "{{apiUrl}}/followrequest/accept?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"followrequest",
-								"send"
+								"accept"
 							],
 							"query": [
 								{
-									"key": "receiverId",
-									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
+									"key": "requesterId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
 								}
 							]
 						}
@@ -173,7 +156,7 @@
 				{
 					"name": "Cancel",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"url": {
 							"raw": "{{apiUrl}}/followrequest/cancel/?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
@@ -196,58 +179,9 @@
 					"response": []
 				},
 				{
-					"name": "Unfollow",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{apiUrl}}/followrequest/unfollow/?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"followrequest",
-								"unfollow",
-								""
-							],
-							"query": [
-								{
-									"key": "receiverId",
-									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Accept",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{apiUrl}}/followrequest/accept?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"followrequest",
-								"accept"
-							],
-							"query": [
-								{
-									"key": "requesterId",
-									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Decline",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"url": {
 							"raw": "{{apiUrl}}/followrequest/decline?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
@@ -263,6 +197,25 @@
 									"key": "requesterId",
 									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/outgoing/06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"outgoing",
+								"06078cd9-49d5-42d5-9e72-60a36f059175"
 							]
 						}
 					},
@@ -305,26 +258,70 @@
 					"response": []
 				},
 				{
-					"name": "Get Status",
+					"name": "Send",
 					"request": {
-						"method": "GET",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/followrequest?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest"
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unfollow",
+					"request": {
+						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{apiUrl}}/followrequest/outgoing/06078cd9-49d5-42d5-9e72-60a36f059175",
+							"raw": "{{apiUrl}}/followrequest/unfollow/?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"followrequest",
-								"outgoing",
-								"06078cd9-49d5-42d5-9e72-60a36f059175"
+								"unfollow",
+								""
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
+								}
 							]
 						}
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "User",
@@ -342,90 +339,6 @@
 							"path": [
 								"user",
 								"06078cd9-49d5-42d5-9e72-60a36f059175"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Search User",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{apiUrl}}/user/search?query=het &page=1&itemsperpage=1",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"user",
-								"search"
-							],
-							"query": [
-								{
-									"key": "query",
-									"value": "het "
-								},
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "itemsperpage",
-									"value": "1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Self User",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{apiUrl}}/user/self",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"user",
-								"self"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update User",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"firstName\": \"Jeronirokgjhgni\",\n\t\"lastName\": \"Pepperroooooon\",\n\t\"birthDate\": \"09-01-1994\",\n\t\"gender\": \"male\",\n\t\"isPrivate\": \"false\",\n    \"country\": \"NLD\",\n    \"profileImageBase64Encoded\": \"13371337 this is unchecked\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/user/update",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"user",
-								"update"
 							]
 						}
 					},
@@ -456,13 +369,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{apiUrl}}/user/e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee/followers",
+							"raw": "{{apiUrl}}/user/e29db534-6ecb-428d-a06f-3a495e322767/followers",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"user",
-								"e2c8b3f3-6882-4d12-bfcf-ac46b1b3d2ee",
+								"e29db534-6ecb-428d-a06f-3a495e322767",
 								"followers"
 							]
 						}
@@ -582,13 +495,156 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Search User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/user/search?query=het &limit=20&offset=0",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "het "
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Self User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/user/self",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"self"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"Jeronirokgjhgni\",\n\t\"lastName\": \"Pepperroooooon\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"gender\": \"male\",\n\t\"isPrivate\": \"false\",\n    \"country\": \"NLD\",\n    \"profileImageBase64Encoded\": \"sdkjkhjl\",\n    \"timeZone\": \"1970-01-01T02:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/user",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Vlogs",
 			"item": [
+				{
+					"name": "Add vlog views",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"vlogViewPairs\": {\r\n        \"176c9610-9322-4067-be2a-112f71661f86\": 3,\r\n        \"67b2ad77-0f34-4da6-aba1-9258cf78e3d0\": 2\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/add-views",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"add-views"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Vlog",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/a4cb4319-8ea1-4a7e-8e70-318a260e6574",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"a4cb4319-8ea1-4a7e-8e70-318a260e6574"
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "Get Vlog",
 					"protocolProfileBehavior": {
@@ -627,7 +683,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Vlog With Summary",
+					"name": "Get Vlog Like Summary",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -651,14 +707,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/withsummary",
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/summary",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"vlog",
 								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
-								"withsummary"
+								"summary"
 							]
 						}
 					},
@@ -726,81 +782,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/likes",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"vlog",
-								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Vlog",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"isPrivate\": true\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/vlog/2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"vlog",
-								"2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Vlog",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/vlog/a4cb4319-8ea1-4a7e-8e70-318a260e6574",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"vlog",
-								"a4cb4319-8ea1-4a7e-8e70-318a260e6574"
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"likes"
 							]
 						}
 					},
@@ -831,13 +820,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{apiUrl}}/vlog/foruser/06078cd9-49d5-42d5-9e72-60a36f059175",
+							"raw": "{{apiUrl}}/vlog/for-user/06078cd9-49d5-42d5-9e72-60a36f059175",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"vlog",
-								"foruser",
+								"for-user",
 								"06078cd9-49d5-42d5-9e72-60a36f059175"
 							]
 						}
@@ -880,6 +869,39 @@
 					"response": []
 				},
 				{
+					"name": "Post Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"a2515bb1-e508-4ca8-92f3-b098af1429d0\",\n\t\"isPrivate\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Unlike Vlog",
 					"request": {
 						"method": "POST",
@@ -915,26 +937,40 @@
 					"response": []
 				},
 				{
-					"name": "Watch vlog",
+					"name": "Update Vlog",
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"isPrivate\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/watch",
+							"raw": "{{apiUrl}}/vlog/2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"vlog",
-								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
-								"watch"
+								"2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7"
 							]
 						}
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Reactions",
@@ -1011,44 +1047,6 @@
 					"response": []
 				},
 				{
-					"name": "Watch Reaction",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/reaction/8d5cd67c-5317-4895-adeb-85577786aba6/watch",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"reaction",
-								"8d5cd67c-5317-4895-adeb-85577786aba6",
-								"watch"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get Reactions For Vlog",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
@@ -1073,14 +1071,86 @@
 							}
 						},
 						"url": {
-							"raw": "{{apiUrl}}/reaction/forvlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+							"raw": "{{apiUrl}}/reaction/for-vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
 							"host": [
 								"{{apiUrl}}"
 							],
 							"path": [
 								"reaction",
-								"forvlog",
+								"for-vlog",
 								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reaction Count For Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction/for-vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/count",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction",
+								"for-vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post Reaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"8d5cd67c-5317-4895-adeb-85577786aba7\",\n\t\"targetVlogId\": \"a2515bb1-e508-4ca8-92f3-b098af1429d0\",\n\t\"isPrivate\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction"
 							]
 						}
 					},
@@ -1120,82 +1190,8 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Get Reaction Count For Vlog",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/reaction/forvlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/count",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"reaction",
-								"forvlog",
-								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
-								"count"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Post Reaction",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"reactionId\": \"8d5cd67c-5317-4895-adeb-85577786aba7\",\n\t\"targetVlogId\": \"67b2ad77-0f34-4da6-aba1-9258cf78e3d0\",\n\t\"isPrivate\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{apiUrl}}/reaction/post",
-							"host": [
-								"{{apiUrl}}"
-							],
-							"path": [
-								"reaction",
-								"post"
-							]
-						}
-					},
-					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
 	],
 	"auth": {
@@ -1203,7 +1199,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjlkYjUzNC02ZWNiLTQyOGQtYTA2Zi0zYTQ5NWUzMjI3NjciLCJqdGkiOiJjZDc5MWFiMC0zNzVmLTRmY2EtODU0MS1hOGM2Y2JlZDkzNGUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ0ZXN0ZW1haWxAZ21haWwuY29tIiwiZXhwIjoxNjA3NDE1MDM4LCJpc3MiOiJTd2FiYnIiLCJhdWQiOiJTd2FiYnIifQ.EI73c9yspzvXIpHTVJh21Xt9pr7HzwRyC_DyUzTQPVY",
+				"value": "",
 				"type": "string"
 			}
 		]
@@ -1212,7 +1208,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "4b50df9d-5f1a-420b-b51a-e18fda2558b3",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -1222,7 +1217,6 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "c237263c-321b-4441-b6ca-a7ab132a40d3",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -1232,30 +1226,20 @@
 	],
 	"variable": [
 		{
-			"id": "20cd9242-c534-4b97-b749-c7548b4e4e87",
 			"key": "apiBaseLocal",
 			"value": ""
 		},
 		{
-			"id": "8e060b85-0cc1-4c2e-a858-3fb8a994d18e",
 			"key": "apiBaseProduction",
 			"value": ""
 		},
 		{
-			"id": "951d0f7e-ee48-4af2-9d83-05364beb7917",
-			"key": "apiBaseDevelopment",
+			"key": "apiBaseStaging",
 			"value": ""
 		},
 		{
-			"id": "6378e71d-7aca-4134-8ec2-7098cb0865e0",
-			"key": "apiBaseDevelopment",
-			"value": ""
-		},
-		{
-			"id": "416f53b3-f600-49da-abfd-2739ace64bd0",
 			"key": "apiUrl",
 			"value": ""
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
