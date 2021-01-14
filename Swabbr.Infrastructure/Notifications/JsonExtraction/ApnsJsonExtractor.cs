@@ -1,22 +1,27 @@
-﻿using Swabbr.Core.Notifications.JsonWrappers;
-using Swabbr.Core.Utility;
-using Swabbr.Infrastructure.Notifications.JsonExtraction;
+﻿using Swabbr.Core.Notifications;
+using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
 
-namespace Swabbr.Core.Notifications.JsonExtraction
+namespace Swabbr.Infrastructure.Notifications.JsonExtraction
 {
-
     /// <summary>
-    /// Contains functionality for creating properly formatted JSON objects to 
-    /// be sent to our Azure Notification Hub for Firebase.
+    ///     Contains functionality for creating properly formatted JSON objects to 
+    ///     be sent to our Azure Notification Hub for APNS.
     /// </summary>
-    internal sealed class ApnsJsonExtractor : IPlatformSpecificJsonExtractor
+    internal static class ApnsJsonExtractor
     {
-
-        public NotificationJsonBase Extract(SwabbrNotification swabbrNotification)
+        /// <summary>
+        ///     Formats a notifcation for Apple Push Notification Platform
+        ///     usage through our Azure Notification Hub.
+        /// </summary>
+        /// <param name="swabbrNotification">The notification.</param>
+        /// <returns>Formatted notification.</returns>
+        public static NotificationWrapperJsonBase Extract(SwabbrNotification swabbrNotification)
         {
-            if (swabbrNotification == null) { throw new ArgumentNullException(nameof(swabbrNotification)); }
-            swabbrNotification.ThrowIfInvalid();
+            if (swabbrNotification == null)
+            {
+                throw new ArgumentNullException(nameof(swabbrNotification));
+            }
 
             return new ApnsContentWrapper
             {
@@ -24,7 +29,7 @@ namespace Swabbr.Core.Notifications.JsonExtraction
                 {
                     Alert = new ApnsContentAlert
                     {
-                        // TODO Implement
+                        // FUTURE Implement and test
                     }
                 }
             };
@@ -32,5 +37,4 @@ namespace Swabbr.Core.Notifications.JsonExtraction
             throw new NotImplementedException();
         }
     }
-
 }

@@ -1,27 +1,27 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Exceptions
 {
-
     /// <summary>
-    /// Exception indicating we could not find a given entity in our data store.
+    ///     Indicates we could not find a given entity in our data store.
     /// </summary>
-    public class EntityNotFoundException : Exception
+    public class EntityNotFoundException : SwabbrCoreException
     {
+        public EntityNotFoundException()
+        {
+        }
 
-        public EntityNotFoundException() { }
+        public EntityNotFoundException(string message) : base(message)
+        {
+        }
 
-        public EntityNotFoundException(string message) : base(message) { }
+        public EntityNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
 
-
-        public EntityNotFoundException(string message, Exception innerException) : base(message, innerException) { }
-
-        public EntityNotFoundException(string message, string id)
-            : base($"{message}, id = {id}") { }
-
-        public EntityNotFoundException(Type entityType, string id)
-            : base($"Entity type = {((entityType == null) ? "null" : entityType.GetType().ToString())}, id = {id}") { }
-
+        public EntityNotFoundException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
-
 }

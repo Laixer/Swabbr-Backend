@@ -7,25 +7,25 @@ using System.Threading.Tasks;
 namespace Swabbr.Core.Interfaces.Repositories
 {
     /// <summary>
-    ///     Contract for a <see cref="VlogLike"/> repository.
+    ///     Contract for a vlog like repository.
     /// </summary>
-    public interface IVlogLikeRepository : IRepository<VlogLike, VlogLikeId>, ICudFunctionality<VlogLike, VlogLikeId>
+    public interface IVlogLikeRepository : IRepository<VlogLike, VlogLikeId>,
+        ICreateRepository<VlogLike, VlogLikeId>,
+        IDeleteRepository<VlogLike, VlogLikeId>
     {
-        Task<bool> ExistsAsync(VlogLikeId vlogLikeId);
-
-        Task<IEnumerable<VlogLike>> GetAllForVlogAsync(Guid vlogId);
+        /// <summary>
+        ///     Gets all vlog likes for a vlog.
+        /// </summary>
+        /// <param name="vlogId">The vlog to get likes for.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlog likes for the vlog.</returns>
+        IAsyncEnumerable<VlogLike> GetForVlogAsync(Guid vlogId, Navigation navigation);
 
         /// <summary>
-        ///     Gets a <see cref="VlogLikeSummary"/> for a <see cref="Vlog"/>.
+        ///     Gets a vlog like summary for a vlog.
         /// </summary>
-        /// <remarks>
-        ///     The <see cref="VlogLikeSummary.UsersMinified"/> field does not
-        ///     need to contain all users that liked the <see cref="Vlog"/>.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogLikeSummary"/></returns>
-        Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId);
-
-        Task<int> GetCountForVlogAsync(Guid vlogId);
+        /// <param name="vlogId">The vlog to summarize.</param>
+        /// <returns>The vlog like summary.</returns>
+        Task<VlogLikeSummary> GetSummaryForVlogAsync(Guid vlogId);
     }
 }

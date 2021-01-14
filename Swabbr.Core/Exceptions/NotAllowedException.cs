@@ -1,22 +1,28 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Swabbr.Core.Exceptions
 {
-
     /// <summary>
-    /// <see cref="Exception"/> indicating we are not allowed to perform a certain
-    /// action in our backend.
+    ///     Indicates a backend operation which is not allowed
+    ///     based on our user identity.
     /// </summary>
-    public sealed class NotAllowedException : Exception
+    public sealed class NotAllowedException : SwabbrCoreException
     {
-
-        public NotAllowedException(string message) : base(message) { }
-
-        public NotAllowedException(string message, Exception innerException) : base(message, innerException) { }
-
         public NotAllowedException()
         {
         }
-    }
 
+        public NotAllowedException(string message) : base(message)
+        {
+        }
+
+        public NotAllowedException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        public NotAllowedException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+    }
 }

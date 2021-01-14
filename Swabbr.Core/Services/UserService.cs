@@ -1,191 +1,110 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Extensions.Options;
-using Swabbr.Core.Configuration;
+﻿using Swabbr.Core.Abstractions;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Swabbr.Core.Services
 {
-
     /// <summary>
-    /// <see cref="SwabbrUser"/> service.
+    ///     Service to handle user related operations.
     /// </summary>
-    public class UserService : IUserService
+    public class UserService :  AppServiceBase, IUserService
     {
-
         private readonly IUserRepository _userRepository;
-        private readonly SwabbrConfiguration config;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
-        public UserService(IUserRepository userRepository,
-            IOptions<SwabbrConfiguration> options)
+        public UserService(AppContext appContext,
+            IUserRepository userRepository)
         {
+            AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            if (options == null) { throw new ArgumentNullException(nameof(options)); }
-            options.Value.ThrowIfInvalid();
-            config = options.Value;
-        }
-
-        public Task<bool> ExistsAsync(Guid userId)
-        {
-            return _userRepository.UserExistsAsync(userId);
-        }
-
-        public Task<bool> ExistsNicknameAsync(string nickname)
-        {
-            return _userRepository.NicknameExistsAsync(nickname);
         }
 
         /// <summary>
-        /// Gets all vloggable users.
+        ///     Checks if a user exists in our data store.
         /// </summary>
-        /// <returns><see cref="SwabbrUserMinified"/> collection</returns>
-        public Task<IEnumerable<SwabbrUserMinified>> GetAllVloggableUserMinifiedAsync()
-        {
-            return _userRepository.GetAllVloggableUserMinifiedAsync();
-        }
-
-        public Task<SwabbrUser> GetAsync(Guid userId)
-        {
-            return _userRepository.GetAsync(userId);
-        }
-
-        public Task<SwabbrUser> GetByEmailAsync(string email)
-        {
-            return _userRepository.GetByEmailAsync(email);
-        }
+        /// <param name="userId">The user id.</param>
+        public Task<bool> ExistsAsync(Guid userId) 
+            => _userRepository.ExistsAsync(userId);
 
         /// <summary>
-        /// Get all followers for a <paramref name="userId"/>.
+        ///     Checks if a nickname exists in our data store.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public Task<IEnumerable<SwabbrUser>> GetFollowersAsync(Guid userId)
-        {
-            return _userRepository.GetFollowersAsync(userId);
-        }
+        /// <param name="nickname">The nickname to check.</param>
+        public Task<bool> ExistsNicknameAsync(string nickname) 
+            => _userRepository.ExistsNicknameAsync(nickname);
 
         /// <summary>
-        /// Get all users that <paramref name="userId"/> is following.
+        ///     Gets all users which are eligible for a vlog request.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="SwabbrUser"/> collection</returns>
-        public Task<IEnumerable<SwabbrUser>> GetFollowingAsync(Guid userId)
-        {
-            return _userRepository.GetFollowingAsync(userId);
-        }
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vloggable user collection</returns>
+        public IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation) 
+            => _userRepository.GetAllVloggableUsersAsync(navigation);
 
         /// <summary>
-        /// Gets the notification details for a user.
+        ///     Get a single user from our data store.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="UserPushNotificationDetails"/></returns>
-        public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId)
-        {
-            return _userRepository.GetPushDetailsAsync(userId);
-        }
+        /// <param name="userId">The user id.</param>
+        /// <returns>The user.</returns>
+        public Task<User> GetAsync(Guid userId) 
+            => _userRepository.GetAsync(userId);
 
         /// <summary>
-        /// Gets the <see cref="UserSettings"/> for a <paramref name="userId"/>.
+        ///     Gets all followers for a user.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="UserSettings"/></returns>
-        public Task<UserSettings> GetUserSettingsAsync(Guid userId)
-        {
-            userId.ThrowIfNullOrEmpty();
-            return _userRepository.GetUserSettingsAsync(userId);
-        }
+        /// <param name="userId">The user to check.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>All followers.</returns>
+        public IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
+            => _userRepository.GetFollowersAsync(userId, navigation);
 
         /// <summary>
-        /// Gets the <see cref="UserStatistics"/> for a user.
+        ///     Gets all users a user is following.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="UserStatistics"/></returns>
-        public Task<UserStatistics> GetUserStatisticsAsync(Guid userId)
-        {
-            return _userRepository.GetUserStatisticsAsync(userId);
-        }
+        /// <param name="userId">The user to check.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>All users followed by <paramref name="userId"/>.</returns>
+        public IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
+            => _userRepository.GetFollowingAsync(userId, navigation);
 
         /// <summary>
-        /// Updates a <see cref="SwabbrUser"/>.
+        ///     Gets the details required to send a push notification.
         /// </summary>
-        /// <remarks>
-        /// The <paramref name="wrapper"/> contains the nullable variant of the
-        /// user properties. All null-values will not be stored in the data store.
-        /// </remarks>
-        /// <param name="wrapper"><see cref="UserUpdateWrapper"/></param>
-        /// <returns>Updated <see cref="SwabbrUser"/></returns>
-        public async Task<SwabbrUser> UpdateAsync(UserUpdateWrapper wrapper)
-        {
-            if (wrapper == null) { throw new ArgumentNullException(nameof(wrapper)); }
-            wrapper.UserId.ThrowIfNullOrEmpty();
-            if (wrapper.ProfileImageBase64Encoded.IsNullOrEmpty() /*&& !ProfileImageBase64Checker.IsValid(wrapper.ProfileImageBase64Encoded)*/) { throw new InvalidProfileImageStringException(); }
-            if (!wrapper.Nickname.IsNullOrEmpty() && await ExistsNicknameAsync(wrapper.Nickname).ConfigureAwait(false)) { throw new NicknameExistsException(); }
-
-            // Copy properties
-            var user = await GetAsync(wrapper.UserId).ConfigureAwait(false);
-            user.BirthDate = wrapper.BirthDate;
-            user.Country = wrapper.Country;
-            user.FirstName = wrapper.FirstName;
-            user.Gender = wrapper.Gender;
-            user.IsPrivate = (wrapper.IsPrivate != null) ? (bool)wrapper.IsPrivate : user.IsPrivate;
-            user.LastName = wrapper.LastName;
-            user.Nickname = wrapper.Nickname;
-            user.ProfileImageBase64Encoded = wrapper.ProfileImageBase64Encoded;
-
-            return await _userRepository.UpdateAsync(user).ConfigureAwait(false);
-        }
+        /// <param name="userId">The user to check.</param>
+        /// <returns>Push notification details.</returns>
+        public Task<UserPushNotificationDetails> GetUserPushDetailsAsync(Guid userId) 
+            => _userRepository.GetPushDetailsAsync(userId);
 
         /// <summary>
-        /// Update the user location.
+        ///     Gets a user with corresponding statistics.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="longitude"></param>
-        /// <param name="latitude"></param>
-        /// <returns></returns>
-        public Task UpdateLocationAsync(Guid userId, double longitude, double latitude)
-        {
-            userId.ThrowIfNullOrEmpty();
-            return _userRepository.UpdateLocationAsync(userId, longitude, latitude);
-        }
+        /// <param name="userId">The internal user id.</param>
+        /// <returns>User entity with statistics.</returns>
+        public Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
+            => _userRepository.GetWithStatisticsAsync(userId);
 
         /// <summary>
-        /// Updates the <see cref="UserSettings"/> for a <see cref="SwabbrUser"/>.
+        ///     Search for users in our data store.
         /// </summary>
-        /// <param name="userSettings"><see cref="UserSettings"/></param>
-        /// <returns><see cref="Task"/></returns>
-        public Task UpdateSettingsAsync(UserSettings userSettings)
-        {
-            if (userSettings == null) { throw new ArgumentNullException(nameof(userSettings)); }
-            userSettings.UserId.ThrowIfNullOrEmpty();
-
-            if (userSettings.DailyVlogRequestLimit < 0) { throw new ArgumentOutOfRangeException(nameof(userSettings)); }
-            if (userSettings.DailyVlogRequestLimit > config.DailyVlogRequestLimit) { throw new InvalidOperationException($"Daily vlog request limit can't be greater than {config.DailyVlogRequestLimit}"); }
-
-            return _userRepository.UpdateUserSettingsAsync(userSettings);
-        }
+        /// <param name="query">Search string.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>User search result set.</returns>
+        public IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
+            => _userRepository.SearchAsync(query, navigation);
 
         /// <summary>
-        /// Update the user timezone.
+        ///     This updates the current user in our database.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="newTimeZone"></param>
-        /// <returns></returns>
-        public Task UpdateTimeZoneAsync(Guid userId, TimeZoneInfo newTimeZone)
-        {
-            userId.ThrowIfNullOrEmpty();
-            if (newTimeZone == null) { throw new ArgumentNullException(nameof(newTimeZone)); }
-            return _userRepository.UpdateTimeZoneAsync(userId, newTimeZone);
-        }
+        /// <param name="user">The updated user entity.</param>
+        /// <returns>The user entity after the update operation.</returns>
+        public Task UpdateAsync(User user)
+            => _userRepository.UpdateAsync(user);
     }
-
 }

@@ -1,211 +1,169 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Swabbr.Core.Entities;
-using Swabbr.Core.Enums;
-using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Types;
-using Swabbr.Core.Utility;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Swabbr.Core.Services
 {
-
     /// <summary>
-    /// Contains functionality to handle <see cref="FollowRequest"/> operations.
+    ///     Contains functionality to handle follow request operations.
     /// </summary>
+    /// <remarks>
+    ///     The executing user id is never passed. Whenever possible,
+    ///     this id is extracted from the <see cref="AppContext"/>.
+    /// </remarks>
     public class FollowRequestService : IFollowRequestService
     {
-
+        private readonly AppContext _appContext;
         private readonly IFollowRequestRepository _followRequestRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly ILogger logger;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
-        public FollowRequestService(IFollowRequestRepository followRequestRepository,
-            IUserRepository userRepository,
-            ILoggerFactory loggerFactory)
+        public FollowRequestService(AppContext appContext,
+            IFollowRequestRepository followRequestRepository)
         {
+            _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _followRequestRepository = followRequestRepository ?? throw new ArgumentNullException(nameof(followRequestRepository));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(FollowRequestService)) : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         /// <summary>
-        /// Sends a <see cref="FollowRequest"/>. If a previous one already exists
-        /// between the sender and receiver and has been declined, the request will
-        /// be sent again.
+        ///     Accept an existing follow request.
         /// </summary>
         /// <remarks>
-        /// Any operations regarding user settings (being auto accept and/or 
-        /// auto decline) are handled by our database.
+        ///     The receiver id is extracted from the context.
         /// </remarks>
-        /// <param name="requesterId">Requesting <see cref="SwabbrUser"/> internal id</param>
-        /// <param name="receiverId">Receiving <see cref="SwabbrUser"/> internal id</param>
-        /// <returns><see cref="FollowRequest"/></returns>
-        public async Task<FollowRequest> SendAsync(Guid requesterId, Guid receiverId)
-        {
-            receiverId.ThrowIfNullOrEmpty();
-            requesterId.ThrowIfNullOrEmpty();
-            var id = new FollowRequestId { RequesterId = requesterId, ReceiverId = receiverId };
-
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-            // Handle if the request exists.
-            if (await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
-            {
-                // TODO This can be done with a database function maybe
-                var existingRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-                if (existingRequest.FollowRequestStatus == FollowRequestStatus.Declined)
+        /// <param name="requesterId">The user that will be following.</param>
+        public Task AcceptAsync(Guid requesterId)
+            => _followRequestRepository.UpdateStatusAsync(
+                new FollowRequestId
                 {
-                    existingRequest.FollowRequestStatus = FollowRequestStatus.Pending;
-                    var updatedEntity = await _followRequestRepository.UpdateStatusAsync(existingRequest.Id, FollowRequestStatus.Pending).ConfigureAwait(false);
+                    RequesterId = requesterId,
+                    ReceiverId = _appContext.UserId,
+                },
+                FollowRequestStatus.Accepted);
 
-                    // Commit and return
-                    scope.Complete();
-                    return updatedEntity;
-                }
-
-                // If we get here, a request that is either pending or accepted already exists between these users.
-                throw new EntityAlreadyExistsException("A follow request between the requesting and receiving user already exists (and is not declined)");
-            }
-
-            // Continue if the request does not exist yet
-            var result = await _followRequestRepository.CreateAsync(new FollowRequest
-            {
-                Id = new FollowRequestId
+        /// <summary>
+        ///     Cancel an existing follow request.
+        /// </summary>
+        /// <remarks>
+        ///     The requester id is extracted from the context.
+        /// </remarks>
+        /// <param name="receiverId">The user that would have been followed.</param>
+        public Task CancelAsync(Guid receiverId)
+            => _followRequestRepository.DeleteAsync(
+                new FollowRequestId
                 {
+                    RequesterId = _appContext.UserId,
                     ReceiverId = receiverId,
-                    RequesterId = requesterId
-                }
-            }).ConfigureAwait(false);
-
-            // Commit and return
-            scope.Complete();
-            return result;
-        }
+                });
 
         /// <summary>
-        /// Accepts a <see cref="FollowRequest"/>.
-        /// </summary>
-        /// <param name="id"><see cref="FollowRequestId"/></param>
-        /// <returns></returns>
-        public async Task<FollowRequest> AcceptAsync(FollowRequestId id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-            if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
-
-            return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Accepted).ConfigureAwait(false);
-        }
-
-        public async Task<FollowRequest> DeclineAsync(FollowRequestId id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-            if (followRequest.FollowRequestStatus != FollowRequestStatus.Pending) { throw new InvalidOperationException("Can't accept a non-pending follow request"); }
-
-            return await _followRequestRepository.UpdateStatusAsync(id, FollowRequestStatus.Declined).ConfigureAwait(false);
-        }
-
-        public Task<FollowRequest> GetAsync(FollowRequestId id)
-        {
-            return _followRequestRepository.GetAsync(id);
-        }
-
-        /// <summary>
-        /// Gets the <see cref="FollowRequestStatus"/> for a <see cref="FollowRequest"/>
-        /// between two <see cref="SwabbrUser"/>s.
+        ///     Decline an existing follow request.
         /// </summary>
         /// <remarks>
-        /// TODO Maybe a separate call for the repository to save processing power? Minor optimization
+        ///     The requester id is extracted from the context.
         /// </remarks>
-        /// <param name="id"><see cref="FollowRequestId"/></param>
-        /// <returns><see cref="FollowRequestStatus"/></returns>
+        /// <param name="requesterId">The user that would be following.</param>
+        public Task DeclineAsync(Guid requesterId)
+            => _followRequestRepository.UpdateStatusAsync(
+                new FollowRequestId
+                {
+                    RequesterId = requesterId,
+                    ReceiverId = _appContext.UserId,
+                },
+                FollowRequestStatus.Declined);
+
+        /// <summary>
+        ///     Gets a follow request from our data store.
+        /// </summary>
+        /// <param name="id">The follow request id.</param>
+        /// <returns>Follow request entity.</returns>
+        public Task<FollowRequest> GetAsync(FollowRequestId id)
+            => _followRequestRepository.GetAsync(id);
+
+        /// <summary>
+        ///     Returns the amount of users that follow the specified user.
+        /// </summary>
+        /// <param name="userId">Unique identifier of the user that is being followed.</param>
+        /// <returns>The amount of followers.</returns>
+        public Task<uint> GetFollowerCountAsync(Guid userId)
+            => _followRequestRepository.GetFollowerCountAsync(userId);
+
+        /// <summary>
+        ///     Returns the amount of users that the specified user is following.
+        /// </summary>
+        /// <param name="userId">Id of user to check the amount of followers for.</param>
+        /// <returns>User following count.</returns>
+        public Task<uint> GetFollowingCountAsync(Guid userId)
+            => _followRequestRepository.GetFollowingCountAsync(userId);
+
+        /// <summary>
+        ///     Returns all pending incoming follow requests for
+        ///     the current user.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Follow request collection.</returns>
+        public IAsyncEnumerable<FollowRequest> GetPendingIncomingForUserAsync(Navigation navigation)
+            => _followRequestRepository.GetIncomingForUserAsync(navigation);
+
+        /// <summary>
+        ///     Returns all pending outgoing follow requests
+        ///     for the current user.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Follow request collection.</returns>
+        public IAsyncEnumerable<FollowRequest> GetPendingOutgoingForUserAsync(Navigation navigation)
+            => _followRequestRepository.GetOutgoingForUserAsync(navigation);
+
+        /// <summary>
+        ///     Gets the status of a follow request.
+        /// </summary>
+        /// <param name="id">The follow request id.</param>
+        /// <returns>The follow request status.</returns>
         public async Task<FollowRequestStatus> GetStatusAsync(FollowRequestId id)
         {
-            if (id == null) { throw new ArgumentNullException(nameof(id)); }
-            id.RequesterId.ThrowIfNullOrEmpty();
-            id.ReceiverId.ThrowIfNullOrEmpty();
-            return (await _followRequestRepository.GetAsync(id).ConfigureAwait(false)).FollowRequestStatus;
-        }
+            var request = await GetAsync(id);
 
-        public Task<int> GetFollowerCountAsync(Guid userId)
-        {
-            return _followRequestRepository.GetFollowerCountAsync(userId);
-        }
-
-        public Task<int> GetFollowingCountAsync(Guid userId)
-        {
-            return _followRequestRepository.GetFollowingCountAsync(userId);
+            return request.FollowRequestStatus;
         }
 
         /// <summary>
-        /// Lists incoming <see cref="FollowRequest"/>s.
+        ///     Send a follow request from the current user to a receiving user.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="FollowRequest"/> collection</returns>
-        public Task<IEnumerable<FollowRequest>> GetPendingIncomingForUserAsync(Guid userId)
-        {
-            return _followRequestRepository.GetIncomingForUserAsync(userId);
-        }
+        /// <remarks>
+        ///     The requester id is extracted from the context.
+        /// </remarks>
+        /// <param name="receiverId">User id that is being followed.</param>
+        /// <returns>The created follow request id.</returns>
+        public Task<FollowRequestId> SendAsync(Guid receiverId)
+            => _followRequestRepository.CreateAsync(
+                new FollowRequest
+                {
+                    Id = new FollowRequestId
+                    {
+                        RequesterId = _appContext.UserId,
+                        ReceiverId = receiverId
+                    }
+                });
 
         /// <summary>
-        /// Lists outgoing <see cref="FollowRequest"/>s.
+        ///     Unfollows the current user from a specified user.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <returns><see cref="FollowRequest"/> collection</returns>
-        public Task<IEnumerable<FollowRequest>> GetPendingOutgoingForUserAsync(Guid userId)
-        {
-            return _followRequestRepository.GetOutgoingForUserAsync(userId);
-        }
-
-        /// <summary>
-        /// Cancels a <see cref="FollowRequest"/>.
-        /// </summary>
-        /// <param name="id"><see cref="FollowRequestId"/></param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task CancelAsync(FollowRequestId id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            if (!await _followRequestRepository.ExistsAsync(id).ConfigureAwait(false))
-            {
-                throw new InvalidOperationException("Follow request does not exist");
-            }
-            // if (followRequest.Id.RequesterId != requesterId) { throw new InvalidOperationException("Follow request not owned by user"); }
-            // TODO We can't really check this, you can always do this wrong.
-            // We can only require the function call to have both the requester and receiver id, as we do now.
-
-            await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
-            scope.Complete();
-        }
-
-        /// <summary>
-        /// Unfollows a user.
-        /// </summary>
-        /// <param name="id"><see cref="FollowRequestId"/></param>
-        /// <returns><see cref="Task"/></returns>
-        public async Task UnfollowAsync(FollowRequestId id)
-        {
-            id.ThrowIfNullOrEmpty();
-
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            var followRequest = await _followRequestRepository.GetAsync(id).ConfigureAwait(false);
-            if (followRequest.FollowRequestStatus != FollowRequestStatus.Accepted) { throw new InvalidOperationException("Can't unfollow a non-accepted request"); }
-
-            await _followRequestRepository.DeleteAsync(id).ConfigureAwait(false);
-            scope.Complete();
-        }
-
+        /// <remarks>
+        ///     The requester id is extracted from the context.
+        /// </remarks>
+        /// <param name="receiverId">The user that will be unfollowed.</param>
+        public Task UnfollowAsync(Guid receiverId)
+            => _followRequestRepository.DeleteAsync(
+                new FollowRequestId
+                {
+                    RequesterId = _appContext.UserId,
+                    ReceiverId = receiverId
+                });
     }
 }

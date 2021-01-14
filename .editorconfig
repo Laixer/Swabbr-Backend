@@ -11,3 +11,9 @@ dotnet_diagnostic.CS1591.severity = none
 
 # CA1031: Specify Exception type in catch block
 dotnet_diagnostic.CA1031.severity = none
+
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none
+
+# CA1805: Do not initialize unnecessarily
+dotnet_diagnostic.CA1805.severity = none

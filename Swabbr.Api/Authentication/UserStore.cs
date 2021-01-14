@@ -1,20 +1,17 @@
-﻿using Laixer.Utility.Extensions;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using Swabbr.Core.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Swabbr.Api.Authentication
 {
-
-#pragma warning disable CS1591
-
-    // TODO: Not optimized
-    // TODO THOMAS This is a lot of code, might be worth revisiting.
-    // TODO THOMAS Rename to SwabbrUserStore oid! (yorick)
+    // TODO Rework or remove completely
+    /// <summary>
+    ///     Used by identity framework to store our users.
+    /// </summary>
     public class UserStore :
         IUserStore<SwabbrIdentityUser>,
         IUserEmailStore<SwabbrIdentityUser>,
@@ -24,34 +21,11 @@ namespace Swabbr.Api.Authentication
         IUserClaimStore<SwabbrIdentityUser>,
         IUserRoleStore<SwabbrIdentityUser>
     {
-
         public static string UsersTableName => "Users";
         public static string UserSettingsTableName => "UserSettings";
 
-        public Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
-            /*var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
-
-            // Ensure user does not exist
-            // TODO THOMAS This should be success or throw
-            var checkUser = await FindByEmailAsync(user.NormalizedEmail, new CancellationToken());
-            if (checkUser != null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = "User already exists." });
-            }
-
-            // Insert the user
-            // TODO THOMAS This should be success or throw
-            var insertedUser = await client.InsertEntityAsync(user);
-
-            if (insertedUser != null)
-            {
-                return IdentityResult.Success;
-            }
-
-            return IdentityResult.Failed(new IdentityError { Description = "Could not insert user" });*/
+        public Task<IdentityResult> CreateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken) =>
             throw new NotImplementedException();
-        }
 
         public Task<IdentityResult> UpdateAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
@@ -62,27 +36,21 @@ namespace Swabbr.Api.Authentication
             throw new NotImplementedException(); ;
         }
 
-        public Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
+        public Task<IdentityResult> DeleteAsync(SwabbrIdentityUser user, CancellationToken cancellationToken) =>
             //var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
             //await client.DeleteEntityAsync(user);
             //return IdentityResult.Success;
             throw new NotImplementedException();
-        }
 
-        public Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken)
-        {
+        public Task<SwabbrIdentityUser> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
             //var client = _factory.GetClient<SwabbrIdentityUser>(UsersTableName);
             //return await client.RetrieveEntityAsync(userId, userId);
             throw new NotImplementedException();
-        }
 
-        public Task<SwabbrIdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
-        {
+        public Task<SwabbrIdentityUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
             // Usernames are e-mails in this application.
             //return await FindByEmailAsync(normalizedUserName, cancellationToken);
             throw new NotImplementedException();
-        }
 
         public Task<string> GetNormalizedUserNameAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
@@ -132,16 +100,17 @@ namespace Swabbr.Api.Authentication
             return Task.FromResult(!string.IsNullOrEmpty(user.PasswordHash));
         }
 
-        public Task SetNormalizedUserNameAsync(SwabbrIdentityUser user, string normalizedName, CancellationToken cancellationToken)
-        {
-            // TODO Is this correct?
-            return Task.CompletedTask;
-        }
+        public Task SetNormalizedUserNameAsync(SwabbrIdentityUser user, string normalizedName, CancellationToken cancellationToken) =>
+            Task.CompletedTask;
 
         public Task SetPasswordHashAsync(SwabbrIdentityUser user, string passwordHash, CancellationToken cancellationToken)
         {
             if (user == null) { throw new ArgumentNullException(nameof(user)); }
-            passwordHash.ThrowIfNullOrEmpty();
+            if (string.IsNullOrEmpty(passwordHash))
+            {
+                throw new ArgumentNullException(nameof(passwordHash));
+            }
+
             user.PasswordHash = passwordHash;
             return Task.CompletedTask;
         }
@@ -167,33 +136,29 @@ namespace Swabbr.Api.Authentication
             return Task.CompletedTask;
         }
 
-        public Task SetUserNameAsync(SwabbrIdentityUser user, string userName, CancellationToken cancellationToken)
-        {
+        public Task SetUserNameAsync(SwabbrIdentityUser user, string userName, CancellationToken cancellationToken) =>
             // Username == Email
             // TODO Is this correct?
-            return Task.CompletedTask;
-        }
+            Task.CompletedTask;
 
         #region IUserEmailStore
 
-        public Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
-        {
+        public Task<SwabbrIdentityUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
             /*var table = _factory.GetClient<SwabbrIdentityUser>(UsersTableName).TableReference;
 
-            // Check if the normalized email already exists in the table.
-            var tq = new TableQuery<SwabbrIdentityUser>().Where(
-                TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
+// Check if the normalized email already exists in the table.
+var tq = new TableQuery<SwabbrIdentityUser>().Where(
+TableQuery.GenerateFilterCondition("NormalizedEmail", QueryComparisons.Equal, normalizedEmail));
 
-            var queryResults = table.ExecuteQuery(tq);
+var queryResults = table.ExecuteQuery(tq);
 
-            if (queryResults.Any())
-            {
-                return queryResults.First();
-            }
+if (queryResults.Any())
+{
+return queryResults.First();
+}
 
-            return null;*/
+return null;*/
             throw new NotImplementedException();
-        }
 
         public Task<string> GetEmailAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
         {
@@ -276,80 +241,60 @@ namespace Swabbr.Api.Authentication
         public Task AddClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (claims == null) { throw new ArgumentNullException(nameof(claims)); }
-            foreach (Claim c in claims)
-            {
+            //foreach (Claim c in claims)
+            //{
                 //TODO: Store claim for user
-            }
+            //}
             return Task.CompletedTask;
         }
 
-        public Task<IList<Claim>> GetClaimsAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<IList<Claim>>(new List<Claim>());
-        }
+        public Task<IList<Claim>> GetClaimsAsync(SwabbrIdentityUser user, CancellationToken cancellationToken) => Task.FromResult<IList<Claim>>(new List<Claim>());
 
-        public Task<IList<SwabbrIdentityUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken)
-        {
-            //TODO: ?
+        public Task<IList<SwabbrIdentityUser>> GetUsersForClaimAsync(Claim claim, CancellationToken cancellationToken) =>
             throw new NotImplementedException();
-        }
 
         public Task RemoveClaimsAsync(SwabbrIdentityUser user, IEnumerable<Claim> claims, CancellationToken cancellationToken)
         {
             if (claims == null) { throw new ArgumentNullException(nameof(claims)); }
-            foreach (Claim c in claims)
-            {
+            //foreach (Claim c in claims)
+            //{
                 //TODO: Remove claim for user
-            }
+            //}
             return Task.CompletedTask;
         }
 
-        public Task ReplaceClaimAsync(SwabbrIdentityUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken)
-        {
+        public Task ReplaceClaimAsync(SwabbrIdentityUser user, Claim claim, Claim newClaim, CancellationToken cancellationToken) =>
             //TODO: Update claim
             throw new NotImplementedException();
-        }
 
         #endregion IUserClaimStore
 
         #region IUserRoleStore
 
-        public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
-        {
+        public Task AddToRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken) =>
             //TODO:Not implemented
-            return Task.CompletedTask;
-        }
+            Task.CompletedTask;
 
-        public Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken)
-        {
+        public Task<IList<string>> GetRolesAsync(SwabbrIdentityUser user, CancellationToken cancellationToken) =>
             //!IMPORTANT
             //TODO: Hardcoded. Roles are not being stored yet. For testing purposes only.
-            return Task.FromResult<IList<string>>(new List<string>
+            Task.FromResult<IList<string>>(new List<string>
             {
                 "User"
             });
-        }
 
-        public Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
-        {
+        public Task<IList<SwabbrIdentityUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken) =>
             //TODO: Not implemented
-            return Task.FromResult<IList<SwabbrIdentityUser>>(new List<SwabbrIdentityUser>());
-        }
+            Task.FromResult<IList<SwabbrIdentityUser>>(new List<SwabbrIdentityUser>());
 
-        public Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
-        {
+        public Task<bool> IsInRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken) =>
             //TODO: Not implemented
-            return Task.FromResult(roleName == "user");
-        }
+            Task.FromResult(roleName == "user");
 
-        public Task RemoveFromRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken)
-        {
+        public Task RemoveFromRoleAsync(SwabbrIdentityUser user, string roleName, CancellationToken cancellationToken) =>
             //TODO: Not implemented
-            return Task.CompletedTask;
-        }
+            Task.CompletedTask;
 
         #endregion IUserRoleStore
     }
 }
-
-#pragma warning restore CS1591

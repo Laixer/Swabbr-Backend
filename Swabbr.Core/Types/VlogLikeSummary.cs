@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace Swabbr.Core.Types
 {
-    // TODO This belong to a use case.
     /// <summary>
     ///     Summary wrapper for the likes for a vlog.
     /// </summary>
@@ -26,6 +25,6 @@ namespace Swabbr.Core.Types
         /// <remarks>
         ///     This does not need to contain all the users.
         /// </remarks>
-        public IEnumerable<SwabbrUserSimplified> SimplifiedUsers { get; set; }
+        public IEnumerable<User> Users { get; set; }
     }
 }

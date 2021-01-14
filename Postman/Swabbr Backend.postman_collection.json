@@ -1,0 +1,1245 @@
+{
+	"info": {
+		"_postman_id": "c577a067-0e46-4be1-a941-9eb26bed1d15",
+		"name": "Swabbr Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"currentPassword\": \"Welkom01!\",\n\t\"newPassword\": \"Welkom01!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/change-password",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\":\"testemail@gmail.com\",\n\t\"handle\":\"d5wksxFlQSmUuhiMR0T56_:APA91bGEnPY5Ku7Os7FkowPl_NXAlLol4yeeW2ES9P4Bs7x5cdu0B27O4z6DwWi8B_QMtBccoVOsM5kjECuuXO-akg253eIAL2LUOm9QVDpBpKqLBKqmW0PBWmNHRdo6uWvXpOOlYXdb\",\n\t\"password\":\"Welkom01!\",\n\t\"pushNotificationPlatform\": 1,\n\t\"rememberMe\":false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/login",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/authentication/logout",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"testemail2@gmail.com\",\n\t\"nickname\": \"Het andere joch\",\n\t\"password\": \"Welkom01!\",\n\t\"firstName\": \"Jannelien\",\n\t\"lastName\": \"van Steen\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"gender\": \"female\",\n\t\"isPrivate\": \"true\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/authentication/register",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"authentication",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Follow Requests",
+			"item": [
+				{
+					"name": "Accept",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/accept?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"accept"
+							],
+							"query": [
+								{
+									"key": "requesterId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/cancel/?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"cancel",
+								""
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Decline",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/decline?requesterId=4ee07d14-430c-489e-9490-f696540784b4\n",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"decline"
+							],
+							"query": [
+								{
+									"key": "requesterId",
+									"value": "4ee07d14-430c-489e-9490-f696540784b4\n"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/outgoing/06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"outgoing",
+								"06078cd9-49d5-42d5-9e72-60a36f059175"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Incoming",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/incoming",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"incoming"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Outgoing",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/outgoing",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"outgoing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/followrequest?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest"
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unfollow",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/followrequest/unfollow/?receiverId=06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"followrequest",
+								"unfollow",
+								""
+							],
+							"query": [
+								{
+									"key": "receiverId",
+									"value": "06078cd9-49d5-42d5-9e72-60a36f059175"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/user/06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"06078cd9-49d5-42d5-9e72-60a36f059175"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Followers",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/user/e29db534-6ecb-428d-a06f-3a495e322767/followers",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"e29db534-6ecb-428d-a06f-3a495e322767",
+								"followers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Following",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/user/e29db534-6ecb-428d-a06f-3a495e322767/following",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"e29db534-6ecb-428d-a06f-3a495e322767",
+								"following"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Self Statistics",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/user/self/statistics",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"self",
+								"statistics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Statistics",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/user/e29db534-6ecb-428d-a06f-3a495e322767/statistics",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"e29db534-6ecb-428d-a06f-3a495e322767",
+								"statistics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/user/search?query=het &limit=20&offset=0",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"search"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "het "
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Self User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{apiUrl}}/user/self",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user",
+								"self"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"Jeronirokgjhgni\",\n\t\"lastName\": \"Pepperroooooon\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"gender\": \"male\",\n\t\"isPrivate\": \"false\",\n    \"country\": \"NLD\",\n    \"profileImageBase64Encoded\": \"sdkjkhjl\",\n    \"timeZone\": \"1970-01-01T02:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/user",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vlogs",
+			"item": [
+				{
+					"name": "Add vlog views",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"vlogViewPairs\": {\r\n        \"176c9610-9322-4067-be2a-112f71661f86\": 3,\r\n        \"67b2ad77-0f34-4da6-aba1-9258cf78e3d0\": 2\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/add-views",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"add-views"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Vlog",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/a4cb4319-8ea1-4a7e-8e70-318a260e6574",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"a4cb4319-8ea1-4a7e-8e70-318a260e6574"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vlog Like Summary",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/summary",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"summary"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recommended Vlogs",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/recommended",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"recommended"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vlog Likes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/likes",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"likes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Vlogs For User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/for-user/06078cd9-49d5-42d5-9e72-60a36f059175",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"for-user",
+								"06078cd9-49d5-42d5-9e72-60a36f059175"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Like Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/like",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"like"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"a2515bb1-e508-4ca8-92f3-b098af1429d0\",\n\t\"isPrivate\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unlike Vlog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/unlike",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"unlike"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Vlog",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"isPrivate\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/vlog/2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"vlog",
+								"2fad77fe-3df8-4cdd-bcd0-e17f92ef2ab7"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reactions",
+			"item": [
+				{
+					"name": "Delete Reaction",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction/8d5cd67c-5317-4895-adeb-85577786aba6",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction",
+								"8d5cd67c-5317-4895-adeb-85577786aba6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reaction",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction/8d5cd67c-5317-4895-adeb-85577786aba7",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction",
+								"8d5cd67c-5317-4895-adeb-85577786aba7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reactions For Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction/for-vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction",
+								"for-vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reaction Count For Vlog",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"firstName\": \"THOMAS\",\n\t\"lastName\": \"Benkers\",\n\t\"gender\": \"female\",\n\t\"country\": \"EN\",\n\t\"birthDate\": \"09-01-1995\",\n\t\"timeZone\": \"UTC+01:00\",\n\t\"nickname\": \"Meneer Etli\",\n\t\"profileImageUrl\": \"https://www.w3schools.com/w3css/img_lights.jpg\",\n\t\"isPrivate\": false,\n\t\"phoneNumber\": \"+31629238654\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction/for-vlog/67b2ad77-0f34-4da6-aba1-9258cf78e3d0/count",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction",
+								"for-vlog",
+								"67b2ad77-0f34-4da6-aba1-9258cf78e3d0",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post Reaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"8d5cd67c-5317-4895-adeb-85577786aba7\",\n\t\"targetVlogId\": \"a2515bb1-e508-4ca8-92f3-b098af1429d0\",\n\t\"isPrivate\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Reaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"isPrivate\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{apiUrl}}/reaction/8d5cd67c-5317-4895-adeb-85577786aba7/update",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"reaction",
+								"8d5cd67c-5317-4895-adeb-85577786aba7",
+								"update"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "apiBaseLocal",
+			"value": ""
+		},
+		{
+			"key": "apiBaseProduction",
+			"value": ""
+		},
+		{
+			"key": "apiBaseStaging",
+			"value": ""
+		},
+		{
+			"key": "apiUrl",
+			"value": ""
+		}
+	]
+}

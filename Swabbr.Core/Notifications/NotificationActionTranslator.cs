@@ -2,18 +2,22 @@
 
 namespace Swabbr.Core.Notifications
 {
-
     /// <summary>
-    /// Maps from <see cref="NotificationAction"/> to the corresponding string value.
+    ///     Maps from <see cref="NotificationAction"/> to the 
+    ///     corresponding string value.
     /// </summary>
     public static class NotificationActionTranslator
     {
-
+        /// <summary>
+        ///     Translates a notification action to the 
+        ///     corresponding string value.
+        /// </summary>
+        /// <param name="action">The notification action.</param>
+        /// <returns>Translated string value.</returns>
         public static string Translate(NotificationAction action)
         {
             return action switch
             {
-                NotificationAction.FollowedProfileLive => "followed_profile_live",
                 NotificationAction.FollowedProfileVlogPosted => "followed_profile_vlog_posted",
                 NotificationAction.InactiveUserMotivate => "inactive_user_motivate",
                 NotificationAction.InactiveUnwatchedVlogs => "inactive_unwatched_vlogs",
@@ -24,7 +28,5 @@ namespace Swabbr.Core.Notifications
                 _ => throw new InvalidOperationException(nameof(action)),
             };
         }
-
     }
-
 }

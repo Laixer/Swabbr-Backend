@@ -6,53 +6,56 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Core.Interfaces.Services
 {
-
     /// <summary>
-    /// Contract for a service that handles everything related to <see cref="Reaction"/> entities.
+    ///     Contract for a service that handles everything 
+    ///     related to <see cref="Reaction"/> entities.
     /// </summary>
+    /// <remarks>
+    ///     The executing user id is never passed. Whenever possible,
+    ///     this id is extracted from the context.
+    /// </remarks>
     public interface IReactionService
-    {
-
-        Task DeleteReactionAsync(Guid userId, Guid reactionId);
+    {        
+        /// <summary>
+        ///     Soft deletes a reaction in our data store.
+        /// </summary>
+        /// <param name="reactionId">The reaction to be deleted.</param>
+        Task DeleteReactionAsync(Guid reactionId);
 
         /// <summary>
-        /// Gets a new uploading uri for a <see cref="Reaction"/> upload.
+        ///     Gets a reaction from our data store.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Uri"/></returns>
-        Task<Uri> GetNewUploadUriAsync(Guid userId, Guid reactionId);
-
-        Task<SwabbrUser> GetOwnerOfVlogByReactionAsync(Guid reactionId);
-
-        Task<Reaction> GetReactionAsync(Guid reactionId);
-
-        Task<int> GetReactionCountForVlogAsync(Guid vlogId);
-
-        Task<IEnumerable<Reaction>> GetReactionsForVlogAsync(Guid vlogId);
+        /// <param name="reactionId">The reaction id.</param>
+        /// <returns>The reaction.</returns>
+        Task<Reaction> GetAsync(Guid reactionId);
 
         /// <summary>
-        /// Called when a <see cref="Reaction"/> is uploaded.
+        ///     Gets the amount of reactions for a vlog.
         /// </summary>
-        /// <param name="reactionId">Internal <see cref="Reaction"/> id</param>
-        /// <returns><see cref="Task"/></returns>
-        Task OnFinishedUploadingReactionAsync(Guid reactionId);
-
-        Task OnTranscodingReactionFailedAsync(Guid reactionId);
-
-        Task OnTranscodingReactionSucceededAsync(Guid reactionId);
+        /// <param name="vlogId">The vlog id.</param>
+        /// <returns>The amount of reactions.</returns>
+        Task<uint> GetReactionCountForVlogAsync(Guid vlogId);
 
         /// <summary>
-        /// Called when we want to upload a reaction.
+        ///     Gets all reaction for a vlog.
         /// </summary>
-        /// <param name="userId">Internal <see cref="SwabbrUser"/> id</param>
-        /// <param name="targetVlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="isPrivate">Indicates vlog private or not</param>
-        /// <returns><see cref="ReactionUploadWrapper"/></returns>
-        Task<ReactionUploadWrapper> PostReactionAsync(Guid userId, Guid targetVlogId, bool isPrivate);
+        /// <param name="vlogId">The vlog of the reactions.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>All vlog reactions.</returns>
+        IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation);
 
-        Task<Reaction> UpdateReactionAsync(Guid userId, Guid reactionId, bool isPrivate);
+        /// <summary>
+        ///     Called when a reaction has been uploaded. This will
+        ///     actually post the reaction.
+        /// </summary>
+        /// <param name="targetVlogId">The vlog the reaction was posted to.</param>
+        /// <param name="reactionId">The uploaded reaction id.</param>
+        Task PostReactionAsync(Guid targetVlogId, Guid reactionId);
 
+        /// <summary>
+        ///     Updates a reaction in our data store.
+        /// </summary>
+        /// <param name="reaction">The reaction with updated properties.</param>
+        Task UpdateReactionAsync(Reaction reaction);
     }
-
 }

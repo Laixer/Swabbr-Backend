@@ -1,19 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Swabbr.Api.Authentication;
-using Swabbr.Api.Errors;
-using Swabbr.Api.Extensions;
-using Swabbr.Api.Mapping;
-using Swabbr.Api.Services;
-using Swabbr.Api.ViewModels;
-using Swabbr.Api.ViewModels.Enums;
-using Swabbr.Api.ViewModels.User;
-using Swabbr.Core.Exceptions;
-using Swabbr.Core.Interfaces.Repositories;
+using Swabbr.Api.DataTransferObjects;
+using Swabbr.Api.Helpers;
 using Swabbr.Core.Interfaces.Services;
-using Swabbr.Core.Types;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -21,239 +13,155 @@ using System.Transactions;
 
 namespace Swabbr.Api.Controllers
 {
-
+    // FUTURE This will probably be changed up when we refactor the auth part
     /// <summary>
-    /// Controller for handling requests related to authentication.
+    ///     Controller for authentication.
     /// </summary>
-    [Authorize]
     [ApiController]
-    [Route("api/{version:apiVersion}/authentication")]
+    [Route("authentication")]
     public class AuthenticationController : ControllerBase
     {
-
-        private readonly IUserService _userService;
-        private readonly ITokenService _tokenService;
+        private readonly UserUpdateHelper _userUpdateHelper;
+        private readonly TokenService _tokenService;
         private readonly UserManager<SwabbrIdentityUser> _userManager;
         private readonly SignInManager<SwabbrIdentityUser> _signInManager;
-        private readonly IDeviceRegistrationService _deviceRegistrationService;
-        private readonly ILogger logger;
+        private readonly INotificationService _notificationService;
+        private readonly IMapper _mapper;
 
         /// <summary>
-        /// Constructor for dependency injection.
+        ///     Create new instance.
         /// </summary>
-        public AuthenticationController(IUserService userService,
-            ITokenService tokenService,
+        public AuthenticationController(UserUpdateHelper userUpdateHelper,
+            TokenService tokenService,
             UserManager<SwabbrIdentityUser> userManager,
             SignInManager<SwabbrIdentityUser> signInManager,
-            IDeviceRegistrationService deviceRegistrationService,
-            ILoggerFactory loggerFactory)
+            INotificationService notificationService,
+            IMapper mapper)
         {
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _userUpdateHelper = userUpdateHelper ?? throw new ArgumentNullException(nameof(userUpdateHelper));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
-            _deviceRegistrationService = deviceRegistrationService ?? throw new ArgumentNullException(nameof(deviceRegistrationService));
-            logger = (loggerFactory != null) ? loggerFactory.CreateLogger(nameof(AuthenticationController)) : throw new ArgumentNullException(nameof(loggerFactory));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
+        // POST: api/authentication/register
         /// <summary>
-        /// Create a new user account.
+        ///     Register a new user.
         /// </summary>
-        /// <param name="input"><see cref="UserRegisterInputModel"/></param>
-        /// <returns><see cref="OkResult"/> or <see cref="BadRequestResult"/></returns>
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterInputModel input)
+        public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto input)
         {
-            if (input == null) { return BadRequest("Form body can't be null"); }
-            if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
+            // Make this operation transactional.
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-            try
+            // Construct a new identity user for a new user based on the given input.
+            // The entity will be created in our own data store.
+            var identityUser = new SwabbrIdentityUser
             {
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                {
-                    // Edge cases
-                    if ((await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false)) != null)
-                    {
-                        return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "User email already registered"));
-                    }
+                Email = input.Email,
+                Nickname = input.Nickname
+            };
 
-                    if (await _userService.ExistsNicknameAsync(input.Nickname).ConfigureAwait(false))
-                    {
-                        return BadRequest(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname already exists"));
-                    }
-
-                    // Construct a new identity user for a new user based on the given input
-                    var identityUser = new SwabbrIdentityUser
-                    {
-                        Email = input.Email,
-                        Nickname = input.Nickname
-                    };
-
-                    var user = await _userManager.CreateAsync(identityUser, input.Password).ConfigureAwait(false);
-                    if (!user.Succeeded) { return BadRequest(this.Error(ErrorCodes.InvalidOperation, "Could not create new user, contact your administrator")); }
-
-                    // Update all other properties (if present)
-                    var updatedUser = await _userService.UpdateAsync(new UserUpdateWrapper
-                    {
-                        UserId = identityUser.Id,
-                        BirthDate = input.BirthDate,
-                        Country = input.Country,
-                        FirstName = input.FirstName,
-                        Gender = MapperEnum.Map(input.Gender),
-                        IsPrivate = input.IsPrivate,
-                        LastName = input.LastName,
-                        //Nickname = input.Nickname, Done in creation call
-                        ProfileImageBase64Encoded = input.ProfileImageBase64Encoded
-                    }).ConfigureAwait(false);
-
-                    // Map and return
-                    scope.Complete();
-                    return Ok(new UserAuthenticationOutputModel
-                    {
-                        User = MapperUser.Map(updatedUser)
-                    });
-                }
-            }
-            catch (InvalidProfileImageStringException)
+            // This call assigns the id to the identityUser object.
+            var identityResult = await _userManager.CreateAsync(identityUser, input.Password);
+            if (!identityResult.Succeeded)
             {
-                return BadRequest(this.Error(ErrorCodes.InvalidInput, "Profile image is invalid or not properly base64 encoded"));
+                return BadRequest("Could not create new user, contact your administrator");
             }
-            catch (NicknameExistsException)
-            {
-                return Conflict(this.Error(ErrorCodes.EntityAlreadyExists, "Nickname is taken"));
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Something went wrong, contact your administrator for further assistance"));
-            }
+
+            // Assign any explicitly specified user properties.
+            await _userUpdateHelper.UpdateUserAsync(input);
+
+            // Complete the database transaction.
+            scope.Complete();
+
+            // Return.
+            return NoContent();
         }
 
+        // POST: api/authentication/login
         /// <summary>
-        /// Sign in an already registered user.
+        ///     Log a user in.
         /// </summary>
-        /// <param name="input"><see cref="UserLoginInputModel"/></param>
-        /// <returns><see cref="IActionResult"/></returns>
         [AllowAnonymous]
         [HttpPost("login")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
-        public async Task<IActionResult> LoginAsync([FromBody] UserLoginInputModel input)
+        public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto input)
         {
-            try
+            // Act.
+            var identityUser = await _userManager.FindByEmailAsync(input.Email);
+            var signInResult = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false);
+
+            if (signInResult.Succeeded)
             {
-                if (input == null) { return BadRequest("Form body can't be null"); }
-                if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
+                // Manage device registration
+                var platform = input.PushNotificationPlatform;
+                await _notificationService.RegisterAsync(identityUser.Id, platform, input.Handle);
 
-                var identityUser = await _userManager.FindByEmailAsync(input.Email).ConfigureAwait(false);
-                if (identityUser == null) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Invalid credentials")); }
+                var tokenWrapper = _tokenService.GenerateToken(identityUser);
 
-                // Attempt a sign in using the user-provided password input
-                var result = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false).ConfigureAwait(false);
+                // Map.
+                var output = _mapper.Map<TokenWrapperDto>(tokenWrapper);
 
-                if (result.IsLockedOut) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Too many attempts.")); }
-                if (result.IsNotAllowed) { return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Not allowed to log in.")); }
-                if (result.Succeeded)
-                {
-                    // Login succeeded, generate and return access token
-                    var tokenWrapper = _tokenService.GenerateToken(identityUser);
-
-                    // Manage device registration
-                    var pnp = (PushNotificationPlatformModel)input.PushNotificationPlatform;
-                    await _deviceRegistrationService.RegisterOnlyThisDeviceAsync(identityUser.Id, MapperEnum.Map(pnp), input.Handle).ConfigureAwait(false);
-
-                    return Ok(new UserAuthenticationOutputModel
-                    {
-                        Token = tokenWrapper.Token,
-                        TokenCreationDate = tokenWrapper.CreateDate,
-                        TokenExpirationTimespan = tokenWrapper.TokenExpirationTimespan,
-                        Claims = await _userManager.GetClaimsAsync(identityUser).ConfigureAwait(false),
-                        Roles = await _userManager.GetRolesAsync(identityUser).ConfigureAwait(false),
-                        User = MapperUser.Map(await _userService.GetAsync(identityUser.Id).ConfigureAwait(false)),
-                        UserSettings = MapperUser.Map(await _userService.GetUserSettingsAsync(identityUser.Id).ConfigureAwait(false))
-                    });
-                }
-
-                // If we get here something definitely went wrong.
-                return Unauthorized(this.Error(ErrorCodes.LoginFailed, "Could not log in."));
+                // Return.
+                return Ok(output);
             }
-            catch (Exception e)
+
+            if (signInResult.IsLockedOut)
             {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not log in"));
+                return Unauthorized("Too many attempts.");
             }
+            if (signInResult.IsNotAllowed)
+            {
+                return Unauthorized("Not allowed to log in.");
+            }
+
+            // If we get here something definitely went wrong.
+            return Unauthorized("Could not log in.");
         }
 
+        // PUT: api/authentication/change-password
         /// <summary>
-        /// Used to update the user password.
+        ///     Change the current user password.
         /// </summary>
-        /// <param name="input"><see cref="UserChangePasswordInputModel"/></param>
-        /// <returns><see cref="OkResult"/></returns>
-        [HttpPost("change_password")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(UserAuthenticationOutputModel))]
-        [ProducesResponseType((int)HttpStatusCode.Unauthorized, Type = typeof(string))]
-        public async Task<IActionResult> ChangePasswordAsync([FromBody] UserChangePasswordInputModel input)
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordDto input)
         {
-            try
-            {
-                if (input == null) { return BadRequest("Form body can't be null"); }
-                if (!ModelState.IsValid) { return BadRequest("Input model is not valid"); }
+            // Act.
+            var identityUser = await _userManager.GetUserAsync(User);
+            var signinResult = await _userManager.ChangePasswordAsync(identityUser, input.CurrentPassword, input.NewPassword);
 
-                var identityUser = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                var result = await _userManager.ChangePasswordAsync(identityUser, input.CurrentPassword, input.NewPassword).ConfigureAwait(false);
-                if (result.Succeeded)
-                {
-                    return Ok();
-                }
-                else
-                {
-                    var message = "Could not update password.";
-                    foreach (var error in result.Errors)
-                    {
-                        message += $"\n\t{error.Description}";
-                    }
-                    return Conflict(this.Error(ErrorCodes.InvalidOperation, message));
-                }
-            }
-            catch (Exception e)
+            if (signinResult.Succeeded)
             {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Could not update password"));
+                return NoContent();
             }
+
+            // Compose error message.
+            var message = "Could not update password.";
+            foreach (var error in signinResult.Errors)
+            {
+                message += $"\n\t{error.Description}";
+            }
+
+            // Return.
+            return Conflict(message);
         }
 
+        // POST: api/authentication/logout
         /// <summary>
-        /// Deauthorizes the authenticated user.
+        ///     Log the current user out.
         /// </summary>
-        /// <returns><see cref="NoContentResult"/></returns>
-        [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<IActionResult> LogoutAsync()
         {
-            try
-            {
-                using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                {
-                    // Unregister device
-                    var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
-                    await _deviceRegistrationService.UnregisterAsync(user.Id).ConfigureAwait(false);
-                    scope.Complete();
-                }
+            // Act.
+            await _signInManager.SignOutAsync();
 
-                await _signInManager.SignOutAsync().ConfigureAwait(false);
-                return NoContent();
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message);
-                return Conflict(this.Error(ErrorCodes.InvalidOperation, "Error while logging out"));
-            }
+            // Return.
+            return NoContent();
         }
-
     }
-
 }
