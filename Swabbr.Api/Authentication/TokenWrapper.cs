@@ -15,7 +15,7 @@ namespace Swabbr.Api.Authentication
         /// <summary>
         ///     The date at which the access token was created.
         /// </summary>
-        public DateTimeOffset CreateDate { get; set; }
+        public DateTimeOffset DateCreated { get; set; }
 
         /// <summary>
         ///     Timespan indicating how long the access token is valid.

@@ -56,7 +56,7 @@ namespace Swabbr.Api.Authentication
 
             return new TokenWrapper
             {
-                CreateDate = DateTimeOffset.Now,
+                DateCreated = DateTimeOffset.Now,
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 TokenExpirationTimespan = TimeSpan.FromMinutes(_options.TokenValidity)
             };
