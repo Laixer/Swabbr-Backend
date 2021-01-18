@@ -47,7 +47,7 @@ namespace Swabbr.Api.Authentication
 
             var token = new JwtSecurityToken(
                 _options.Issuer,
-                _options.Issuer,
+                _options.Audience,
                 claims,
                 expires: expires,
                 signingCredentials: credentials

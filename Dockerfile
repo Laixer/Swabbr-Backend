@@ -6,14 +6,15 @@ WORKDIR /source
 
 # Copy and restore app
 COPY . .
-RUN dotnet restore
 
 # Print version
 RUN find . -type f -exec sed -i "s/@@VERSION@@/$(git describe --long --always)/" {} +
 RUN find . -type f -exec sed -i "s/@@COMMIT@@/$(git rev-parse HEAD)/" {} +
 
 # Publish app and libraries
-RUN dotnet publish -c release -o /app --no-restore
+WORKDIR "/source/Swabbr.Api"
+RUN pwd
+RUN dotnet publish -c release -o /app
 RUN git describe --long --always > /app/VERSION
 RUN git rev-parse HEAD > /app/COMMIT
 
@@ -27,4 +28,4 @@ ENV DOTNET_PRINT_TELEMETRY_MESSAGE=false
 WORKDIR /app
 COPY --from=build /app .
 EXPOSE 80/tcp
-ENTRYPOINT "/app/$CMD"
+ENTRYPOINT "/app/Swabbr.Api"
