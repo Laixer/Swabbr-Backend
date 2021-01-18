@@ -18,14 +18,8 @@ namespace Swabbr.Core.DataAnnotations
         ///     are in debug mode.
         /// </remarks>
         /// <param name="value">The item to check.</param>
-        
-        // TODO Just DEBUG the attribute itself
         public override bool IsValid(object value)
-            => value is null || (value is string str && str.Length > 0
-#if DEBUG
-                 && Base64EncodedHelper.IsBase64Encoded(str)
-#endif
-            );
+            => value is null || (value is string str && str.Length > 0 && Base64EncodedHelper.IsBase64Encoded(str));
 
         /// <summary>
         ///     Formats the error message when validation fails.

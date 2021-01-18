@@ -59,7 +59,9 @@ namespace Swabbr.Api.DataTransferObjects
         ///     Base64 encoded string containing the uploaded 
         ///     profile image of the user.
         /// </summary>
+#if DEBUG
         [Base64Encoded]
+#endif
         public string ProfileImageBase64Encoded { get; init; }
 
         /// <summary>
