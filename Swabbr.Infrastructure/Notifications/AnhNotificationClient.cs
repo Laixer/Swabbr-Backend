@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Notifications;
@@ -12,6 +11,7 @@ using Swabbr.Infrastructure.Notifications.JsonExtraction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Notifications
@@ -138,12 +138,12 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 case PushNotificationPlatform.APNS:
                     var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
-                    var jsonApns = JsonConvert.SerializeObject(objApns);
+                    var jsonApns = JsonSerializer.Serialize(objApns);
                     await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
                     return;
                 case PushNotificationPlatform.FCM:
                     var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
-                    var jsonFcm = JsonConvert.SerializeObject(objFcm);
+                    var jsonFcm = JsonSerializer.Serialize(objFcm);
                     await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
                     return;
                 default:
