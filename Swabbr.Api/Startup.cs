@@ -266,8 +266,8 @@ namespace Swabbr
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtConfig.Issuer,
-                    ValidAudience = jwtConfig.Issuer,
-                    IssuerSigningKey = new SymmetricSecurityKey(jwtKey)
+                    ValidAudience = jwtConfig.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(jwtKey),
                 };
             });
         }
