@@ -19,7 +19,6 @@ using Swabbr.Api.Helpers;
 using Swabbr.Core;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Clients;
-using Swabbr.Core.Interfaces.Factories;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Infrastructure.Extensions;
@@ -87,10 +86,7 @@ namespace Swabbr
         /// <param name="services">The services collection.</param>
         public void GenericConfigureServices(IServiceCollection services)
         {
-            // FUTURE: Uncouple from NewtonSoft.Json.
-            //         System.Text.Json isn't capable of handling all our types, an issue exists for this.
-            services.AddControllers()
-                .AddNewtonsoftJson();
+            services.AddControllers();
 
             // We always add health checks so we can access them from any environment
             services.AddHealthChecks()
