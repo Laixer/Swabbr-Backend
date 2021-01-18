@@ -109,6 +109,12 @@ namespace Swabbr.Api.Controllers
         {
             // Act.
             var identityUser = await _userManager.FindByEmailAsync(input.Email);
+            if (identityUser is null)
+            {
+                // TODO Look at this
+                return Unauthorized();
+            }
+
             var signInResult = await _signInManager.CheckPasswordSignInAsync(identityUser, input.Password, lockoutOnFailure: false);
 
             if (signInResult.Succeeded)
