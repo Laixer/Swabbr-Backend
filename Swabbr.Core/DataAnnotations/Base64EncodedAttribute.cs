@@ -21,7 +21,7 @@ namespace Swabbr.Core.DataAnnotations
         
         // TODO Just DEBUG the attribute itself
         public override bool IsValid(object value)
-            => value is null || (value is string str
+            => value is null || (value is string str && str.Length > 0
 #if DEBUG
                  && Base64EncodedHelper.IsBase64Encoded(str)
 #endif
