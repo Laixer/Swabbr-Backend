@@ -85,7 +85,7 @@ namespace Swabbr.Api.Helpers
             currentUser.Longitude = input.Longitude ?? currentUser.Longitude;
             currentUser.Nickname = input.Nickname ?? currentUser.Nickname;
             currentUser.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded ?? currentUser.ProfileImageBase64Encoded;
-            currentUser.Timezone = input.Timezone ?? currentUser.Timezone;
+            currentUser.TimeZone = input.TimeZone ?? currentUser.TimeZone;
 
             // Update only the explicitly modified properties
             await _userService.UpdateAsync(currentUser);

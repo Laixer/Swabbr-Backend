@@ -449,7 +449,7 @@ namespace Swabbr.Infrastructure.Repositories
                 Longitude = reader.GetSafeDouble(10 + offset),
                 Nickname = reader.GetString(11 + offset),
                 ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
-                Timezone = reader.GetTimeZoneInfo(13 + offset)
+                TimeZone = reader.GetTimeZoneInfo(13 + offset)
             };
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace Swabbr.Infrastructure.Repositories
                 Longitude = reader.GetSafeDouble(10 + offset),
                 Nickname = reader.GetString(11 + offset),
                 ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
-                Timezone = reader.GetTimeZoneInfo(13 + offset),
+                TimeZone = reader.GetTimeZoneInfo(13 + offset),
                 TotalFollowers = reader.GetUInt(14 + offset),
                 TotalFollowing = reader.GetUInt(15 + offset),
                 TotalLikesReceived = reader.GetUInt(16 + offset),
@@ -516,7 +516,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("longitude", user.Longitude);
             context.AddParameterWithValue("nickname", user.Nickname);
             context.AddParameterWithValue("profile_image_base64_encoded", user.ProfileImageBase64Encoded);
-            context.AddParameterWithValue("timezone", TimeZoneInfoHelper.MapTimeZoneToStringOrNull(user.Timezone));
+            context.AddParameterWithValue("timezone", TimeZoneInfoHelper.MapTimeZoneToStringOrNull(user.TimeZone));
         }
     }
 }

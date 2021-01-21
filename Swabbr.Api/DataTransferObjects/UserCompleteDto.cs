@@ -44,9 +44,9 @@ namespace Swabbr.Api.DataTransferObjects
         public DateTime? BirthDate { get; init; }
 
         /// <summary>
-        ///     The specified timezone of the user.
+        ///     The specified time zone of the user.
         /// </summary>
-        public TimeZoneInfo Timezone { get; init; }
+        public TimeZoneInfo TimeZone { get; init; }
 
         /// <summary>
         ///     Nickname to display for the user.
