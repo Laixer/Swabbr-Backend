@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Repositories
 {
+    // TODO This does not take non-existing users into account.
     /// <summary>
     ///     Repository for follow requests.
     /// </summary>

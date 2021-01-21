@@ -77,6 +77,31 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // GET: api/followrequest
+        /// <summary>
+        ///     Gets a follow request from our data store.
+        /// </summary>
+        /// <remarks>
+        ///     The requester id and receiver id must be named explicitly
+        ///     in the query string to avoid confusion.
+        /// </remarks>
+        [HttpGet]
+        public async Task<IActionResult> GetAsync([FromQuery] Guid requesterId, [FromQuery] Guid receiverId)
+        {
+            // Act.
+            var result = await _followRequestService.GetAsync(new Core.Types.FollowRequestId
+            {
+                RequesterId = requesterId,
+                ReceiverId = receiverId
+            });
+
+            // Map.
+            var output = _mapper.Map<FollowRequestDto>(result);
+
+            // Return.
+            return Ok(output);
+        }
+
         // GET: api/followrequest/incoming
         /// <summary>
         ///     Get all incoming pending follow requests for the current user.
