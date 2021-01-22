@@ -63,6 +63,28 @@ namespace Swabbr.Core.Services
         public Task<bool> ExistsAsync(Guid vlogId)
             => _vlogRepository.ExistsAsync(vlogId);
 
+        // TODO Hardcoded content types.
+        /// <summary>
+        ///     Generates an upload uri for a new vlog.
+        /// </summary>
+        /// <param name="vlogId">The new vlog id.</param>
+        /// <returns>Upload uri.</returns>
+        public async Task<UploadWrapper> GenerateUploadUri(Guid vlogId)
+            => new UploadWrapper
+            {
+                Id = vlogId,
+                ThumbnailUploadUri = await _blobStorageService.GenerateUploadLinkAsync(
+                    containerName: StorageConstants.VlogStorageFolderName,
+                    fileName: StorageHelper.GetThumbnailFileName(vlogId),
+                    timeSpanValid: TimeSpan.FromHours(2),
+                    contentType: "image/jpeg"),
+                VideoUploadUri = await _blobStorageService.GenerateUploadLinkAsync(
+                    containerName: StorageConstants.VlogStorageFolderName,
+                    fileName: StorageHelper.GetVideoFileName(vlogId),
+                    timeSpanValid: TimeSpan.FromHours(2),
+                    contentType: "video/mp4")
+            };
+
         /// <summary>
         ///     Gets a vlog from our data store.
         /// </summary>

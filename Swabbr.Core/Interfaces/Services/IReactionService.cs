@@ -24,6 +24,13 @@ namespace Swabbr.Core.Interfaces.Services
         Task DeleteReactionAsync(Guid reactionId);
 
         /// <summary>
+        ///     Generates an upload uri for a new reaction.
+        /// </summary>
+        /// <param name="reactionId">The new reaction id.</param>
+        /// <returns>Upload wrapper.</returns>
+        Task<UploadWrapper> GenerateUploadDetails(Guid reactionId);
+
+        /// <summary>
         ///     Gets a reaction from our data store.
         /// </summary>
         /// <param name="reactionId">The reaction id.</param>

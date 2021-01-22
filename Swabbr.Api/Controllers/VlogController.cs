@@ -72,6 +72,24 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // GET: api/vlog/generate-upload-uri
+        /// <summary>
+        ///     Get a signed uri for uploading a new vlog.
+        /// </summary>
+        [HttpGet("generate-upload-uri")]
+        public async Task<IActionResult> Get()
+        {
+            // Act.
+            var id = Guid.NewGuid();
+            var result = await _vlogService.GenerateUploadUri(id);
+
+            // Map.
+            var output = _mapper.Map<UploadWrapperDto>(result);
+
+            // Return.
+            return Ok(output);
+        }
+
         // GET: api/vlog/{id}
         /// <summary>
         ///     Get a vlog.

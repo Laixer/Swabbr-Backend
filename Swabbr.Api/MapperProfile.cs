@@ -27,6 +27,7 @@ namespace Swabbr.Api
                 .ForMember(dest => dest.RequesterId, o => o.MapFrom(src => src.Id.RequesterId));
             mapper.CreateMap<Reaction, ReactionDto>().ReverseMap();
             mapper.CreateMap<TokenWrapper, TokenWrapperDto>();
+            mapper.CreateMap<UploadWrapper, UploadWrapperDto>();
             mapper.CreateMap<User, UserDto>();
             mapper.CreateMap<User, UserCompleteDto>();
             mapper.CreateMap<UserWithStats, UserWithStatsDto>();

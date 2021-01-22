@@ -46,6 +46,28 @@ namespace Swabbr.Core.Services
         public Task DeleteReactionAsync(Guid reactionId)
             => _reactionRepository.DeleteAsync(reactionId);
 
+        // TODO Hardcoded content type.
+        /// <summary>
+        ///     Generates an upload uri for a new reaction.
+        /// </summary>
+        /// <param name="reactionId">The new reaction id.</param>
+        /// <returns>Upload uri.</returns>
+        public async Task<UploadWrapper> GenerateUploadDetails(Guid reactionId)
+            => new UploadWrapper
+            {
+                Id = reactionId,
+                ThumbnailUploadUri = await _blobStorageService.GenerateUploadLinkAsync(
+                    containerName: StorageConstants.ReactionStorageFolderName,
+                    fileName: StorageHelper.GetThumbnailFileName(reactionId),
+                    timeSpanValid: TimeSpan.FromHours(2),
+                    contentType: "image/jpeg"),
+                VideoUploadUri = await _blobStorageService.GenerateUploadLinkAsync(
+                    containerName: StorageConstants.ReactionStorageFolderName,
+                    fileName: StorageHelper.GetVideoFileName(reactionId),
+                    timeSpanValid: TimeSpan.FromHours(2),
+                    contentType: "video/mp4")
+            };
+
         /// <summary>
         ///     Gets a reaction from our data store.
         /// </summary>
