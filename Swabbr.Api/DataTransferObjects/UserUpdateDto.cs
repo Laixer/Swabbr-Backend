@@ -47,7 +47,7 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     The specified timezone of the user.
         /// </summary>
-        public TimeZoneInfo Timezone { get; init; }
+        public string TimeZone { get; init; }
 
         /// <summary>
         ///     Nickname to display for the user.

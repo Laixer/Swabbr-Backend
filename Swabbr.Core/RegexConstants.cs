@@ -9,9 +9,9 @@ namespace Swabbr.Core
     public static class RegexConstants
     {
         /// <summary>
-        ///     Regex representing our timezone data format:
+        ///     Regex representing our timezone data format
         ///     UTC+xx:xx or UTC-xx:xx
         /// </summary>
-        public static readonly Regex TimeZoneRegex = new Regex(@"^UTC(\+|-)\d\d:\d\d$", RegexOptions.Compiled);
+        public static readonly Regex TimeZoneRegex = new Regex(@"^(\+|-)\d\d:\d\d$", RegexOptions.Compiled);
     }
 }

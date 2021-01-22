@@ -2,6 +2,7 @@
 using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Core.Entities;
+using Swabbr.Core.Helpers;
 using Swabbr.Core.Types;
 using System;
 
@@ -36,6 +37,10 @@ namespace Swabbr.Api
                 .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.Id.UserId))
                 .ForMember(dest => dest.VlogId, o => o.MapFrom(src => src.Id.VlogId));
             mapper.CreateMap<VlogLikeSummary, VlogLikeSummaryDto>();
+
+            // Create custom mapping for time zone types
+            mapper.CreateMap<TimeZoneInfo, string>().ConvertUsing(tz => TimeZoneInfoHelper.MapTimeZoneToStringOrNull(tz));
+            mapper.CreateMap<string, TimeZoneInfo >().ConvertUsing(s => TimeZoneInfoHelper.MapStringToTimeZone(s));
         }
     }
 }
