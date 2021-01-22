@@ -61,7 +61,7 @@ namespace Swabbr.Core.Services
                     // Get the matching minute on which a user should receive 
                     // a request and correct it using the users timezone.
                     var userMinute = GetHashMinute(user, day, i);
-                    var userMinuteCorrected = userMinute - user.Timezone.BaseUtcOffset.TotalMinutes;
+                    var userMinuteCorrected = userMinute - user.TimeZone.BaseUtcOffset.TotalMinutes;
                     if (userMinuteCorrected < 0) { userMinuteCorrected += 60 * 24; }
 
                     if (userMinuteCorrected == thisMinute)
@@ -85,7 +85,7 @@ namespace Swabbr.Core.Services
         ///     by taking the <see cref="SwabbrConfiguration.VlogRequestStartTimeMinutes"/> plus
         ///     the uint32 modulo <see cref="SwabbrConfiguration.VlogRequestEndTimeMinutes"/>.
         /// 
-        ///     This ignores the <see cref="User.Timezone"/> value.
+        ///     This ignores the <see cref="User.TimeZone"/> value.
         /// </remarks>
         /// <param name="user"><see cref="User"/></param>
         /// <param name="day"><see cref="DateTime"/></param>
@@ -101,7 +101,7 @@ namespace Swabbr.Core.Services
             {
                 throw new InvalidOperationException();
             }
-            if (user.Timezone is null)
+            if (user.TimeZone is null)
             {
                 throw new InvalidOperationException();
             }

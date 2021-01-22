@@ -37,7 +37,7 @@ namespace Swabbr.Core.Entities
         /// <summary>
         ///     The specified timezone of the user.
         /// </summary>
-        public TimeZoneInfo Timezone { get; set; }
+        public TimeZoneInfo TimeZone { get; set; }
 
         /// <summary>
         ///     Nickname to display for the user.
