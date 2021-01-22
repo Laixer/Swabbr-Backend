@@ -18,6 +18,13 @@
         /// <summary>
         /// The follow request has been declined.
         /// </summary>
-        Declined = 2
+        Declined = 2,
+
+        /// <summary>
+        ///     There exists no follow request between the states users.
+        ///     Note that this value is not stored in the databse, since
+        ///     in this case the entity will simply not exist.
+        /// </summary>
+        NonExistent = 3,
     }
 }

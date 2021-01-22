@@ -80,10 +80,27 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Gets a follow request from our data store.
         /// </summary>
+        /// <remarks>
+        ///     If the follow request doesn't exist, a new
+        ///     entity is returned with its status set to
+        ///     <see cref="FollowRequestStatus.NonExistent"/>.
+        ///     All other properties will not be populated.
+        /// </remarks>
         /// <param name="id">The follow request id.</param>
         /// <returns>Follow request entity.</returns>
-        public Task<FollowRequest> GetAsync(FollowRequestId id)
-            => _followRequestRepository.GetAsync(id);
+        public async Task<FollowRequest> GetAsync(FollowRequestId id)
+        { 
+            if (!await _followRequestRepository.ExistsAsync(id))
+            {
+                return new FollowRequest
+                {
+                    Id = id,
+                    FollowRequestStatus = FollowRequestStatus.NonExistent
+                };
+            }
+
+            return await _followRequestRepository.GetAsync(id);
+        }
 
         /// <summary>
         ///     Returns the amount of users that follow the specified user.

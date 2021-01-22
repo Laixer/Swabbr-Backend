@@ -35,7 +35,7 @@ namespace Swabbr.Core.Entities
         public DateTime? BirthDate { get; set; }
 
         /// <summary>
-        ///     The specified timezone of the user.
+        ///     The specified time zone of the user.
         /// </summary>
         public TimeZoneInfo TimeZone { get; set; }
 

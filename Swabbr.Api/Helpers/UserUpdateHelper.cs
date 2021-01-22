@@ -90,8 +90,8 @@ namespace Swabbr.Api.Helpers
                 ? currentUser.TimeZone
                 : TimeZoneInfoHelper.MapStringToTimeZone(input.TimeZone);
 
-                // Update only the explicitly modified properties
-                await _userService.UpdateAsync(currentUser);
+            // Update only the explicitly modified properties
+            await _userService.UpdateAsync(currentUser);
         }
     }
 }
