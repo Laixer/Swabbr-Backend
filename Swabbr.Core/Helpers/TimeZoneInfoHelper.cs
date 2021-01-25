@@ -47,8 +47,8 @@ namespace Swabbr.Core.Helpers
         ///     <see cref="TimeZoneInfo"/> object.
         /// </summary>
         /// <remarks>
-        ///     The expected format is UTC+xx:xx or UTC-xx:xx which is relative
-        ///     to UTC. If <paramref name="s"/> is null or empty, null is returned.
+        ///     The expected format is +xx:xx or -xx:xx which is relative to 
+        ///     UTC. If <paramref name="s"/> is null or empty, null is returned.
         /// </remarks>
         /// <param name="s">Formatted string.</param>
         /// <returns>Mapped <see cref="TimeZoneInfo"/> or null.</returns>
