@@ -35,6 +35,13 @@ namespace Swabbr.Core.Interfaces.Services
         Task<bool> ExistsAsync(Guid vlogId);
 
         /// <summary>
+        ///     Generates an upload uri for a new vlog.
+        /// </summary>
+        /// <param name="vlogId">The new vlog id.</param>
+        /// <returns>Upload details.</returns>
+        Task<UploadWrapper> GenerateUploadUri(Guid vlogId);
+
+        /// <summary>
         ///     Gets a vlog from our data store.
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>

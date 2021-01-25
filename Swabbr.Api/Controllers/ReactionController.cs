@@ -48,6 +48,24 @@ namespace Swabbr.Api.Controllers
             return NoContent();
         }
 
+        // GET: api/reaction/upload-uri
+        /// <summary>
+        ///     Get a signed uri for uploading a new reaction.
+        /// </summary>
+        [HttpGet("generate-upload-uri")]
+        public async Task<IActionResult> Get()
+        {
+            // Act.
+            var id = Guid.NewGuid();
+            var result = await _reactionService.GenerateUploadDetails(id);
+
+            // Map.
+            var output = _mapper.Map<UploadWrapperDto>(result);
+
+            // Return.
+            return Ok(output);
+        }
+
         // GET: api/reaction/{id}
         /// <summary>
         ///     Get a reaction.

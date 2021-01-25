@@ -1,4 +1,5 @@
 ﻿using Swabbr.Core;
+using Swabbr.Core.Helpers;
 using System;
 using System.Data.Common;
 using System.Globalization;
@@ -226,22 +227,7 @@ namespace Swabbr.Infrastructure.Extensions
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            var asString = reader.GetString(ordinal);
-
-            // Perform regex matching to check the expected pattern.
-            if (!RegexConstants.TimeZoneRegex.IsMatch(asString)) 
-            { 
-                throw new FormatException();
-            }
-
-            bool isPlus = asString[3] == '+';
-
-            var hour = int.Parse(asString.Substring(4, 2), CultureInfo.InvariantCulture);
-            var minute = int.Parse(asString.Substring(7, 2), CultureInfo.InvariantCulture);
-
-            var timeSpan = new TimeSpan(hours: isPlus ? hour : -hour, minutes: minute, seconds: 0);
-
-            return TimeZoneInfo.CreateCustomTimeZone(asString, timeSpan, asString, asString);
+            return reader.IsDBNull(ordinal) ? null : TimeZoneInfoHelper.MapStringToTimeZone(reader.GetString(ordinal));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Swabbr.Api.DataTransferObjects;
 using Swabbr.Core.Abstractions;
+using Swabbr.Core.Helpers;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -85,7 +86,9 @@ namespace Swabbr.Api.Helpers
             currentUser.Longitude = input.Longitude ?? currentUser.Longitude;
             currentUser.Nickname = input.Nickname ?? currentUser.Nickname;
             currentUser.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded ?? currentUser.ProfileImageBase64Encoded;
-            currentUser.TimeZone = input.TimeZone ?? currentUser.TimeZone;
+            currentUser.TimeZone = string.IsNullOrEmpty(input.TimeZone)
+                ? currentUser.TimeZone
+                : TimeZoneInfoHelper.MapStringToTimeZone(input.TimeZone);
 
             // Update only the explicitly modified properties
             await _userService.UpdateAsync(currentUser);
