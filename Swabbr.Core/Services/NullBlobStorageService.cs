@@ -19,6 +19,11 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Returns a <c>null</c> object.
         /// </summary>
+        public Task<Uri> GenerateUploadLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid, string contentType) => null;
+
+        /// <summary>
+        ///     Returns a <c>null</c> object.
+        /// </summary>
         public Task<Uri> GetAccessLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid) => null;
 
         /// <summary>

@@ -28,6 +28,16 @@ namespace Swabbr.Core.Interfaces.Services
         Task<Uri> GetAccessLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid);
 
         /// <summary>
+        ///     Generate a signed uri to upload a file.
+        /// </summary>
+        /// <param name="containerName">Storage container.</param>
+        /// <param name="fileName">File name.</param>
+        /// <param name="timeSpanValid">How long the link is valid.</param>
+        /// <param name="contentType">Content type.</param>
+        /// <returns>The generated link.</returns>
+        Task<Uri> GenerateUploadLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid, string contentType);
+
+        /// <summary>
         ///     Store the file in the data store.
         /// </summary>
         /// <param name="containerName">Storage container.</param>

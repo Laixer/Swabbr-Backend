@@ -8,6 +8,7 @@ using Swabbr.Core.Exceptions;
 using Swabbr.Core.Interfaces.Services;
 using Swabbr.Core.Storage;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -83,6 +84,38 @@ namespace Swabbr.Infrastructure.Storage
             }
         }
 
+        // TODO Look at duplicate code
+        /// <summary>
+        ///     Generates a signed upload uri.
+        /// </summary>
+        /// <param name="containerName">Name of the container.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="timeSpanValid">How long the link is valid.</param>
+        /// <param name="contentType">Content type.</param>
+        /// <returns>Signed upload uri.</returns>
+        public Task<Uri> GenerateUploadLinkAsync(string containerName, string fileName, TimeSpan timeSpanValid, string contentType)
+        {
+            try
+            {
+                var url = client.GetPreSignedURL(new GetPreSignedUrlRequest
+                {
+                    BucketName = _options.BlobStorageName,
+                    Key = string.IsNullOrEmpty(containerName) ? fileName : $"{containerName}/{fileName}",
+                    Expires = DateTime.UtcNow.Add(timeSpanValid),
+                    Verb = HttpVerb.PUT,
+                    ContentType = contentType
+                });
+
+                return Task.FromResult(new Uri(url));
+            }
+            catch (AmazonS3Exception e)
+            {
+                _logger.LogError(e, "Could not generate upload uri for Spaces using S3");
+
+                throw new StorageException("Could not generate upload uri", e);
+            }
+        }
+
         /// <summary>
         ///     Gets an access uri for a given file.
         /// </summary>
@@ -98,7 +131,8 @@ namespace Swabbr.Infrastructure.Storage
                 {
                     BucketName = _options.BlobStorageName,
                     Key = string.IsNullOrEmpty(containerName) ? fileName : $"{containerName}/{fileName}",
-                    Expires = DateTime.UtcNow.Add(timeSpanValid)
+                    Expires = DateTime.UtcNow.Add(timeSpanValid),
+                    Verb = HttpVerb.GET
                 });
 
                 return Task.FromResult(new Uri(url));
