@@ -227,9 +227,7 @@ namespace Swabbr.Infrastructure.Extensions
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            var asString = reader.GetString(ordinal);
-
-            return TimeZoneInfoHelper.MapStringToTimeZone(asString);
+            return reader.IsDBNull(ordinal) ? null : TimeZoneInfoHelper.MapStringToTimeZone(reader.GetString(ordinal));
         }
     }
 }

@@ -48,29 +48,22 @@ namespace Swabbr.Core.Helpers
         /// </summary>
         /// <remarks>
         ///     The expected format is +xx:xx or -xx:xx which is relative to 
-        ///     UTC. If <paramref name="s"/> is null or empty, null is returned.
+        ///     UTC.
         /// </remarks>
         /// <param name="s">Formatted string.</param>
         /// <returns>Mapped <see cref="TimeZoneInfo"/> or null.</returns>
         public static TimeZoneInfo MapStringToTimeZone(string s)
         {
-            if (string.IsNullOrEmpty(s))
-            {
-                return null;
-            }
-
             // Perform regex matching to check the expected pattern.
             if (!RegexConstants.TimeZoneRegex.IsMatch(s))
             {
                 throw new FormatException();
             }
 
-            bool isPlus = s[0] == '+';
-
             var hour = int.Parse(s.Substring(1, 2), CultureInfo.InvariantCulture);
             var minute = int.Parse(s.Substring(4, 2), CultureInfo.InvariantCulture);
 
-            var timeSpan = new TimeSpan(hours: isPlus ? hour : -hour, minutes: minute, seconds: 0);
+            var timeSpan = new TimeSpan(hours: s[0] == '+' ? hour : -hour, minutes: minute, seconds: 0);
 
             return TimeZoneInfo.CreateCustomTimeZone(s, timeSpan, s, s);
         }
