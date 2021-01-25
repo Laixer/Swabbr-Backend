@@ -39,7 +39,7 @@ namespace Swabbr.Api
             mapper.CreateMap<VlogLikeSummary, VlogLikeSummaryDto>();
 
             // Create custom mapping for time zone types
-            mapper.CreateMap<TimeZoneInfo, string>().ConvertUsing(tz => tz is null
+            mapper.CreateMap<TimeZoneInfo, string>().ConvertUsing(tz => tz == null
                 ? null
                 : TimeZoneInfoHelper.MapTimeZoneToStringOrNull(tz));
             mapper.CreateMap<string, TimeZoneInfo >().ConvertUsing(s => string.IsNullOrEmpty(s)
