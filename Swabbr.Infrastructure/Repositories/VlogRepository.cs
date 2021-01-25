@@ -236,6 +236,8 @@ namespace Swabbr.Infrastructure.Repositories
                 FROM        entities.vlog_up_to_date AS v
                 JOIN        application.follow_request_accepted AS fra
                 ON          fra.requester_id = @user_id
+                            AND 
+                            fra.receiver_id = v.user_id
                 ORDER BY    v.date_created DESC";
 
             ConstructNavigation(ref sql, navigation);
