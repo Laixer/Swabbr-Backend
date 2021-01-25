@@ -38,7 +38,7 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     The length of this vlog in seconds.
         /// </summary>
-        public uint? LengthInSeconds { get; init; }
+        public uint? Length { get; init; }
 
         /// <summary>
         ///     Indicates the state of this vlog.

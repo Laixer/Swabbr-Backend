@@ -39,7 +39,7 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Represents the length in seconds for this reaction.
         /// </summary>
-        public uint? LengthInSeconds { get; init; }
+        public uint? Length { get; init; }
 
         /// <summary>
         ///     Indicates the state of this reaction.
