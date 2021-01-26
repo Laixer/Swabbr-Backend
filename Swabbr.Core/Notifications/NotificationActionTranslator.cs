@@ -21,7 +21,7 @@ namespace Swabbr.Core.Notifications
             NotificationAction.InactiveUserMotivate => "inactive_user_motivate",
             NotificationAction.InactiveUnwatchedVlogs => "inactive_unwatched_vlogs",
             NotificationAction.InactiveVlogRecordRequest => "inactive_vlog_record_request",
-            NotificationAction.VlogGainedLikes => "vlog_gained_likes",
+            NotificationAction.VlogGainedLike => "vlog_gained_likes",
             NotificationAction.VlogNewReaction => "vlog_new_reaction",
             NotificationAction.VlogRecordRequest => "vlog_record_request",
             _ => throw new InvalidOperationException(nameof(action)),
