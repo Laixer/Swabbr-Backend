@@ -162,19 +162,13 @@ namespace Swabbr.Infrastructure.Notifications
             switch (pushDetails.PushNotificationPlatform)
             {
                 case PushNotificationPlatform.APNS:
-                    var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification) as ApnsContentWrapper;
-                    throw new NotImplementedException();
-                    //var jsonApns = JsonSerializer.Serialize(objApns);
-                    //await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
+                    var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
+                    var jsonApns = JsonConvert.SerializeObject(objApns, jsonSettings);
+                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
                     return;
                 case PushNotificationPlatform.FCM:
-                    var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification) as FcmContentWrapper;
-                    var type = notification.Data.GetType();
-                    //objFcm.Data.Payload.Data = objFcm.Data.Payload.Dat;
-                    //var jsonFcm = JsonSerializer.Serialize(objFcm);
-
+                    var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
                     var jsonFcm = JsonConvert.SerializeObject(objFcm, jsonSettings);
-                    
                     await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
                     return;
                 default:
