@@ -7,7 +7,10 @@ namespace Swabbr.Infrastructure.Helpers
 {
     // FUTURE Decouple from Newtonsoft.Json when System.Text.Json can handle polymorphic serialization.
     /// <summary>
-    ///     Newtonsoft Json helper class.
+    ///     Newtonsoft Json helper class which allows us to specify which
+    ///     subclass types the Json parser can expect. Without specifying 
+    ///     these subclasses the parser will always use the base class to
+    ///     parse. This allows us to handle polymorphic serialization.
     /// </summary>
     public class KnownTypesBinder : ISerializationBinder
     {
