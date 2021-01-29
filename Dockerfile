@@ -1,7 +1,8 @@
 # Swabbr Ecosystem
 
 # Build the application solution
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+# Fixes the CA issue https://github.com/NuGet/Home/issues/10491
+FROM mcr.microsoft.com/dotnet/sdk:5.0.102-ca-patch-buster-slim AS build
 WORKDIR /source
 
 # Copy and restore app
