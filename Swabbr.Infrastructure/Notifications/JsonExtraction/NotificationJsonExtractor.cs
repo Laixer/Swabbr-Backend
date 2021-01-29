@@ -21,8 +21,8 @@ namespace Swabbr.Infrastructure.Notifications.JsonExtraction
         public static NotificationWrapperJsonBase Extract(PushNotificationPlatform platform, SwabbrNotification notification) 
             => platform switch
             {
-                PushNotificationPlatform.APNS => FcmJsonExtractor.Extract(notification),
-                PushNotificationPlatform.FCM => ApnsJsonExtractor.Extract(notification),
+                PushNotificationPlatform.APNS => ApnsJsonExtractor.Extract(notification),
+                PushNotificationPlatform.FCM => FcmJsonExtractor.Extract(notification),
                 _ => throw new InvalidOperationException(nameof(platform)),
             };
     }

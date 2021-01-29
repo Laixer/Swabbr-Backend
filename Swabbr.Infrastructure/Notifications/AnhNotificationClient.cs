@@ -2,20 +2,24 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Notifications;
+using Swabbr.Core.Notifications.Data;
 using Swabbr.Core.Types;
 using Swabbr.Infrastructure.Configuration;
+using Swabbr.Infrastructure.Helpers;
 using Swabbr.Infrastructure.Notifications.JsonExtraction;
+using Swabbr.Infrastructure.Notifications.JsonWrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Swabbr.Infrastructure.Notifications
 {
+    // FUTURE Decouple from Newtonsoft.Json when System.Text.Json can handle polymorphic serialization.
     /// <summary>
     ///     Communicates with Azure Notification Hub to manage 
     ///     device registrations. This has no knowledge of our 
@@ -28,6 +32,27 @@ namespace Swabbr.Infrastructure.Notifications
     /// </remarks>
     public class AnhNotificationClient : INotificationClient
     {
+        /// <summary>
+        ///     Contains settings for polymorphic json serialization.
+        /// </summary>
+        private readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
+        {
+            //TypeNameHandling = TypeNameHandling.Objects,
+            SerializationBinder = new KnownTypesBinder
+            {
+                KnownTypes = new List<Type>
+                {
+                    typeof(ApnsContentWrapper),
+                    typeof(FcmContentWrapper),
+                    typeof(DataFollowedProfileVlogPosted),
+                    typeof(DataVlogGainedLike),
+                    typeof(DataVlogNewReaction),
+                    typeof(DataVlogRecordRequest),
+                    typeof(NotificationData)
+                }
+            }
+        };
+
         private readonly NotificationHubClient _hubClient;
         private readonly ILogger<AnhNotificationClient> _logger;
 
@@ -138,12 +163,12 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 case PushNotificationPlatform.APNS:
                     var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
-                    var jsonApns = JsonSerializer.Serialize(objApns);
+                    var jsonApns = JsonConvert.SerializeObject(objApns, jsonSettings);
                     await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
                     return;
                 case PushNotificationPlatform.FCM:
                     var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
-                    var jsonFcm = JsonSerializer.Serialize(objFcm);
+                    var jsonFcm = JsonConvert.SerializeObject(objFcm, jsonSettings);
                     await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
                     return;
                 default:

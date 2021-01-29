@@ -78,7 +78,7 @@ namespace Swabbr.Core.Notifications
             var context = DefaultContext(notifiedUserId);
 
             context.Notification = new SwabbrNotification(
-                notificationAction: NotificationAction.VlogGainedLikes,
+                notificationAction: NotificationAction.VlogGainedLike,
                 data: new DataVlogGainedLike
                 {
                     UserThatLikedId = userThatLikedId,

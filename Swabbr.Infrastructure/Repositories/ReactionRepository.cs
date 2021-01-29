@@ -206,11 +206,14 @@ namespace Swabbr.Infrastructure.Repositories
                             r.reaction_status,
                             r.target_vlog_id,
                             r.user_id
-                    FROM    entities.reaction_up_to_date AS r";
+                    FROM    entities.reaction_up_to_date AS r
+                    WHERE   r.target_vlog_id = @vlogId";
 
             ConstructNavigation(ref sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("vlogId", vlogId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
