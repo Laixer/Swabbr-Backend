@@ -4,7 +4,7 @@
     ///     Contains pagination information for 
     ///     querying our data store.
     /// </summary>
-    public class Navigation
+    public record Navigation
     {
         /// <summary>
         ///     The page to fetch.
@@ -17,12 +17,18 @@
         public uint Limit { get; set; }
 
         /// <summary>
+        ///     Indicates the sorting order, if applicable.
+        /// </summary>
+        public SortingOrder SortingOrder { get; set; }
+
+        /// <summary>
         ///     Default navigation implementation.
         /// </summary>
         public static Navigation Default => new Navigation
         {
             Limit = 25,
             Offset = 0,
+            SortingOrder = SortingOrder.Unsorted,
         };
 
         /// <summary>
@@ -32,7 +38,8 @@
         public static Navigation All => new Navigation
         {
             Limit = 0,
-            Offset = 0
+            Offset = 0,
+            SortingOrder = SortingOrder.Unsorted,
         };
     }
 }

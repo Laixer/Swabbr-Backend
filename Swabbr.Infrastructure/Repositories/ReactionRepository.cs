@@ -119,6 +119,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets all reactions from our database.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="Reaction.DateCreated"/>.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Reaction result set.</returns>
         public async IAsyncEnumerable<Reaction> GetAllAsync(Navigation navigation)
@@ -133,7 +136,7 @@ namespace Swabbr.Infrastructure.Repositories
                             r.user_id
                     FROM    entities.reaction_up_to_date AS r";
 
-            ConstructNavigation(ref sql, navigation);
+            ConstructNavigation(ref sql, navigation, "r.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -193,6 +196,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets reactions that belong to a vlog.
         /// </summary>
+        /// <remarks>
+        ///     This can sort by <see cref="Reaction.DateCreated"/>.
+        /// </remarks>
         /// <param name="vlogId">The corresponding vlog.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Reactions for the vlog.</returns>
@@ -209,7 +215,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    entities.reaction_up_to_date AS r
                     WHERE   r.target_vlog_id = @vlogId";
 
-            ConstructNavigation(ref sql, navigation);
+            ConstructNavigation(ref sql, navigation, "r.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 

@@ -27,13 +27,17 @@ namespace Swabbr.Api.Extensions
             // Default return.
             if (dto.Limit == 0 && dto.Offset == 0)
             {
-                return Navigation.Default;
+                return Navigation.Default with
+                {
+                    SortingOrder = dto.SortingOrder
+                };
             }
 
             return new Navigation
             {
                 Limit = dto.Limit,
-                Offset = dto.Offset
+                Offset = dto.Offset,
+                SortingOrder = dto.SortingOrder
             };
         }
     }
