@@ -160,7 +160,7 @@ namespace Swabbr.Infrastructure.Repositories
                         v.vlog_status
                 FROM    entities.vlog_up_to_date AS v";
 
-            ConstructNavigation(ref sql, navigation, "v.date_created");
+            sql = ConstructNavigation(sql, navigation, "v.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -248,7 +248,7 @@ namespace Swabbr.Infrastructure.Repositories
                             fra.receiver_id = v.user_id
                 ORDER BY    v.date_created DESC";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -288,7 +288,7 @@ namespace Swabbr.Infrastructure.Repositories
                 FROM        entities.vlog_up_to_date AS v
                 WHERE       v.user_id = @user_id";
 
-            ConstructNavigation(ref sql, navigation, "v.date_created");
+            sql = ConstructNavigation(sql, navigation, "v.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 

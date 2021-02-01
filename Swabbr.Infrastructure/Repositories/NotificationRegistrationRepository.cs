@@ -123,7 +123,7 @@ namespace Swabbr.Infrastructure.Repositories
                             nr.push_notification_platform
                     FROM    application.notification_registration AS nr";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 

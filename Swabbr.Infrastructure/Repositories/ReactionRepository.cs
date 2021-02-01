@@ -136,7 +136,7 @@ namespace Swabbr.Infrastructure.Repositories
                             r.user_id
                     FROM    entities.reaction_up_to_date AS r";
 
-            ConstructNavigation(ref sql, navigation, "r.date_created");
+            sql = ConstructNavigation(sql, navigation, "r.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -215,7 +215,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    entities.reaction_up_to_date AS r
                     WHERE   r.target_vlog_id = @vlogId";
 
-            ConstructNavigation(ref sql, navigation, "r.date_created");
+            sql = ConstructNavigation(sql, navigation, "r.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 

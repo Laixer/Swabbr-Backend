@@ -40,27 +40,34 @@ namespace Swabbr.Infrastructure.Abstractions
         ///     sql command text.
         /// </summary>
         /// <remarks>
-        ///     If the <paramref name="navigation"/> has no sorting
-        ///     order specified or if <paramref name="sortingColumn"/>
-        ///     is null or empty, no sorting is appended to the query.
-        ///     Note that <paramref name="sortingColumn"/> is optional, 
-        ///     which means that sorting will be ignored if none is
-        ///     specified.
+        ///     <para>
+        ///         If the <paramref name="navigation"/> has no sorting
+        ///         order specified or if <paramref name="sortingColumn"/>
+        ///         is null or empty, no sorting is appended to the query.
+        ///         Note that <paramref name="sortingColumn"/> is optional, 
+        ///         which means that sorting will be ignored if none is
+        ///         specified.
+        ///     </para>
+        ///     <para>
+        ///         If no <paramref name="navigation"/> is specified, this
+        ///         will do nothing and return <paramref name="cmdText"/>.
+        ///     </para>
         /// </remarks>
         /// <param name="cmdText">SQL query.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <param name="sortingColumn">The column to sort by.</param>
-        protected static void ConstructNavigation(ref string cmdText, Navigation navigation, string sortingColumn = null)
+        /// <returns>Updated sql query string.</returns>
+        protected static string ConstructNavigation(string cmdText, Navigation navigation, string sortingColumn = null)
         {
             if (navigation is null)
             {
-                throw new ArgumentNullException(nameof(navigation));
+                return cmdText;
             }
 
             const string lineFeed = "\r\n";
 
             // Only append sorting if we have both an order and a column.
-            if (navigation.SortingOrder != SortingOrder.Unsorted || string.IsNullOrEmpty(sortingColumn))
+            if (navigation.SortingOrder != SortingOrder.Unsorted && !string.IsNullOrEmpty(sortingColumn))
             {
                 cmdText += $"{lineFeed} ORDER BY {sortingColumn} {Parse(navigation.SortingOrder)}";
             }
@@ -85,6 +92,8 @@ namespace Swabbr.Infrastructure.Abstractions
                     SortingOrder.Descending => "DESC",
                     _ => throw new InvalidOperationException(nameof(sortingOrder))
                 };
+
+            return cmdText;
         }
     }
 }

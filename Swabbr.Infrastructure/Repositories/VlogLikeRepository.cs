@@ -137,7 +137,7 @@ namespace Swabbr.Infrastructure.Repositories
                             vl.vlog_id
                     FROM    entities.vlog_like_nondeleted AS vl";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -186,7 +186,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    entities.vlog_like_nondeleted AS vl
                     WHERE   vl.vlog_id = @vlog_id";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 

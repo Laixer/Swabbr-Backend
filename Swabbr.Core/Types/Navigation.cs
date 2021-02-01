@@ -27,18 +27,13 @@
         /// </summary>
         public static Navigation Default => new Navigation
         {
-            Limit = 25,
-            Offset = 0
+            Limit = 25
         };
 
         /// <summary>
         ///     Navigation indicating we want 
         ///     the complete result set.
         /// </summary>
-        public static Navigation All => new Navigation
-        {
-            Limit = 0,
-            Offset = 0
-        };
+        public static Navigation All => new Navigation();
     }
 }

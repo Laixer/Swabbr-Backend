@@ -85,7 +85,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.timezone
                     FROM    application.user AS u";
 
-            ConstructNavigation(ref sql, navigation, "u.nickname");
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -121,7 +121,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    application.user AS u
                     WHERE   u.daily_vlog_request_limit > 0";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -197,7 +197,7 @@ namespace Swabbr.Infrastructure.Repositories
                     ON      fra.requester_id = u.id
                     WHERE   fra.receiver_id = @id";
 
-            ConstructNavigation(ref sql, navigation, "u.nickname");
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -226,7 +226,7 @@ namespace Swabbr.Infrastructure.Repositories
                     ON      fra.requester_id = upnd.user_id
                     WHERE   fra.receiver_id = @id";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -269,7 +269,7 @@ namespace Swabbr.Infrastructure.Repositories
                     ON      fra.receiver_id = u.id
                     WHERE   fra.requester_id = @id";
 
-            ConstructNavigation(ref sql, navigation, "u.nickname");
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -380,7 +380,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    application.user AS u
                     WHERE   LOWER(u.nickname) LIKE LOWER(@query)";
 
-            ConstructNavigation(ref sql, navigation, "u.nickname");
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 

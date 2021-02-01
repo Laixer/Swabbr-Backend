@@ -150,7 +150,7 @@ namespace Swabbr.Infrastructure.Repositories
                             fr.requester_id
                     FROM    application.follow_request AS fr";
 
-            ConstructNavigation(ref sql, navigation, "fr.date_created");
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -263,7 +263,7 @@ namespace Swabbr.Infrastructure.Repositories
                     WHERE   fr.receiver_id = @receiver_id
                     AND     fr.follow_request_status = 'pending'" ;
 
-            ConstructNavigation(ref sql, navigation, "fr.date_created");
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -305,7 +305,7 @@ namespace Swabbr.Infrastructure.Repositories
                     WHERE   fr.requester_id = @requester_id
                     AND     fr.follow_request_status = 'pending'";
 
-            ConstructNavigation(ref sql, navigation, "fr.date_created");
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
