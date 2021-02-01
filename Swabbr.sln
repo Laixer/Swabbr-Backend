@@ -14,13 +14,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.BackgroundHost", "Swabbr.BackgroundHost\Swabbr.BackgroundHost.csproj", "{548039F0-3EEC-4E79-B7C9-63B5D8017275}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Testing", "Swabbr.Testing\Swabbr.Testing.csproj", "{B095FF64-74A9-4EFF-B535-C2EE6F20A13E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Swabbr.Testing", "Swabbr.Testing\Swabbr.Testing.csproj", "{B095FF64-74A9-4EFF-B535-C2EE6F20A13E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.Core.Tests", "Swabbr.Core.Tests\Swabbr.Core.Tests.csproj", "{75383CDF-AE03-4125-906B-AD811B2AD838}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Swabbr.Core.Tests", "Swabbr.Core.Tests\Swabbr.Core.Tests.csproj", "{75383CDF-AE03-4125-906B-AD811B2AD838}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Swabbr.IntegrationTests", "Swabbr.IntegrationTests\Swabbr.IntegrationTests.csproj", "{8BB78D7E-5217-41BE-AD83-E6176D8058C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swabbr.IntegrationTests", "Swabbr.IntegrationTests\Swabbr.IntegrationTests.csproj", "{8BB78D7E-5217-41BE-AD83-E6176D8058C9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{BA638EAC-E3CF-4D80-8560-AFB62BDD6248}"
 EndProject
@@ -42,10 +40,6 @@ Global
 		{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF59DA9D-04E4-4E0F-9DF1-BAFB6C3B347A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{548039F0-3EEC-4E79-B7C9-63B5D8017275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{548039F0-3EEC-4E79-B7C9-63B5D8017275}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{548039F0-3EEC-4E79-B7C9-63B5D8017275}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{548039F0-3EEC-4E79-B7C9-63B5D8017275}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B095FF64-74A9-4EFF-B535-C2EE6F20A13E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B095FF64-74A9-4EFF-B535-C2EE6F20A13E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B095FF64-74A9-4EFF-B535-C2EE6F20A13E}.Release|Any CPU.ActiveCfg = Release|Any CPU
