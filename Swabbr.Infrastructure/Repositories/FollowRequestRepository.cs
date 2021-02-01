@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 namespace Swabbr.Infrastructure.Repositories
 {
     // TODO This does not take non-existing users into account.
+    // TODO The order by using create_date will not work for follow requests which were declined and then re-sent.
     /// <summary>
     ///     Repository for follow requests.
     /// </summary>
@@ -134,6 +135,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets all follow requests from our database.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="FollowRequest.DateCreated"/>.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Follow request result set.</returns>
         public async IAsyncEnumerable<FollowRequest> GetAllAsync(Navigation navigation)
@@ -145,6 +149,8 @@ namespace Swabbr.Infrastructure.Repositories
                             fr.receiver_id,
                             fr.requester_id
                     FROM    application.follow_request AS fr";
+
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -231,7 +237,12 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Gets incoming follow requests for a user.
         /// </summary>
         /// <remarks>
-        ///     The current user id is extracted from the app context.
+        ///     <para>
+        ///         The current user id is extracted from the app context.
+        ///     </para>
+        ///     <para>
+        ///         This can order by <see cref="FollowRequest.DateCreated"/>.
+        ///     </para>
         /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Incoming follow requests.</returns>
@@ -252,7 +263,7 @@ namespace Swabbr.Infrastructure.Repositories
                     WHERE   fr.receiver_id = @receiver_id
                     AND     fr.follow_request_status = 'pending'" ;
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -268,7 +279,12 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Gets outgoing follow requests for a user.
         /// </summary>
         /// <remarks>
-        ///     The current user id is extracted from the app context.
+        ///     <para>
+        ///         The current user id is extracted from the app context.
+        ///     </para>
+        ///     <para>
+        ///         This can order by <see cref="FollowRequest.DateCreated"/>.
+        ///     </para>
         /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Outgoing follow requests.</returns>
@@ -289,7 +305,7 @@ namespace Swabbr.Infrastructure.Repositories
                     WHERE   fr.requester_id = @requester_id
                     AND     fr.follow_request_status = 'pending'";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 

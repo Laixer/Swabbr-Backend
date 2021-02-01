@@ -1,4 +1,6 @@
-﻿namespace Swabbr.Api.DataTransferObjects
+﻿using Swabbr.Core.Types;
+
+namespace Swabbr.Api.DataTransferObjects
 {
     /// <summary>
     ///     DTO for our navigation.
@@ -14,5 +16,10 @@
         ///     The amount of items to fetch.
         /// </summary>
         public uint Limit { get; init; }
+
+        /// <summary>
+        ///     Indicates the sorting order, if applicable.
+        /// </summary>
+        public SortingOrder SortingOrder { get; set; } = SortingOrder.Unsorted; // Explicit assignment for readability.
     }
 }

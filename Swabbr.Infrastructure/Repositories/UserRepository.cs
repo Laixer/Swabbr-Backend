@@ -61,6 +61,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets a collection of users from our database.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="User.Nickname"/>.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Collection of users.</returns>
         public async IAsyncEnumerable<User> GetAllAsync(Navigation navigation)
@@ -82,7 +85,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.timezone
                     FROM    application.user AS u";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -118,7 +121,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    application.user AS u
                     WHERE   u.daily_vlog_request_limit > 0";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -166,6 +169,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets the followers of a given user.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="User.Nickname"/>.
+        /// </remarks>
         /// <param name="userId">The user that is being followed.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Followers of the specified user.</returns>
@@ -191,7 +197,7 @@ namespace Swabbr.Infrastructure.Repositories
                     ON      fra.requester_id = u.id
                     WHERE   fra.receiver_id = @id";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -220,7 +226,7 @@ namespace Swabbr.Infrastructure.Repositories
                     ON      fra.requester_id = upnd.user_id
                     WHERE   fra.receiver_id = @id";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -235,6 +241,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets users that are being followed by a given user.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="User.Nickname"/>.
+        /// </remarks>
         /// <param name="userId">The user that is following.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Users that the user is following.</returns>
@@ -260,7 +269,7 @@ namespace Swabbr.Infrastructure.Repositories
                     ON      fra.receiver_id = u.id
                     WHERE   fra.requester_id = @id";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -345,6 +354,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Search for users in our data store.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="User.Nickname"/>.
+        /// </remarks>
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
@@ -368,7 +380,7 @@ namespace Swabbr.Infrastructure.Repositories
                     FROM    application.user AS u
                     WHERE   LOWER(u.nickname) LIKE LOWER(@query)";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "u.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 

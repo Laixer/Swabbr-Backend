@@ -143,6 +143,9 @@ namespace Swabbr.Infrastructure.Repositories
         /// <summary>
         ///     Gets all vlogs from our data store.
         /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="Vlog.DateCreated"/>.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlog result set.</returns>
         public async IAsyncEnumerable<Vlog> GetAllAsync(Navigation navigation)
@@ -157,7 +160,7 @@ namespace Swabbr.Infrastructure.Repositories
                         v.vlog_status
                 FROM    entities.vlog_up_to_date AS v";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "v.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -216,6 +219,11 @@ namespace Swabbr.Infrastructure.Repositories
         ///     Gets a collection of most recent vlogs for a user
         ///     based on all users the user follows.
         /// </summary>
+        /// <remarks>
+        ///     This ignores <see cref="Navigation.SortingOrder"/> as
+        ///     it will always order by <see cref="Vlog.DateCreated"/>
+        ///     in descending manner.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>The most recent vlogs owned by the user.</returns>
         public async IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Navigation navigation)
@@ -240,7 +248,7 @@ namespace Swabbr.Infrastructure.Repositories
                             fra.receiver_id = v.user_id
                 ORDER BY    v.date_created DESC";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation);
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -261,7 +269,7 @@ namespace Swabbr.Infrastructure.Repositories
         ///         The user id is extracted from the context.
         ///     </para>
         ///     <para>
-        ///         This also sorts by most recent.
+        ///         This can order by <see cref="Vlog.DateCreated"/>.
         ///     </para>
         /// </remarks>
         /// <param name="userId">Owner user id.</param>
@@ -278,10 +286,9 @@ namespace Swabbr.Infrastructure.Repositories
                             v.views,
                             v.vlog_status
                 FROM        entities.vlog_up_to_date AS v
-                WHERE       v.user_id = @user_id
-                ORDER BY    v.date_created DESC";
+                WHERE       v.user_id = @user_id";
 
-            ConstructNavigation(ref sql, navigation);
+            sql = ConstructNavigation(sql, navigation, "v.date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
