@@ -20,6 +20,6 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     Indicates the sorting order, if applicable.
         /// </summary>
-        public SortingOrder SortingOrder { get; set; }
+        public SortingOrder SortingOrder { get; set; } = SortingOrder.Unsorted; // Explicit assignment for readability.
     }
 }

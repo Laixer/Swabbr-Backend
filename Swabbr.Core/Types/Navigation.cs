@@ -19,16 +19,16 @@
         /// <summary>
         ///     Indicates the sorting order, if applicable.
         /// </summary>
-        public SortingOrder SortingOrder { get; set; }
-
+        /// 
+        public SortingOrder SortingOrder { get; set; } = SortingOrder.Unsorted; // Explicit assignment for readability.
+            
         /// <summary>
         ///     Default navigation implementation.
         /// </summary>
         public static Navigation Default => new Navigation
         {
             Limit = 25,
-            Offset = 0,
-            SortingOrder = SortingOrder.Unsorted,
+            Offset = 0
         };
 
         /// <summary>
@@ -38,8 +38,7 @@
         public static Navigation All => new Navigation
         {
             Limit = 0,
-            Offset = 0,
-            SortingOrder = SortingOrder.Unsorted,
+            Offset = 0
         };
     }
 }
