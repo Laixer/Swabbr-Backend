@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Swabbr.BackgroundHost.Abstraction
+namespace Swabbr.Core.Abstractions
 {
     /// <summary>
     ///     Generic timed hosted service. Use this to perform
@@ -14,7 +14,7 @@ namespace Swabbr.BackgroundHost.Abstraction
     ///     Modify <see cref="Interval"/> to determine the
     ///     interval for the periodic work.
     /// </remarks>
-    internal abstract class PeriodicHostedService : IHostedService, IDisposable
+    public abstract class PeriodicHostedService : IHostedService, IDisposable
     {
         private int executionCount = 0;
         private readonly ILogger _logger;

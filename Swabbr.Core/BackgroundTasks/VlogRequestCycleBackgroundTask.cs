@@ -3,7 +3,7 @@ using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
 
-namespace Swabbr.BackgroundHost.BackgroundTasks
+namespace Swabbr.Core.BackgroundTasks
 {
     /// <summary>
     ///     Background task representing a vlog request cycle,

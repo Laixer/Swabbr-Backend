@@ -17,10 +17,13 @@ using Swabbr.Api.ErrorMessaging;
 using Swabbr.Api.HealthChecks;
 using Swabbr.Api.Helpers;
 using Swabbr.Core;
+using Swabbr.Core.BackgroundTasks;
+using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Extensions;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Repositories;
 using Swabbr.Core.Interfaces.Services;
+using Swabbr.Core.Services;
 using Swabbr.Infrastructure.Extensions;
 using System.Text;
 
@@ -128,6 +131,10 @@ namespace Swabbr
 
             // Add custom exception handling
             services.AddSwabbrExceptionMapper();
+
+            // Add the hosted services and background task for the vlog triggers
+            services.AddHostedService<VlogRequestPeriodicHostedService>();
+            services.AddBackgroundTask<VlogRequestCycleBackgroundTask>();
         }
 
         /// <summary>

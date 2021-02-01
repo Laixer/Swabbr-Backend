@@ -1,17 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
-using Swabbr.BackgroundHost.Abstraction;
-using Swabbr.BackgroundHost.BackgroundTasks;
+using Swabbr.Core.Abstractions;
+using Swabbr.Core.BackgroundTasks;
 using Swabbr.Core.BackgroundWork;
 using System;
 using System.Threading;
 
-namespace Swabbr.BackgroundHost.Services
+namespace Swabbr.Core.Services
 {
     /// <summary>
     ///     Periodic vlog request hosted service which triggers
     ///     every minute to send all required vlog requests.
     /// </summary>
-    internal class VlogRequestPeriodicHostedService : PeriodicHostedService
+    public class VlogRequestPeriodicHostedService : PeriodicHostedService
     {
         private readonly DispatchManager _dispatchManager;
 
