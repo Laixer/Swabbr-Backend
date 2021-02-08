@@ -106,43 +106,6 @@ namespace Swabbr.Api.Controllers
             // Return.
             return Ok(output);
         }
-
-        // GET: api/vlog/{id}/summary
-        /// <summary>
-        ///     Get a vlog with its likes summarized.
-        /// </summary>
-        /// <param name="vlogId"></param>
-        /// <returns></returns>
-        [HttpGet("{vlogId}/summary")]
-        public async Task<IActionResult> GetWithSummaryAsync([FromRoute] Guid vlogId)
-        {
-            // Act.
-            var vlogLikeSummary = await _vlogService.GetVlogLikeSummaryForVlogAsync(vlogId);
-            
-            // Map.
-            var output = _mapper.Map<VlogLikeSummaryDto>(vlogLikeSummary);
-
-            // Return.
-            return Ok(output);
-        }
-
-        // GET: api/vlog/{id}/likes
-        /// <summary>
-        ///     Get likes for a vlog.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("{vlogId}/likes")]
-        public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
-        {
-            // Act.
-            var likes = await _vlogService.GetVlogLikesForVlogAsync(vlogId, pagination.ToNavigation()).ToListAsync();
-
-            // Map.
-            var output = _mapper.Map<IEnumerable<VlogLikeDto>>(likes);
-
-            // Return.
-            return Ok(output);
-        }
         
         // GET: api/vlog/recommended
         /// <summary>
@@ -159,20 +122,6 @@ namespace Swabbr.Api.Controllers
 
             // Return.
             return Ok(output);
-        }
-        
-        // POST: api/vlog/{id}/like
-        /// <summary>
-        ///     Like a vlog.
-        /// </summary>
-        [HttpPost("{vlogId}/like")]
-        public async Task<IActionResult> LikeAsync([FromRoute]Guid vlogId)
-        {
-            // Act.
-            await _vlogService.LikeAsync(vlogId);
-
-            // Return.
-            return NoContent();
         }
 
         // GET: api/vlog/for-user/{id}
@@ -208,20 +157,6 @@ namespace Swabbr.Api.Controllers
                 VlogId = input.Id,
             };
             dispatchManager.Dispatch<PostVlogBackgroundTask>(postVlogContext);
-
-            // Return.
-            return NoContent();
-        }
-
-        // POST: api/vlog/{id}/unlike
-        /// <summary>
-        ///     Unlike a vlog.
-        /// </summary>
-        [HttpPost("{vlogId}/unlike")]
-        public async Task<IActionResult> UnlikeAsync([FromRoute]Guid vlogId)
-        {
-            // Act.
-            await _vlogService.UnlikeAsync(vlogId);
 
             // Return.
             return NoContent();

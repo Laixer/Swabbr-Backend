@@ -37,6 +37,7 @@ namespace Swabbr.Api
                 .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.Id.UserId))
                 .ForMember(dest => dest.VlogId, o => o.MapFrom(src => src.Id.VlogId));
             mapper.CreateMap<VlogLikeSummary, VlogLikeSummaryDto>();
+            mapper.CreateMap<VlogLikingUserWrapper, VlogLikingUserWrapperDto>();
 
             // Create custom mapping for time zone types
             mapper.CreateMap<TimeZoneInfo, string>().ConvertUsing(tz => tz == null
