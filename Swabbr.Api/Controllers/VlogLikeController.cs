@@ -51,7 +51,7 @@ namespace Swabbr.Api.Controllers
 
         // GET: api/vlog-like/{vlogId}/{userId}
         /// <summary>
-        ///     Get a vlog.
+        ///     Get a vlog like.
         /// </summary>
         [HttpGet("{vlogId}/{userId}")]
         public async Task<IActionResult> GetAsync([FromRoute] Guid vlogId, [FromRoute] Guid userId)
@@ -72,7 +72,7 @@ namespace Swabbr.Api.Controllers
 
         // GET: api/vlog-like/summary/{id}
         /// <summary>
-        ///     Get a vlog with its likes summarized.
+        ///     Get a summary of the likes for a vlog.
         /// </summary>
         /// <param name="vlogId"></param>
         /// <returns></returns>
@@ -93,7 +93,6 @@ namespace Swabbr.Api.Controllers
         /// <summary>
         ///     Get likes for a vlog.
         /// </summary>
-        /// <returns></returns>
         [HttpGet("for-vlog/{vlogId}")]
         public async Task<IActionResult> GetLikesForVlogAsync([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
         {
