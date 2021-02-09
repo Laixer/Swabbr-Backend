@@ -46,6 +46,7 @@ namespace Swabbr.Core.Extensions
             services.AddScoped<IUserSelectionService, UserSelectionService>();
             services.AddScoped<IReactionService, ReactionService>();
             services.AddScoped<IVlogService, VlogService>();
+            services.AddScoped<IVlogLikeService, VlogLikeService>();
             services.AddScoped<IVlogRequestService, VlogRequestService>();
             services.AddScoped<IUserService, UserService>();
 

@@ -137,52 +137,6 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
-        ///     Gets all the <see cref="VlogLike"/>s for a <see cref="Vlog"/>.
-        /// </summary>
-        /// <remarks>
-        ///     This does not scale. If that is required, use an implementation
-        ///     of <see cref="GetVlogLikeSummaryForVlogAsync(Guid)"/> which does
-        ///     not return all <see cref="VlogLike"/> but only a subset.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <param name="navigation">Navigation control.</param>
-        /// <returns><see cref="VlogLike"/> collection</returns>
-        public IAsyncEnumerable<VlogLike> GetVlogLikesForVlogAsync(Guid vlogId, Navigation navigation)
-            => _vlogLikeRepository.GetForVlogAsync(vlogId, navigation);
-
-        /// <summary>
-        ///     Gets a <see cref="VlogLikeSummary"/> for a given vlog.
-        /// </summary>
-        /// <remarks>
-        ///     The <see cref="VlogLikeSummary.Users"/> does not need
-        ///     to contain all the <see cref="User"/> users.
-        /// </remarks>
-        /// <param name="vlogId">Internal <see cref="Vlog"/> id</param>
-        /// <returns><see cref="VlogLikeSummary"/></returns>
-        public Task<VlogLikeSummary> GetVlogLikeSummaryForVlogAsync(Guid vlogId)
-            => _vlogLikeRepository.GetSummaryForVlogAsync(vlogId);
-
-        /// <summary>
-        ///     Used when the current users like a vlog.
-        /// </summary>
-        /// <param name="vlogId">The vlog to like.</param>
-        public async Task LikeAsync(Guid vlogId)
-        {
-            var vlogLikeId = await _vlogLikeRepository.CreateAsync(new VlogLike
-            {
-                Id = new VlogLikeId
-                {
-                    UserId = AppContext.UserId,
-                    VlogId = vlogId
-                }
-            });
-
-            var vlog = await GetAsync(vlogId);
-
-            await _notificationService.NotifyVlogLikedAsync(vlog.UserId, vlogLikeId);
-        }
-
-        /// <summary>
         ///     Called when a vlog has been uploaded. This will
         ///     publish the vlog and notify all followers.
         /// </summary>
@@ -225,17 +179,6 @@ namespace Swabbr.Core.Services
             // This function will dispatch a notification for each follower.
             await _notificationService.NotifyFollowersVlogPostedAsync(AppContext.UserId, context.VlogId);
         }
-
-        /// <summary>
-        ///     Used when the current user unlikes a vlog.
-        /// </summary>
-        /// <param name="vlogId">The vlog to unlike.</param>
-        public Task UnlikeAsync(Guid vlogId)
-            => _vlogLikeRepository.DeleteAsync(new VlogLikeId
-            {
-                VlogId = vlogId,
-                UserId = AppContext.UserId
-            });
 
         /// <summary>
         ///     Updates a vlog in our data store.

@@ -14,6 +14,12 @@ namespace Swabbr.Infrastructure.Repositories
     /// <summary>
     ///     Repository for vlog likes.
     /// </summary>
+    /// <remarks>
+    ///     This repository checks vlog_like_nondeleted, not vlog_like, 
+    ///     meaning any deleted vlogs make their vlog likes seem deleted 
+    ///     as well. The entries in the database remain, but these methods
+    ///     will perform as if the entries don't exist.
+    /// </remarks>
     internal class VlogLikeRepository : DatabaseContextBase, IVlogLikeRepository
     {
         /// <summary>
@@ -111,7 +117,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     SELECT  EXISTS (
                         SELECT  1
-                        FROM    application.vlog_like AS vl
+                        FROM    entities.vlog_like_nondeleted AS vl
                         WHERE   vl.user_id = @user_id
                         AND     vl.vlog_id = @vlog_id
                     )";
@@ -154,17 +160,25 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns>The vlog like.</returns>
         public async Task<VlogLike> GetAsync(VlogLikeId id)
         {
+            if (id is null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
             var sql = @"
                     SELECT  vl.date_created,
                             vl.user_id,
                             vl.vlog_id
                     FROM    entities.vlog_like_nondeleted AS vl
-                    WHERE   vl.id = @id
+                    WHERE   vl.vlog_id = @vlog_id
+                            AND
+                            vl.user_id = @user_id
                     LIMIT   1";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
-            context.AddParameterWithValue("id", id);
+            context.AddParameterWithValue("user_id", id.UserId);
+            context.AddParameterWithValue("vlog_id", id.VlogId);
 
             await using var reader = await context.ReaderAsync();
 
@@ -268,6 +282,67 @@ namespace Swabbr.Infrastructure.Repositories
                 Users = users,
                 VlogId = vlogId
             };
+        }
+
+        /// <summary>
+        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
+        ///     belong to the vlogs of a given <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        public async IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation)
+        {
+            if (!AppContext.HasUser)
+            {
+                throw new InvalidOperationException();
+            }
+            
+            var sql = @"
+                SELECT
+                    vlog_owner_id,
+                    is_vlog_owner_following_vlog_liking_user,
+
+                    -- Vlog like, alphabetic properties
+                    vlog_like_date_created,
+                    vlog_id,
+                    vlog_like_user_id,
+
+                    -- Vlog liking user, alphabetic properties
+                    user_birth_date,
+                    user_country,
+                    user_daily_vlog_request_limit,
+                    user_first_name,
+                    user_follow_mode,
+                    user_gender,
+                    user_id,
+                    user_is_private,
+                    user_last_name,
+                    user_latitude,
+                    user_longitude,
+                    user_nickname,
+                    user_profile_image_base64_encoded,
+                    user_timezone
+                FROM
+                    entities.vlog_liking_user
+                WHERE
+                    vlog_owner_id = @user_id";
+
+            sql = ConstructNavigation(sql, navigation, "vlog_like_date_created");
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", AppContext.UserId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new VlogLikingUserWrapper
+                {
+                    VlogOwnerId = reader.GetGuid(0),
+                    IsVlogOwnerFollowingVlogLikingUser = reader.GetBoolean(1),
+                    VlogLike = MapFromReader(reader, 2),
+                    VlogLikingUser = UserRepository.MapFromReader(reader, 5)
+                };
+            }
         }
 
         /// <summary>
