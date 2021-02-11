@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swabbr.Core.Types;
+using System;
 
 namespace Swabbr.Api.DataTransferObjects
 {
@@ -13,10 +14,11 @@ namespace Swabbr.Api.DataTransferObjects
         public Guid VlogOwnerId { get; set; }
 
         /// <summary>
-        ///     Indicates if <see cref="VlogOwnerId"/> is 
-        ///     following <see cref="VlogLikingUser"/>.
+        ///     Status of the follow request if one exists between
+        ///     <see cref="VlogOwnerId"/> and <see cref="VlogLikingUser"/>,
+        ///     else null.
         /// </summary>
-        public bool IsVlogOwnerFollowingVlogLikingUser { get; set; }
+        public FollowRequestStatus? FollowRequestStatus { get; set; }
 
         /// <summary>
         ///     Corresponding vlog like entity.

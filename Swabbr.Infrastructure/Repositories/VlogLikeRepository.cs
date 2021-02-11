@@ -300,7 +300,9 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                 SELECT
                     vlog_owner_id,
-                    is_vlog_owner_following_vlog_liking_user,
+
+                    -- Follow request metadata
+                    follow_request_status_or_null,
 
                     -- Vlog like, alphabetic properties
                     vlog_like_date_created,
@@ -338,7 +340,7 @@ namespace Swabbr.Infrastructure.Repositories
                 yield return new VlogLikingUserWrapper
                 {
                     VlogOwnerId = reader.GetGuid(0),
-                    IsVlogOwnerFollowingVlogLikingUser = reader.GetBoolean(1),
+                    FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus?>(1),
                     VlogLike = MapFromReader(reader, 2),
                     VlogLikingUser = UserRepository.MapFromReader(reader, 5)
                 };
