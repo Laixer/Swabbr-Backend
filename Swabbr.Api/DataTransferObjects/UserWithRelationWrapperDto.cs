@@ -1,5 +1,4 @@
-﻿using Swabbr.Core.Entities;
-using Swabbr.Core.Types;
+﻿using Swabbr.Core.Types;
 using System;
 
 namespace Swabbr.Api.DataTransferObjects
@@ -27,6 +26,6 @@ namespace Swabbr.Api.DataTransferObjects
         /// <summary>
         ///     User that liked the vlog.
         /// </summary>
-        public User User { get; set; }
+        public UserDto User { get; set; }
     }
 }
