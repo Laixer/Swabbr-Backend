@@ -92,6 +92,23 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+        // GET: api/user/vlog-liking-users
+        /// <summary>
+        ///     Get wrappers around all vlog liking users for the current user.
+        /// </summary>
+        [HttpGet("vlog-liking-users")]
+        public async Task<IActionResult> GetVlogLikingUsersAsync([FromQuery] PaginationDto pagination)
+        {
+            // Act.
+            var vlogLikingUserWrappers = await _userService.GetVlogLikingUsersForUserAsync(pagination.ToNavigation()).ToListAsync();
+
+            // Map.
+            var output = _mapper.Map<IEnumerable<VlogLikingUserWrapperDto>>(vlogLikingUserWrappers);
+
+            // Return.
+            return Ok(output);
+        }
+
         // GET: api/user/{id}/following
         /// <summary>
         ///     List all users that a given user is following.
@@ -137,7 +154,7 @@ namespace Swabbr.Api.Controllers
             var users = await _userService.SearchAsync(input.Query, input.ToNavigation()).ToListAsync();
 
             // Map.
-            var output = _mapper.Map<IEnumerable<UserDto>>(users);
+            var output = _mapper.Map<IEnumerable<UserWithRelationWrapperDto>>(users);
 
             // Return.
             return Ok(output);

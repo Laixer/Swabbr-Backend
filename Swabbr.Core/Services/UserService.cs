@@ -83,6 +83,18 @@ namespace Swabbr.Core.Services
             => _userRepository.GetPushDetailsAsync(userId);
 
         /// <summary>
+        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
+        ///     belong to the vlogs of a given <paramref name="userId"/>.
+        /// </summary>
+        /// <remarks>
+        ///     The user id is extracted from the <see cref="AppContext"/>.
+        /// </remarks>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        public IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation)
+            => _userRepository.GetVlogLikingUsersForUserAsync(navigation);
+
+        /// <summary>
         ///     Gets a user with corresponding statistics.
         /// </summary>
         /// <param name="userId">The internal user id.</param>
@@ -96,7 +108,7 @@ namespace Swabbr.Core.Services
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        public IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
+        public IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation)
             => _userRepository.SearchAsync(query, navigation);
 
         /// <summary>

@@ -8,6 +8,11 @@ namespace Swabbr.Api.DataTransferObjects
     public record TokenWrapperDto
     {
         /// <summary>
+        ///     The id of the authenticating user.
+        /// </summary>
+        public Guid UserId { get; set; }
+
+        /// <summary>
         ///     The acces token.
         /// </summary>
         public string Token { get; init; }

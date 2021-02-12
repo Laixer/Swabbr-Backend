@@ -74,18 +74,6 @@ namespace Swabbr.Core.Services
             => _vlogLikeRepository.GetSummaryForVlogAsync(vlogId);
 
         /// <summary>
-        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
-        ///     belong to the vlogs of a given <paramref name="userId"/>.
-        /// </summary>
-        /// <remarks>
-        ///     The user id is extracted from the <see cref="AppContext"/>.
-        /// </remarks>
-        /// <param name="navigation">Result set control.</param>
-        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
-        public IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation)
-            => _vlogLikeRepository.GetVlogLikingUsersForUserAsync(navigation);
-
-        /// <summary>
         ///     Used when the current users like a vlog. This also
         ///     dispatches a notification to the vlog owner.
         /// </summary>

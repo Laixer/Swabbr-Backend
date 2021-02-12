@@ -42,6 +42,14 @@ namespace Swabbr.Core.Interfaces.Services
         Task<User> GetAsync(Guid userId);
 
         /// <summary>
+        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
+        ///     belong to the vlogs of a given <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation);
+
+        /// <summary>
         ///     Gets a user object with its statistics.
         /// </summary>
         /// <param name="userId">The internal user id.</param>
@@ -77,7 +85,7 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation);
+        IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation);
 
         /// <summary>
         ///     Update the current user in our data store.

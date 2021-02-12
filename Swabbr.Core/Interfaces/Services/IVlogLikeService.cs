@@ -42,14 +42,6 @@ namespace Swabbr.Core.Interfaces.Services
         IAsyncEnumerable<VlogLike> GetVlogLikesForVlogAsync(Guid vlogId, Navigation navigation);
 
         /// <summary>
-        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
-        ///     belong to the vlogs of a given <paramref name="userId"/>.
-        /// </summary>
-        /// <param name="navigation">Result set control.</param>
-        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
-        IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation);
-
-        /// <summary>
         ///     Gets a like summery for a given vlog.
         /// </summary>
         /// <param name="vlogId">Internal vlog id</param>
