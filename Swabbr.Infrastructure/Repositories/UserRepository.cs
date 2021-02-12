@@ -306,6 +306,71 @@ namespace Swabbr.Infrastructure.Repositories
             return MapPushNotificationDetailsFromReader(reader);
         }
 
+
+        /// <summary>
+        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
+        ///     belong to the vlogs of a given <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        public async IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation)
+        {
+            if (!AppContext.HasUser)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var sql = @"
+                SELECT
+                    vlog_owner_id,
+
+                    -- Follow request metadata
+                    follow_request_status_or_null,
+
+                    -- Vlog like, alphabetic properties
+                    vlog_like_date_created,
+                    vlog_like_user_id,
+                    vlog_id,
+
+                    -- Vlog liking user, alphabetic properties
+                    user_birth_date,
+                    user_country,
+                    user_daily_vlog_request_limit,
+                    user_first_name,
+                    user_follow_mode,
+                    user_gender,
+                    user_id,
+                    user_is_private,
+                    user_last_name,
+                    user_latitude,
+                    user_longitude,
+                    user_nickname,
+                    user_profile_image_base64_encoded,
+                    user_timezone
+                FROM
+                    entities.vlog_liking_user
+                WHERE
+                    vlog_owner_id = @user_id";
+
+            sql = ConstructNavigation(sql, navigation, "vlog_like_date_created");
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", AppContext.UserId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new VlogLikingUserWrapper
+                {
+                    RequestingUserId = reader.GetGuid(0),
+                    FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus?>(1),
+                    VlogLike = VlogLikeRepository.MapFromReader(reader, 2),
+                    User = MapFromReader(reader, 5)
+                };
+            }
+        }
+
+
         /// <summary>
         ///     Gets a user with its statistics.
         /// </summary>

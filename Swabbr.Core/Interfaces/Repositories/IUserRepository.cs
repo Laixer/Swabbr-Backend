@@ -67,6 +67,14 @@ namespace Swabbr.Core.Interfaces.Repositories
         IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation);
 
         /// <summary>
+        ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
+        ///     belong to the vlogs of a given <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation);
+
+        /// <summary>
         ///     Search for users in our data store.
         /// </summary>
         /// <param name="query">Search string.</param>

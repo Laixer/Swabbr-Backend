@@ -106,23 +106,6 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
-        // GET: api/vlog-like/vlog-liking-users
-        /// <summary>
-        ///     Get wrappers around all vlog liking users for the current user.
-        /// </summary>
-        [HttpGet("vlog-liking-users")]
-        public async Task<IActionResult> GetVlogLikingUsersAsync([FromQuery] PaginationDto pagination)
-        {
-            // Act.
-            var vlogLikingUserWrappers = await _vlogLikeService.GetVlogLikingUsersForUserAsync(pagination.ToNavigation()).ToListAsync();
-
-            // Map.
-            var output = _mapper.Map<IEnumerable<VlogLikingUserWrapperDto>>(vlogLikingUserWrappers);
-
-            // Return.
-            return Ok(output);
-        }
-
         // POST: api/vlog-like/like/{vlogId}
         /// <summary>
         ///     Like a vlog.
