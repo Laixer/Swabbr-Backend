@@ -22,7 +22,7 @@ namespace Swabbr.Testing.Repositories
         public IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
         public Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId) => throw new NotImplementedException();
         public Task<UserWithStats> GetWithStatisticsAsync(Guid userId) => throw new NotImplementedException();
-        public IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation) => throw new NotImplementedException();
         public Task UpdateAsync(User entity) => throw new NotImplementedException();
     }
 }

@@ -72,6 +72,6 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation);
+        IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation);
     }
 }

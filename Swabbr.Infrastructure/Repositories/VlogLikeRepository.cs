@@ -339,10 +339,10 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 yield return new VlogLikingUserWrapper
                 {
-                    VlogOwnerId = reader.GetGuid(0),
+                    RequestingUserId = reader.GetGuid(0),
                     FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus?>(1),
                     VlogLike = MapFromReader(reader, 2),
-                    VlogLikingUser = UserRepository.MapFromReader(reader, 5)
+                    User = UserRepository.MapFromReader(reader, 5)
                 };
             }
         }

@@ -360,10 +360,17 @@ namespace Swabbr.Infrastructure.Repositories
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        public async IAsyncEnumerable<User> SearchAsync(string query, Navigation navigation)
+        public async IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation)
         {
+            if (!AppContext.HasUser)
+            {
+                throw new InvalidOperationException();
+            }
+
             var sql = @"
-                    SELECT  u.birth_date,
+                    SELECT  u.requesting_user_id,
+                            u.follow_request_status_or_null,
+                            u.birth_date,
                             u.country,
                             u.daily_vlog_request_limit,
                             u.first_name,
@@ -377,8 +384,10 @@ namespace Swabbr.Infrastructure.Repositories
                             u.nickname,
                             u.profile_image_base64_encoded,
                             u.timezone
-                    FROM    application.user AS u
-                    WHERE   LOWER(u.nickname) LIKE LOWER(@query)";
+                    FROM    application.user_search_with_follow_request_status AS u
+                    WHERE   LOWER(u.nickname) LIKE LOWER(@query)
+                            AND
+                            u.requesting_user_id = @requesting_user_id";
 
             sql = ConstructNavigation(sql, navigation, "u.nickname");
 
@@ -386,10 +395,15 @@ namespace Swabbr.Infrastructure.Repositories
 
             // Manually append the % wildcard
             context.AddParameterWithValue("query", $"{query}%");
+            context.AddParameterWithValue("requesting_user_id", AppContext.UserId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
-                yield return MapFromReader(reader);
+                yield return new UserWithRelationWrapper {
+                    RequestingUserId = reader.GetGuid(0),
+                    FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus?>(1),
+                    User = MapFromReader(reader, 2)
+                };
             }
         }
 

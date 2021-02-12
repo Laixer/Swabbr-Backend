@@ -6,28 +6,11 @@ namespace Swabbr.Api.DataTransferObjects
     /// <summary>
     ///     Data class around a user that likes a certain vlog.
     /// </summary>
-    public record VlogLikingUserWrapperDto
+    public record VlogLikingUserWrapperDto : UserWithRelationWrapperDto
     {
-        /// <summary>
-        ///     User id of the owner of the liked vlog.
-        /// </summary>
-        public Guid VlogOwnerId { get; set; }
-
-        /// <summary>
-        ///     Status of the follow request if one exists between
-        ///     <see cref="VlogOwnerId"/> and <see cref="VlogLikingUser"/>,
-        ///     else null.
-        /// </summary>
-        public FollowRequestStatus? FollowRequestStatus { get; set; }
-
         /// <summary>
         ///     Corresponding vlog like entity.
         /// </summary>
         public VlogLikeDto VlogLike { get; set; }
-
-        /// <summary>
-        ///     User that liked the vlog.
-        /// </summary>
-        public UserDto VlogLikingUser { get; set; }
     }
 }

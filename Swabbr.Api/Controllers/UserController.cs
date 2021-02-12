@@ -137,7 +137,7 @@ namespace Swabbr.Api.Controllers
             var users = await _userService.SearchAsync(input.Query, input.ToNavigation()).ToListAsync();
 
             // Map.
-            var output = _mapper.Map<IEnumerable<UserDto>>(users);
+            var output = _mapper.Map<IEnumerable<UserWithRelationWrapperDto>>(users);
 
             // Return.
             return Ok(output);

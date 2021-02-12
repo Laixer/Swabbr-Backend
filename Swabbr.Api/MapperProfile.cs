@@ -32,6 +32,7 @@ namespace Swabbr.Api
             mapper.CreateMap<User, UserDto>();
             mapper.CreateMap<User, UserCompleteDto>();
             mapper.CreateMap<UserWithStats, UserWithStatsDto>();
+            mapper.CreateMap<UserWithRelationWrapper, UserWithRelationWrapperDto>();
             mapper.CreateMap<Vlog, VlogDto>().ReverseMap();
             mapper.CreateMap<VlogLike, VlogLikeDto>()
                 .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.Id.UserId))
