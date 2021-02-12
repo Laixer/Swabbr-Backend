@@ -306,8 +306,8 @@ namespace Swabbr.Infrastructure.Repositories
 
                     -- Vlog like, alphabetic properties
                     vlog_like_date_created,
-                    vlog_id,
                     vlog_like_user_id,
+                    vlog_id,
 
                     -- Vlog liking user, alphabetic properties
                     user_birth_date,
