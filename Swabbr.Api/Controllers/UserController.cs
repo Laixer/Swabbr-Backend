@@ -57,6 +57,25 @@ namespace Swabbr.Api.Controllers
             return Ok(output);
         }
 
+
+        // GET: api/user/follow-requesting-users
+        /// <summary>
+        ///     Get wrappers around all users which have a follow 
+        ///     request pending for our current user.
+        /// </summary>
+        [HttpGet("follow-requesting-users")]
+        public async Task<IActionResult> GetFollowRequestingUsersAsync([FromQuery] PaginationDto pagination)
+        {
+            // Act.
+            var userWithRelationWrappers = await _userService.GetFollowRequestingUsersAsync(pagination.ToNavigation()).ToListAsync();
+
+            // Map.
+            var output = _mapper.Map<IEnumerable<UserWithRelationWrapperDto>>(userWithRelationWrappers);
+
+            // Return.
+            return Ok(output);
+        }
+
         // GET: api/user/{id}/statistics
         /// <summary>
         ///     Get a user with its statistics.

@@ -51,6 +51,15 @@ namespace Swabbr.Core.Interfaces.Repositories
         IAsyncEnumerable<UserPushNotificationDetails> GetFollowersPushDetailsAsync(Guid userId, Navigation navigation);
 
         /// <summary>
+        ///     Gets all <see cref="UserWithRelationWrapper"/> objects that 
+        ///     belong to the users which have pending follow requests for 
+        ///     the current user.
+        /// </summary>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        IAsyncEnumerable<UserWithRelationWrapper> GetFollowRequestingUsersAsync(Navigation navigation);
+
+        /// <summary>
         ///     Gets the push notification details for a
         ///     given user.
         /// </summary>

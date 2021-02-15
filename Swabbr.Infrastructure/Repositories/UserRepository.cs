@@ -210,6 +210,59 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        ///     Gets all <see cref="UserWithRelationWrapper"/> objects that 
+        ///     belong to the users which have pending follow requests for 
+        ///     the current user.
+        /// </summary>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Wrappers around all users that liked saids vlogs.</returns>
+        public async IAsyncEnumerable<UserWithRelationWrapper> GetFollowRequestingUsersAsync(Navigation navigation)
+        {
+            if (!AppContext.HasUser)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var sql = @"
+                SELECT  u.birth_date,
+                        u.country,
+                        u.daily_vlog_request_limit,
+                        u.first_name,
+                        u.follow_mode,
+                        u.gender,
+                        u.id,
+                        u.is_private,
+                        u.last_name,
+                        u.latitude,
+                        u.longitude,
+                        u.nickname,
+                        u.profile_image_base64_encoded,
+                        u.timezone
+                FROM    application.user AS u
+                JOIN    application.follow_request AS fr
+                ON      fr.requester_id = u.id
+                WHERE   fr.follow_request_status = 'pending'
+                        AND
+                        fr.receiver_id = @user_id";
+
+            sql = ConstructNavigation(sql, navigation, "fr.date_created");
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", AppContext.UserId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new UserWithRelationWrapper
+                {
+                    RequestingUserId = AppContext.UserId,
+                    FollowRequestStatus = FollowRequestStatus.Pending,
+                    User = MapFromReader(reader)
+                };
+            }
+        }
+
+        /// <summary>
         ///     Gets the push notification details of the 
         ///     followers for a given user.
         /// </summary>
@@ -321,36 +374,33 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                SELECT
-                    vlog_owner_id,
+                SELECT  vlog_owner_id,
 
-                    -- Follow request metadata
-                    follow_request_status_or_null,
+                        -- Follow request metadata
+                        follow_request_status_or_null,
 
-                    -- Vlog like, alphabetic properties
-                    vlog_like_date_created,
-                    vlog_like_user_id,
-                    vlog_id,
+                        -- Vlog like, alphabetic properties
+                        vlog_like_date_created,
+                        vlog_like_user_id,
+                        vlog_id,
 
-                    -- Vlog liking user, alphabetic properties
-                    user_birth_date,
-                    user_country,
-                    user_daily_vlog_request_limit,
-                    user_first_name,
-                    user_follow_mode,
-                    user_gender,
-                    user_id,
-                    user_is_private,
-                    user_last_name,
-                    user_latitude,
-                    user_longitude,
-                    user_nickname,
-                    user_profile_image_base64_encoded,
-                    user_timezone
-                FROM
-                    entities.vlog_liking_user
-                WHERE
-                    vlog_owner_id = @user_id";
+                        -- Vlog liking user, alphabetic properties
+                        user_birth_date,
+                        user_country,
+                        user_daily_vlog_request_limit,
+                        user_first_name,
+                        user_follow_mode,
+                        user_gender,
+                        user_id,
+                        user_is_private,
+                        user_last_name,
+                        user_latitude,
+                        user_longitude,
+                        user_nickname,
+                        user_profile_image_base64_encoded,
+                        user_timezone
+                FROM    entities.vlog_liking_user
+                WHERE   vlog_owner_id = @user_id";
 
             sql = ConstructNavigation(sql, navigation, "vlog_like_date_created");
 
