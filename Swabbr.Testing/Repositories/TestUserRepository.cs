@@ -20,6 +20,7 @@ namespace Swabbr.Testing.Repositories
         public IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
         public IAsyncEnumerable<UserPushNotificationDetails> GetFollowersPushDetailsAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
         public IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<UserWithRelationWrapper> GetFollowRequestingUsersAsync(Navigation navigation) => throw new NotImplementedException();
         public Task<UserPushNotificationDetails> GetPushDetailsAsync(Guid userId) => throw new NotImplementedException();
         public IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation) => throw new NotImplementedException();
         public Task<UserWithStats> GetWithStatisticsAsync(Guid userId) => throw new NotImplementedException();
