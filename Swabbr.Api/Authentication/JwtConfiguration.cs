@@ -23,6 +23,11 @@
         /// <summary>
         ///     Token expire time in minutes.
         /// </summary>
-        public uint TokenValidity { get; set; }
+        public int TokenValidity { get; set; }
+
+        /// <summary>
+        ///     Refresh token expire time in minutes.
+        /// </summary>
+        public int RefreshTokenValidity { get; set; }
     }
 }

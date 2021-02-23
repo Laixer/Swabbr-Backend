@@ -251,10 +251,9 @@ namespace Swabbr
         {
             var jwtConfigSection = _configuration.GetSection("Jwt");
             var jwtConfig = jwtConfigSection.Get<JwtConfiguration>();
-            var jwtKey = Encoding.ASCII.GetBytes(jwtConfig.SignatureKey);
 
             // Add the token service and jwt configuration
-            services.AddSingleton<TokenService>();
+            services.AddScoped<TokenService>();
             services.Configure<JwtConfiguration>(jwtConfigSection);
 
             services.AddAuthentication(options =>
@@ -274,7 +273,7 @@ namespace Swabbr
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtConfig.Issuer,
                     ValidAudience = jwtConfig.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(jwtKey),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtConfig.SignatureKey)),
                 };
             });
         }
