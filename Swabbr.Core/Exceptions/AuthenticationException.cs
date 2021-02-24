@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Swabbr.Core.Exceptions
 {
     /// <summary>
-    ///     Indicates something went during during the authentication flow.
+    ///     Indicates something went wrong during the authentication flow.
     /// </summary>
     public class AuthenticationException : SwabbrCoreException
     {
