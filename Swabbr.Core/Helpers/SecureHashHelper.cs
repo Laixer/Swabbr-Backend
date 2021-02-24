@@ -68,7 +68,7 @@ namespace Swabbr.Core.Helpers
             var hash = KeyDerivation.Pbkdf2(
                 password: input,
                 salt: salt,
-                prf: KeyDerivationPrf.HMACSHA1,
+                prf: KeyDerivationPrf.HMACSHA256,
                 iterationCount: IterationCount,
                 numBytesRequested: HashLengthInBits / 8);
 
