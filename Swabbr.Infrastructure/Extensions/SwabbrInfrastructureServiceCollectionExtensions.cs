@@ -74,6 +74,9 @@ namespace Swabbr.Infrastructure.Extensions
             services.AddContextRepository<INotificationRegistrationRepository, NotificationRegistrationRepository>();
             services.AddContextRepository<IReactionRepository, ReactionRepository>();
             services.AddContextRepository<IUserRepository, UserRepository>();
+            // Note: The refresh token repo doesn't need the context right now, but
+            //       we add it like this anyways for consistency across all repo's.
+            services.AddContextRepository<IUserRefreshTokenRepository, UserRefreshTokenRepository>();
             services.AddContextRepository<IVlogLikeRepository, VlogLikeRepository>();
             services.AddContextRepository<IVlogRepository, VlogRepository>();
 

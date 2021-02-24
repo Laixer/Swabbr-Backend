@@ -420,7 +420,6 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
-
         /// <summary>
         ///     Gets a user with its statistics.
         /// </summary>

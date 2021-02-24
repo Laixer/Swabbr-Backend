@@ -41,6 +41,7 @@ namespace Swabbr.Api.ErrorMessaging
                 OperationAbortedException _ => BuildMessage("The operation was cancelled", HttpStatusCode.BadRequest),
                 ReferencedEntityNotFoundException _ => BuildMessage("Requested referenced entity was not found", HttpStatusCode.NotFound),
                 StorageException _ => BuildMessage("Application storage was unable to process request", HttpStatusCode.InternalServerError),
+                AuthenticationException _ => BuildMessage("Unable to authenticate request", HttpStatusCode.Unauthorized),
                 _ => BuildMessage("Application was unable to process the request", HttpStatusCode.InternalServerError)
             };
     }

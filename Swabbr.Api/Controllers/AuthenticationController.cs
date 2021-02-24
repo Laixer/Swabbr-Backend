@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Helpers;
+using Swabbr.Core.Helpers;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -123,7 +124,7 @@ namespace Swabbr.Api.Controllers
                 var platform = input.PushNotificationPlatform;
                 await _notificationService.RegisterAsync(identityUser.Id, platform, input.Handle);
 
-                var tokenWrapper = _tokenService.GenerateToken(identityUser);
+                var tokenWrapper = await _tokenService.GenerateTokenAsync(identityUser.Id);
 
                 // Map.
                 var output = _mapper.Map<TokenWrapperDto>(tokenWrapper);
@@ -139,7 +140,7 @@ namespace Swabbr.Api.Controllers
             {
                 return Unauthorized("Not allowed to log in.");
             }
-            
+
             // If we get here something definitely went wrong.
             return Unauthorized("Could not log in.");
         }
@@ -179,10 +180,33 @@ namespace Swabbr.Api.Controllers
         {
             // Act.
             await _notificationService.UnregisterAsync(appContext.UserId);
+            await _tokenService.RevokeRefreshTokenAsync(appContext.UserId);
             await _signInManager.SignOutAsync();
 
             // Return.
             return NoContent();
+        }
+
+        // POST: api/authentication/refresh-token
+        /// <summary>
+        ///     Refresh an expired token using a refresh token.
+        /// </summary>
+        /// <remarks>
+        ///     Using a JSON body with a POST is the current most elegant
+        ///     solution for refreshing tokens, hence the design choice.
+        /// </remarks>
+        [AllowAnonymous]
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequestDto input)
+        {
+            // Act.
+            var tokenWrapper = await _tokenService.RefreshTokenAsync(input.ExpiredToken, input.RefreshToken);
+
+            // Map.
+            var output = _mapper.Map<TokenWrapperDto>(tokenWrapper);
+
+            // Return.
+            return Ok(output);
         }
     }
 }
