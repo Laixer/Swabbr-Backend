@@ -85,7 +85,16 @@ namespace Swabbr.Api.Authentication
         /// <returns>New token wrapper with new refresh token.</returns>
         internal virtual async Task<TokenWrapper> RefreshTokenAsync(string expiredToken, string refreshToken)
         {
-            // First extract the user id. This method will throw if the expiredToken has an invalid format.
+            // First validate the token and the lifetime. Doing so will prevent unnecessary 
+            // backend calls to validate the refresh token if the auth token is invalid.
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(expiredToken);
+            if (DateTimeOffset.UtcNow >= jwtToken.ValidFrom.AddMinutes(_options.RefreshTokenValidity))
+            {
+                throw new AuthenticationException("Refresh token has expired");
+            }
+
+            // Then extract the user id. This method will throw if the expiredToken has an invalid format.
             var principal = GetPrincipalFromExpiredToken(expiredToken);
             var identity = principal.Identity as ClaimsIdentity; // Cast required to access the claims.
             if (!Guid.TryParse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out Guid userId))
@@ -93,18 +102,10 @@ namespace Swabbr.Api.Authentication
                 throw new AuthenticationException("Couldn't extract user id from token principal");
             }
 
-            // Validate refresh token in db based on user id
+            // Then validate the refresh token in our db based on the user id
             if (!await _userRefreshTokenRepository.ValidateRefreshTokenAsync(userId, refreshToken))
             {
                 throw new AuthenticationException("Refresh token was invalid");
-            }
-
-            // Then validate the lifetime.
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(expiredToken);
-            if (DateTimeOffset.UtcNow >= jwtToken.ValidFrom.AddMinutes(_options.RefreshTokenValidity))
-            {
-                throw new AuthenticationException("Refresh token has expired");
             }
 
             // If we reach this the user may receive a new access token.
