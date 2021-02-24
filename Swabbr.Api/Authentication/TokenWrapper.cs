@@ -28,7 +28,7 @@ namespace Swabbr.Api.Authentication
         public DateTimeOffset DateCreated { get; set; }
 
         /// <summary>
-        ///     Timespan indicating how long the access token is valid in minutes.
+        ///     Access token validity in minutes.
         /// </summary>
         public int TokenExpirationInMinutes { get; set; }
 
