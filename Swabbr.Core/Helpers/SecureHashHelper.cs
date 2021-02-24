@@ -20,7 +20,7 @@ namespace Swabbr.Core.Helpers
     {
         private const int SaltLengthInBits = 128;
         private const int HashLengthInBits = 256;
-        private const int IterationCount = 10000;
+        private const int IterationCount = 10_000;
 
         /// <summary>
         ///     Hash an input string using the KeyDerivation.Pbkdf2 algorithm.
