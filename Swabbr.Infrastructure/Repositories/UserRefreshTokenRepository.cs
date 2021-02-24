@@ -64,9 +64,8 @@ namespace Swabbr.Infrastructure.Repositories
         ///     refresh token hash in our data store.
         /// </summary>
         /// <remarks>
-        ///     This sends the hash to the database and does not take the
-        ///     stored hash out of the database. Never expose the refresh
-        ///     token when it's not absolutely necessary.
+        ///     The hash value is retrieved from the database in order
+        ///     to extract the salt used in the hashing algorithm.
         /// </remarks>
         /// <param name="userId">The user id.</param>
         /// <param name="refreshToken">The unhashed refresh token to check.</param>

@@ -78,7 +78,7 @@ namespace Swabbr.Api.Authentication
         /// <summary>
         ///     Refresh an expired authentication token and generate a new <see cref="TokenWrapper"/>
         ///     containing a new refresh token as well. The expiration for the refresh token is checked
-        ///     based on the expiration date of the token and the <see cref="_options"/> values.
+        ///     based on the valid-from date of the token and the <see cref="_options"/> values.
         /// </summary>
         /// <param name="expiredToken">The expired jwt token.</param>
         /// <param name="refreshToken">Valid refresh token.</param>
