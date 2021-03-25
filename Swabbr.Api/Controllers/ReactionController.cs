@@ -60,7 +60,7 @@ namespace Swabbr.Api.Controllers
             var result = await _reactionService.GenerateUploadDetails(id);
 
             // Map.
-            var output = _mapper.Map<UploadWrapperDto>(result);
+            UploadWrapperDto output = _mapper.Map<UploadWrapperDto>(result);
 
             // Return.
             return Ok(output);
@@ -71,13 +71,30 @@ namespace Swabbr.Api.Controllers
         ///     Get a reaction.
         /// </summary>
         [HttpGet("{reactionId}")]
-        public async Task<IActionResult> Get([FromRoute] Guid reactionId)
+        public async Task<IActionResult> GetAsync([FromRoute] Guid reactionId)
         {
             // Act.
             var result = await _reactionService.GetAsync(reactionId);
 
             // Map.
-            var output = _mapper.Map<ReactionDto>(result);
+            ReactionDto output = _mapper.Map<ReactionDto>(result);
+
+            // Return.
+            return Ok(output);
+        }
+
+        // GET: api/reaction/wrapper/{id}
+        /// <summary>
+        ///     Get a reaction wrapper.
+        /// </summary>
+        [HttpGet("wrapper/{reactionId}")]
+        public async Task<IActionResult> GetWrapperAsync([FromRoute] Guid reactionId)
+        {
+            // Act.
+            var result = await _reactionService.GetWrapperAsync(reactionId);
+
+            // Map.
+            ReactionWrapperDto output = _mapper.Map<ReactionWrapperDto>(result);
 
             // Return.
             return Ok(output);
@@ -91,10 +108,27 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> GetReactionsForVlog([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
         {
             // Act.
-            var reactions = await _reactionService.GetReactionsForVlogAsync(vlogId, pagination.ToNavigation()).ToListAsync();
+            var reactions = await _reactionService.GetForVlogAsync(vlogId, pagination.ToNavigation()).ToListAsync();
 
             // Map.
-            var output = _mapper.Map<IEnumerable<ReactionDto>>(reactions);
+            IEnumerable<ReactionDto> output = _mapper.Map<IEnumerable<ReactionDto>>(reactions);
+
+            // Return.
+            return Ok(output);
+        }
+
+        // GET: api/reaction/wrappers-for-vlog/{id}
+        /// <summary>
+        ///     Get all reaction wrappers for a given vlog.
+        /// </summary>
+        [HttpGet("wrappers-for-vlog/{vlogId}")]
+        public async Task<IActionResult> GetReactionWrappersForVlogAsync([FromRoute] Guid vlogId, [FromQuery] PaginationDto pagination)
+        {
+            // Act.
+            var reactions = await _reactionService.GetWrappersForVlogAsync(vlogId, pagination.ToNavigation()).ToListAsync();
+
+            // Map.
+            IEnumerable<ReactionWrapperDto> output = _mapper.Map<IEnumerable<ReactionWrapperDto>>(reactions);
 
             // Return.
             return Ok(output);
@@ -108,10 +142,10 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> GetReactionCountForVlog([FromRoute] Guid vlogId)
         {
             // Act.
-            var count = await _reactionService.GetReactionCountForVlogAsync(vlogId);
+            var count = await _reactionService.GetCountForVlogAsync(vlogId);
 
             // Map.
-            var output = new DatasetStatsDto
+            DatasetStatsDto output = new DatasetStatsDto
             {
                 Count = count
             };
@@ -149,11 +183,11 @@ namespace Swabbr.Api.Controllers
         public async Task<IActionResult> Update([FromRoute] Guid reactionId, [FromBody] ReactionDto input)
         {
             // Map.
-            var reaction = _mapper.Map<Reaction>(input);
+            Reaction reaction = _mapper.Map<Reaction>(input);
             reaction.Id = reactionId;
 
             // Act.
-            await _reactionService.UpdateReactionAsync(reaction);
+            await _reactionService.UpdateAsync(reaction);
 
             // Return.
             return NoContent();

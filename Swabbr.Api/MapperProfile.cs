@@ -27,6 +27,7 @@ namespace Swabbr.Api
                 .ForMember(dest => dest.ReceiverId, o => o.MapFrom(src => src.Id.ReceiverId))
                 .ForMember(dest => dest.RequesterId, o => o.MapFrom(src => src.Id.RequesterId));
             mapper.CreateMap<Reaction, ReactionDto>().ReverseMap();
+            mapper.CreateMap<ReactionWrapper, ReactionWrapperDto>();
             mapper.CreateMap<TokenWrapper, TokenWrapperDto>();
             mapper.CreateMap<UploadWrapper, UploadWrapperDto>();
             mapper.CreateMap<User, UserDto>();
@@ -34,6 +35,7 @@ namespace Swabbr.Api
             mapper.CreateMap<UserWithStats, UserWithStatsDto>();
             mapper.CreateMap<UserWithRelationWrapper, UserWithRelationWrapperDto>();
             mapper.CreateMap<Vlog, VlogDto>().ReverseMap();
+            mapper.CreateMap<VlogWrapper, VlogWrapperDto>();
             mapper.CreateMap<VlogLike, VlogLikeDto>()
                 .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.Id.UserId))
                 .ForMember(dest => dest.VlogId, o => o.MapFrom(src => src.Id.VlogId));

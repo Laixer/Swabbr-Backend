@@ -18,7 +18,6 @@ namespace Swabbr.Core.Services
     public class VlogService : AppServiceBase, IVlogService
     {
         private readonly IVlogRepository _vlogRepository;
-        private readonly IVlogLikeRepository _vlogLikeRepository;
         private readonly INotificationService _notificationService;
         private readonly IBlobStorageService _blobStorageService;
 
@@ -27,13 +26,11 @@ namespace Swabbr.Core.Services
         /// </summary>
         public VlogService(AppContext appContext,
             IVlogRepository vlogRepository,
-            IVlogLikeRepository vlogLikeRepository,
             INotificationService notificationService,
             IBlobStorageService blobStorageService)
         {
             AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
-            _vlogLikeRepository = vlogLikeRepository ?? throw new ArgumentNullException(nameof(vlogLikeRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
         }
@@ -88,16 +85,31 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Gets a vlog from our data store.
         /// </summary>
-        /// <param name="vlogId">The vlog id.</param>
+        /// <param name="id">The vlog id.</param>
         /// <returns>The vlog.</returns>
-        public async Task<Vlog> GetAsync(Guid vlogId)
+        public async Task<Vlog> GetAsync(Guid id)
         {
-            var vlog = await _vlogRepository.GetAsync(vlogId);
+            var vlog = await _vlogRepository.GetAsync(id);
 
             vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
             vlog.VideoUri = await GetVideoUriAsync(vlog);
 
             return vlog;
+        }
+
+        /// <summary>
+        ///     Gets a vlog wrapper from our data store.
+        /// </summary>
+        /// <param name="id">The vlog id.</param>
+        /// <returns>The vlog.</returns>
+        public async Task<VlogWrapper> GetWrapperAsync(Guid id)
+        {
+            var vlogWrapper = await _vlogRepository.GetWrapperAsync(id);
+
+            vlogWrapper.Vlog.ThumbnailUri = await GetThumbnailUriAsync(vlogWrapper.Vlog);
+            vlogWrapper.Vlog.VideoUri = await GetVideoUriAsync(vlogWrapper.Vlog);
+
+            return vlogWrapper;
         }
 
         /// <summary>
@@ -120,6 +132,22 @@ namespace Swabbr.Core.Services
         }
 
         /// <summary>
+        ///     Gets recommended vlog wrappers for the current user.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Recommended vlogs.</returns>
+        public async IAsyncEnumerable<VlogWrapper> GetRecommendedWrappersForUserAsync(Navigation navigation)
+        {
+            await foreach (var vlogWrapper in _vlogRepository.GetMostRecentVlogWrappersForUserAsync(navigation))
+            {
+                vlogWrapper.Vlog.ThumbnailUri = await GetThumbnailUriAsync(vlogWrapper.Vlog);
+                vlogWrapper.Vlog.VideoUri = await GetVideoUriAsync(vlogWrapper.Vlog);
+
+                yield return vlogWrapper;
+            }
+        }
+
+        /// <summary>
         ///     Gets all vlogs that belong to a user.
         /// </summary>
         /// <param name="userId">The vlog owner.</param>
@@ -133,6 +161,24 @@ namespace Swabbr.Core.Services
                 vlog.VideoUri = await GetVideoUriAsync(vlog);
 
                 yield return vlog;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a collection of vlog wrappers that are 
+        ///     owned by the specified user.
+        /// </summary>
+        /// <param name="userId">Owner user id.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlogs that belong to the user.</returns>
+        public async IAsyncEnumerable<VlogWrapper> GetVlogWrappersByUserAsync(Guid userId, Navigation navigation)
+        {
+            await foreach (var vlogWrapper in _vlogRepository.GetVlogWrappersByUserAsync(userId, navigation))
+            {
+                vlogWrapper.Vlog.ThumbnailUri = await GetThumbnailUriAsync(vlogWrapper.Vlog);
+                vlogWrapper.Vlog.VideoUri = await GetVideoUriAsync(vlogWrapper.Vlog);
+
+                yield return vlogWrapper;
             }
         }
 

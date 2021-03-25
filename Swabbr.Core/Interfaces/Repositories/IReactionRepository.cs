@@ -22,11 +22,26 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task<uint> GetCountForVlogAsync(Guid vlogId);
 
         /// <summary>
+        ///     Gets a reaction wrapper by id.
+        /// </summary>
+        /// <param name="id">The internal reaction id.</param>
+        /// <returns>Reaction wrapper.</returns>
+        Task<ReactionWrapper> GetWrapperAsync(Guid id);
+
+        /// <summary>
         ///     Gets reactions that belong to a vlog.
         /// </summary>
         /// <param name="vlogId">The corresponding vlog.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Reactions for the vlog.</returns>
         IAsyncEnumerable<Reaction> GetForVlogAsync(Guid vlogId, Navigation navigation);
+
+        /// <summary>
+        ///     Gets reaction wrappers that belong to a vlog.
+        /// </summary>
+        /// <param name="vlogId">The corresponding vlog.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Reaction wrappers for the vlog.</returns>
+        IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation);
     }
 }

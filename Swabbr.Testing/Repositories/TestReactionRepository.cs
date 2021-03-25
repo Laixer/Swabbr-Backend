@@ -19,6 +19,8 @@ namespace Swabbr.Testing.Repositories
         public Task<Reaction> GetAsync(Guid id) => throw new NotImplementedException();
         public Task<uint> GetCountForVlogAsync(Guid vlogId) => throw new NotImplementedException();
         public IAsyncEnumerable<Reaction> GetForVlogAsync(Guid vlogId, Navigation navigation) => throw new NotImplementedException();
+        public Task<ReactionWrapper> GetWrapperAsync(Guid id) => throw new NotImplementedException();
+        public IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation) => throw new NotImplementedException();
         public Task UpdateAsync(Reaction entity) => throw new NotImplementedException();
     }
 }

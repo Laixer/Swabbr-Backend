@@ -175,6 +175,55 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        ///     Gets a reaction wrapper from our database.
+        /// </summary>
+        /// <param name="id">The reaction id.</param>
+        /// <returns>The reaction.</returns>
+        public async Task<ReactionWrapper> GetWrapperAsync(Guid id)
+        {
+            var sql = @"
+                    SELECT	-- reaction
+                            rw.reaction_date_created,
+		                    rw.reaction_id,
+		                    rw.reaction_is_private,
+		                    rw.reaction_length,
+		                    rw.reaction_reaction_status,
+		                    rw.reaction_target_vlog_id,
+		                    rw.reaction_user_id,
+
+                            -- user
+		                    rw.user_birth_date,
+		                    rw.user_country,
+		                    rw.user_daily_vlog_request_limit,
+		                    rw.user_first_name,
+		                    rw.user_follow_mode,
+		                    rw.user_gender,
+		                    rw.user_id,
+		                    rw.user_is_private,
+		                    rw.user_last_name,
+		                    rw.user_latitude,
+		                    rw.user_longitude,
+		                    rw.user_nickname,
+		                    rw.user_profile_image_base64_encoded,
+		                    rw.user_timezone
+                    FROM	entities.reaction_wrapper AS rw
+                    WHERE   rw.reaction_id = @id
+                    LIMIT   1";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await using var reader = await context.ReaderAsync();
+
+            return new ReactionWrapper
+            {
+                Reaction = MapFromReader(reader),
+                User = UserRepository.MapFromReader(reader, 7)
+            };
+        }
+
+        /// <summary>
         ///     Get the amount of reactions for a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog to check.</param>
@@ -190,7 +239,7 @@ namespace Swabbr.Infrastructure.Repositories
 
             context.AddParameterWithValue("target_vlog_id", vlogId);
 
-            return (uint) await context.ScalarAsync<long>();
+            return (uint)await context.ScalarAsync<long>();
         }
 
         /// <summary>
@@ -224,6 +273,61 @@ namespace Swabbr.Infrastructure.Repositories
             await foreach (var reader in context.EnumerableReaderAsync())
             {
                 yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Gets reaction wrappers that belong to a vlog.
+        /// </summary>
+        /// <remarks>
+        ///     This can sort by <see cref="Reaction.DateCreated"/>.
+        /// </remarks>
+        /// <param name="vlogId">The corresponding vlog.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Reactions for the vlog.</returns>
+        public async IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation)
+        {
+            var sql = @"
+                   SELECT	-- reaction
+                            rw.reaction_date_created,
+		                    rw.reaction_id,
+		                    rw.reaction_is_private,
+		                    rw.reaction_length,
+		                    rw.reaction_reaction_status,
+		                    rw.reaction_target_vlog_id,
+		                    rw.reaction_user_id,
+
+                            -- user
+		                    rw.user_birth_date,
+		                    rw.user_country,
+		                    rw.user_daily_vlog_request_limit,
+		                    rw.user_first_name,
+		                    rw.user_follow_mode,
+		                    rw.user_gender,
+		                    rw.user_id,
+		                    rw.user_is_private,
+		                    rw.user_last_name,
+		                    rw.user_latitude,
+		                    rw.user_longitude,
+		                    rw.user_nickname,
+		                    rw.user_profile_image_base64_encoded,
+		                    rw.user_timezone
+                    FROM	entities.reaction_wrapper AS rw
+                    WHERE   rw.reaction_target_vlog_id = @vlogId";
+
+            sql = ConstructNavigation(sql, navigation, "rw.reaction_date_created");
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("vlogId", vlogId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new ReactionWrapper
+                {
+                    Reaction = MapFromReader(reader),
+                    User = UserRepository.MapFromReader(reader, 7)
+                };
             }
         }
 

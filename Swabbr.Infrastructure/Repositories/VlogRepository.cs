@@ -171,6 +171,63 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        ///     Gets all vlog wrappers from our data store.
+        /// </summary>
+        /// <remarks>
+        ///     This can order by <see cref="Vlog.DateCreated"/>.
+        /// </remarks>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlog result set.</returns>
+        public async IAsyncEnumerable<VlogWrapper> GetAllWrappersAsync(Navigation navigation)
+        {
+            var sql = @"
+                 SELECT	-- Vlog
+		                    vw.vlog_date_created,
+		                    vw.vlog_id,
+		                    vw.vlog_is_private,
+		                    vw.vlog_length,
+		                    vw.vlog_user_id,
+		                    vw.vlog_views,
+		                    vw.vlog_vlog_status,
+		
+		                    -- User
+		                    vw.user_birth_date,
+		                    vw.user_country,
+		                    vw.user_daily_vlog_request_limit,
+		                    vw.user_first_name,
+		                    vw.user_follow_mode,
+		                    vw.user_gender,
+		                    vw.user_id,
+		                    vw.user_is_private,
+		                    vw.user_last_name,
+		                    vw.user_latitude,
+		                    vw.user_longitude,
+		                    vw.user_nickname,
+		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_timezone,
+		
+		                    -- Meta data for vlog
+		                    vw.vlog_like_count,
+		                    vw.reaction_count
+                    FROM	entities.vlog_wrapper AS vw";
+
+            sql = ConstructNavigation(sql, navigation, "vw.vlog_date_created");
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new VlogWrapper
+                {
+                    Vlog = MapFromReader(reader),
+                    User = UserRepository.MapFromReader(reader, 7),
+                    VlogLikeCount = reader.GetInt(21),
+                    ReactionCount = reader.GetInt(22)
+                };
+            }
+        }
+
+        /// <summary>
         ///     Gets a vlog from our database.
         /// </summary>
         /// <param name="id">The vlog id.</param>
@@ -194,8 +251,63 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("id", id);
 
             await using var reader = await context.ReaderAsync();
-                
+
             return MapFromReader(reader);
+        }
+
+        /// <summary>
+        ///     Gets a vlog wrapper from our database.
+        /// </summary>
+        /// <param name="id">The vlog id.</param>
+        /// <returns>The vlog.</returns>
+        public async Task<VlogWrapper> GetWrapperAsync(Guid id)
+        {
+            var sql = @"
+                   SELECT	-- Vlog
+		                    vw.vlog_date_created,
+		                    vw.vlog_id,
+		                    vw.vlog_is_private,
+		                    vw.vlog_length,
+		                    vw.vlog_user_id,
+		                    vw.vlog_views,
+		                    vw.vlog_vlog_status,
+		
+		                    -- User
+		                    vw.user_birth_date,
+		                    vw.user_country,
+		                    vw.user_daily_vlog_request_limit,
+		                    vw.user_first_name,
+		                    vw.user_follow_mode,
+		                    vw.user_gender,
+		                    vw.user_id,
+		                    vw.user_is_private,
+		                    vw.user_last_name,
+		                    vw.user_latitude,
+		                    vw.user_longitude,
+		                    vw.user_nickname,
+		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_timezone,
+		
+		                    -- Meta data for vlog
+		                    vw.vlog_like_count,
+		                    vw.reaction_count
+                    FROM	entities.vlog_wrapper AS vw
+                    WHERE   vw.vlog_id = @id
+                    LIMIT   1";
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("id", id);
+
+            await using var reader = await context.ReaderAsync();
+
+            return new VlogWrapper
+            {
+                Vlog = MapFromReader(reader),
+                User = UserRepository.MapFromReader(reader, 7),
+                VlogLikeCount = reader.GetInt(21),
+                ReactionCount = reader.GetInt(22)
+            };
         }
 
         // FUTURE: Implement
@@ -214,6 +326,23 @@ namespace Swabbr.Infrastructure.Repositories
         /// <returns>Featured vlogs.</returns>
         public IAsyncEnumerable<Vlog> GetFeaturedVlogsAsync(Navigation navigation)
             => GetAllAsync(navigation);
+
+        // FUTURE: Implement
+        /// <summary>
+        ///     Returns a collection of featured vlog wrappers.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         The user id is extracted from the context.    
+        ///     </para>
+        ///     <para>
+        ///         This currently just returns all vlogs.
+        ///     </para>
+        /// </remarks>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Featured vlogs.</returns>
+        public IAsyncEnumerable<VlogWrapper> GetFeaturedVlogWrappersAsync(Navigation navigation)
+            => GetAllWrappersAsync(navigation);
 
         /// <summary>
         ///     Gets a collection of most recent vlogs for a user
@@ -261,6 +390,78 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
+        ///     Gets a collection of most recent vlog wrappers for a user
+        ///     based on all users the user follows.
+        /// </summary>
+        /// <remarks>
+        ///     This ignores <see cref="Navigation.SortingOrder"/> as
+        ///     it will always order by <see cref="Vlog.DateCreated"/>
+        ///     in descending manner.
+        /// </remarks>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>The most recent vlogs owned by the user.</returns>
+        public async IAsyncEnumerable<VlogWrapper> GetMostRecentVlogWrappersForUserAsync(Navigation navigation)
+        {
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
+            var sql = @"
+                SELECT	    -- Vlog
+		                    vw.vlog_date_created,
+		                    vw.vlog_id,
+		                    vw.vlog_is_private,
+		                    vw.vlog_length,
+		                    vw.vlog_user_id,
+		                    vw.vlog_views,
+		                    vw.vlog_vlog_status,
+		
+		                    -- User
+		                    vw.user_birth_date,
+		                    vw.user_country,
+		                    vw.user_daily_vlog_request_limit,
+		                    vw.user_first_name,
+		                    vw.user_follow_mode,
+		                    vw.user_gender,
+		                    vw.user_id,
+		                    vw.user_is_private,
+		                    vw.user_last_name,
+		                    vw.user_latitude,
+		                    vw.user_longitude,
+		                    vw.user_nickname,
+		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_timezone,
+		
+		                    -- Meta data for vlog
+		                    vw.vlog_like_count,
+		                    vw.reaction_count
+                FROM	    entities.vlog_wrapper AS vw
+                JOIN        application.follow_request_accepted AS fra
+                ON          fra.requester_id = @user_id
+                            AND 
+                            fra.receiver_id = vw.user_id
+                ORDER BY    vw.vlog_date_created DESC";
+
+            sql = ConstructNavigation(sql, navigation);
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", AppContext.UserId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new VlogWrapper
+                {
+                    Vlog = MapFromReader(reader),
+                    User = UserRepository.MapFromReader(reader, 7),
+                    VlogLikeCount = reader.GetInt(21),
+                    ReactionCount = reader.GetInt(22)
+                };
+            }
+        }
+      
+        /// <summary>
         ///     Returns a collection of vlogs that are 
         ///     owned by the specified user.
         /// </summary>
@@ -297,6 +498,73 @@ namespace Swabbr.Infrastructure.Repositories
             await foreach (var reader in context.EnumerableReaderAsync())
             {
                 yield return MapFromReader(reader);
+            }
+        }
+
+        /// <summary>
+        ///     Returns a collection of vlog wrappers that are 
+        ///     owned by the specified user.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         The user id is extracted from the context.
+        ///     </para>
+        ///     <para>
+        ///         This can order by <see cref="Vlog.DateCreated"/>.
+        ///     </para>
+        /// </remarks>
+        /// <param name="userId">Owner user id.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlogs that belong to the user.</returns>
+        public async IAsyncEnumerable<VlogWrapper> GetVlogWrappersByUserAsync(Guid userId, Navigation navigation)
+        {
+            var sql = @"
+                SELECT	    -- Vlog
+		                    vw.vlog_date_created,
+		                    vw.vlog_id,
+		                    vw.vlog_is_private,
+		                    vw.vlog_length,
+		                    vw.vlog_user_id,
+		                    vw.vlog_views,
+		                    vw.vlog_vlog_status,
+		
+		                    -- User
+		                    vw.user_birth_date,
+		                    vw.user_country,
+		                    vw.user_daily_vlog_request_limit,
+		                    vw.user_first_name,
+		                    vw.user_follow_mode,
+		                    vw.user_gender,
+		                    vw.user_id,
+		                    vw.user_is_private,
+		                    vw.user_last_name,
+		                    vw.user_latitude,
+		                    vw.user_longitude,
+		                    vw.user_nickname,
+		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_timezone,
+		
+		                    -- Meta data for vlog
+		                    vw.vlog_like_count,
+		                    vw.reaction_count
+                FROM	    entities.vlog_wrapper AS vw
+                WHERE       vw.user_id = @user_id";
+
+            sql = ConstructNavigation(sql, navigation, "vw.vlog_date_created");
+
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", userId);
+
+            await foreach (var reader in context.EnumerableReaderAsync())
+            {
+                yield return new VlogWrapper
+                {
+                    Vlog = MapFromReader(reader),
+                    User = UserRepository.MapFromReader(reader, 7),
+                    VlogLikeCount = reader.GetInt(21),
+                    ReactionCount = reader.GetInt(22)
+                };
             }
         }
 
