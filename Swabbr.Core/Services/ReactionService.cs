@@ -25,7 +25,7 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public ReactionService(INotificationService notificationService, 
+        public ReactionService(INotificationService notificationService,
             IBlobStorageService blobStorageService,
             IReactionRepository reactionRepository,
             IVlogRepository vlogRepository)
@@ -113,8 +113,15 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="id">Reaction id.</param>
         /// <returns>Reaction wrapper.</returns>
-        public Task<ReactionWrapper> GetWrapperAsync(Guid id)
-            => _reactionRepository.GetWrapperAsync(id);
+        public async Task<ReactionWrapper> GetWrapperAsync(Guid id)
+        {
+            var reactionWrapper = await _reactionRepository.GetWrapperAsync(id);
+
+            reactionWrapper.Reaction.ThumbnailUri = await GetThumbnailUriAsync(reactionWrapper.Reaction);
+            reactionWrapper.Reaction.VideoUri = await GetVideoUriAsync(reactionWrapper.Reaction);
+
+            return reactionWrapper;
+        }
 
         /// <summary>
         ///     Get all reaction wrappers for a vlog from our data store.
@@ -122,8 +129,16 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog id.</param>
         /// <param name="navigation">Result set control.</param>
         /// <returns>Reaction wrappers for vlog.</returns>
-        public IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation)
-            => _reactionRepository.GetWrappersForVlogAsync(vlogId, navigation);
+        public async IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation)
+        {
+            await foreach (var reactionWrapper in _reactionRepository.GetWrappersForVlogAsync(vlogId, navigation))
+            {
+                reactionWrapper.Reaction.ThumbnailUri = await GetThumbnailUriAsync(reactionWrapper.Reaction);
+                reactionWrapper.Reaction.VideoUri = await GetVideoUriAsync(reactionWrapper.Reaction);
+
+                yield return reactionWrapper;
+            }
+        }
 
         /// <summary>
         ///     Called when a reaction has been uploaded. This will
@@ -147,7 +162,7 @@ namespace Swabbr.Core.Services
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, context.ReactionId.ToString())) 
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, context.ReactionId.ToString()))
             {
                 throw new FileNotFoundException();
             }
@@ -183,7 +198,7 @@ namespace Swabbr.Core.Services
         /// <returns>Thumbnail uri.</returns>
         protected Task<Uri> GetThumbnailUriAsync(Reaction reaction)
             => _blobStorageService.GetAccessLinkAsync(
-                containerName: StorageConstants.ReactionStorageFolderName, 
+                containerName: StorageConstants.ReactionStorageFolderName,
                 fileName: StorageHelper.GetThumbnailFileName(reaction.Id),
                 timeSpanValid: TimeSpan.FromHours(2));
 
