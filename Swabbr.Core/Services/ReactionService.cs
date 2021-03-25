@@ -88,7 +88,7 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The amount of reactions.</returns>
-        public Task<uint> GetReactionCountForVlogAsync(Guid vlogId)
+        public Task<uint> GetCountForVlogAsync(Guid vlogId)
             => _reactionRepository.GetCountForVlogAsync(vlogId);
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions.</returns>
-        public async IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation)
+        public async IAsyncEnumerable<Reaction> GetForVlogAsync(Guid vlogId, Navigation navigation)
         {
             await foreach (var reaction in _reactionRepository.GetForVlogAsync(vlogId, navigation))
             {
@@ -107,6 +107,23 @@ namespace Swabbr.Core.Services
                 yield return reaction;
             }
         }
+
+        /// <summary>
+        ///     Get a reaction wrapper from our data store.
+        /// </summary>
+        /// <param name="id">Reaction id.</param>
+        /// <returns>Reaction wrapper.</returns>
+        public Task<ReactionWrapper> GetWrapperAsync(Guid id)
+            => _reactionRepository.GetWrapperAsync(id);
+
+        /// <summary>
+        ///     Get all reaction wrappers for a vlog from our data store.
+        /// </summary>
+        /// <param name="vlogId">The vlog id.</param>
+        /// <param name="navigation">Result set control.</param>
+        /// <returns>Reaction wrappers for vlog.</returns>
+        public IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation)
+            => _reactionRepository.GetWrappersForVlogAsync(vlogId, navigation);
 
         /// <summary>
         ///     Called when a reaction has been uploaded. This will
@@ -123,7 +140,7 @@ namespace Swabbr.Core.Services
         ///     </para>
         /// </remarks>
         /// <param name="context">Context for posting a reaction.</param>
-        public async Task PostReactionAsync(PostReactionContext context)
+        public async Task PostAsync(PostReactionContext context)
         {
             if (context is null)
             {
@@ -156,7 +173,7 @@ namespace Swabbr.Core.Services
         ///     This expects the current user to own the reaction.
         /// </remarks>
         /// <param name="reaction">The reaction with updated properties.</param>
-        public Task UpdateReactionAsync(Reaction reaction)
+        public Task UpdateAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
 
         /// <summary>

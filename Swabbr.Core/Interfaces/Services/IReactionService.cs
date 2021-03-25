@@ -38,11 +38,18 @@ namespace Swabbr.Core.Interfaces.Services
         Task<Reaction> GetAsync(Guid reactionId);
 
         /// <summary>
+        ///     Gets a reaction wrapper by id.
+        /// </summary>
+        /// <param name="id">The internal reaction id.</param>
+        /// <returns>Reaction wrapper.</returns>
+        Task<ReactionWrapper> GetWrapperAsync(Guid id);
+
+        /// <summary>
         ///     Gets the amount of reactions for a vlog.
         /// </summary>
         /// <param name="vlogId">The vlog id.</param>
         /// <returns>The amount of reactions.</returns>
-        Task<uint> GetReactionCountForVlogAsync(Guid vlogId);
+        Task<uint> GetCountForVlogAsync(Guid vlogId);
 
         /// <summary>
         ///     Gets all reaction for a vlog.
@@ -50,19 +57,27 @@ namespace Swabbr.Core.Interfaces.Services
         /// <param name="vlogId">The vlog of the reactions.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All vlog reactions.</returns>
-        IAsyncEnumerable<Reaction> GetReactionsForVlogAsync(Guid vlogId, Navigation navigation);
+        IAsyncEnumerable<Reaction> GetForVlogAsync(Guid vlogId, Navigation navigation);
+
+        /// <summary>
+        ///     Gets reaction wrappers that belong to a vlog.
+        /// </summary>
+        /// <param name="vlogId">The corresponding vlog.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Reaction wrappers for the vlog.</returns>
+        IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation);
 
         /// <summary>
         ///     Called when a reaction has been uploaded. This will
         ///     actually post the reaction.
         /// </summary>
         /// <param name="context">Context for posting a reaction.</param>
-        Task PostReactionAsync(PostReactionContext context);
+        Task PostAsync(PostReactionContext context);
 
         /// <summary>
         ///     Updates a reaction in our data store.
         /// </summary>
         /// <param name="reaction">The reaction with updated properties.</param>
-        Task UpdateReactionAsync(Reaction reaction);
+        Task UpdateAsync(Reaction reaction);
     }
 }

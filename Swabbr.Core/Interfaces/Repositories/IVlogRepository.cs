@@ -22,11 +22,32 @@ namespace Swabbr.Core.Interfaces.Repositories
         Task AddViews(AddVlogViewsContext context);
 
         /// <summary>
+        ///     Gets a vlog wrapper from our data store.
+        /// </summary>
+        /// <param name="id">The vlog id.</param>
+        /// <returns>The vlog.</returns>
+        Task<VlogWrapper> GetWrapperAsync(Guid id);
+
+        /// <summary>
+        ///     Gets all vlog wrappers from our data store.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlog result set.</returns>
+        IAsyncEnumerable<VlogWrapper> GetAllWrappersAsync(Navigation navigation);
+
+        /// <summary>
         ///     Returns a collection of featured vlogs.
         /// </summary>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Featured vlogs.</returns>
         IAsyncEnumerable<Vlog> GetFeaturedVlogsAsync(Navigation navigation);
+
+        /// <summary>
+        ///     Returns a collection of featured vlog wrappers.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Featured vlogs.</returns>
+        IAsyncEnumerable<VlogWrapper> GetFeaturedVlogWrappersAsync(Navigation navigation);
 
         /// <summary>
         ///     Gets a collection of most recent vlogs for a user.
@@ -36,6 +57,14 @@ namespace Swabbr.Core.Interfaces.Repositories
         IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Navigation navigation);
 
         /// <summary>
+        ///     Gets a collection of most recent vlog wrappers for a user
+        ///     based on all users the user follows.
+        /// </summary>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>The most recent vlogs owned by the user.</returns>
+        IAsyncEnumerable<VlogWrapper> GetMostRecentVlogWrappersForUserAsync(Navigation navigation);
+
+        /// <summary>
         ///     Returns a collection of vlogs that are 
         ///     owned by the specified user.
         /// </summary>
@@ -43,5 +72,14 @@ namespace Swabbr.Core.Interfaces.Repositories
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vlogs that belong to the user.</returns>
         IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation);
+
+        /// <summary>
+        ///     Returns a collection of vlog wrappers that are 
+        ///     owned by the specified user.
+        /// </summary>
+        /// <param name="userId">Owner user id.</param>
+        /// <param name="navigation">Navigation control.</param>
+        /// <returns>Vlogs that belong to the user.</returns>
+        IAsyncEnumerable<VlogWrapper> GetVlogWrappersByUserAsync(Guid userId, Navigation navigation);
     }
 }

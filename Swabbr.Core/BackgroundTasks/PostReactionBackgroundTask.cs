@@ -42,7 +42,7 @@ namespace Swabbr.Core.BackgroundTasks
 
             var postReactionContext = context.Value as PostReactionContext;
 
-            await _reactionService.PostReactionAsync(postReactionContext);
+            await _reactionService.PostAsync(postReactionContext);
         }
     }
 }

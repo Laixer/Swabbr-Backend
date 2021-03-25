@@ -18,10 +18,15 @@ namespace Swabbr.Testing.Repositories
         public Task DeleteAsync(Guid id) => throw new NotImplementedException();
         public Task<bool> ExistsAsync(Guid id) => throw new NotImplementedException();
         public IAsyncEnumerable<Vlog> GetAllAsync(Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<VlogWrapper> GetAllWrappersAsync(Navigation navigation) => throw new NotImplementedException();
         public Task<Vlog> GetAsync(Guid id) => throw new NotImplementedException();
         public IAsyncEnumerable<Vlog> GetFeaturedVlogsAsync(Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<VlogWrapper> GetFeaturedVlogWrappersAsync(Navigation navigation) => throw new NotImplementedException();
         public IAsyncEnumerable<Vlog> GetMostRecentVlogsForUserAsync(Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<VlogWrapper> GetMostRecentVlogWrappersForUserAsync(Navigation navigation) => throw new NotImplementedException();
         public IAsyncEnumerable<Vlog> GetVlogsByUserAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+        public IAsyncEnumerable<VlogWrapper> GetVlogWrappersByUserAsync(Guid userId, Navigation navigation) => throw new NotImplementedException();
+        public Task<VlogWrapper> GetWrapperAsync(Guid id) => throw new NotImplementedException();
         public Task UpdateAsync(Vlog entity) => throw new NotImplementedException();
     }
 }

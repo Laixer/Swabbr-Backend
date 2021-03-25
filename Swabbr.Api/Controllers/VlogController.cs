@@ -29,7 +29,7 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         public VlogController(IVlogService vlogService,
             IMapper mapper)
-        { 
+        {
             _vlogService = vlogService ?? throw new ArgumentNullException(nameof(vlogService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
@@ -63,7 +63,7 @@ namespace Swabbr.Api.Controllers
         /// <param name="vlogId"></param>
         /// <returns></returns>
         [HttpDelete("{vlogId}")]
-        public async Task<IActionResult> DeleteAsync([FromRoute]Guid vlogId)
+        public async Task<IActionResult> DeleteAsync([FromRoute] Guid vlogId)
         {
             // Act.
             await _vlogService.DeleteAsync(vlogId);
@@ -84,7 +84,7 @@ namespace Swabbr.Api.Controllers
             var result = await _vlogService.GenerateUploadUri(id);
 
             // Map.
-            var output = _mapper.Map<UploadWrapperDto>(result);
+            UploadWrapperDto output = _mapper.Map<UploadWrapperDto>(result);
 
             // Return.
             return Ok(output);
@@ -101,12 +101,29 @@ namespace Swabbr.Api.Controllers
             var vlog = await _vlogService.GetAsync(vlogId);
 
             // Map.
-            var output = _mapper.Map<VlogDto>(vlog);
+            VlogDto output = _mapper.Map<VlogDto>(vlog);
 
             // Return.
             return Ok(output);
         }
-        
+
+        // GET: api/vlog/wrapper/{id}
+        /// <summary>
+        ///     Get a vlog wrapper.
+        /// </summary>
+        [HttpGet("wrapper/{vlogId}")]
+        public async Task<IActionResult> GetWrapperAsync([FromRoute] Guid vlogId)
+        {
+            // Act.
+            var vlog = await _vlogService.GetWrapperAsync(vlogId);
+
+            // Map.
+            VlogWrapperDto output = _mapper.Map<VlogWrapperDto>(vlog);
+
+            // Return.
+            return Ok(output);
+        }
+
         // GET: api/vlog/recommended
         /// <summary>
         ///     Get recommended vlogs for the current user.
@@ -118,7 +135,24 @@ namespace Swabbr.Api.Controllers
             var vlogs = await _vlogService.GetRecommendedForUserAsync(pagination.ToNavigation()).ToListAsync();
 
             // Map.
-            var output = _mapper.Map<IEnumerable<VlogDto>>(vlogs);
+            IEnumerable<VlogDto> output = _mapper.Map<IEnumerable<VlogDto>>(vlogs);
+
+            // Return.
+            return Ok(output);
+        }
+
+        // GET: api/vlog/wrappers-recommended
+        /// <summary>
+        ///     Get recommended vlog wrappers for the current user.
+        /// </summary>
+        [HttpGet("wrappers-recommended")]
+        public async Task<IActionResult> GetRecommendedVlogWrappersAsync([FromQuery] PaginationDto pagination)
+        {
+            // Act.
+            var vlogs = await _vlogService.GetRecommendedWrappersForUserAsync(pagination.ToNavigation()).ToListAsync();
+
+            // Map.
+            IEnumerable<VlogWrapperDto> output = _mapper.Map<IEnumerable<VlogWrapperDto>>(vlogs);
 
             // Return.
             return Ok(output);
@@ -130,13 +164,31 @@ namespace Swabbr.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("for-user/{userId}")]
-        public async Task<IActionResult> ListForUserAsync([FromRoute]Guid userId, [FromQuery] PaginationDto pagination)
+        public async Task<IActionResult> ListForUserAsync([FromRoute] Guid userId, [FromQuery] PaginationDto pagination)
         {
             // Act.
             var vlogs = await _vlogService.GetVlogsByUserAsync(userId, pagination.ToNavigation()).ToListAsync();
 
             // Map.
-            var output = _mapper.Map<IEnumerable<VlogDto>>(vlogs);
+            IEnumerable<VlogDto> output = _mapper.Map<IEnumerable<VlogDto>>(vlogs);
+
+            // Return
+            return Ok(output);
+        }
+
+        // GET: api/vlog/wrappers-for-user/{id}
+        /// <summary>
+        ///     List vlog wrappers that are owned by a specified user.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("wrappers-for-user/{userId}")]
+        public async Task<IActionResult> ListWrappersForUserAsync([FromRoute] Guid userId, [FromQuery] PaginationDto pagination)
+        {
+            // Act.
+            var vlogs = await _vlogService.GetVlogWrappersByUserAsync(userId, pagination.ToNavigation()).ToListAsync();
+
+            // Map.
+            IEnumerable<VlogWrapperDto> output = _mapper.Map<IEnumerable<VlogWrapperDto>>(vlogs);
 
             // Return
             return Ok(output);
@@ -167,7 +219,7 @@ namespace Swabbr.Api.Controllers
         ///     Update a vlog owned by the current user.
         /// </summary>
         [HttpPut("{vlogId}")]
-        public async Task<IActionResult> UpdateAsync([FromRoute]Guid vlogId, [FromBody]VlogDto input)
+        public async Task<IActionResult> UpdateAsync([FromRoute] Guid vlogId, [FromBody] VlogDto input)
         {
             // Map.
             var vlog = _mapper.Map<Vlog>(input);
