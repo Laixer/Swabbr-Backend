@@ -26,7 +26,7 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Create new instance.
         /// </summary>
-        public ReactionService(INotificationService notificationService, 
+        public ReactionService(INotificationService notificationService,
             IBlobStorageService blobStorageService,
             IEntityStorageUriService entityStorageUriService,
             IReactionRepository reactionRepository,
@@ -167,7 +167,7 @@ namespace Swabbr.Core.Services
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, context.ReactionId.ToString())) 
+            if (!await _blobStorageService.FileExistsAsync(StorageConstants.ReactionStorageFolderName, context.ReactionId.ToString()))
             {
                 throw new FileNotFoundException();
             }
