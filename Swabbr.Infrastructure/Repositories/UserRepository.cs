@@ -81,7 +81,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
+                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user AS u";
 
@@ -116,7 +116,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
+                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user AS u
                     WHERE   u.daily_vlog_request_limit > 0";
@@ -151,7 +151,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
+                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user AS u
                     WHERE   u.id = @id
@@ -190,7 +190,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
+                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user AS u
                     JOIN    application.follow_request_accepted AS fra
@@ -236,7 +236,7 @@ namespace Swabbr.Infrastructure.Repositories
                         u.latitude,
                         u.longitude,
                         u.nickname,
-                        u.profile_image_base64_encoded,
+                        u.profile_image_date_updated,
                         u.timezone
                 FROM    application.user AS u
                 JOIN    application.follow_request AS fr
@@ -315,7 +315,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
+                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user AS u
                     JOIN    application.follow_request_accepted AS fra
@@ -397,7 +397,7 @@ namespace Swabbr.Infrastructure.Repositories
                         user_latitude,
                         user_longitude,
                         user_nickname,
-                        user_profile_image_base64_encoded,
+                        user_profile_image_date_updated,
                         user_timezone
                 FROM    entities.vlog_liking_user
                 WHERE   vlog_owner_id = @user_id";
@@ -441,7 +441,7 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.latitude,
                             uws.longitude,
                             uws.nickname,
-                            uws.profile_image_base64_encoded,
+                            uws.profile_image_date_updated,
                             uws.timezone,
                             
                             -- Statistics
@@ -496,7 +496,7 @@ namespace Swabbr.Infrastructure.Repositories
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
+                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user_search_with_follow_request_status AS u
                     WHERE   LOWER(u.nickname) LIKE LOWER(@query)
@@ -554,7 +554,7 @@ namespace Swabbr.Infrastructure.Repositories
                             latitude = @latitude,
                             longitude = @longitude,
                             nickname = @nickname,
-                            profile_image_base64_encoded = @profile_image_base64_encoded,
+                            profile_image_date_updated = @profile_image_date_updated,
                             timezone = @timezone
                     WHERE   id = @id";
 
@@ -588,7 +588,7 @@ namespace Swabbr.Infrastructure.Repositories
                 Latitude = reader.GetSafeDouble(9 + offset),
                 Longitude = reader.GetSafeDouble(10 + offset),
                 Nickname = reader.GetString(11 + offset),
-                ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
+                ProfileImageDateUpdated = reader.GetSafeDateTime(12 + offset),
                 TimeZone = reader.GetTimeZoneInfo(13 + offset)
             };
 
@@ -613,7 +613,7 @@ namespace Swabbr.Infrastructure.Repositories
                 Latitude = reader.GetSafeDouble(9 + offset),
                 Longitude = reader.GetSafeDouble(10 + offset),
                 Nickname = reader.GetString(11 + offset),
-                ProfileImageBase64Encoded = reader.GetSafeString(12 + offset),
+                ProfileImageDateUpdated = reader.GetSafeDateTime(12 + offset),
                 TimeZone = reader.GetTimeZoneInfo(13 + offset),
                 TotalFollowers = reader.GetUInt(14 + offset),
                 TotalFollowing = reader.GetUInt(15 + offset),
@@ -655,7 +655,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("latitude", user.Latitude);
             context.AddParameterWithValue("longitude", user.Longitude);
             context.AddParameterWithValue("nickname", user.Nickname);
-            context.AddParameterWithValue("profile_image_base64_encoded", user.ProfileImageBase64Encoded);
+            context.AddParameterWithValue("profile_image_date_updated", user.ProfileImageDateUpdated);
             context.AddParameterWithValue("timezone", TimeZoneInfoHelper.MapTimeZoneToStringOrNull(user.TimeZone));
         }
     }

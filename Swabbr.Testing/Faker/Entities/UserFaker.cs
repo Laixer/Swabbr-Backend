@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using Bogus.Extensions;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Types;
 using System;
@@ -24,7 +25,8 @@ namespace Swabbr.Testing.Faker.Entities
             RuleFor(x => x.Latitude, x => x.Random.Double(0, 1000));
             RuleFor(x => x.Longitude, x => x.Random.Double(0, 1000));
             RuleFor(x => x.Nickname, x => x.Person.UserName);
-            RuleFor(x => x.ProfileImageBase64Encoded, x => x.Random.Replace("########"));
+            RuleFor(x => x.ProfileImageDateUpdated, x => x.Date.Recent().OrNull(x, 0.1f));
+            RuleFor(x => x.ProfileImageUri, x => new Uri("www.randomuri.com")); 
             RuleFor(x => x.TimeZone, x => TimeZoneInfo.Local);
         }
     }

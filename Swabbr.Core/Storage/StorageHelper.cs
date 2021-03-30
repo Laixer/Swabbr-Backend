@@ -25,5 +25,14 @@ namespace Swabbr.Core.Storage
         /// <returns>The generated thumbnail file name.</returns>
         public static string GetThumbnailFileName(Guid id)
             => $"{id}-thumbnail";
+
+        /// <summary>
+        ///     Generates the filename for a user profile image
+        ///     based on the user id.
+        /// </summary>
+        /// <param name="id">The user id.</param>
+        /// <returns>The generated thumbnail file name.</returns>
+        public static string GetUserProfileImageFileName(Guid id)
+            => $"{id}";
     }
 }

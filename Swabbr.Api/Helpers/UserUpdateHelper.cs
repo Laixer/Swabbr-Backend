@@ -85,7 +85,9 @@ namespace Swabbr.Api.Helpers
             currentUser.Latitude = input.Latitude ?? currentUser.Latitude;
             currentUser.Longitude = input.Longitude ?? currentUser.Longitude;
             currentUser.Nickname = input.Nickname ?? currentUser.Nickname;
-            currentUser.ProfileImageBase64Encoded = input.ProfileImageBase64Encoded ?? currentUser.ProfileImageBase64Encoded;
+            currentUser.ProfileImageDateUpdated = input.ProfileImageUpdated
+                ? DateTimeOffset.Now
+                : null;
             currentUser.TimeZone = string.IsNullOrEmpty(input.TimeZone)
                 ? currentUser.TimeZone
                 : TimeZoneInfoHelper.MapStringToTimeZone(input.TimeZone);

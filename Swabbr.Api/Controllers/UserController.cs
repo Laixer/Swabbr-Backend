@@ -24,6 +24,7 @@ namespace Swabbr.Api.Controllers
         private readonly Core.AppContext _appContext;
         private readonly IUserService _userService;
         private readonly UserUpdateHelper _userUpdateHelper;
+        private readonly IEntityStorageUriService _entityStorageUriService; // TODO Move to UserService? Do differently?
         private readonly IMapper _mapper;
 
         /// <summary>
@@ -32,11 +33,13 @@ namespace Swabbr.Api.Controllers
         public UserController(Core.AppContext appContext,
             IUserService userService,
             UserUpdateHelper userUpdateHelper,
+            IEntityStorageUriService entityStorageUriService,
             IMapper mapper)
         {
             _appContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userUpdateHelper = userUpdateHelper ?? throw new ArgumentNullException(nameof(userUpdateHelper));
+            _entityStorageUriService = entityStorageUriService ?? throw new ArgumentNullException(nameof(entityStorageUriService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -56,7 +59,6 @@ namespace Swabbr.Api.Controllers
             // Return.
             return Ok(output);
         }
-
 
         // GET: api/user/follow-requesting-users
         /// <summary>
@@ -191,6 +193,9 @@ namespace Swabbr.Api.Controllers
 
             // Map.
             var output = _mapper.Map<UserCompleteDto>(user);
+            // TODO Move to user service? Not controller responsibility. Right now this
+            //      functionality only exists in the DTO layer, do something about that.
+            output.ProfileImageUploadUri = await _entityStorageUriService.GetUserProfileImageUploadUriAsync(user.Id);
 
             // Return.
             return Ok(output);

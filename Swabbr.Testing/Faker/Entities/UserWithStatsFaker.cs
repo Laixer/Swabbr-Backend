@@ -26,9 +26,9 @@ namespace Swabbr.Testing.Faker.Entities
             RuleFor(x => x.Latitude, x => x.Random.Double(0, 1000));
             RuleFor(x => x.Longitude, x => x.Random.Double(0, 1000));
             RuleFor(x => x.Nickname, x => x.Person.UserName);
-            RuleFor(x => x.ProfileImageBase64Encoded, x => x.Random.Replace("########"));
+            RuleFor(x => x.ProfileImageDateUpdated, x => x.Date.Recent().OrNull(x, 0.1f));
+            RuleFor(x => x.ProfileImageUri, x => new Uri("www.randomuri.com"));
             RuleFor(x => x.TimeZone, x => TimeZoneInfo.Local);
-
             RuleFor(x => x.TotalFollowers, x => x.Random.UInt(0, 100000));
             RuleFor(x => x.TotalFollowing, x => x.Random.UInt(0, 100));
             RuleFor(x => x.TotalLikesReceived, x => x.Random.UInt(0, 10000));

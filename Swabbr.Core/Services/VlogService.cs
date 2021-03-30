@@ -20,6 +20,7 @@ namespace Swabbr.Core.Services
         private readonly IVlogRepository _vlogRepository;
         private readonly INotificationService _notificationService;
         private readonly IBlobStorageService _blobStorageService;
+        private readonly IEntityStorageUriService _entityStorageUriService;
 
         /// <summary>
         ///     Create new instance.
@@ -27,12 +28,14 @@ namespace Swabbr.Core.Services
         public VlogService(AppContext appContext,
             IVlogRepository vlogRepository,
             INotificationService notificationService,
-            IBlobStorageService blobStorageService)
+            IBlobStorageService blobStorageService,
+            IEntityStorageUriService entityStorageUriService)
         {
             AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
+            _entityStorageUriService = entityStorageUriService ?? throw new ArgumentNullException(nameof(entityStorageUriService));
         }
 
         // FUTURE: Check if the user is allowed to watch the vlog
@@ -91,8 +94,8 @@ namespace Swabbr.Core.Services
         {
             var vlog = await _vlogRepository.GetAsync(id);
 
-            vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
-            vlog.VideoUri = await GetVideoUriAsync(vlog);
+            vlog.ThumbnailUri = await _entityStorageUriService.GetVlogThumbnailAccessUriAsync(vlog.Id);
+            vlog.VideoUri = await _entityStorageUriService.GetVlogVideoAccessUriAsync(vlog.Id);
 
             return vlog;
         }
@@ -106,8 +109,9 @@ namespace Swabbr.Core.Services
         {
             var vlogWrapper = await _vlogRepository.GetWrapperAsync(id);
 
-            vlogWrapper.Vlog.ThumbnailUri = await GetThumbnailUriAsync(vlogWrapper.Vlog);
-            vlogWrapper.Vlog.VideoUri = await GetVideoUriAsync(vlogWrapper.Vlog);
+            vlogWrapper.Vlog.ThumbnailUri = await _entityStorageUriService.GetVlogThumbnailAccessUriAsync(vlogWrapper.Vlog.Id);
+            vlogWrapper.Vlog.VideoUri = await _entityStorageUriService.GetVlogVideoAccessUriAsync(vlogWrapper.Vlog.Id);
+            vlogWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(vlogWrapper.User);
 
             return vlogWrapper;
         }
@@ -124,8 +128,8 @@ namespace Swabbr.Core.Services
         {
             await foreach (var vlog in _vlogRepository.GetMostRecentVlogsForUserAsync(navigation))
             {
-                vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
-                vlog.VideoUri = await GetVideoUriAsync(vlog);
+                vlog.ThumbnailUri = await _entityStorageUriService.GetVlogThumbnailAccessUriAsync(vlog.Id);
+                vlog.VideoUri = await _entityStorageUriService.GetVlogVideoAccessUriAsync(vlog.Id);
 
                 yield return vlog;
             }
@@ -140,8 +144,9 @@ namespace Swabbr.Core.Services
         {
             await foreach (var vlogWrapper in _vlogRepository.GetMostRecentVlogWrappersForUserAsync(navigation))
             {
-                vlogWrapper.Vlog.ThumbnailUri = await GetThumbnailUriAsync(vlogWrapper.Vlog);
-                vlogWrapper.Vlog.VideoUri = await GetVideoUriAsync(vlogWrapper.Vlog);
+                vlogWrapper.Vlog.ThumbnailUri = await _entityStorageUriService.GetVlogThumbnailAccessUriAsync(vlogWrapper.Vlog.Id);
+                vlogWrapper.Vlog.VideoUri = await _entityStorageUriService.GetVlogVideoAccessUriAsync(vlogWrapper.Vlog.Id);
+                vlogWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(vlogWrapper.User);
 
                 yield return vlogWrapper;
             }
@@ -157,8 +162,8 @@ namespace Swabbr.Core.Services
         {
             await foreach (var vlog in _vlogRepository.GetVlogsByUserAsync(userId, navigation))
             {
-                vlog.ThumbnailUri = await GetThumbnailUriAsync(vlog);
-                vlog.VideoUri = await GetVideoUriAsync(vlog);
+                vlog.ThumbnailUri = await _entityStorageUriService.GetVlogThumbnailAccessUriAsync(vlog.Id);
+                vlog.VideoUri = await _entityStorageUriService.GetVlogVideoAccessUriAsync(vlog.Id);
 
                 yield return vlog;
             }
@@ -175,8 +180,9 @@ namespace Swabbr.Core.Services
         {
             await foreach (var vlogWrapper in _vlogRepository.GetVlogWrappersByUserAsync(userId, navigation))
             {
-                vlogWrapper.Vlog.ThumbnailUri = await GetThumbnailUriAsync(vlogWrapper.Vlog);
-                vlogWrapper.Vlog.VideoUri = await GetVideoUriAsync(vlogWrapper.Vlog);
+                vlogWrapper.Vlog.ThumbnailUri = await _entityStorageUriService.GetVlogThumbnailAccessUriAsync(vlogWrapper.Vlog.Id);
+                vlogWrapper.Vlog.VideoUri = await _entityStorageUriService.GetVlogVideoAccessUriAsync(vlogWrapper.Vlog.Id);
+                vlogWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(vlogWrapper.User);
 
                 yield return vlogWrapper;
             }
@@ -235,27 +241,5 @@ namespace Swabbr.Core.Services
         /// <param name="vlog">The vlog with updates properties.</param>
         public Task UpdateAsync(Vlog vlog)
             => _vlogRepository.UpdateAsync(vlog);
-
-        /// <summary>
-        ///     Extract the thumbnail uri for a vlog.
-        /// </summary>
-        /// <param name="vlog">The vlog.</param>
-        /// <returns>Thumbnail uri.</returns>
-        protected Task<Uri> GetThumbnailUriAsync(Vlog vlog)
-            => _blobStorageService.GetAccessLinkAsync(
-                containerName: StorageConstants.VlogStorageFolderName,
-                fileName: StorageHelper.GetThumbnailFileName(vlog.Id),
-                timeSpanValid: TimeSpan.FromHours(2));
-
-        /// <summary>
-        ///     Extract the video uri for a vlog.
-        /// </summary>
-        /// <param name="vlog">The vlog.</param>
-        /// <returns>Video uri.</returns>
-        protected Task<Uri> GetVideoUriAsync(Vlog vlog)
-            => _blobStorageService.GetAccessLinkAsync(
-                containerName: StorageConstants.VlogStorageFolderName,
-                fileName: StorageHelper.GetVideoFileName(vlog.Id),
-                timeSpanValid: TimeSpan.FromHours(2));
     }
 }

@@ -204,7 +204,7 @@ namespace Swabbr.Infrastructure.Repositories
 		                    rw.user_latitude,
 		                    rw.user_longitude,
 		                    rw.user_nickname,
-		                    rw.user_profile_image_base64_encoded,
+		                    rw.user_profile_image_date_updated,
 		                    rw.user_timezone
                     FROM	entities.reaction_wrapper AS rw
                     WHERE   rw.reaction_id = @id
@@ -310,7 +310,7 @@ namespace Swabbr.Infrastructure.Repositories
 		                    rw.user_latitude,
 		                    rw.user_longitude,
 		                    rw.user_nickname,
-		                    rw.user_profile_image_base64_encoded,
+		                    rw.user_profile_image_date_updated,
 		                    rw.user_timezone
                     FROM	entities.reaction_wrapper AS rw
                     WHERE   rw.reaction_target_vlog_id = @vlogId";
