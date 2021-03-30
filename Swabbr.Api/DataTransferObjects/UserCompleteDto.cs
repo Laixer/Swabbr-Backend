@@ -54,10 +54,21 @@ namespace Swabbr.Api.DataTransferObjects
         public string Nickname { get; init; }
 
         /// <summary>
-        ///     Base64 encoded string containing the uploaded 
-        ///     profile image of the user.
+        ///     Moment the profile image was last updated. If this is 
+        ///     set to null that means we have no profile image or the
+        ///     profile image was deleted.
         /// </summary>
-        public string ProfileImageBase64Encoded { get; init; }
+        public DateTimeOffset? ProfileImageDateUpdated { get; set; }
+
+        /// <summary>
+        ///     Profile image download uri. Null if we have none.
+        /// </summary>
+        public Uri ProfileImageUri { get; set; }
+
+        /// <summary>
+        ///     Can be used to update the profile image.
+        /// </summary>
+        public Uri ProfileImageUploadUri { get; set; }
 
         /// <summary>
         ///     Angular longitude coordinate.

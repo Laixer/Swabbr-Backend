@@ -15,15 +15,18 @@ namespace Swabbr.Core.Services
     public class UserService :  AppServiceBase, IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IEntityStorageUriService _entityStorageUriService;
 
         /// <summary>
         ///     Create new instance.
         /// </summary>
         public UserService(AppContext appContext,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IEntityStorageUriService entityStorageUriService)
         {
             AppContext = appContext ?? throw new ArgumentNullException(nameof(appContext));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _entityStorageUriService = entityStorageUriService ?? throw new ArgumentNullException(nameof(entityStorageUriService));
         }
 
         /// <summary>
@@ -43,6 +46,11 @@ namespace Swabbr.Core.Services
         /// <summary>
         ///     Gets all users which are eligible for a vlog request.
         /// </summary>
+        /// <remarks>
+        ///     Note that no profile image details are required here
+        ///     since this is only called by our vlog trigger service.
+        ///     This might change in the future though.
+        /// </remarks>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>Vloggable user collection</returns>
         public IAsyncEnumerable<User> GetAllVloggableUsersAsync(Navigation navigation) 
@@ -53,8 +61,14 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="userId">The user id.</param>
         /// <returns>The user.</returns>
-        public Task<User> GetAsync(Guid userId) 
-            => _userRepository.GetAsync(userId);
+        public async Task<User> GetAsync(Guid userId)
+        {
+            var user = await _userRepository.GetAsync(userId);
+
+            user.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(user);
+
+            return user;
+        }
 
         /// <summary>
         ///     Gets all followers for a user.
@@ -62,8 +76,15 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to check.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All followers.</returns>
-        public IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
-            => _userRepository.GetFollowersAsync(userId, navigation);
+        public async IAsyncEnumerable<User> GetFollowersAsync(Guid userId, Navigation navigation)
+        {
+            await foreach (var user in _userRepository.GetFollowersAsync(userId, navigation))
+            {
+                user.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(user);
+
+                yield return user;
+            }
+        }
 
         /// <summary>
         ///     Gets all users a user is following.
@@ -71,8 +92,15 @@ namespace Swabbr.Core.Services
         /// <param name="userId">The user to check.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>All users followed by <paramref name="userId"/>.</returns>
-        public IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
-            => _userRepository.GetFollowingAsync(userId, navigation);
+        public async IAsyncEnumerable<User> GetFollowingAsync(Guid userId, Navigation navigation)
+        {
+            await foreach (var user in _userRepository.GetFollowingAsync(userId, navigation))
+            {
+                user.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(user);
+
+                yield return user;
+            }
+        }
 
         /// <summary>
         ///     Gets the details required to send a push notification.
@@ -89,8 +117,15 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="navigation">Result set control.</param>
         /// <returns>Wrappers around all users that liked saids vlogs.</returns>
-        public IAsyncEnumerable<UserWithRelationWrapper> GetFollowRequestingUsersAsync(Navigation navigation)
-            => _userRepository.GetFollowRequestingUsersAsync(navigation);
+        public async IAsyncEnumerable<UserWithRelationWrapper> GetFollowRequestingUsersAsync(Navigation navigation)
+        {
+            await foreach (var userWrapper in _userRepository.GetFollowRequestingUsersAsync(navigation))
+            {
+                userWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(userWrapper.User);
+
+                yield return userWrapper;
+            }
+        }
 
         /// <summary>
         ///     Gets all <see cref="VlogLikingUserWrapper"/> objects that 
@@ -101,16 +136,29 @@ namespace Swabbr.Core.Services
         /// </remarks>
         /// <param name="navigation">Result set control.</param>
         /// <returns>Wrappers around all users that liked saids vlogs.</returns>
-        public IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation)
-            => _userRepository.GetVlogLikingUsersForUserAsync(navigation);
+        public async IAsyncEnumerable<VlogLikingUserWrapper> GetVlogLikingUsersForUserAsync(Navigation navigation)
+        {
+            await foreach (var userWrapper in _userRepository.GetVlogLikingUsersForUserAsync(navigation))
+            {
+                userWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(userWrapper.User);
+
+                yield return userWrapper;
+            }
+        }
 
         /// <summary>
         ///     Gets a user with corresponding statistics.
         /// </summary>
         /// <param name="userId">The internal user id.</param>
         /// <returns>User entity with statistics.</returns>
-        public Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
-            => _userRepository.GetWithStatisticsAsync(userId);
+        public async Task<UserWithStats> GetWithStatisticsAsync(Guid userId)
+        {
+            var user = await _userRepository.GetWithStatisticsAsync(userId);
+            
+            user.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(user);
+
+            return user;
+        }
 
         /// <summary>
         ///     Search for users in our data store.
@@ -118,9 +166,17 @@ namespace Swabbr.Core.Services
         /// <param name="query">Search string.</param>
         /// <param name="navigation">Navigation control.</param>
         /// <returns>User search result set.</returns>
-        public IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation)
-            => _userRepository.SearchAsync(query, navigation);
+        public async IAsyncEnumerable<UserWithRelationWrapper> SearchAsync(string query, Navigation navigation)
+        { 
+            await foreach (var userWrapper in _userRepository.SearchAsync(query, navigation))
+            {
+                userWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(userWrapper.User);
 
+                yield return userWrapper;
+            }
+        }
+
+        // TODO Validate the uploaded profile image if one was modified or added.
         /// <summary>
         ///     This updates the current user in our database.
         /// </summary>

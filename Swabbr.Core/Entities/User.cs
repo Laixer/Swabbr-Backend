@@ -45,12 +45,6 @@ namespace Swabbr.Core.Entities
         public string Nickname { get; set; }
 
         /// <summary>
-        ///     Base64 encoded string containing the uploaded 
-        ///     profile image of the user.
-        /// </summary>
-        public string ProfileImageBase64Encoded { get; set; }
-
-        /// <summary>
         ///     Angular longitude coordinate.
         /// </summary>
         public double? Longitude { get; set; }
@@ -65,6 +59,18 @@ namespace Swabbr.Core.Entities
         ///     publicly visible to other users.
         /// </summary>
         public bool IsPrivate { get; set; }
+
+        /// <summary>
+        ///     Moment the profile image was last updated. If this is 
+        ///     set to null that means we have no profile image or the
+        ///     profile image was deleted.
+        /// </summary>
+        public DateTimeOffset? ProfileImageDateUpdated { get; set; }
+
+        /// <summary>
+        ///     Profile image download uri. Null if we have none.
+        /// </summary>
+        public Uri ProfileImageUri { get; set; }
 
         /// <summary>
         ///     The maximum amount of times the user should be reminded 

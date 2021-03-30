@@ -203,7 +203,7 @@ namespace Swabbr.Infrastructure.Repositories
 		                    vw.user_latitude,
 		                    vw.user_longitude,
 		                    vw.user_nickname,
-		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_profile_image_date_updated,
 		                    vw.user_timezone,
 		
 		                    -- Meta data for vlog
@@ -285,7 +285,7 @@ namespace Swabbr.Infrastructure.Repositories
 		                    vw.user_latitude,
 		                    vw.user_longitude,
 		                    vw.user_nickname,
-		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_profile_image_date_updated,
 		                    vw.user_timezone,
 		
 		                    -- Meta data for vlog
@@ -430,7 +430,7 @@ namespace Swabbr.Infrastructure.Repositories
 		                    vw.user_latitude,
 		                    vw.user_longitude,
 		                    vw.user_nickname,
-		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_profile_image_date_updated,
 		                    vw.user_timezone,
 		
 		                    -- Meta data for vlog
@@ -541,7 +541,7 @@ namespace Swabbr.Infrastructure.Repositories
 		                    vw.user_latitude,
 		                    vw.user_longitude,
 		                    vw.user_nickname,
-		                    vw.user_profile_image_base64_encoded,
+		                    vw.user_profile_image_date_updated,
 		                    vw.user_timezone,
 		
 		                    -- Meta data for vlog

@@ -42,6 +42,7 @@ namespace Swabbr.Core.Extensions
             });
 
             // Configure DI for services
+            services.AddScoped<IEntityStorageUriService, EntityStorageUriService>();
             services.AddScoped<IFollowRequestService, FollowRequestService>();
             services.AddScoped<IUserSelectionService, UserSelectionService>();
             services.AddScoped<IReactionService, ReactionService>();

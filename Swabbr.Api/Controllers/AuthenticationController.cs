@@ -53,7 +53,9 @@ namespace Swabbr.Api.Controllers
 
         // POST: api/authentication/register
         /// <summary>
-        ///     Register a new user.
+        ///     Register a new user. Note that this ignores the profile image. If a profile 
+        ///     image is desired, use <see cref="UserController.UpdateAsync(UserUpdateDto)"/>
+        ///     to perform this operation after the initial user object creation.
         /// </summary>
         [AllowAnonymous]
         [HttpPost("register")]
@@ -90,9 +92,10 @@ namespace Swabbr.Api.Controllers
 
             // FUTURE: This will be removed when refactoring the auth part. 
             //         See the UserUpdateHelper for the current tempfix.
-            // Assign all explicitly specified user properties
-            // which are not handled by the user manager.
-            await _userUpdateHelper.UpdateUserAsync(input, identityUser.Id);
+            // Assign all explicitly specified user properties which are not handled by the 
+            // user manager. Note that we ignore the profile image since no upload uri is
+            // present yet.
+            await _userUpdateHelper.UpdateUserAsync(input with { ProfileImageUpdated = false }, identityUser.Id);
 
             //scope.Complete();
 

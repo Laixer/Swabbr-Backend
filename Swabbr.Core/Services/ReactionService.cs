@@ -19,6 +19,7 @@ namespace Swabbr.Core.Services
     {
         private readonly INotificationService _notificationService;
         private readonly IBlobStorageService _blobStorageService;
+        private readonly IEntityStorageUriService _entityStorageUriService;
         private readonly IReactionRepository _reactionRepository;
         private readonly IVlogRepository _vlogRepository;
 
@@ -27,11 +28,13 @@ namespace Swabbr.Core.Services
         /// </summary>
         public ReactionService(INotificationService notificationService, 
             IBlobStorageService blobStorageService,
+            IEntityStorageUriService entityStorageUriService,
             IReactionRepository reactionRepository,
             IVlogRepository vlogRepository)
         {
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _blobStorageService = blobStorageService ?? throw new ArgumentNullException(nameof(blobStorageService));
+            _entityStorageUriService = entityStorageUriService ?? throw new ArgumentNullException(nameof(entityStorageUriService));
             _reactionRepository = reactionRepository ?? throw new ArgumentNullException(nameof(reactionRepository));
             _vlogRepository = vlogRepository ?? throw new ArgumentNullException(nameof(vlogRepository));
         }
@@ -77,8 +80,8 @@ namespace Swabbr.Core.Services
         {
             var reaction = await _reactionRepository.GetAsync(reactionId);
 
-            reaction.ThumbnailUri = await GetThumbnailUriAsync(reaction);
-            reaction.VideoUri = await GetVideoUriAsync(reaction);
+            reaction.ThumbnailUri = await _entityStorageUriService.GetReactionThumbnailAccessUriAsync(reaction.Id);
+            reaction.VideoUri = await _entityStorageUriService.GetReactionVideoAccessUriAsync(reaction.Id);
 
             return reaction;
         }
@@ -101,8 +104,8 @@ namespace Swabbr.Core.Services
         {
             await foreach (var reaction in _reactionRepository.GetForVlogAsync(vlogId, navigation))
             {
-                reaction.ThumbnailUri = await GetThumbnailUriAsync(reaction);
-                reaction.VideoUri = await GetVideoUriAsync(reaction);
+                reaction.ThumbnailUri = await _entityStorageUriService.GetReactionThumbnailAccessUriAsync(reaction.Id);
+                reaction.VideoUri = await _entityStorageUriService.GetReactionVideoAccessUriAsync(reaction.Id);
 
                 yield return reaction;
             }
@@ -113,8 +116,16 @@ namespace Swabbr.Core.Services
         /// </summary>
         /// <param name="id">Reaction id.</param>
         /// <returns>Reaction wrapper.</returns>
-        public Task<ReactionWrapper> GetWrapperAsync(Guid id)
-            => _reactionRepository.GetWrapperAsync(id);
+        public async Task<ReactionWrapper> GetWrapperAsync(Guid id)
+        {
+            var reactionWrapper = await _reactionRepository.GetWrapperAsync(id);
+
+            reactionWrapper.Reaction.ThumbnailUri = await _entityStorageUriService.GetReactionThumbnailAccessUriAsync(reactionWrapper.Reaction.Id);
+            reactionWrapper.Reaction.VideoUri = await _entityStorageUriService.GetReactionVideoAccessUriAsync(reactionWrapper.Reaction.Id);
+            reactionWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(reactionWrapper.User);
+
+            return reactionWrapper;
+        }
 
         /// <summary>
         ///     Get all reaction wrappers for a vlog from our data store.
@@ -122,8 +133,17 @@ namespace Swabbr.Core.Services
         /// <param name="vlogId">The vlog id.</param>
         /// <param name="navigation">Result set control.</param>
         /// <returns>Reaction wrappers for vlog.</returns>
-        public IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation)
-            => _reactionRepository.GetWrappersForVlogAsync(vlogId, navigation);
+        public async IAsyncEnumerable<ReactionWrapper> GetWrappersForVlogAsync(Guid vlogId, Navigation navigation)
+        {
+            await foreach (var reactionWrapper in _reactionRepository.GetWrappersForVlogAsync(vlogId, navigation))
+            {
+                reactionWrapper.Reaction.ThumbnailUri = await _entityStorageUriService.GetReactionThumbnailAccessUriAsync(reactionWrapper.Reaction.Id);
+                reactionWrapper.Reaction.VideoUri = await _entityStorageUriService.GetReactionVideoAccessUriAsync(reactionWrapper.Reaction.Id);
+                reactionWrapper.User.ProfileImageUri = await _entityStorageUriService.GetUserProfileImageAccessUriOrNullAsync(reactionWrapper.User);
+
+                yield return reactionWrapper;
+            }
+        }
 
         /// <summary>
         ///     Called when a reaction has been uploaded. This will
@@ -175,27 +195,5 @@ namespace Swabbr.Core.Services
         /// <param name="reaction">The reaction with updated properties.</param>
         public Task UpdateAsync(Reaction reaction)
             => _reactionRepository.UpdateAsync(reaction);
-
-        /// <summary>
-        ///     Extract the thumbnail uri for a reaction.
-        /// </summary>
-        /// <param name="reaction">The reaction.</param>
-        /// <returns>Thumbnail uri.</returns>
-        protected Task<Uri> GetThumbnailUriAsync(Reaction reaction)
-            => _blobStorageService.GetAccessLinkAsync(
-                containerName: StorageConstants.ReactionStorageFolderName, 
-                fileName: StorageHelper.GetThumbnailFileName(reaction.Id),
-                timeSpanValid: TimeSpan.FromHours(2));
-
-        /// <summary>
-        ///     Extract the video uri for a reaction.
-        /// </summary>
-        /// <param name="reaction">The reaction.</param>
-        /// <returns>Video uri.</returns>
-        protected Task<Uri> GetVideoUriAsync(Reaction reaction)
-            => _blobStorageService.GetAccessLinkAsync(
-                containerName: StorageConstants.ReactionStorageFolderName,
-                fileName: StorageHelper.GetVideoFileName(reaction.Id),
-                timeSpanValid: TimeSpan.FromHours(2));
     }
 }
