@@ -441,7 +441,7 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.last_name,
                             uws.latitude,
                             uws.longitude,
-                            uws.nickname
+                            uws.nickname,
                             uws.timezone,
                             
                             -- Statistics
