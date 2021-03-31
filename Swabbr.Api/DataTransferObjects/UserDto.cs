@@ -44,11 +44,9 @@ namespace Swabbr.Api.DataTransferObjects
         public string Nickname { get; init; }
 
         /// <summary>
-        ///     Moment the profile image was last updated. If this is 
-        ///     set to null that means we have no profile image or the
-        ///     profile image was deleted.
+        ///     Indicates if we have a profile image.
         /// </summary>
-        public DateTimeOffset? ProfileImageDateUpdated { get; set; }
+        public bool HasProfileImage { get; init; }
 
         /// <summary>
         ///     Profile image download uri. Null if we have none.

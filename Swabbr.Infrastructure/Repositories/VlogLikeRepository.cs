@@ -232,13 +232,13 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_base64_encoded,
                             u.timezone
                 FROM        cnt AS cnt
                 LEFT JOIN (
@@ -250,7 +250,7 @@ namespace Swabbr.Infrastructure.Repositories
                 )
                 AS      	vlog_likes
                 ON 			vlog_likes.vlog_id = @vlog_id
-                LEFT JOIN   application.user AS u 
+                LEFT JOIN   application.user_generic AS u 
                 ON      	vlog_likes.user_id = u.id";
 
             await using var context = await CreateNewDatabaseContext(sql);

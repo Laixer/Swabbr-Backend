@@ -55,11 +55,11 @@ namespace Swabbr.Api.DataTransferObjects
         [NonEmptyString]
         public string Nickname { get; init; }
 
-        // FUTURE: We have no profile image deletion functionality yet.
         /// <summary>
-        ///     Set this to true if the profile image was updated.
+        ///     Indicates if we have a profile image. Set this to true 
+        ///     if an image was uploaded, to false for image deletion.
         /// </summary>
-        public bool ProfileImageUpdated { get; init; }
+        public bool? HasProfileImage { get; init; }
 
         /// <summary>
         ///     Angular longitude coordinate.
