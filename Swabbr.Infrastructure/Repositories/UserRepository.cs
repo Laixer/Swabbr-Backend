@@ -75,15 +75,15 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_date_updated,
                             u.timezone
-                    FROM    application.user AS u";
+                    FROM    application.user_generic AS u";
 
             sql = ConstructNavigation(sql, navigation, "u.nickname");
 
@@ -110,15 +110,15 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_date_updated,
                             u.timezone
-                    FROM    application.user AS u
+                    FROM    application.user_generic AS u
                     WHERE   u.daily_vlog_request_limit > 0";
 
             sql = ConstructNavigation(sql, navigation);
@@ -145,15 +145,15 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_date_updated,
                             u.timezone
-                    FROM    application.user AS u
+                    FROM    application.user_generic AS u
                     WHERE   u.id = @id
                     LIMIT   1";
 
@@ -184,15 +184,15 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_date_updated,
                             u.timezone
-                    FROM    application.user AS u
+                    FROM    application.user_generic AS u
                     JOIN    application.follow_request_accepted AS fra
                     ON      fra.requester_id = u.id
                     WHERE   fra.receiver_id = @id";
@@ -230,15 +230,15 @@ namespace Swabbr.Infrastructure.Repositories
                         u.first_name,
                         u.follow_mode,
                         u.gender,
+                        u.has_profile_image,
                         u.id,
                         u.is_private,
                         u.last_name,
                         u.latitude,
                         u.longitude,
                         u.nickname,
-                        u.profile_image_date_updated,
                         u.timezone
-                FROM    application.user AS u
+                FROM    application.user_generic AS u
                 JOIN    application.follow_request AS fr
                 ON      fr.requester_id = u.id
                 WHERE   fr.follow_request_status = 'pending'
@@ -309,15 +309,15 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_date_updated,
                             u.timezone
-                    FROM    application.user AS u
+                    FROM    application.user_generic AS u
                     JOIN    application.follow_request_accepted AS fra
                     ON      fra.receiver_id = u.id
                     WHERE   fra.requester_id = @id";
@@ -391,13 +391,13 @@ namespace Swabbr.Infrastructure.Repositories
                         user_first_name,
                         user_follow_mode,
                         user_gender,
+                        user_has_profile_image,
                         user_id,
                         user_is_private,
                         user_last_name,
                         user_latitude,
                         user_longitude,
                         user_nickname,
-                        user_profile_image_date_updated,
                         user_timezone
                 FROM    entities.vlog_liking_user
                 WHERE   vlog_owner_id = @user_id";
@@ -435,13 +435,13 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.first_name,
                             uws.follow_mode,
                             uws.gender,
+                            uws.has_profile_image,
                             uws.id,
                             uws.is_private,
                             uws.last_name,
                             uws.latitude,
                             uws.longitude,
-                            uws.nickname,
-                            uws.profile_image_date_updated,
+                            uws.nickname
                             uws.timezone,
                             
                             -- Statistics
@@ -490,13 +490,13 @@ namespace Swabbr.Infrastructure.Repositories
                             u.first_name,
                             u.follow_mode,
                             u.gender,
+                            u.has_profile_image,
                             u.id,
                             u.is_private,
                             u.last_name,
                             u.latitude,
                             u.longitude,
                             u.nickname,
-                            u.profile_image_date_updated,
                             u.timezone
                     FROM    application.user_search_with_follow_request_status AS u
                     WHERE   LOWER(u.nickname) LIKE LOWER(@query)
@@ -549,12 +549,12 @@ namespace Swabbr.Infrastructure.Repositories
                             first_name = @first_name,
                             follow_mode = @follow_mode,
                             gender = @gender,
+                            has_profile_image = @has_profile_image,
                             is_private = @is_private,
                             last_name = @last_name,
                             latitude = @latitude,
                             longitude = @longitude,
                             nickname = @nickname,
-                            profile_image_date_updated = @profile_image_date_updated,
                             timezone = @timezone
                     WHERE   id = @id";
 
@@ -582,13 +582,13 @@ namespace Swabbr.Infrastructure.Repositories
                 FirstName = reader.GetSafeString(3 + offset),
                 FollowMode = reader.GetFieldValue<FollowMode>(4 + offset),
                 Gender = reader.GetFieldValue<Gender?>(5 + offset),
-                Id = reader.GetGuid(6 + offset),
-                IsPrivate = reader.GetBoolean(7 + offset),
-                LastName = reader.GetSafeString(8 + offset),
-                Latitude = reader.GetSafeDouble(9 + offset),
-                Longitude = reader.GetSafeDouble(10 + offset),
-                Nickname = reader.GetString(11 + offset),
-                ProfileImageDateUpdated = reader.GetSafeDateTime(12 + offset),
+                HasProfileImage = reader.GetBoolean(6 + offset),
+                Id = reader.GetGuid(7 + offset),
+                IsPrivate = reader.GetBoolean(8 + offset),
+                LastName = reader.GetSafeString(9 + offset),
+                Latitude = reader.GetSafeDouble(10 + offset),
+                Longitude = reader.GetSafeDouble(11 + offset),
+                Nickname = reader.GetString(12 + offset),
                 TimeZone = reader.GetTimeZoneInfo(13 + offset)
             };
 
@@ -607,13 +607,13 @@ namespace Swabbr.Infrastructure.Repositories
                 FirstName = reader.GetSafeString(3 + offset),
                 FollowMode = reader.GetFieldValue<FollowMode>(4 + offset),
                 Gender = reader.GetFieldValue<Gender?>(5 + offset),
-                Id = reader.GetGuid(6 + offset),
-                IsPrivate = reader.GetBoolean(7 + offset),
-                LastName = reader.GetSafeString(8 + offset),
-                Latitude = reader.GetSafeDouble(9 + offset),
-                Longitude = reader.GetSafeDouble(10 + offset),
-                Nickname = reader.GetString(11 + offset),
-                ProfileImageDateUpdated = reader.GetSafeDateTime(12 + offset),
+                HasProfileImage = reader.GetBoolean(6 + offset),
+                Id = reader.GetGuid(7 + offset),
+                IsPrivate = reader.GetBoolean(8 + offset),
+                LastName = reader.GetSafeString(9 + offset),
+                Latitude = reader.GetSafeDouble(10 + offset),
+                Longitude = reader.GetSafeDouble(11 + offset),
+                Nickname = reader.GetString(12 + offset),
                 TimeZone = reader.GetTimeZoneInfo(13 + offset),
                 TotalFollowers = reader.GetUInt(14 + offset),
                 TotalFollowing = reader.GetUInt(15 + offset),
@@ -650,12 +650,12 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("first_name", user.FirstName);
             context.AddParameterWithValue("follow_mode", user.FollowMode);
             context.AddParameterWithValue("gender", user.Gender);
+            context.AddParameterWithValue("has_profile_image", user.HasProfileImage);
             context.AddParameterWithValue("is_private", user.IsPrivate);
             context.AddParameterWithValue("last_name", user.LastName);
             context.AddParameterWithValue("latitude", user.Latitude);
             context.AddParameterWithValue("longitude", user.Longitude);
             context.AddParameterWithValue("nickname", user.Nickname);
-            context.AddParameterWithValue("profile_image_date_updated", user.ProfileImageDateUpdated);
             context.AddParameterWithValue("timezone", TimeZoneInfoHelper.MapTimeZoneToStringOrNull(user.TimeZone));
         }
     }

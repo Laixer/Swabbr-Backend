@@ -198,13 +198,13 @@ namespace Swabbr.Infrastructure.Repositories
 		                    rw.user_first_name,
 		                    rw.user_follow_mode,
 		                    rw.user_gender,
+                            rw.user_has_profile_image,
 		                    rw.user_id,
 		                    rw.user_is_private,
 		                    rw.user_last_name,
 		                    rw.user_latitude,
 		                    rw.user_longitude,
 		                    rw.user_nickname,
-		                    rw.user_profile_image_date_updated,
 		                    rw.user_timezone
                     FROM	entities.reaction_wrapper AS rw
                     WHERE   rw.reaction_id = @id
@@ -304,13 +304,13 @@ namespace Swabbr.Infrastructure.Repositories
 		                    rw.user_first_name,
 		                    rw.user_follow_mode,
 		                    rw.user_gender,
+                            rw.user_has_profile_image,
 		                    rw.user_id,
 		                    rw.user_is_private,
 		                    rw.user_last_name,
 		                    rw.user_latitude,
 		                    rw.user_longitude,
 		                    rw.user_nickname,
-		                    rw.user_profile_image_date_updated,
 		                    rw.user_timezone
                     FROM	entities.reaction_wrapper AS rw
                     WHERE   rw.reaction_target_vlog_id = @vlogId";

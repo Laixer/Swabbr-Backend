@@ -61,11 +61,9 @@ namespace Swabbr.Core.Entities
         public bool IsPrivate { get; set; }
 
         /// <summary>
-        ///     Moment the profile image was last updated. If this is 
-        ///     set to null that means we have no profile image or the
-        ///     profile image was deleted.
+        ///     Indicates if we have a profile image.
         /// </summary>
-        public DateTimeOffset? ProfileImageDateUpdated { get; set; }
+        public bool HasProfileImage { get; set; }
 
         /// <summary>
         ///     Profile image download uri. Null if we have none.

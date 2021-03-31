@@ -95,7 +95,7 @@ namespace Swabbr.Api.Controllers
             // Assign all explicitly specified user properties which are not handled by the 
             // user manager. Note that we ignore the profile image since no upload uri is
             // present yet.
-            await _userUpdateHelper.UpdateUserAsync(input with { ProfileImageUpdated = false }, identityUser.Id);
+            await _userUpdateHelper.UpdateUserAsync(input with { HasProfileImage = false }, identityUser.Id);
 
             //scope.Complete();
 

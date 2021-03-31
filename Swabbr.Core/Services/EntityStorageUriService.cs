@@ -42,7 +42,7 @@ namespace Swabbr.Core.Services
                 throw new ArgumentNullException(nameof(user));
             }
 
-            return (user.ProfileImageDateUpdated != null)
+            return (user.HasProfileImage)
                 ? GetUserProfileImageAccessUriAsync(user.Id)
                 : Task.FromResult<Uri>(null);
         }

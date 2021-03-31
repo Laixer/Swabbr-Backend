@@ -60,12 +60,13 @@ namespace Swabbr.Api.Helpers
             return UpdateUserAsync(input);
         }
 
+        // TODO Use coalesce instead
         /// <summary>
         ///     Update a user in our datastore, only modifying
         ///     the explicitly assigned properties in the input.
         /// </summary>
         /// <remarks>
-        ///     Any property that is null (default) will be untouched.
+        ///     Any property that is null (default) will be left untouched.
         /// </remarks>
         /// <param name="input">User with explicitly assigned properties.</param>
         internal async Task UpdateUserAsync(UserUpdateDto input)
@@ -80,14 +81,12 @@ namespace Swabbr.Api.Helpers
             currentUser.FirstName = input.FirstName ?? currentUser.FirstName;
             currentUser.FollowMode = input.FollowMode ?? currentUser.FollowMode;
             currentUser.Gender = input.Gender ?? currentUser.Gender;
+            currentUser.HasProfileImage = input.HasProfileImage ?? currentUser.HasProfileImage;
             currentUser.IsPrivate = input.IsPrivate ?? currentUser.IsPrivate;
             currentUser.LastName = input.LastName ?? currentUser.LastName;
             currentUser.Latitude = input.Latitude ?? currentUser.Latitude;
             currentUser.Longitude = input.Longitude ?? currentUser.Longitude;
             currentUser.Nickname = input.Nickname ?? currentUser.Nickname;
-            currentUser.ProfileImageDateUpdated = input.ProfileImageUpdated
-                ? DateTimeOffset.Now
-                : null;
             currentUser.TimeZone = string.IsNullOrEmpty(input.TimeZone)
                 ? currentUser.TimeZone
                 : TimeZoneInfoHelper.MapStringToTimeZone(input.TimeZone);
