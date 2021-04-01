@@ -52,6 +52,15 @@ namespace Swabbr.Infrastructure.Repositories
                 throw new NotAllowedException();
             }
 
+            // Only update if nonexistent
+            if (await ExistsAsync(entity.Id))
+            {
+                if ((await GetAsync(entity.Id)).FollowRequestStatus == FollowRequestStatus.Accepted)
+                {
+                    return entity.Id;
+                }
+            }
+
             var sql = @"
                     INSERT INTO application.follow_request(
                         receiver_id,
@@ -60,7 +69,10 @@ namespace Swabbr.Infrastructure.Repositories
                     VALUES (
                         @receiver_id,
                         @requester_id
-                    )";
+                    )
+                    ON CONFLICT (requester_id, receiver_id)
+                    DO UPDATE SET
+	                    follow_request_status = 'pending'";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -102,7 +114,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("receiver_id", id.ReceiverId);
             context.AddParameterWithValue("requester_id", id.RequesterId);
 
-            await context.NonQueryAsync();
+            await context.NonQueryAsync(hasRowGuard: false); // No-op
         }
 
         /// <summary>
@@ -350,7 +362,7 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("receiver_id", id.ReceiverId);
             context.AddParameterWithValue("requester_id", id.RequesterId);
 
-            await context.NonQueryAsync();
+            await context.NonQueryAsync(hasRowGuard: false); // No-op
         }
 
         /// <summary>
