@@ -62,7 +62,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <param name="vlogId">The posted vlog id.</param>
         public virtual async Task NotifyFollowersVlogPostedAsync(Guid vlogOwnerUserId, Guid vlogId)
         {
-            _logger.LogTrace($"Notifying followers that {vlogOwnerUserId} posted a vlog");
+            _logger.LogTrace($"Notifying followers that {vlogOwnerUserId} posted vlog {vlogId}");
 
             await foreach (var user in _userRepository.GetFollowersAsync(vlogOwnerUserId, Navigation.All))
             {
