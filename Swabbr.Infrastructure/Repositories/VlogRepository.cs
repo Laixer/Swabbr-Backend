@@ -346,7 +346,8 @@ namespace Swabbr.Infrastructure.Repositories
 
         /// <summary>
         ///     Gets a collection of most recent vlogs for a user
-        ///     based on all users the user follows.
+        ///     based on all users the user follows. Note that this
+        ///     also includes the users own vlogs.
         /// </summary>
         /// <remarks>
         ///     This ignores <see cref="Navigation.SortingOrder"/> as
@@ -363,6 +364,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
+                -- Followed profile vlogs
                 SELECT      v.date_created,
                             v.id,
                             v.is_private,
@@ -375,9 +377,22 @@ namespace Swabbr.Infrastructure.Repositories
                 ON          fra.requester_id = @user_id
                             AND 
                             fra.receiver_id = v.user_id
-                ORDER BY    v.date_created DESC";
+                
+                UNION ALL
 
-            sql = ConstructNavigation(sql, navigation);
+                -- Own vlogs
+                SELECT      v.date_created,
+                            v.id,
+                            v.is_private,
+                            v.length,
+                            v.user_id,
+                            v.views,
+                            v.vlog_status
+                FROM        entities.vlog_up_to_date AS v
+                WHERE       v.user_id = @user_id";
+
+            navigation.SortingOrder = SortingOrder.Descending;
+            sql = ConstructNavigation(sql, navigation, "date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -408,6 +423,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
+                -- Followed profile vlogs
                 SELECT	    -- Vlog
 		                    vw.vlog_date_created,
 		                    vw.vlog_id,
@@ -441,9 +457,43 @@ namespace Swabbr.Infrastructure.Repositories
                 ON          fra.requester_id = @user_id
                             AND 
                             fra.receiver_id = vw.user_id
-                ORDER BY    vw.vlog_date_created DESC";
 
-            sql = ConstructNavigation(sql, navigation);
+                UNION ALL
+
+                -- Own vlogs
+                SELECT	    -- Vlog
+		                    vw.vlog_date_created,
+		                    vw.vlog_id,
+		                    vw.vlog_is_private,
+		                    vw.vlog_length,
+		                    vw.vlog_user_id,
+		                    vw.vlog_views,
+		                    vw.vlog_vlog_status,
+		
+		                    -- User
+		                    vw.user_birth_date,
+		                    vw.user_country,
+		                    vw.user_daily_vlog_request_limit,
+		                    vw.user_first_name,
+		                    vw.user_follow_mode,
+		                    vw.user_gender,
+                            vw.user_has_profile_image,
+		                    vw.user_id,
+		                    vw.user_is_private,
+		                    vw.user_last_name,
+		                    vw.user_latitude,
+		                    vw.user_longitude,
+		                    vw.user_nickname,
+		                    vw.user_timezone,
+		
+		                    -- Meta data for vlog
+		                    vw.vlog_like_count,
+		                    vw.reaction_count
+                FROM	    entities.vlog_wrapper AS vw
+                WHERE       vw.vlog_user_id = @user_id";
+
+            navigation.SortingOrder = SortingOrder.Descending;
+            sql = ConstructNavigation(sql, navigation, "vlog_date_created");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
