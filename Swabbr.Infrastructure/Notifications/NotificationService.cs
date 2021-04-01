@@ -1,4 +1,5 @@
-﻿using Swabbr.Core.BackgroundWork;
+﻿using Microsoft.Extensions.Logging;
+using Swabbr.Core.BackgroundWork;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Interfaces.Factories;
@@ -30,6 +31,7 @@ namespace Swabbr.Infrastructure.Notifications
         private readonly DispatchManager _dispatchManager;
         private readonly IUserRepository _userRepository;
         private readonly INotificationFactory _notificationFactory;
+        private readonly ILogger<NotificationService> _logger;
 
         /// <summary>
         ///     Create new instance.
@@ -38,13 +40,15 @@ namespace Swabbr.Infrastructure.Notifications
             INotificationRegistrationRepository notificationRegistrationRepository,
             DispatchManager dispatchManager,
             IUserRepository userRepository,
-            INotificationFactory notificationFactory)
+            INotificationFactory notificationFactory,
+            ILogger<NotificationService> logger)
         {
             _notificationClient = notificationClient ?? throw new ArgumentNullException(nameof(notificationClient));
             _notificationRegistrationRepository = notificationRegistrationRepository ?? throw new ArgumentNullException(nameof(notificationRegistrationRepository));
             _dispatchManager = dispatchManager ?? throw new ArgumentNullException(nameof(dispatchManager));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _notificationFactory = notificationFactory ?? throw new ArgumentNullException(nameof(notificationFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -62,6 +66,8 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 var notification = _notificationFactory.BuildFollowedProfileVlogPosted(user.Id, vlogId, vlogOwnerUserId);
 
+                _logger.LogTrace($"Notifying follower {user.Id} that {vlogOwnerUserId} posted a vlog");
+
                 _dispatchManager.Dispatch<NotifyBackgroundTask<DataFollowedProfileVlogPosted>>(notification);
             }
         }
@@ -78,6 +84,8 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual Task NotifyVlogRecordRequestAsync(Guid userId, Guid vlogId, TimeSpan requestTimeout)
         {
             var notification = _notificationFactory.BuildVlogRecordRequest(userId, vlogId, DateTimeOffset.Now, requestTimeout);
+
+            _logger.LogTrace($"Sending vlog record request to {userId}");
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogRecordRequest>>(notification);
 
@@ -97,6 +105,8 @@ namespace Swabbr.Infrastructure.Notifications
         public virtual Task NotifyReactionPlacedAsync(Guid receivingUserId, Guid vlogId, Guid reactionId)
         {
             var notificationContext = _notificationFactory.BuildVlogNewReaction(receivingUserId, vlogId, reactionId);
+
+            _logger.LogTrace($"Notifying user {receivingUserId} that {vlogId} gained a reaction");
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogNewReaction>>(notificationContext);
 
@@ -120,6 +130,8 @@ namespace Swabbr.Infrastructure.Notifications
             }
 
             var notificationContext = _notificationFactory.BuildVlogGainedLike(receivingUserId, vlogLikeId.VlogId, vlogLikeId.UserId);
+
+            _logger.LogTrace($"Notifying user {receivingUserId} that {vlogLikeId.VlogId} gained a like");
 
             _dispatchManager.Dispatch<NotifyBackgroundTask<DataVlogGainedLike>>(notificationContext);
 
