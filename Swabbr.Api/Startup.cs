@@ -231,6 +231,10 @@ namespace Swabbr
         private void SetupIdentity(IServiceCollection services) =>
             services.AddIdentity<SwabbrIdentityUser, SwabbrIdentityRole>(setup =>
             {
+                setup.Password.RequireDigit = false;
+                setup.Password.RequireLowercase = false;
+                setup.Password.RequireNonAlphanumeric = false;
+                setup.Password.RequireUppercase = false;
                 setup.Password.RequiredLength = 8;
                 setup.User.RequireUniqueEmail = true;
             })
