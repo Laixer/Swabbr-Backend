@@ -516,13 +516,13 @@ namespace Swabbr.Infrastructure.Repositories
 	                FROM		application.user_generic AS u
 	                LEFT JOIN 	application.user_interests AS ui 
 	                ON			u.id = ui.user_id
-	                WHERE		LOWER(u.nickname) LIKE LOWER(@Query)
+	                WHERE		LOWER(u.nickname) LIKE LOWER(@query)
 				                OR 
-				                LOWER(ui.interest_1) LIKE LOWER(@Query)
+				                LOWER(ui.interest_1) LIKE LOWER(@query)
 				                OR 
-				                LOWER(ui.interest_2) LIKE LOWER(@Query)
+				                LOWER(ui.interest_2) LIKE LOWER(@query)
 				                OR 
-				                LOWER(ui.interest_3) LIKE LOWER(@Query)
+				                LOWER(ui.interest_3) LIKE LOWER(@query)
                 )
                 SELECT		r.birth_date,
 			                r.country,
