@@ -80,5 +80,12 @@ namespace Swabbr.Core.Entities
         ///     Determines how follow requests are processed for the user.
         /// </summary>
         public FollowMode FollowMode { get; set; }
+
+        /// <summary>
+        ///     Interests.
+        /// </summary>
+        public string Interest1 { get; set; }
+        public string Interest2 { get; set; }
+        public string Interest3 { get; set; }
     }
 }

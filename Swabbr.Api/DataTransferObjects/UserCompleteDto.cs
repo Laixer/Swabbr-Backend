@@ -94,5 +94,12 @@ namespace Swabbr.Api.DataTransferObjects
         ///     Determines how follow requests are processed for the user.
         /// </summary>
         public FollowMode FollowMode { get; init; }
+
+        /// <summary>
+        ///     Interests.
+        /// </summary>
+        public string Interest1 { get; init; }
+        public string Interest2 { get; init; }
+        public string Interest3 { get; init; }
     }
 }
