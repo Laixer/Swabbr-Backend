@@ -545,7 +545,7 @@ namespace Swabbr.Infrastructure.Repositories
 			                AND
 			                fr.receiver_id = r.id";
 
-            sql = ConstructNavigation(sql, navigation, "u.nickname");
+            sql = ConstructNavigation(sql, navigation, "r.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
