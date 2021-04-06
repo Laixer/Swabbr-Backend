@@ -498,36 +498,52 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                    SELECT      u.requesting_user_id,
-                                u.follow_request_status_or_null,
-                                u.birth_date,
-                                u.country,
-                                u.daily_vlog_request_limit,
-                                u.first_name,
-                                u.follow_mode,
-                                u.gender,
-                                u.has_profile_image,
-                                u.id,
-                                u.is_private,
-                                u.last_name,
-                                u.latitude,
-                                u.longitude,
-                                u.nickname,
-                                u.timezone
-                    FROM        application.user_search_with_follow_request_status AS u
-                    LEFT JOIN   application.user_interests AS ui
-                    ON          u.id = ui.user_id
-                    WHERE       (
-                                    LOWER(u.nickname) LIKE LOWER(@query)
-                                    AND
-                                    u.requesting_user_id = @requesting_user_id
-                                )
-                                OR
-                                LOWER(ui.interest_1) LIKE LOWER(@query) 
-                                OR
-                                LOWER(ui.interest_2) LIKE LOWER(@query)
-                                OR
-                                LOWER(ui.interest_3) LIKE LOWER(@query)";
+                WITH results AS (
+	                SELECT		u.birth_date,
+				                u.country,
+				                u.daily_vlog_request_limit,
+				                u.first_name,
+				                u.follow_mode,
+				                u.gender,
+				                u.has_profile_image,
+				                u.id,
+				                u.is_private,
+				                u.last_name,
+				                u.latitude,
+				                u.longitude,
+				                u.nickname,
+				                u.timezone
+	                FROM		application.user_generic AS u
+	                LEFT JOIN 	application.user_interests AS ui 
+	                ON			u.id = ui.user_id
+	                WHERE		LOWER(u.nickname) LIKE LOWER(@query)
+				                OR 
+				                LOWER(ui.interest_1) LIKE LOWER(@query)
+				                OR 
+				                LOWER(ui.interest_2) LIKE LOWER(@query)
+				                OR 
+				                LOWER(ui.interest_3) LIKE LOWER(@query)
+                )
+                SELECT		r.birth_date,
+			                r.country,
+			                r.daily_vlog_request_limit,
+			                r.first_name,
+			                r.follow_mode,
+			                r.gender,
+			                r.has_profile_image,
+			                r.id,
+			                r.is_private,
+			                r.last_name,
+			                r.latitude,
+			                r.longitude,
+			                r.nickname,
+			                r.timezone,
+			                COALESCE(fr.follow_request_status) AS follow_request_status_or_null
+                FROM 		results AS r
+                LEFT JOIN	application.follow_request AS fr
+                ON			fr.requester_id = @self_user_id
+			                AND
+			                fr.receiver_id = r.id";
 
             sql = ConstructNavigation(sql, navigation, "u.nickname");
 
@@ -535,14 +551,14 @@ namespace Swabbr.Infrastructure.Repositories
 
             // Manually append the % wildcard
             context.AddParameterWithValue("query", $"{query}%");
-            context.AddParameterWithValue("requesting_user_id", AppContext.UserId);
+            context.AddParameterWithValue("self_user_id", AppContext.UserId);
 
             await foreach (var reader in context.EnumerableReaderAsync())
             {
                 yield return new UserWithRelationWrapper {
-                    RequestingUserId = reader.GetGuid(0),
-                    FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus?>(1),
-                    User = MapFromReader(reader, 2)
+                    RequestingUserId = AppContext.UserId,
+                    User = MapFromReader(reader, 0),
+                    FollowRequestStatus = reader.GetFieldValue<FollowRequestStatus?>(14),
                 };
             }
         }
