@@ -131,31 +131,40 @@ namespace Swabbr.Infrastructure.Repositories
             }
         }
 
+        // TODO Add interests to all.
         /// <summary>
-        ///     Gets a user from our database.
+        ///     Gets a user from our database, including interests.
         /// </summary>
         /// <param name="id">The user id.</param>
         /// <returns>The user.</returns>
         public async Task<User> GetAsync(Guid id)
         {
             var sql = @"
-                    SELECT  u.birth_date,
-                            u.country,
-                            u.daily_vlog_request_limit,
-                            u.first_name,
-                            u.follow_mode,
-                            u.gender,
-                            u.has_profile_image,
-                            u.id,
-                            u.is_private,
-                            u.last_name,
-                            u.latitude,
-                            u.longitude,
-                            u.nickname,
-                            u.timezone
-                    FROM    application.user_generic AS u
-                    WHERE   u.id = @id
-                    LIMIT   1";
+                    SELECT      u.birth_date,
+                                u.country,
+                                u.daily_vlog_request_limit,
+                                u.first_name,
+                                u.follow_mode,
+                                u.gender,
+                                u.has_profile_image,
+                                u.id,
+                                u.is_private,
+                                u.last_name,
+                                u.latitude,
+                                u.longitude,
+                                u.nickname,
+                                u.timezone,
+                            
+                                -- interests
+                                ui.interest_1,                  
+                                ui.interest_2,                  
+                                ui.interest_3        
+
+                    FROM        application.user_generic AS u
+                    LEFT JOIN   application.user_interests AS ui
+                    ON          u.id = ui.user_id
+                    WHERE       u.id = @id
+                    LIMIT       1";
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -163,7 +172,14 @@ namespace Swabbr.Infrastructure.Repositories
 
             await using var reader = await context.ReaderAsync();
 
-            return MapFromReader(reader);
+            var user = MapFromReader(reader);
+            
+            // Also the interests.
+            user.Interest1 = reader.GetSafeString(14);
+            user.Interest2 = reader.GetSafeString(15);
+            user.Interest3 = reader.GetSafeString(16);
+
+            return user;
         }
 
         /// <summary>
@@ -466,7 +482,7 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        ///     Search for users in our data store.
+        ///     Search for users in our data store, also checks for interests.
         /// </summary>
         /// <remarks>
         ///     This can order by <see cref="User.Nickname"/>.
@@ -482,26 +498,36 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                    SELECT  u.requesting_user_id,
-                            u.follow_request_status_or_null,
-                            u.birth_date,
-                            u.country,
-                            u.daily_vlog_request_limit,
-                            u.first_name,
-                            u.follow_mode,
-                            u.gender,
-                            u.has_profile_image,
-                            u.id,
-                            u.is_private,
-                            u.last_name,
-                            u.latitude,
-                            u.longitude,
-                            u.nickname,
-                            u.timezone
-                    FROM    application.user_search_with_follow_request_status AS u
-                    WHERE   LOWER(u.nickname) LIKE LOWER(@query)
-                            AND
-                            u.requesting_user_id = @requesting_user_id";
+                    SELECT      u.requesting_user_id,
+                                u.follow_request_status_or_null,
+                                u.birth_date,
+                                u.country,
+                                u.daily_vlog_request_limit,
+                                u.first_name,
+                                u.follow_mode,
+                                u.gender,
+                                u.has_profile_image,
+                                u.id,
+                                u.is_private,
+                                u.last_name,
+                                u.latitude,
+                                u.longitude,
+                                u.nickname,
+                                u.timezone
+                    FROM        application.user_search_with_follow_request_status AS u
+                    LEFT JOIN   application.user_interests AS ui
+                    ON          u.id = ui.user_id
+                    WHERE       (
+                                    LOWER(u.nickname) LIKE LOWER(@query)
+                                    AND
+                                    u.requesting_user_id = @requesting_user_id
+                                )
+                                OR
+                                LOWER(ui.interest_1) LIKE LOWER(@query) 
+                                OR
+                                LOWER(ui.interest_2) LIKE LOWER(@query)
+                                OR
+                                LOWER(ui.interest_3) LIKE LOWER(@query)";
 
             sql = ConstructNavigation(sql, navigation, "u.nickname");
 
@@ -563,6 +589,53 @@ namespace Swabbr.Infrastructure.Repositories
             context.AddParameterWithValue("id", AppContext.UserId);
 
             MapToWriter(context, entity);
+
+            await context.NonQueryAsync();
+
+            // Also update the interests.
+            await UpdateInterestsAsync(entity);
+        }
+
+        /// <summary>
+        ///     Update the current users interests in our database.
+        /// </summary>
+        /// <param name="entity">The user with updated properties.</param>
+        private async Task UpdateInterestsAsync(User entity)
+        {
+            if (entity is null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
+            if (!AppContext.HasUser)
+            {
+                throw new NotAllowedException();
+            }
+
+            var sql = @"
+                    INSERT INTO application.user_interests (
+                        user_id,
+                        interest_1,
+                        interest_2,
+                        interest_3
+                    ) VALUES (
+                        @user_id,
+                        @interest_1,
+                        @interest_2,
+                        @interest_3
+                    )
+                    ON CONFLICT (user_id)
+                    DO UPDATE SET
+                        interest_1 = @interest_1,
+                        interest_2 = @interest_2,
+                        interest_3 = @interest_3";
+                    
+            await using var context = await CreateNewDatabaseContext(sql);
+
+            context.AddParameterWithValue("user_id", AppContext.UserId);
+            context.AddParameterWithValue("interest_1", entity.Interest1);
+            context.AddParameterWithValue("interest_2", entity.Interest2);
+            context.AddParameterWithValue("interest_3", entity.Interest3);
 
             await context.NonQueryAsync();
         }

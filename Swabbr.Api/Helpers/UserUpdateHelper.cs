@@ -91,6 +91,11 @@ namespace Swabbr.Api.Helpers
                 ? currentUser.TimeZone
                 : TimeZoneInfoHelper.MapStringToTimeZone(input.TimeZone);
 
+            // Interests.
+            currentUser.Interest1 = input.Interest1 ?? currentUser.Interest1;
+            currentUser.Interest2 = input.Interest2 ?? currentUser.Interest2;
+            currentUser.Interest3 = input.Interest3 ?? currentUser.Interest3;
+
             // Update only the explicitly modified properties
             await _userService.UpdateAsync(currentUser);
         }
