@@ -52,9 +52,10 @@ namespace Swabbr.Infrastructure.Repositories
             {
                 // TODO This is SQL injection
                 var newSql = @$"
-                    UPDATE  entities.vlog_up_to_date AS v
+                    UPDATE  entities.vlog AS v
                     SET     views = views + {views}
-                    WHERE   v.id = '{vlogId}';";
+                    WHERE   v.id = '{vlogId}'
+                    AND     v.vlog_status = 'up_to_date'";
 
                 return $"{sql}\n{newSql}";
             }
