@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Swabbr.Api.Authentication;
 using Swabbr.Api.DataTransferObjects;
 using Swabbr.Api.Helpers;
-using Swabbr.Core.Helpers;
 using Swabbr.Core.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -74,6 +73,8 @@ namespace Swabbr.Api.Controllers
             // Make this operation transactional.
             //using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
+            // TODO Check for nickname duplicates here.
+
             // Construct a new identity user for a new user based on the given input.
             // The entity will be created in our own data store.
             var identityUser = new SwabbrIdentityUser
@@ -115,7 +116,6 @@ namespace Swabbr.Api.Controllers
             var identityUser = await _userManager.FindByEmailAsync(input.Email);
             if (identityUser is null)
             {
-                // TODO Look at this
                 return Unauthorized();
             }
 
@@ -210,6 +210,27 @@ namespace Swabbr.Api.Controllers
 
             // Return.
             return Ok(output);
+        }
+
+        // POST: api/authentication/delete
+        /// <summary>
+        ///     Delete the current user. Also logs the user out.
+        /// </summary>
+        [HttpPost("delete")]
+        public async Task<IActionResult> DeleteAsync([FromServices] Core.AppContext appContext)
+        {
+            // TODO Copied from logout.
+            // Act.
+            await _notificationService.UnregisterAsync(appContext.UserId);
+            await _tokenService.RevokeRefreshTokenAsync(appContext.UserId);
+            await _signInManager.SignOutAsync();
+
+            // Actually perform the delete operation.
+            var user = await _userManager.GetUserAsync(User);
+            await _userManager.DeleteAsync(user);
+
+            // Return.
+            return NoContent();
         }
     }
 }

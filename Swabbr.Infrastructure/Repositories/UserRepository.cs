@@ -19,7 +19,8 @@ namespace Swabbr.Infrastructure.Repositories
     internal class UserRepository : DatabaseContextBase, IUserRepository
     {
         /// <summary>
-        ///     Checks if a user exists in our data store.
+        ///     Checks if a user exists in our data store. Note that 
+        ///     any deleted users will not be found by this method.
         /// </summary>
         /// <param name="id">The user id.</param>
         public async Task<bool> ExistsAsync(Guid id)
@@ -27,7 +28,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     SELECT  EXISTS (
                         SELECT  1
-                        FROM    application.user AS u
+                        FROM    application.user_up_to_date AS u
                         WHERE   u.id = @id
                     )";
 
