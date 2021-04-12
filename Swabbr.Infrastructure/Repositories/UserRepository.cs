@@ -40,7 +40,8 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        ///     Checks if a nickname already exists.
+        ///     Checks if a nickname already exists. Deleted nicknames
+        ///     are also checked by this method.
         /// </summary>
         /// <param name="nickname">The nickname to check for.</param>
         public async Task<bool> ExistsNicknameAsync(string nickname)
@@ -585,7 +586,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                    UPDATE  application.user
+                    UPDATE  application.user_up_to_date
                     SET     birth_date = @birth_date,
                             country = @country,
                             daily_vlog_request_limit = @daily_vlog_request_limit,

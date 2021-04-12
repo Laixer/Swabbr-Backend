@@ -28,7 +28,7 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task StoreRefreshTokenHashAsync(Guid userId, string refreshToken)
         {
             var sql = @"
-                UPDATE  application.user AS u
+                UPDATE  application.user_up_to_date AS u
                 SET     refresh_token_hash = @refresh_token_hash
                 WHERE   u.id = @user_id";
 
@@ -48,7 +48,7 @@ namespace Swabbr.Infrastructure.Repositories
         public async Task RevokeRefreshTokenAsync(Guid userId)
         {
             var sql = @"
-                UPDATE  application.user AS u
+                UPDATE  application.user_up_to_date AS u
                 SET     refresh_token_hash = null
                 WHERE   u.id = @user_id";
 
@@ -73,7 +73,7 @@ namespace Swabbr.Infrastructure.Repositories
         {
             var sql = @"
                 SELECT  u.refresh_token_hash
-                FROM    application.user AS u
+                FROM    application.user_up_to_date AS u
                 WHERE   u.id = @user_id";
 
             await using var context = await CreateNewDatabaseContext(sql);
