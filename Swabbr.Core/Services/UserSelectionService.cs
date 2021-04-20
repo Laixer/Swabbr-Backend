@@ -20,6 +20,11 @@ namespace Swabbr.Core.Services
         private static readonly UTF8Encoding encoder = new UTF8Encoding();
 
         /// <summary>
+        ///     We enforce a minimum request interval of 60 minutes.
+        /// </summary>
+        private static readonly int interval = 60;
+
+        /// <summary>
         ///     Create new instance.
         /// </summary>
         public UserSelectionService(IUserService userService,
@@ -54,6 +59,20 @@ namespace Swabbr.Core.Services
             // meaning they have a vlog request limit greater than zero.
             await foreach (var user in _userService.GetAllVloggableUsersAsync(Navigation.All))
             {
+                var requestCount = Math.Min(_options.MaxDailyVlogRequestLimit, user.DailyVlogRequestLimit);
+
+                if (requestCount <= 0)
+                {
+                    continue;
+                }
+
+                // We store each discovered minute to compare them to each other, 
+                // making sure a minimum interval exists between them. The minimum 
+                // interval is only checked BEFORE the current minute, meaning the 
+                // first one of the two is still selected. The latter of the two 
+                // will not be selected by this algorithm.
+                var minutes = new double[requestCount];
+
                 // Perform one check for each possible vlog request,
                 // since users can have more than one request per day.
                 for (uint i = 1; i <= Math.Min(_options.MaxDailyVlogRequestLimit, user.DailyVlogRequestLimit); i++)
@@ -64,9 +83,32 @@ namespace Swabbr.Core.Services
                     var userMinuteCorrected = userMinute - user.TimeZone.BaseUtcOffset.TotalMinutes;
                     if (userMinuteCorrected < 0) { userMinuteCorrected += 60 * 24; }
 
-                    if (userMinuteCorrected == thisMinute)
+                    minutes[i - 1] = userMinuteCorrected;
+                }
+
+                for (int i = 0; i < requestCount; i++)
+                {
+                    // If any of our selected minutes matches the current one, continue with it.
+                    // Compare it to the other minutes to ensure a minimum interval between them.
+                    if (minutes[i] == thisMinute)
                     {
-                        yield return user;
+                        var withinMinimumInterval = false;
+
+                        for (int j = 0; j < requestCount; j++)
+                        {
+                            var delta = minutes[i] - minutes[j];
+                            if (j != i && delta < interval && delta >= 0)
+                            {
+                                withinMinimumInterval = true;
+                            }
+                        }
+
+                        // Only return the user if none of the other minutes were
+                        // within (before) the interval of the currently selected minute.
+                        if (!withinMinimumInterval)
+                        {
+                            yield return user;
+                        }
                     }
                 }
             }
