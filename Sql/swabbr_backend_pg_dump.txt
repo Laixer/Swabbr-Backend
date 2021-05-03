@@ -1,0 +1,1046 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 12.6
+-- Dumped by pg_dump version 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: application; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA application;
+
+
+--
+-- Name: entities; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA entities;
+
+
+--
+-- Name: follow_mode; Type: TYPE; Schema: application; Owner: -
+--
+
+CREATE TYPE application.follow_mode AS ENUM (
+    'manual',
+    'accept_all',
+    'decline_all'
+);
+
+
+--
+-- Name: follow_request_status; Type: TYPE; Schema: application; Owner: -
+--
+
+CREATE TYPE application.follow_request_status AS ENUM (
+    'pending',
+    'accepted',
+    'declined'
+);
+
+
+--
+-- Name: gender; Type: TYPE; Schema: application; Owner: -
+--
+
+CREATE TYPE application.gender AS ENUM (
+    'female',
+    'male',
+    'unspecified',
+    'other'
+);
+
+
+--
+-- Name: push_notification_platform; Type: TYPE; Schema: application; Owner: -
+--
+
+CREATE TYPE application.push_notification_platform AS ENUM (
+    'apns',
+    'fcm'
+);
+
+
+--
+-- Name: role; Type: TYPE; Schema: application; Owner: -
+--
+
+CREATE TYPE application.role AS ENUM (
+    'administrator',
+    'user',
+    'guest'
+);
+
+
+--
+-- Name: user_status; Type: TYPE; Schema: application; Owner: -
+--
+
+CREATE TYPE application.user_status AS ENUM (
+    'up_to_date',
+    'deleted'
+);
+
+
+--
+-- Name: reaction_status; Type: TYPE; Schema: entities; Owner: -
+--
+
+CREATE TYPE entities.reaction_status AS ENUM (
+    'up_to_date',
+    'deleted'
+);
+
+
+--
+-- Name: vlog_status; Type: TYPE; Schema: entities; Owner: -
+--
+
+CREATE TYPE entities.vlog_status AS ENUM (
+    'up_to_date',
+    'deleted'
+);
+
+
+--
+-- Name: follow_request_create_statuscheck(); Type: FUNCTION; Schema: application; Owner: -
+--
+
+CREATE FUNCTION application.follow_request_create_statuscheck() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+	v_is_private bool;
+BEGIN
+
+	v_is_private := (
+		SELECT is_private 
+		FROM application.user
+		WHERE id = NEW.receiver_id);
+	
+	new.follow_request_status = case 
+		when v_is_private = false then 'accepted'::application.follow_request_status
+		else 'pending'::application.follow_request_status
+	end;
+
+	RETURN NEW;
+
+END;$$;
+
+
+--
+-- Name: follow_request_update_statuscheck(); Type: FUNCTION; Schema: application; Owner: -
+--
+
+CREATE FUNCTION application.follow_request_update_statuscheck() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+	v_is_private bool;
+BEGIN
+
+	v_is_private := (
+		SELECT is_private 
+		FROM application.user
+		WHERE id = NEW.receiver_id);
+	
+	IF (OLD.follow_request_status = 'declined'::application.follow_request_status) then
+	
+	new.follow_request_status = case 
+		when v_is_private = false then 'accepted'::application.follow_request_status
+		else 'pending'::application.follow_request_status
+	end;
+
+END IF;
+
+	RETURN NEW;
+
+END;$$;
+
+
+--
+-- Name: set_date_updated(); Type: FUNCTION; Schema: application; Owner: -
+--
+
+CREATE FUNCTION application.set_date_updated() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+	NEW.date_updated = now();
+
+	RETURN NEW;
+
+END;$$;
+
+
+--
+-- Name: vlog_delete_cascade_reactions_likes(); Type: FUNCTION; Schema: entities; Owner: -
+--
+
+CREATE FUNCTION entities.vlog_delete_cascade_reactions_likes() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$BEGIN
+
+	-- Hard delete all likes
+	DELETE FROM entities.vlog_like
+		WHERE vlog_id = OLD.id;
+		
+	-- Soft delete all up_to_date reactions
+	UPDATE entities.reaction
+		SET reaction_status = 'deleted'
+		WHERE target_vlog_id = OLD.id	;
+	
+	RETURN OLD;
+
+END;$$;
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: follow_request; Type: TABLE; Schema: application; Owner: -
+--
+
+CREATE TABLE application.follow_request (
+    requester_id uuid NOT NULL,
+    receiver_id uuid NOT NULL,
+    date_created timestamp with time zone DEFAULT now(),
+    follow_request_status application.follow_request_status DEFAULT 'pending'::application.follow_request_status NOT NULL,
+    date_updated timestamp(0) with time zone,
+    CONSTRAINT chk_follow_request_requester_receiver_not_identical CHECK ((requester_id <> receiver_id))
+);
+
+
+--
+-- Name: user; Type: TABLE; Schema: application; Owner: -
+--
+
+CREATE TABLE application."user" (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    access_failed_count integer DEFAULT 0 NOT NULL,
+    birth_date date,
+    country character varying(3),
+    email text NOT NULL,
+    email_confirmed boolean DEFAULT false NOT NULL,
+    is_private boolean DEFAULT false NOT NULL,
+    last_name text,
+    latitude double precision,
+    longitude double precision,
+    lockout_enabled boolean DEFAULT false NOT NULL,
+    nickname text NOT NULL,
+    normalized_email text NOT NULL,
+    password_hash text NOT NULL,
+    phone_number_confirmed boolean DEFAULT false NOT NULL,
+    timezone character varying(9) DEFAULT '+02:00'::text NOT NULL,
+    two_factor_enabled boolean DEFAULT false NOT NULL,
+    gender application.gender DEFAULT 'unspecified'::application.gender,
+    follow_mode application.follow_mode DEFAULT 'manual'::application.follow_mode NOT NULL,
+    daily_vlog_request_limit integer DEFAULT 3 NOT NULL,
+    role application.role,
+    security_stamp text,
+    phone_number text,
+    lockout_end timestamp with time zone,
+    first_name text,
+    create_date timestamp with time zone DEFAULT now() NOT NULL,
+    refresh_token_hash text,
+    has_profile_image boolean DEFAULT false NOT NULL,
+    user_status application.user_status DEFAULT 'up_to_date'::application.user_status NOT NULL,
+    CONSTRAINT chk_access_failed_count CHECK ((access_failed_count >= 0)),
+    CONSTRAINT chk_daily_vlog_request_limit CHECK (((daily_vlog_request_limit IS NULL) OR (daily_vlog_request_limit >= 0)))
+);
+
+
+--
+-- Name: follow_request_accepted; Type: VIEW; Schema: application; Owner: -
+--
+
+CREATE VIEW application.follow_request_accepted AS
+ SELECT fr.requester_id,
+    fr.receiver_id,
+    fr.date_created,
+    fr.follow_request_status,
+    fr.date_updated
+   FROM ((application.follow_request fr
+     LEFT JOIN application."user" ureq ON ((ureq.id = fr.requester_id)))
+     LEFT JOIN application."user" urec ON ((urec.id = fr.receiver_id)))
+  WHERE ((fr.follow_request_status = 'accepted'::application.follow_request_status) AND (ureq.user_status = 'up_to_date'::application.user_status) AND (urec.user_status = 'up_to_date'::application.user_status));
+
+
+--
+-- Name: notification_registration; Type: TABLE; Schema: application; Owner: -
+--
+
+CREATE TABLE application.notification_registration (
+    id uuid NOT NULL,
+    external_id text NOT NULL,
+    handle text NOT NULL,
+    push_notification_platform application.push_notification_platform NOT NULL
+);
+
+
+--
+-- Name: user_up_to_date; Type: VIEW; Schema: application; Owner: -
+--
+
+CREATE VIEW application.user_up_to_date AS
+ SELECT u.id,
+    u.access_failed_count,
+    u.birth_date,
+    u.country,
+    u.email,
+    u.email_confirmed,
+    u.is_private,
+    u.last_name,
+    u.latitude,
+    u.longitude,
+    u.lockout_enabled,
+    u.nickname,
+    u.normalized_email,
+    u.password_hash,
+    u.phone_number_confirmed,
+    u.timezone,
+    u.two_factor_enabled,
+    u.gender,
+    u.follow_mode,
+    u.daily_vlog_request_limit,
+    u.role,
+    u.security_stamp,
+    u.phone_number,
+    u.lockout_end,
+    u.first_name,
+    u.create_date,
+    u.refresh_token_hash,
+    u.has_profile_image,
+    u.user_status
+   FROM application."user" u
+  WHERE (u.user_status = 'up_to_date'::application.user_status);
+
+
+--
+-- Name: user_generic; Type: VIEW; Schema: application; Owner: -
+--
+
+CREATE VIEW application.user_generic AS
+ SELECT u.id,
+    u.birth_date,
+    u.country,
+    u.daily_vlog_request_limit,
+    u.first_name,
+    u.follow_mode,
+    u.gender,
+    u.has_profile_image,
+    u.is_private,
+    u.last_name,
+    u.latitude,
+    u.longitude,
+    u.nickname,
+    u.timezone
+   FROM application.user_up_to_date u;
+
+
+--
+-- Name: user_interests; Type: TABLE; Schema: application; Owner: -
+--
+
+CREATE TABLE application.user_interests (
+    user_id uuid NOT NULL,
+    interest_1 text,
+    interest_2 text,
+    interest_3 text
+);
+
+
+--
+-- Name: user_push_notification_details; Type: VIEW; Schema: application; Owner: -
+--
+
+CREATE VIEW application.user_push_notification_details AS
+ SELECT u.id AS user_id,
+    nr.push_notification_platform
+   FROM (application.user_up_to_date u
+     JOIN application.notification_registration nr ON ((u.id = nr.id)));
+
+
+--
+-- Name: reaction; Type: TABLE; Schema: entities; Owner: -
+--
+
+CREATE TABLE entities.reaction (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    target_vlog_id uuid NOT NULL,
+    length bigint,
+    date_created timestamp with time zone DEFAULT now() NOT NULL,
+    is_private boolean DEFAULT false NOT NULL,
+    reaction_status entities.reaction_status DEFAULT 'up_to_date'::entities.reaction_status NOT NULL
+);
+
+
+--
+-- Name: reaction_up_to_date; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.reaction_up_to_date AS
+ SELECT r.id,
+    r.user_id,
+    r.target_vlog_id,
+    r.length,
+    r.date_created,
+    r.is_private,
+    r.reaction_status
+   FROM (entities.reaction r
+     LEFT JOIN application.user_up_to_date u ON ((r.user_id = u.id)))
+  WHERE ((r.reaction_status = 'up_to_date'::entities.reaction_status) AND (u.user_status = 'up_to_date'::application.user_status));
+
+
+--
+-- Name: vlog; Type: TABLE; Schema: entities; Owner: -
+--
+
+CREATE TABLE entities.vlog (
+    id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    is_private boolean DEFAULT false NOT NULL,
+    date_created timestamp with time zone DEFAULT now() NOT NULL,
+    views bigint DEFAULT 0 NOT NULL,
+    length bigint DEFAULT 0,
+    vlog_status entities.vlog_status DEFAULT 'up_to_date'::entities.vlog_status NOT NULL
+);
+
+
+--
+-- Name: vlog_like; Type: TABLE; Schema: entities; Owner: -
+--
+
+CREATE TABLE entities.vlog_like (
+    vlog_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    date_created timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: vlog_up_to_date; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.vlog_up_to_date AS
+ SELECT v.id,
+    v.user_id,
+    v.is_private,
+    v.date_created,
+    v.views,
+    v.length,
+    v.vlog_status
+   FROM (entities.vlog v
+     LEFT JOIN application.user_up_to_date u ON ((v.user_id = u.id)))
+  WHERE ((v.vlog_status = 'up_to_date'::entities.vlog_status) AND (u.user_status = 'up_to_date'::application.user_status));
+
+
+--
+-- Name: user_with_stats; Type: VIEW; Schema: application; Owner: -
+--
+
+CREATE VIEW application.user_with_stats AS
+ SELECT u.id,
+    u.birth_date,
+    u.country,
+    u.daily_vlog_request_limit,
+    u.first_name,
+    u.follow_mode,
+    u.gender,
+    u.has_profile_image,
+    u.is_private,
+    u.last_name,
+    u.latitude,
+    u.longitude,
+    u.nickname,
+    u.timezone,
+    ( SELECT count(*) AS count
+           FROM application.follow_request_accepted fra
+          WHERE (fra.receiver_id = u.id)) AS total_followers,
+    ( SELECT count(*) AS count
+           FROM application.follow_request_accepted fra
+          WHERE (fra.requester_id = u.id)) AS total_following,
+    ( SELECT count(*) AS count
+           FROM entities.vlog_up_to_date vutd
+          WHERE (vutd.user_id = u.id)) AS total_vlogs,
+    ( SELECT count(*) AS count
+           FROM (entities.vlog_like vl
+             JOIN entities.vlog_up_to_date vutd ON ((vl.vlog_id = vutd.id)))
+          WHERE (vutd.user_id = u.id)) AS total_likes_received,
+    ( SELECT count(*) AS count
+           FROM (entities.reaction_up_to_date rutd
+             JOIN entities.vlog_up_to_date vutd ON ((rutd.target_vlog_id = vutd.id)))
+          WHERE (vutd.user_id = u.id)) AS total_reactions_received,
+    ( SELECT count(*) AS count
+           FROM entities.reaction_up_to_date rutd
+          WHERE (rutd.user_id = u.id)) AS total_reactions_given,
+    ( SELECT COALESCE(sum(v.views), (0)::numeric) AS "coalesce"
+           FROM entities.vlog v
+          WHERE (v.user_id = u.id)) AS total_views
+   FROM application.user_generic u;
+
+
+--
+-- Name: reaction_wrapper; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.reaction_wrapper AS
+ SELECT r.date_created AS reaction_date_created,
+    r.id AS reaction_id,
+    r.is_private AS reaction_is_private,
+    r.length AS reaction_length,
+    r.reaction_status AS reaction_reaction_status,
+    r.target_vlog_id AS reaction_target_vlog_id,
+    r.user_id AS reaction_user_id,
+    u.birth_date AS user_birth_date,
+    u.country AS user_country,
+    u.daily_vlog_request_limit AS user_daily_vlog_request_limit,
+    u.first_name AS user_first_name,
+    u.follow_mode AS user_follow_mode,
+    u.gender AS user_gender,
+    u.has_profile_image AS user_has_profile_image,
+    u.id AS user_id,
+    u.is_private AS user_is_private,
+    u.last_name AS user_last_name,
+    u.latitude AS user_latitude,
+    u.longitude AS user_longitude,
+    u.nickname AS user_nickname,
+    u.timezone AS user_timezone
+   FROM (entities.reaction_up_to_date r
+     LEFT JOIN application.user_generic u ON ((r.user_id = u.id)));
+
+
+--
+-- Name: vlog_like_nondeleted; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.vlog_like_nondeleted AS
+ SELECT vl.vlog_id,
+    vl.user_id,
+    vl.date_created
+   FROM (entities.vlog_like vl
+     JOIN entities.vlog_up_to_date v ON ((vl.vlog_id = v.id)));
+
+
+--
+-- Name: vlog_liking_user; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.vlog_liking_user AS
+ SELECT v.user_id AS vlog_owner_id,
+    fr.follow_request_status AS follow_request_status_or_null,
+    vl.vlog_id,
+    vl.user_id AS vlog_like_user_id,
+    vl.date_created AS vlog_like_date_created,
+    u.birth_date AS user_birth_date,
+    u.country AS user_country,
+    u.daily_vlog_request_limit AS user_daily_vlog_request_limit,
+    u.first_name AS user_first_name,
+    u.follow_mode AS user_follow_mode,
+    u.gender AS user_gender,
+    u.has_profile_image AS user_has_profile_image,
+    u.id AS user_id,
+    u.is_private AS user_is_private,
+    u.last_name AS user_last_name,
+    u.latitude AS user_latitude,
+    u.longitude AS user_longitude,
+    u.nickname AS user_nickname,
+    u.timezone AS user_timezone
+   FROM (((entities.vlog_up_to_date v
+     JOIN entities.vlog_like_nondeleted vl ON ((v.id = vl.vlog_id)))
+     JOIN application."user" u ON ((u.id = vl.user_id)))
+     LEFT JOIN application.follow_request fr ON (((fr.requester_id = v.user_id) AND (fr.receiver_id = vl.user_id))));
+
+
+--
+-- Name: vlog_wrapper; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.vlog_wrapper AS
+ WITH vlog_like_count AS (
+         SELECT vl.vlog_id,
+            count(vl.vlog_id) AS vlog_like_count
+           FROM entities.vlog_like_nondeleted vl
+          GROUP BY vl.vlog_id
+        ), reaction_count AS (
+         SELECT r.target_vlog_id AS vlog_id,
+            count(r.target_vlog_id) AS reaction_count
+           FROM entities.reaction_up_to_date r
+          GROUP BY r.target_vlog_id
+        )
+ SELECT v.date_created AS vlog_date_created,
+    v.id AS vlog_id,
+    v.is_private AS vlog_is_private,
+    v.length AS vlog_length,
+    v.user_id AS vlog_user_id,
+    v.views AS vlog_views,
+    v.vlog_status AS vlog_vlog_status,
+    u.birth_date AS user_birth_date,
+    u.country AS user_country,
+    u.daily_vlog_request_limit AS user_daily_vlog_request_limit,
+    u.first_name AS user_first_name,
+    u.follow_mode AS user_follow_mode,
+    u.gender AS user_gender,
+    u.has_profile_image AS user_has_profile_image,
+    u.id AS user_id,
+    u.is_private AS user_is_private,
+    u.last_name AS user_last_name,
+    u.latitude AS user_latitude,
+    u.longitude AS user_longitude,
+    u.nickname AS user_nickname,
+    u.timezone AS user_timezone,
+    COALESCE(vlc.vlog_like_count, (0)::bigint) AS vlog_like_count,
+    COALESCE(rc.reaction_count, (0)::bigint) AS reaction_count
+   FROM (((entities.vlog_up_to_date v
+     LEFT JOIN vlog_like_count vlc ON ((v.id = vlc.vlog_id)))
+     LEFT JOIN reaction_count rc ON ((rc.vlog_id = v.id)))
+     LEFT JOIN application.user_generic u ON ((v.user_id = u.id)));
+
+
+--
+-- Name: vlog_wrapper_with_reactions; Type: VIEW; Schema: entities; Owner: -
+--
+
+CREATE VIEW entities.vlog_wrapper_with_reactions AS
+ SELECT vw.vlog_date_created,
+    vw.vlog_id,
+    vw.vlog_is_private,
+    vw.vlog_length,
+    vw.vlog_user_id AS vlog_uploading_user_id,
+    vw.vlog_views,
+    vw.vlog_vlog_status,
+    vw.user_birth_date AS vlog_user_birth_date,
+    vw.user_country AS vlog_user_country,
+    vw.user_daily_vlog_request_limit AS vlog_user_daily_vlog_request_limit,
+    vw.user_first_name AS vlog_user_first_name,
+    vw.user_follow_mode AS vlog_user_follow_mode,
+    vw.user_gender AS vlog_user_gender,
+    vw.user_has_profile_image AS vlog_user_has_profile_image,
+    vw.user_id AS vlog_user_id,
+    vw.user_is_private AS vlog_user_is_private,
+    vw.user_last_name AS vlog_user_last_name,
+    vw.user_latitude AS vlog_user_latitude,
+    vw.user_longitude AS vlog_user_longitude,
+    vw.user_nickname AS vlog_user_nickname,
+    vw.user_timezone AS vlog_user_timezone,
+    vw.vlog_like_count,
+    vw.reaction_count,
+    rw.reaction_date_created,
+    rw.reaction_id,
+    rw.reaction_is_private,
+    rw.reaction_length,
+    rw.reaction_reaction_status,
+    rw.reaction_target_vlog_id,
+    rw.reaction_posting_user_id,
+    rw.reaction_user_birth_date,
+    rw.reaction_user_country,
+    rw.reaction_user_daily_vlog_request_limit,
+    rw.reaction_user_first_name,
+    rw.reaction_user_follow_mode,
+    rw.reaction_user_gender,
+    rw.reaction_user_has_profile_image,
+    rw.reaction_user_id,
+    rw.reaction_user_is_private,
+    rw.reaction_user_last_name,
+    rw.reaction_user_latitude,
+    rw.reaction_user_longitude,
+    rw.reaction_user_nickname,
+    rw.reaction_user_timezone
+   FROM (entities.vlog_wrapper vw
+     LEFT JOIN LATERAL ( SELECT rw_1.reaction_date_created,
+            rw_1.reaction_id,
+            rw_1.reaction_is_private,
+            rw_1.reaction_length,
+            rw_1.reaction_reaction_status,
+            rw_1.reaction_target_vlog_id,
+            rw_1.reaction_user_id AS reaction_posting_user_id,
+            rw_1.user_birth_date AS reaction_user_birth_date,
+            rw_1.user_country AS reaction_user_country,
+            rw_1.user_daily_vlog_request_limit AS reaction_user_daily_vlog_request_limit,
+            rw_1.user_first_name AS reaction_user_first_name,
+            rw_1.user_follow_mode AS reaction_user_follow_mode,
+            rw_1.user_gender AS reaction_user_gender,
+            rw_1.user_has_profile_image AS reaction_user_has_profile_image,
+            rw_1.user_id AS reaction_user_id,
+            rw_1.user_is_private AS reaction_user_is_private,
+            rw_1.user_last_name AS reaction_user_last_name,
+            rw_1.user_latitude AS reaction_user_latitude,
+            rw_1.user_longitude AS reaction_user_longitude,
+            rw_1.user_nickname AS reaction_user_nickname,
+            rw_1.user_timezone AS reaction_user_timezone
+           FROM entities.reaction_wrapper rw_1
+          WHERE (rw_1.reaction_target_vlog_id = vw.vlog_id)
+          ORDER BY rw_1.reaction_date_created DESC
+         LIMIT 25) rw ON ((rw.reaction_target_vlog_id = vw.vlog_id)));
+
+
+--
+-- Name: follow_request follow_request_composite_pkey; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.follow_request
+    ADD CONSTRAINT follow_request_composite_pkey PRIMARY KEY (requester_id, receiver_id);
+
+
+--
+-- Name: notification_registration notification_registration_pkey; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.notification_registration
+    ADD CONSTRAINT notification_registration_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notification_registration notification_registration_un; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.notification_registration
+    ADD CONSTRAINT notification_registration_un UNIQUE (external_id);
+
+
+--
+-- Name: user unique_user_email; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application."user"
+    ADD CONSTRAINT unique_user_email UNIQUE (email);
+
+
+--
+-- Name: user unique_user_nickname; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application."user"
+    ADD CONSTRAINT unique_user_nickname UNIQUE (nickname);
+
+
+--
+-- Name: user unique_user_normalized_email; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application."user"
+    ADD CONSTRAINT unique_user_normalized_email UNIQUE (normalized_email);
+
+
+--
+-- Name: user_interests user_interests_pkey; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.user_interests
+    ADD CONSTRAINT user_interests_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application."user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reaction reaction_pkey; Type: CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.reaction
+    ADD CONSTRAINT reaction_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vlog_like vlog_like_composite_pkey; Type: CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.vlog_like
+    ADD CONSTRAINT vlog_like_composite_pkey PRIMARY KEY (vlog_id, user_id);
+
+
+--
+-- Name: vlog vlog_pkey; Type: CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.vlog
+    ADD CONSTRAINT vlog_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: follow_request_follow_request_status_idx; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX follow_request_follow_request_status_idx ON application.follow_request USING btree (follow_request_status);
+
+
+--
+-- Name: idx_follow_request_receiver_id; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_follow_request_receiver_id ON application.follow_request USING btree (receiver_id);
+
+
+--
+-- Name: INDEX idx_follow_request_receiver_id; Type: COMMENT; Schema: application; Owner: -
+--
+
+COMMENT ON INDEX application.idx_follow_request_receiver_id IS 'The primary key made an index for (as first property in its table) requester_id, we need a separate one for receiver id.';
+
+
+--
+-- Name: idx_follow_request_requester_id; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_follow_request_requester_id ON application.follow_request USING btree (requester_id);
+
+
+--
+-- Name: idx_notification_registration_external_id; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_notification_registration_external_id ON application.notification_registration USING btree (external_id);
+
+
+--
+-- Name: idx_user_email; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_email ON application."user" USING btree (email);
+
+
+--
+-- Name: idx_user_interests_lower_1; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_interests_lower_1 ON application.user_interests USING btree (lower(interest_1) varchar_pattern_ops);
+
+
+--
+-- Name: idx_user_interests_lower_2; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_interests_lower_2 ON application.user_interests USING btree (lower(interest_2) varchar_pattern_ops);
+
+
+--
+-- Name: idx_user_interests_lower_3; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_interests_lower_3 ON application.user_interests USING btree (lower(interest_3) varchar_pattern_ops);
+
+
+--
+-- Name: idx_user_name_lower; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_name_lower ON application."user" USING btree (lower(nickname) varchar_pattern_ops);
+
+
+--
+-- Name: idx_user_nickname; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_nickname ON application."user" USING btree (nickname);
+
+
+--
+-- Name: idx_user_normalized_email; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX idx_user_normalized_email ON application."user" USING btree (normalized_email);
+
+
+--
+-- Name: user_user_status_idx; Type: INDEX; Schema: application; Owner: -
+--
+
+CREATE INDEX user_user_status_idx ON application."user" USING btree (user_status);
+
+
+--
+-- Name: idx_reaction_status; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX idx_reaction_status ON entities.reaction USING btree (reaction_status);
+
+
+--
+-- Name: idx_reaction_target_vlog_id; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX idx_reaction_target_vlog_id ON entities.reaction USING btree (target_vlog_id);
+
+
+--
+-- Name: idx_reaction_user_id; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX idx_reaction_user_id ON entities.reaction USING btree (user_id);
+
+
+--
+-- Name: idx_vlog_status; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX idx_vlog_status ON entities.vlog USING btree (vlog_status);
+
+
+--
+-- Name: idx_vlog_user_id; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX idx_vlog_user_id ON entities.vlog USING btree (user_id);
+
+
+--
+-- Name: reaction_date_created_idx; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX reaction_date_created_idx ON entities.reaction USING btree (date_created);
+
+
+--
+-- Name: reaction_target_vlog_id_idx; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX reaction_target_vlog_id_idx ON entities.reaction USING btree (target_vlog_id);
+
+
+--
+-- Name: reaction_user_id_idx; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX reaction_user_id_idx ON entities.reaction USING btree (user_id);
+
+
+--
+-- Name: vlog_date_created_idx; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX vlog_date_created_idx ON entities.vlog USING btree (date_created);
+
+
+--
+-- Name: vlog_like_date_created_idx; Type: INDEX; Schema: entities; Owner: -
+--
+
+CREATE INDEX vlog_like_date_created_idx ON entities.vlog_like USING btree (date_created);
+
+
+--
+-- Name: follow_request follow_request_create_statuscheck; Type: TRIGGER; Schema: application; Owner: -
+--
+
+CREATE TRIGGER follow_request_create_statuscheck BEFORE INSERT ON application.follow_request FOR EACH ROW EXECUTE FUNCTION application.follow_request_create_statuscheck();
+
+
+--
+-- Name: follow_request follow_request_update; Type: TRIGGER; Schema: application; Owner: -
+--
+
+CREATE TRIGGER follow_request_update BEFORE UPDATE ON application.follow_request FOR EACH ROW EXECUTE FUNCTION application.set_date_updated();
+
+
+--
+-- Name: follow_request follow_request_update_statuscheck; Type: TRIGGER; Schema: application; Owner: -
+--
+
+CREATE TRIGGER follow_request_update_statuscheck BEFORE UPDATE ON application.follow_request FOR EACH ROW EXECUTE FUNCTION application.follow_request_update_statuscheck();
+
+
+--
+-- Name: vlog vlog_delete; Type: TRIGGER; Schema: entities; Owner: -
+--
+
+CREATE TRIGGER vlog_delete BEFORE DELETE ON entities.vlog FOR EACH ROW EXECUTE FUNCTION entities.vlog_delete_cascade_reactions_likes();
+
+
+--
+-- Name: follow_request fk_follow_request_receiver_id; Type: FK CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.follow_request
+    ADD CONSTRAINT fk_follow_request_receiver_id FOREIGN KEY (receiver_id) REFERENCES application."user"(id) NOT VALID;
+
+
+--
+-- Name: follow_request fk_follow_request_requester_id; Type: FK CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.follow_request
+    ADD CONSTRAINT fk_follow_request_requester_id FOREIGN KEY (requester_id) REFERENCES application."user"(id) NOT VALID;
+
+
+--
+-- Name: notification_registration fk_notification_registration_user_id; Type: FK CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.notification_registration
+    ADD CONSTRAINT fk_notification_registration_user_id FOREIGN KEY (id) REFERENCES application."user"(id) NOT VALID;
+
+
+--
+-- Name: user_interests user_interests_user_id_fkey; Type: FK CONSTRAINT; Schema: application; Owner: -
+--
+
+ALTER TABLE ONLY application.user_interests
+    ADD CONSTRAINT user_interests_user_id_fkey FOREIGN KEY (user_id) REFERENCES application."user"(id);
+
+
+--
+-- Name: reaction fk_reaction_target_vlog_id; Type: FK CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.reaction
+    ADD CONSTRAINT fk_reaction_target_vlog_id FOREIGN KEY (target_vlog_id) REFERENCES entities.vlog(id) NOT VALID;
+
+
+--
+-- Name: reaction fk_reaction_user_id; Type: FK CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.reaction
+    ADD CONSTRAINT fk_reaction_user_id FOREIGN KEY (user_id) REFERENCES application."user"(id) NOT VALID;
+
+
+--
+-- Name: vlog_like fk_vlog_like_user_id; Type: FK CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.vlog_like
+    ADD CONSTRAINT fk_vlog_like_user_id FOREIGN KEY (user_id) REFERENCES application."user"(id) NOT VALID;
+
+
+--
+-- Name: vlog_like fk_vlog_like_vlog_id; Type: FK CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.vlog_like
+    ADD CONSTRAINT fk_vlog_like_vlog_id FOREIGN KEY (vlog_id) REFERENCES entities.vlog(id) NOT VALID;
+
+
+--
+-- Name: vlog fk_vlog_user_id; Type: FK CONSTRAINT; Schema: entities; Owner: -
+--
+
+ALTER TABLE ONLY entities.vlog
+    ADD CONSTRAINT fk_vlog_user_id FOREIGN KEY (user_id) REFERENCES application."user"(id) NOT VALID;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
