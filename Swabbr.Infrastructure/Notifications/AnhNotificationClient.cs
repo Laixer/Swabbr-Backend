@@ -35,7 +35,7 @@ namespace Swabbr.Infrastructure.Notifications
         /// <summary>
         ///     Contains settings for polymorphic json serialization.
         /// </summary>
-        private readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
+        private readonly JsonSerializerSettings jsonSettings = new()
         {
             //TypeNameHandling = TypeNameHandling.Objects,
             SerializationBinder = new KnownTypesBinder

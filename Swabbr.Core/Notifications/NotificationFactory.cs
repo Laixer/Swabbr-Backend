@@ -117,7 +117,7 @@ namespace Swabbr.Core.Notifications
         /// <param name="notifiedUserId">Notified user.</param>
         /// <returns>Context object.</returns>
         protected virtual NotificationContext DefaultContext(Guid notifiedUserId)
-            => new NotificationContext 
+            => new()
             {
                 DateSent = DateTimeOffset.Now,
                 NotifiedUserId = notifiedUserId
