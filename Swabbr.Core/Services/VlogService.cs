@@ -228,8 +228,9 @@ namespace Swabbr.Core.Services
 
             await _vlogRepository.CreateAsync(vlog);
 
+            // TODO AppContext.UserId returned Guid.Empty. Why? --> context.UserId will work.
             // This function will dispatch a notification for each follower.
-            await _notificationService.NotifyFollowersVlogPostedAsync(AppContext.UserId, context.VlogId);
+            await _notificationService.NotifyFollowersVlogPostedAsync(context.UserId, context.VlogId);
         }
 
         /// <summary>

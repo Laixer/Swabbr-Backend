@@ -19,7 +19,8 @@ namespace Swabbr.Infrastructure.Repositories
     internal class UserRepository : DatabaseContextBase, IUserRepository
     {
         /// <summary>
-        ///     Checks if a user exists in our data store.
+        ///     Checks if a user exists in our data store. Note that 
+        ///     any deleted users will not be found by this method.
         /// </summary>
         /// <param name="id">The user id.</param>
         public async Task<bool> ExistsAsync(Guid id)
@@ -27,7 +28,7 @@ namespace Swabbr.Infrastructure.Repositories
             var sql = @"
                     SELECT  EXISTS (
                         SELECT  1
-                        FROM    application.user AS u
+                        FROM    application.user_up_to_date AS u
                         WHERE   u.id = @id
                     )";
 
@@ -39,7 +40,8 @@ namespace Swabbr.Infrastructure.Repositories
         }
 
         /// <summary>
-        ///     Checks if a nickname already exists.
+        ///     Checks if a nickname already exists. Deleted nicknames
+        ///     are also checked by this method.
         /// </summary>
         /// <param name="nickname">The nickname to check for.</param>
         public async Task<bool> ExistsNicknameAsync(string nickname)
@@ -457,7 +459,7 @@ namespace Swabbr.Infrastructure.Repositories
                             uws.last_name,
                             uws.latitude,
                             uws.longitude,
-                            uws.nickname
+                            uws.nickname,
                             uws.timezone,
                             
                             -- Statistics
@@ -545,7 +547,7 @@ namespace Swabbr.Infrastructure.Repositories
 			                AND
 			                fr.receiver_id = r.id";
 
-            sql = ConstructNavigation(sql, navigation, "u.nickname");
+            sql = ConstructNavigation(sql, navigation, "r.nickname");
 
             await using var context = await CreateNewDatabaseContext(sql);
 
@@ -584,7 +586,7 @@ namespace Swabbr.Infrastructure.Repositories
             }
 
             var sql = @"
-                    UPDATE  application.user
+                    UPDATE  application.user_up_to_date
                     SET     birth_date = @birth_date,
                             country = @country,
                             daily_vlog_request_limit = @daily_vlog_request_limit,

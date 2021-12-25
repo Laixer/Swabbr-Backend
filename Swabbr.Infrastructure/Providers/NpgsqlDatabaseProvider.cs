@@ -40,6 +40,7 @@ namespace Swabbr.Infrastructure.Providers
             NpgsqlConnection.GlobalTypeMapper.MapEnum<Gender>("application.gender");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PushNotificationPlatform>("application.push_notification_platform");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ReactionStatus>("entities.reaction_status");
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<UserStatus>("entities.user_status");
             NpgsqlConnection.GlobalTypeMapper.MapEnum<VlogStatus>("entities.vlog_status");
         }
 

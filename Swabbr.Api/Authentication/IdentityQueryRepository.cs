@@ -41,13 +41,24 @@ namespace Swabbr.Api.Authentication
                     @Nickname
                 ) RETURNING id";
 
+            queryRepository.DeleteAsync = @"
+                UPDATE      application.user AS u
+                SET         user_status = 'deleted'
+                WHERE       u.id = @Id";
+
+            // TODO Is this correct? When will we use this?
             queryRepository.FindByNameAsync = @"
                 SELECT *
-                FROM application.user
+                FROM application.user_up_to_date
                 WHERE normalized_email=@NormalizedUserName";
 
+            queryRepository.FindByEmailAsync = @"
+                SELECT *
+                FROM application.user_up_to_date
+                WHERE normalized_email=@NormalizedEmail";
+
             queryRepository.UpdateAsync = @"
-                UPDATE application.user
+                UPDATE application.user_up_to_date
                 SET    email = @Email,
                        normalized_email = @NormalizedEmail,
                        email_confirmed = @EmailConfirmed,
@@ -62,27 +73,27 @@ namespace Swabbr.Api.Authentication
 
             queryRepository.FindByIdAsync = $@"
                 SELECT *
-                FROM application.user
+                FROM application.user_up_to_date
                 WHERE Id=@Id::uuid
                 LIMIT 1";
 
             queryRepository.AddToRoleAsync = $@"
-                UPDATE application.user
+                UPDATE application.user_up_to_date
                 SET role = @Role
                 WHERE id=@Id";
 
             queryRepository.GetRolesAsync = $@"
                 SELECT role
-                FROM application.user
+                FROM application.user_up_to_date
                 WHERE id=@Id";
 
             queryRepository.GetUsersInRoleAsync = $@"
                 SELECT *
-                FROM application.user
+                FROM application.user_up_to_date
                 WHERE role=@Role";
 
             queryRepository.RemoveFromRoleAsync = $@"
-                UPDATE application.user
+                UPDATE application.user_up_to_date
                 SET role = 'user'
                 WHERE id=@Id";
         }
