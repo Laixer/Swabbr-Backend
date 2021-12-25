@@ -1,8 +1,7 @@
 # Swabbr Ecosystem
 
 # Build the application solution
-# Fixes the CA issue https://github.com/NuGet/Home/issues/10491
-FROM mcr.microsoft.com/dotnet/sdk:5.0.102-ca-patch-buster-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /source
 
 # Copy and restore app
@@ -24,7 +23,7 @@ RUN git rev-parse HEAD > /app/COMMIT
 # Any Swabbr application in the repository can
 # be called via the CMD=<application> environment
 # variable.
-FROM mcr.microsoft.com/dotnet/aspnet:5.0
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 ENV DOTNET_PRINT_TELEMETRY_MESSAGE=false
 WORKDIR /app
 COPY --from=build /app .
