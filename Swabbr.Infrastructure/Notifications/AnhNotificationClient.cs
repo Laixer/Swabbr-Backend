@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Swabbr.Core.Entities;
 using Swabbr.Core.Interfaces.Clients;
 using Swabbr.Core.Notifications;
@@ -163,6 +164,10 @@ namespace Swabbr.Infrastructure.Notifications
             {
                 case PushNotificationPlatform.APNS:
                     var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
+                    jsonSettings.ContractResolver = new DefaultContractResolver
+                    {
+                        NamingStrategy = new CamelCaseNamingStrategy()
+                    };
                     var jsonApns = JsonConvert.SerializeObject(objApns, jsonSettings);
                     await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
                     return;
