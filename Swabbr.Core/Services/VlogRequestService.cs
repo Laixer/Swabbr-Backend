@@ -55,9 +55,9 @@ public class VlogRequestService : IVlogRequestService
     {
         _logger.LogTrace($"Sending vlog requests for minute {minute}");
 
-        // await foreach (var user in _userSelectionService.GetForMinuteAsync(minute))
-        // {
-        await SendVlogRequestToUserAsync(Guid.Parse("50b14a8b-a7fd-4244-a1cd-f7bcfc0ef408"));
-        // }
+        await foreach (var user in _userSelectionService.GetForMinuteAsync(minute))
+        {
+            await SendVlogRequestToUserAsync(user.Id);
+        }
     }
 }
