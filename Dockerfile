@@ -25,6 +25,7 @@ RUN git rev-parse HEAD > /app/COMMIT
 # variable.
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 ENV DOTNET_PRINT_TELEMETRY_MESSAGE=false
+ENV Logging__Console__FormatterName=Simple
 WORKDIR /app
 COPY --from=build /app .
 EXPOSE 80/tcp

@@ -10,9 +10,6 @@ namespace Swabbr.Core.Notifications
     /// </summary>
     public class NotificationFactory : INotificationFactory
     {
-        internal static string DefaultTitle => "Default notification title";
-        internal static string DefaultMessage => "Default notification message";
-
         /// <summary>
         ///     Build a notification for indicating that a followed
         ///     profile has posted a vlog.
@@ -31,9 +28,7 @@ namespace Swabbr.Core.Notifications
                 {
                     VlogId = vlogId,
                     VlogOwnerUserId = vlogOwnerUserId,
-                }, 
-                title: DefaultTitle, 
-                message: DefaultMessage);
+                });
 
             return context;
         }
@@ -58,9 +53,7 @@ namespace Swabbr.Core.Notifications
                     RequestMoment = requestMoment,
                     RequestTimeout = requestTimeout,
                     VlogId = vlogId,
-                }, 
-                title: DefaultTitle, 
-                message: DefaultMessage);
+                });
 
             return context;
         }
@@ -83,9 +76,7 @@ namespace Swabbr.Core.Notifications
                 {
                     UserThatLikedId = userThatLikedId,
                     VlogId = vlogId,
-                }, 
-                title: DefaultTitle, 
-                message: DefaultMessage);
+                });
 
             return context;
         }
@@ -106,7 +97,7 @@ namespace Swabbr.Core.Notifications
             {
                 ReactionId = reactionId,
                 VlogId = vlogId,
-            }, title: DefaultTitle, message: DefaultMessage);
+            });
 
             return context;
         }
