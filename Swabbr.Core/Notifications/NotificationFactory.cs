@@ -28,7 +28,7 @@ namespace Swabbr.Core.Notifications
                 {
                     VlogId = vlogId,
                     VlogOwnerUserId = vlogOwnerUserId,
-                });
+                }, title: "Default message", message: "Default message");
 
             return context;
         }
@@ -53,7 +53,7 @@ namespace Swabbr.Core.Notifications
                     RequestMoment = requestMoment,
                     RequestTimeout = requestTimeout,
                     VlogId = vlogId,
-                });
+                }, title: "Default message", message: "Default message");
 
             return context;
         }
@@ -76,7 +76,7 @@ namespace Swabbr.Core.Notifications
                 {
                     UserThatLikedId = userThatLikedId,
                     VlogId = vlogId,
-                });
+                }, title: "Default message", message: "Default message");
 
             return context;
         }
@@ -97,7 +97,7 @@ namespace Swabbr.Core.Notifications
             {
                 ReactionId = reactionId,
                 VlogId = vlogId,
-            });
+            }, title: "Default message", message: "Default message");
 
             return context;
         }
