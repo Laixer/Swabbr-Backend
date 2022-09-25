@@ -25,6 +25,11 @@ internal static class FcmJsonExtractor
 
         return new FcmContentWrapper
         {
+            Notification = new FcmContentNotification
+            {
+                Title = swabbrNotification.Data.Title,
+                Body = swabbrNotification.Data.Title,
+            },
             Data = new SubData
             {
                 Payload = swabbrNotification
