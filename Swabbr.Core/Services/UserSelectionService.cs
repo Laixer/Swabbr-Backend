@@ -105,10 +105,10 @@ namespace Swabbr.Core.Services
 
                         // Only return the user if none of the other minutes were
                         // within (before) the interval of the currently selected minute.
-                        if (!withinMinimumInterval)
-                        {
+//                         if (!withinMinimumInterval)
+//                         {
                             yield return user;
-                        }
+//                         }
                     }
                 }
             }
