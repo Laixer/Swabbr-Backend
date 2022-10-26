@@ -178,7 +178,7 @@ public class AnhNotificationClient : INotificationClient
                     var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
                     jsonSettings.ContractResolver = new DefaultContractResolver
                     {
-                        NamingStrategy = new Newtonsoft.Json.Serialization.DefaultNamingStrategy()
+                        NamingStrategy = new DefaultNamingStrategy()
                     };
                     var jsonFcm = JsonConvert.SerializeObject(objFcm, jsonSettings);
                     await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());

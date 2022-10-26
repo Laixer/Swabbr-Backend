@@ -20,11 +20,6 @@ namespace Swabbr.Core.Services
         private static readonly UTF8Encoding encoder = new UTF8Encoding();
 
         /// <summary>
-        ///     We enforce a minimum request interval of 60 minutes.
-        /// </summary>
-        private static readonly int interval = 60;
-
-        /// <summary>
         ///     Create new instance.
         /// </summary>
         public UserSelectionService(IUserService userService,
@@ -94,6 +89,8 @@ namespace Swabbr.Core.Services
                     {
                         var withinMinimumInterval = false;
 
+                        var interval = (_options.VlogRequestEndTimeMinutes - _options.VlogRequestStartTimeMinutes) / (requestCount * 5);
+
                         for (int j = 0; j < requestCount; j++)
                         {
                             var delta = minutes[i] - minutes[j];
@@ -105,10 +102,10 @@ namespace Swabbr.Core.Services
 
                         // Only return the user if none of the other minutes were
                         // within (before) the interval of the currently selected minute.
-//                         if (!withinMinimumInterval)
-//                         {
+                        if (!withinMinimumInterval)
+                        {
                             yield return user;
-//                         }
+                        }
                     }
                 }
             }
@@ -135,9 +132,9 @@ namespace Swabbr.Core.Services
         /// <returns>The minute in the day based on the inputs</returns>
         protected int GetHashMinute(User user, DateTime day, uint requestIndex)
         {
-            if (user is null) 
+            if (user is null)
             {
-                throw new ArgumentNullException(nameof(user)); 
+                throw new ArgumentNullException(nameof(user));
             }
             if (user.Id == Guid.Empty)
             {
