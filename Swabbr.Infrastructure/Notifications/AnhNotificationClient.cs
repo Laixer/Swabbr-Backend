@@ -163,19 +163,27 @@ public class AnhNotificationClient : INotificationClient
         switch (pushDetails.PushNotificationPlatform)
         {
             case PushNotificationPlatform.APNS:
-                var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
-                jsonSettings.ContractResolver = new DefaultContractResolver
                 {
-                    NamingStrategy = new CamelCaseNamingStrategy()
-                };
-                var jsonApns = JsonConvert.SerializeObject(objApns, jsonSettings);
-                await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
-                return;
+                    var objApns = NotificationJsonExtractor.Extract(PushNotificationPlatform.APNS, notification);
+                    jsonSettings.ContractResolver = new DefaultContractResolver
+                    {
+                        NamingStrategy = new CamelCaseNamingStrategy()
+                    };
+                    var jsonApns = JsonConvert.SerializeObject(objApns, jsonSettings);
+                    await _hubClient.SendAppleNativeNotificationAsync(jsonApns, pushDetails.UserId.ToString());
+                    return;
+                }
             case PushNotificationPlatform.FCM:
-                var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
-                var jsonFcm = JsonConvert.SerializeObject(objFcm, jsonSettings);
-                await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
-                return;
+                {
+                    var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
+                    jsonSettings.ContractResolver = new DefaultContractResolver
+                    {
+                        NamingStrategy = new Newtonsoft.Json.Serialization.DefaultNamingStrategy()
+                    };
+                    var jsonFcm = JsonConvert.SerializeObject(objFcm, jsonSettings);
+                    await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
+                    return;
+                }
             default:
                 throw new InvalidOperationException(nameof(pushDetails.PushNotificationPlatform));
         }
