@@ -8,7 +8,7 @@ internal sealed class FcmContentWrapper : NotificationWrapperJsonBase
     /// <summary>
     ///     Subwrapper.
     /// </summary>
-    public FcmContentNotification Notification { get; set; }
+//     public FcmContentNotification Notification { get; set; }
 }
 
 /// <summary>
