@@ -176,11 +176,7 @@ public class AnhNotificationClient : INotificationClient
             case PushNotificationPlatform.FCM:
                 {
                     var objFcm = NotificationJsonExtractor.Extract(PushNotificationPlatform.FCM, notification);
-                    jsonSettings.ContractResolver = new DefaultContractResolver
-                    {
-                        NamingStrategy = new DefaultNamingStrategy()
-                    };
-                    var jsonFcm = JsonConvert.SerializeObject(objFcm, jsonSettings);
+                    var jsonFcm = JsonConvert.SerializeObject(objFcm);
                     await _hubClient.SendFcmNativeNotificationAsync(jsonFcm, pushDetails.UserId.ToString());
                     return;
                 }
